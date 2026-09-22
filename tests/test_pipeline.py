@@ -60,7 +60,10 @@ class PipelineTests(unittest.TestCase):
             build_site(document, {}, ROOT / "templates/page.html", output)
             page = output.read_text(encoding="utf-8")
             soup = BeautifulSoup(page, "html.parser")
-            self.assertEqual(len(soup.select(".sidebar a")), 102)
+            self.assertEqual(len(soup.select(".pair")), sum(
+                block["kind"] not in {"figure", "footnote"}
+                for block in document["contents"]
+            ))
             self.assertEqual(len(soup.select(".draft-badge")), baseline + 1)
 
             block["html_ja"] = "古い訳"
