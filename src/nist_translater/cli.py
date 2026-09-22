@@ -78,7 +78,7 @@ def build():
         raise FileNotFoundError("Blocks missing. Run: python3 main.py parse")
     document = read_json(DOCUMENT)
     audit_translations(document)
-    output = ROOT / "site"
+    output = ROOT / "html"
     output.mkdir(exist_ok=True)
     build_site(document, {"fetched_at": document.get("source_fetched_at")},
                ROOT / "templates" / "page.html", output / "sp800-63b.html")

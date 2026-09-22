@@ -14,7 +14,7 @@ python3 -m venv .venv
 pip install -r requirements.txt
 python3 main.py parse
 python3 main.py build
-python3 -m http.server 8000 --directory site
+python3 -m http.server 8000 --directory html
 ```
 
 ブラウザーで `http://localhost:8000/sp800-63b.html` を開きます。生成時のネット接続は不要です。原文更新時だけ、NIST から `data/sp800-63b.html` を一時取得して段落を抽出し、成功後に削除します。
@@ -68,7 +68,7 @@ data/sp800-63b.html      NIST 原文の一時取得先（Git 管理外・抽出�
 data/sp800-63b-trans.json 原文、訳文、原文ハッシュ、レビュー状態
 templates/page.html        ページテンプレート
 static/style.css           スタイル
-site/                      生成ページ（Git 管理外）
+html/                      生成ページ（Git 管理対象）
 tests/                     パーサーと訳文更新の検証
 ```
 
