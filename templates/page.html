@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NIST SP 800-63B-4 の英文と日本語訳を並べて読むための非公式サイト">
+  <title>{{ title }} | 英日対訳</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top">{{ title }} <span>英日対訳</span></a>
+      <nav aria-label="資料へのリンク">
+        <a href="{{ source_url }}">NIST HTML 原文</a>
+        <a href="{{ pdf_url }}">正式版 PDF</a>
+      </nav>
+    </div>
+  </header>
+  <div class="layout" id="top">
+    <aside class="sidebar" aria-label="目次">
+      <div class="sidebar-title">目次</div>
+      <nav>
+      {% for heading in headings if heading.level <= 3 %}
+        <a class="toc-level-{{ heading.level }}" href="#{{ heading.id }}">{{ heading.text }}</a>
+      {% endfor %}
+      </nav>
+    </aside>
+    <main>
+      <div class="intro">
+        <p class="eyebrow">Digital Identity Guidelines · Revision 4</p>
+        <h1>Authentication &amp; Authenticator Management</h1>
+        <p>NIST SP 800-63B の英文と日本語訳を段落ごとに並べた閲覧用ページです。翻訳は非公式です。要件の確認には<a href="{{ pdf_url }}">NIST の正式版 PDF</a>を参照してください。</p>
+        <div class="metadata">
+          <span>原文取得日: {{ fetched_at }}</span>
+          <span>訳文: {{ translated }} / {{ total }} ブロック</span>
+          {% if stale %}<span>原文変更により要再確認: {{ stale }}</span>{% endif %}
+        </div>
+        <div class="legend"><span>English / 原文</span><span>日本語 / 翻訳</span></div>
+      </div>
+
+      {% for block in blocks %}
+      {% if block.kind in ['figure', 'footnote'] %}
+      <section class="source-only" aria-label="原文の{{ '図表' if block.kind != 'footnote' else '脚注' }}">
+        <div class="block-label">{{ '図表は原文を表示' if block.kind != 'footnote' else '脚注原文' }}</div>
+        <div class="source-content">{{ block.english_html }}</div>
+      </section>
+      {% else %}
+      <section class="pair {{ block.kind }}{% if block.kind == 'list_item' %} depth-{{ block.depth }}{% endif %}"{% if block.kind == 'heading' %} id="{{ block.id }}"{% endif %}>
+        <div class="english" lang="en">
+          {% if block.kind == 'heading' %}
+          <h{{ block.level + 1 }}>{{ block.english_html }}</h{{ block.level + 1 }}>
+          {% elif block.kind == 'table' %}{{ block.english_html }}
+          {% else %}<p>{% if block.kind == 'list_item' %}<span class="list-marker">{{ block.ordinal ~ '.' if block.ordered else '•' }}</span>{% endif %}{{ block.english_html }}</p>{% endif %}
+        </div>
+        <div class="japanese" lang="ja">
+          {% if block.kind == 'heading' %}<h{{ block.level + 1 }}>
+          {% elif block.kind != 'table' %}<p>{% endif %}
+          {% if block.kind == 'list_item' %}<span class="list-marker">{{ block.ordinal ~ '.' if block.ordered else '•' }}</span>{% endif %}{% if block.html_ja %}{{ block.japanese_html }}{% else %}<span class="pending">{{ '原文更新後、再確認待ち' if block.status == 'stale' else '翻訳準備中' }}</span>{% endif %}
+          {% if block.kind == 'heading' %}</h{{ block.level + 1 }}>{% elif block.kind != 'table' %}</p>{% endif %}
+          {% if block.status == 'draft' and block.html_ja %}<span class="draft-badge">未レビュー訳</span>{% endif %}
+        </div>
+      </section>
+      {% endif %}
+      {% endfor %}
+      <footer>
+        <p>非公式の日本語訳です。原文の出典: <a href="{{ source_url }}">National Institute of Standards and Technology, SP 800-63B-4</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
