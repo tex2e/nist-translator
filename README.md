@@ -1,8 +1,15 @@
-# NIST SP 800-63B 英日対訳サイト
+# NIST SP 800-63-4 英日対訳サイト
 
-NIST の [SP 800-63B-4 HTML](https://pages.nist.gov/800-63-4/sp800-63b.html) を段落単位に分解し、原文と日本語訳を並べた静的ページを生成します。現在の対訳データは全文を `draft`（未レビュー訳）として収録しています。
+NIST SP 800-63 Revision 4 の4巻（63、63A、63B、63C）を段落単位に分解し、原文と日本語訳を並べた静的ページを生成します。既存の63B訳は `draft`（未レビュー訳）です。新しい巻のページは、訳文を追加するまでは翻訳準備中として原文を表示します。
 
-NIST の[正式版 PDF](https://doi.org/10.6028/NIST.SP.800-63b-4)を要件確認の基準にしてください。このサイトは非公式の閲覧用資料です。
+NIST の正式版PDFを要件確認の基準にしてください。このサイトは非公式の閲覧用資料です。
+
+| 巻 | 内容 | 生成ページ |
+| --- | --- | --- |
+| SP 800-63-4 | Digital Identity Guidelines | `html/sp800-63.html` |
+| SP 800-63A-4 | Identity Proofing & Enrollment | `html/sp800-63a.html` |
+| SP 800-63B-4 | Authentication & Authenticator Management | `html/sp800-63b.html` |
+| SP 800-63C-4 | Federation & Assertions | `html/sp800-63c.html` |
 
 ## セットアップと生成
 
@@ -12,63 +19,55 @@ Python 3.9 以降を使用します。
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-python3 main.py parse
-python3 main.py build
+python3 main.py update --document 63a
 python3 -m http.server 8000 --directory html
 ```
 
-ブラウザーで `http://localhost:8000/sp800-63b.html` を開きます。生成時のネット接続は不要です。原文更新時だけ、NIST から `data/sp800-63b.html` を一時取得して段落を抽出し、成功後に削除します。
+`--document` には `63`、`63a`、`63b`、`63c` を指定します。省略時は従来どおり `63b` です。`update` はNISTから原文を取得し、JSONを作成または更新してHTMLを出力します。各処理は個別にも実行できます。
 
-原文を取り直す場合は `python3 main.py update` を実行します。`fetch`、`parse`、`build` を個別に実行することもできます。
+```sh
+python3 main.py fetch --document 63c
+python3 main.py parse --document 63c
+python3 main.py build --document 63c
+```
+
+HTMLは `http://localhost:8000/sp800-63c.html` で確認できます。生成時は原文取得のためネット接続が必要です。取得したHTMLは解析成功後に削除されます。
 
 ## 訳文の追加
 
 ### agy による自動翻訳
 
-`agy` がインストール済みでログインできる環境では、次のコマンドで未翻訳の先頭 10 ブロックを翻訳します。完了したバッチから `sp800-63b-trans.json` に保存され、再実行すると未翻訳分から再開します。訳はすべて `draft` です。`--effort low` を指定すると高速化できますが、規範語やタグの検証に失敗したバッチは標準推論で再試行します。
+`agy` が使える環境では、指定した巻の未翻訳ブロックを翻訳できます。完了したバッチは該当する `data/sp800-63*-trans.json` に保存され、再実行すると未翻訳分から再開します。訳は `draft` です。
 
 ```sh
-python3 main.py translate
+python3 main.py translate --document 63a
+python3 main.py translate --document 63c --limit 30 --batch-size 8 --timeout 180
+python3 main.py translate --document 63a --limit 0 --dry-run
 ```
 
-実行量を指定する例です。既定では1回あたり最大8ブロック・英文5,000文字をまとめます。バッチの応答が壊れた場合は再試行し、それでも失敗すれば小さなバッチに分けます。`--limit 0` は残りすべてを対象にするため、先に少数で出力を確認してください。
+既定では1回あたり最大8ブロック・英文5,000文字をまとめます。表のHTMLも翻訳入力に含まれます。全文実行前に `--dry-run` で呼び出し回数と対象量を確認してください。
 
-```sh
-python3 main.py translate --limit 0 --dry-run
-python3 main.py translate --limit 30 --batch-size 8 --timeout 180
-python3 main.py translate --cli gemini --limit 10
-```
-
-全文の実行量は `--dry-run` で確認できます。表の HTML も入力に含むため、呼び出し回数とトークン量は本文だけを渡す場合より増えます。`agy` の固定的なコンテキスト読み込みも大きいため、全文実行前に少数の訳と利用量を確認してください。
-
-`agy` は `--output-format json --json-schema` を指定し、返答の `structured_output` を読みます。公式の `gemini` CLI は `--approval-mode plan --output-format json` の `response` を読みます。どちらも Python の `subprocess` に引数配列を渡し、シェルは使いません。翻訳依頼時はHTMLタグをプレースホルダーに置き換え、モデルが本文だけを翻訳できるようにしてから元のタグを復元します。モデルがツールを要求して拒否された場合、空の応答や不正な JSON を返した場合、ID・原文ハッシュ・件数が一致しない場合はそのバッチを破棄します。規範語 `SHALL` などが原文にある場合、訳文に残っていることも確認します。各バッチは検証後に一時ファイルを介して原子的に保存するため、失敗したバッチで既存の文書 JSON を壊しません。
-
-翻訳対象は本文だけでなく表も含みます。原文の `html` と訳文の `html_ja` は、タグ名・全属性（リンク先を含む）が一致し、閉じタグが正しく対応しなければ保存できません。翻訳が変更できるのは HTML のテキストノードだけです。この検証は `import`、`translate`、`build` のすべてで実行されます。
-
-この検証が保証するのは JSON の構造と原文との対応です。訳の意味や規範表現が正確かどうかは人手でレビューしてください。
+翻訳依頼時はHTMLタグをプレースホルダーに置き換え、モデルが本文だけを翻訳できるようにしてから元のタグを復元します。返答のID・原文ハッシュ・件数・HTML構造・規範語を検証し、検証に通ったバッチだけを原子的に保存します。JSON検証が保証するのは構造と原文との対応です。訳の意味や規範表現の正確さは人手でレビューしてください。
 
 ### 手動で訳文を追加
 
-`data/sp800-63b-trans.json` の対象要素を直接編集します。`html_ja` へ訳文を入れ、`status` を `draft` または `reviewed` に設定してから、次を実行します。
+各巻の `data/sp800-63*-trans.json` の対象要素を編集します。`html_ja` に訳文を入れ、`status` を `draft` または `reviewed` に設定してから、その巻のページを再生成します。
 
 ```sh
-python3 main.py build
+python3 main.py build --document 63a
 ```
 
-各要素は `html` と `html_ja` を並べて持ちます。原文は重複した `text` を持ちません。追加フィールドは `id`、`source_hash`、`status` です。原文が変化した要素は `status: "stale"` となり、公開ページでは旧訳を表示しません。
-
-表・図・脚注は原文を表示します。外部参照は NIST の URL にリンクします。
+各要素は原文 `html` と訳文 `html_ja` を持ちます。追加フィールドは `id`、`source_hash`、`status` です。原文が変化した要素は `status: "stale"` となり、公開ページでは旧訳を表示しません。図と脚注は原文を表示します。
 
 ## 構成
 
 ```text
 main.py                    コマンド入口
 src/nist_translater/       取得・構造化・訳文管理・ページ生成
-data/sp800-63b.html      NIST 原文の一時取得先（Git 管理外・抽出成功後に削除）
-data/sp800-63b-trans.json 原文、訳文、原文ハッシュ、レビュー状態
-templates/page.html        ページテンプレート
+data/sp800-*-trans.json    各巻の原文、訳文、原文ハッシュ、レビュー状態
+templates/page.html        共通ページテンプレート
 static/style.css           スタイル
-html/                      生成ページ（Git 管理対象）
+html/                      生成ページ
 tests/                     パーサーと訳文更新の検証
 ```
 

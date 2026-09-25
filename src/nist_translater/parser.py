@@ -18,12 +18,12 @@ def clean_text(node):
     return " ".join(node.get_text(" ", strip=True).split())
 
 
-def safe_url(value):
-    resolved = urljoin(SOURCE_URL, value or "")
+def safe_url(value, source_url=SOURCE_URL):
+    resolved = urljoin(source_url, value or "")
     return resolved if resolved.startswith(("https://pages.nist.gov/", "https://doi.org/", "https://")) else ""
 
 
-def inline_html(node):
+def inline_html(node, source_url=SOURCE_URL):
     if isinstance(node, NavigableString):
         return html.escape(str(node))
     if not isinstance(node, Tag):
@@ -33,25 +33,25 @@ def inline_html(node):
     if node.name == "br":
         return "<br>"
     if node.name == "img":
-        source = safe_url(node.get("src"))
+        source = safe_url(node.get("src"), source_url)
         if not source:
             return ""
         return '<img src="%s" alt="%s" loading="lazy">' % (
             html.escape(source, quote=True), html.escape(node.get("alt", ""), quote=True))
-    content = "".join(inline_html(child) for child in node.children)
+    content = "".join(inline_html(child, source_url) for child in node.children)
     if node.name == "a":
-        target = safe_url(node.get("href")) if node.get("href") else ""
+        target = safe_url(node.get("href"), source_url) if node.get("href") else ""
         return '<a href="%s">%s</a>' % (html.escape(target, quote=True), content) if target else content
     if node.name in INLINE_TAGS:
         return "<%s>%s</%s>" % (node.name, content, node.name)
     return content
 
 
-def inner_html(node):
-    return "".join(inline_html(child) for child in node.children)
+def inner_html(node, source_url=SOURCE_URL):
+    return "".join(inline_html(child, source_url) for child in node.children)
 
 
-def table_html(table):
+def table_html(table, source_url=SOURCE_URL):
     parts = ["<table>"]
     if table.get("latex-caption"):
         parts.append("<caption>%s</caption>" % html.escape(table["latex-caption"]))
@@ -59,13 +59,14 @@ def table_html(table):
         parts.append("<tr>")
         for cell in row.find_all(["th", "td"], recursive=False):
             tag = cell.name
-            parts.append("<%s>%s</%s>" % (tag, inner_html(cell), tag))
+            parts.append("<%s>%s</%s>" % (tag, inner_html(cell, source_url), tag))
         parts.append("</tr>")
     parts.append("</table>")
     return "".join(parts)
 
 
-def parse_document(source):
+def parse_document(source, number="SP 800-63B-4", source_url=SOURCE_URL,
+                   min_blocks=500, min_headings=50):
     soup = BeautifulSoup(source, "html.parser")
     root = soup.select_one("body > div.container > div.row")
     if root is None:
@@ -94,7 +95,7 @@ def parse_document(source):
         if block_id in ids:
             raise ValueError("Duplicate block ID: " + block_id)
         ids.add(block_id)
-        content = inner_html(node) if content is None else content
+        content = inner_html(node, source_url) if content is None else content
         block = {
             "id": block_id, "kind": kind, "html": content,
             "source_hash": hashlib.sha256(
@@ -109,7 +110,7 @@ def parse_document(source):
     def add_list(list_node, depth=0):
         for ordinal, item in enumerate(list_node.find_all("li", recursive=False), start=1):
             # Nested lists become separate aligned blocks in document order.
-            content = "".join(inline_html(child) for child in item.children
+            content = "".join(inline_html(child, source_url) for child in item.children
                               if not isinstance(child, Tag) or child.name not in ("ul", "ol"))
             text = " ".join(" ".join(child.stripped_strings) if isinstance(child, Tag)
                             else str(child).strip() for child in item.children
@@ -136,7 +137,7 @@ def parse_document(source):
             for paragraph in node.find_all("p", recursive=False):
                 add("note", paragraph)
         elif node.name == "table":
-            add("table", node, content=table_html(node))
+            add("table", node, content=table_html(node, source_url))
         elif node.name == "dl":
             for child in node.find_all(["dt", "dd"], recursive=False):
                 add("definition_term" if child.name == "dt" else "definition", child)
@@ -149,19 +150,20 @@ def parse_document(source):
         else:
             raise ValueError("Unexpected top-level NIST element: " + str(node.name))
 
-    if len(blocks) < 500 or len(headings) < 100:
-        raise ValueError("Unexpectedly little SP 800-63B content was parsed")
+    if len(blocks) < min_blocks or len(headings) < min_headings:
+        raise ValueError("Unexpectedly little %s content was parsed (%d blocks, %d headings)" % (
+            number, len(blocks), len(headings)))
     for block in blocks:
         block["html_ja"] = ""
         block["status"] = "untranslated" if block["kind"] in {
             "heading", "paragraph", "list_item", "note", "definition_term", "definition", "table"
         } else "source_only"
     return {
-        "title": {"text": "NIST SP 800-63B-4", "html_ja": ""},
-        "number": "SP 800-63B-4",
+        "title": {"text": "NIST " + number, "html_ja": ""},
+        "number": number,
         "created_at": "",
         "updated_by": "",
-        "source_url": SOURCE_URL,
+        "source_url": source_url,
         "source_fetched_at": "",
         "contents": blocks,
     }

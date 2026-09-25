@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .auto_translate import batches, translate_pending
-from .parser import SOURCE_URL, parse_document
+from .documents import DOCUMENTS, document_paths, get_document
+from .parser import parse_document
 from .render import build_site
 from .storage import read_json, write_json
 from .translation import audit_translations, carry_translations, make_queue, merge_translations
@@ -13,13 +14,16 @@ from .translation import audit_translations, carry_translations, make_queue, mer
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
-SOURCE = DATA / "sp800-63b.html"
+SOURCE = DATA / "sp800-63b.html"  # Backwards-compatible aliases for the original volume.
 DOCUMENT = DATA / "sp800-63b-trans.json"
 
 
-def fetch():
+def fetch(document_key="63b"):
+    spec = get_document(document_key)
+    paths = document_paths(ROOT, document_key)
+    source = paths["source"]
     request = urllib.request.Request(
-        SOURCE_URL,
+        spec["source_url"],
         headers={"User-Agent": "nist-translater/0.1 (bilingual reading copy)"},
     )
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -29,25 +33,32 @@ def fetch():
     if b"<html" not in content[:3000].lower():
         raise ValueError("Downloaded content does not look like HTML")
     # Keep the previous snapshot if the upstream page is incomplete or its structure changes.
-    parse_document(content.decode("utf-8"))
+    parse_document(content.decode("utf-8"), number=spec["number"], source_url=spec["source_url"])
     DATA.mkdir(parents=True, exist_ok=True)
-    temp = SOURCE.with_suffix(".html.tmp")
+    temp = source.with_suffix(".html.tmp")
     temp.write_bytes(content)
-    temp.replace(SOURCE)
-    print("Fetched", SOURCE, "(%d bytes)" % len(content))
+    temp.replace(source)
+    print("Fetched", source, "(%d bytes)" % len(content))
 
 
-def parse():
-    if not SOURCE.exists():
+def parse(document_key="63b"):
+    spec = get_document(document_key)
+    paths = document_paths(ROOT, document_key)
+    source, document_path = paths["source"], paths["json"]
+    if not source.exists():
         raise FileNotFoundError("Source missing. Run: python3 main.py fetch")
     try:
-        document = parse_document(SOURCE.read_text(encoding="utf-8"))
-        existing = read_json(DOCUMENT) if DOCUMENT.exists() else None
+        document = parse_document(source.read_text(encoding="utf-8"),
+                                  number=spec["number"], source_url=spec["source_url"])
+        document["subtitle"] = spec["title"]
+        document["description"] = spec["description"]
+        document["pdf_url"] = spec["pdf_url"]
+        existing = read_json(document_path) if document_path.exists() else None
         document["created_at"] = (existing or {}).get("created_at", datetime.now(timezone.utc).isoformat())
-        document["source_fetched_at"] = datetime.fromtimestamp(SOURCE.stat().st_mtime, timezone.utc).isoformat()
+        document["source_fetched_at"] = datetime.fromtimestamp(source.stat().st_mtime, timezone.utc).isoformat()
         if existing:
             document = carry_translations(existing, document)
-        elif (DATA / "blocks.json").exists() and (DATA / "ja.json").exists():
+        elif document_key == "63b" and (DATA / "blocks.json").exists() and (DATA / "ja.json").exists():
             # One-time migration from the previous split data files.
             old_blocks = read_json(DATA / "blocks.json")
             old_translations = read_json(DATA / "ja.json")
@@ -62,43 +73,50 @@ def parse():
                 block["status"] = entry.get("status", "untranslated" if block["kind"] != "table" else "source_only")
             document = carry_translations(old_blocks, document)
         changed = audit_translations(document)
-        write_json(DOCUMENT, document)
+        write_json(document_path, document)
     except Exception:
         # Keep the temporary download for diagnosis or a retry when parsing fails.
         raise
     else:
-        SOURCE.unlink()
+        source.unlink()
     print("Parsed %d blocks and %d headings." % (
         len(document["contents"]), sum(block["kind"] == "heading" for block in document["contents"])))
-    print("Translations requiring review: %d changed." % changed)
+    print("%s translations requiring review: %d changed." % (spec["number"], changed))
 
 
-def build():
-    if not DOCUMENT.exists():
+def build(document_key="63b"):
+    spec = get_document(document_key)
+    paths = document_paths(ROOT, document_key)
+    document_path, output_path = paths["json"], paths["html"]
+    if not document_path.exists():
         raise FileNotFoundError("Blocks missing. Run: python3 main.py parse")
-    document = read_json(DOCUMENT)
+    document = read_json(document_path)
+    document.setdefault("subtitle", spec["title"])
+    document.setdefault("description", spec["description"])
+    document.setdefault("pdf_url", spec["pdf_url"])
     audit_translations(document)
-    output = ROOT / "html"
+    output = output_path.parent
     output.mkdir(exist_ok=True)
     build_site(document, {"fetched_at": document.get("source_fetched_at")},
-               ROOT / "templates" / "page.html", output / "sp800-63b.html")
+               ROOT / "templates" / "page.html", output_path)
     shutil.copyfile(ROOT / "static" / "style.css", output / "style.css")
-    print("Built", output / "sp800-63b.html")
+    print("Built", output_path)
 
 
-def import_file(path):
-    document = read_json(DOCUMENT)
+def import_file(path, document_key="63b"):
+    document = read_json(document_paths(ROOT, document_key)["json"])
     incoming = read_json(path)
     count = merge_translations(document, incoming)
     audit_translations(document)
-    write_json(DOCUMENT, document)
+    write_json(document_paths(ROOT, document_key)["json"], document)
     print("Imported %d draft translations." % count)
 
 
 def translate(args):
     if args.limit < 0 or args.batch_size < 1 or args.max_chars < 1 or args.timeout < 1:
         raise ValueError("Translation limits must be positive (limit may be zero for all)")
-    document = read_json(DOCUMENT)
+    document_path = document_paths(ROOT, args.document)["json"]
+    document = read_json(document_path)
     if args.dry_run:
         pending = make_queue(document)
         if args.limit:
@@ -108,17 +126,19 @@ def translate(args):
             len(pending), len(planned), sum(len(item["html"]) for item in pending)))
         return
     count, selected = translate_pending(
-        document, DOCUMENT, cli=args.cli, model=args.model,
+        document, document_path, cli=args.cli, model=args.model,
         limit=args.limit, batch_size=args.batch_size, max_chars=args.max_chars,
         timeout=args.timeout, effort=args.effort,
     )
     print("Translated %d of %d selected blocks." % (count, selected))
-    build()
+    build(args.document)
 
 
 def main():
-    cli = argparse.ArgumentParser(description="Build a bilingual NIST SP 800-63B reading site")
+    cli = argparse.ArgumentParser(description="Build bilingual reading sites for NIST SP 800-63 Revision 4")
     cli.add_argument("command", choices=["fetch", "parse", "build", "update", "import", "translate"])
+    cli.add_argument("--document", choices=DOCUMENTS, default="63b",
+                     help="volume to process (default: 63b)")
     cli.add_argument("--file", type=Path, help="JSON file for the import command")
     cli.add_argument("--cli", choices=["agy", "gemini"], default="agy", help="translation CLI (default: agy)")
     cli.add_argument("--model", help="model passed to the translation CLI")
@@ -131,14 +151,14 @@ def main():
     cli.add_argument("--dry-run", action="store_true", help="show planned calls without using the CLI")
     args = cli.parse_args()
     if args.command in ("fetch", "update"):
-        fetch()
+        fetch(args.document)
     if args.command in ("parse", "update"):
-        parse()
+        parse(args.document)
     if args.command in ("build", "update"):
-        build()
+        build(args.document)
     if args.command == "import":
         if args.file is None:
             cli.error("import requires --file")
-        import_file(args.file)
+        import_file(args.file, args.document)
     if args.command == "translate":
         translate(args)

@@ -9,7 +9,9 @@ from src.nist_translater.auto_translate import (
     CliExecutionError, TranslationError, run_cli, translate_pending, validate_response,
 )
 from src.nist_translater.storage import read_json, write_json
-from src.nist_translater.translation import audit_translations, merge_translations
+from src.nist_translater.translation import (
+    assert_same_html_structure, audit_translations, merge_translations,
+)
 
 
 class AutoTranslateTests(unittest.TestCase):
@@ -101,6 +103,15 @@ class AutoTranslateTests(unittest.TestCase):
                     "html_ja": '<table><tr><th><a href="https://elsewhere.test/ref">要件</a></th></tr></table>'}]
         with self.assertRaisesRegex(ValueError, "tags or attributes"):
             merge_translations(self.document, invalid)
+
+    def test_image_alt_text_can_be_translated_but_source_is_preserved(self):
+        source = '<img src="https://example.test/figure.png" alt="English description" loading="lazy">'
+        translated = '<img src="https://example.test/figure.png" alt="日本語の説明" loading="lazy">'
+        assert_same_html_structure(source, translated)
+        with self.assertRaisesRegex(ValueError, "tags or attributes"):
+            assert_same_html_structure(
+                source, '<img src="https://example.test/other.png" alt="日本語の説明" loading="lazy">',
+            )
 
     def test_failed_batch_is_split_and_valid_parts_are_saved(self):
         def fake_runner(batch, **_kwargs):

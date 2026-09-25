@@ -47,7 +47,10 @@ def build_site(document, meta, template_path, output_path):
     if fetched_at:
         fetched_at = datetime.fromisoformat(fetched_at).strftime("%Y-%m-%d")
     page = env.get_template(template_path.name).render(
-        title=document["title"]["text"], source_url=document["source_url"], pdf_url=PDF_URL,
+        title=document["title"]["text"], number=document.get("number", "SP 800-63B-4"),
+        subtitle=document.get("subtitle", "Authentication & Authenticator Management"),
+        description=document.get("description", "SP 800-63B の英文と日本語訳を段落ごとに並べた閲覧用ページです。"),
+        source_url=document["source_url"], pdf_url=document.get("pdf_url", PDF_URL),
         fetched_at=fetched_at or "取得日不明", headings=headings,
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )

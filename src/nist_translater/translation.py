@@ -35,9 +35,17 @@ def _tag_shape(node):
 
 def _tag_inventory(html):
     soup = BeautifulSoup("<fragment>%s</fragment>" % html, "html.parser")
-    return Counter((tag.name, tuple(sorted(
-        (name, tuple(value) if isinstance(value, list) else value)
-        for name, value in tag.attrs.items()))) for tag in soup.find_all(True))
+    inventory = Counter()
+    for tag in soup.find_all(True):
+        attrs = []
+        for name, value in tag.attrs.items():
+            # Alternative text is user-facing text and should be localized for images.
+            # Keep the attribute itself while allowing its value to differ by language.
+            if tag.name == "img" and name == "alt":
+                value = "<localized-alt>"
+            attrs.append((name, tuple(value) if isinstance(value, list) else value))
+        inventory[(tag.name, tuple(sorted(attrs)))] += 1
+    return inventory
 
 
 def _has_balanced_tags(html):
@@ -57,7 +65,7 @@ def _has_balanced_tags(html):
 
 
 def assert_same_html_structure(source_html, translated_html):
-    """Allow text and span reordering while preserving every tag and attribute."""
+    """Preserve tags and functional attributes while allowing translated image alt text."""
     if (_tag_inventory(source_html) != _tag_inventory(translated_html)
             or not _has_balanced_tags(translated_html)):
         raise ValueError("Translated HTML tags or attributes differ from the source")
