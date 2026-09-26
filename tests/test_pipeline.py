@@ -30,7 +30,8 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(any(b.get("ordered") for b in blocks if b["kind"] == "list_item"))
 
     def test_other_volume_metadata_and_source_relative_links(self):
-        self.assertEqual(set(DOCUMENTS), {"63", "63a", "63b", "63c"})
+        self.assertTrue({"63", "63a", "63b", "63c"}.issubset(DOCUMENTS))
+        self.assertEqual(document_paths(ROOT, "131ar2")["source"].suffix, ".pdf")
         paths = document_paths(ROOT, "63a")
         self.assertEqual(paths["json"].name, "sp800-63a-trans.json")
         source = """<body><div class='container'><div class='row'>

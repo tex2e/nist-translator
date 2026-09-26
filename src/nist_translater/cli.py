@@ -1,4 +1,6 @@
 import argparse
+import io
+import re
 import shutil
 import urllib.request
 from datetime import datetime, timezone
@@ -7,6 +9,7 @@ from pathlib import Path
 from .auto_translate import batches, translate_pending
 from .documents import DOCUMENTS, document_paths, get_document
 from .parser import parse_document
+from .pdf_parser import parse_pdf_document
 from .render import build_site
 from .storage import read_json, write_json
 from .translation import audit_translations, carry_translations, make_queue, merge_translations
@@ -30,29 +33,54 @@ def fetch(document_key="63b"):
         content = response.read()
         if response.status != 200 or not content:
             raise RuntimeError("NIST HTML could not be downloaded")
-    if b"<html" not in content[:3000].lower():
-        raise ValueError("Downloaded content does not look like HTML")
-    # Keep the previous snapshot if the upstream page is incomplete or its structure changes.
-    parse_document(content.decode("utf-8"), number=spec["number"], source_url=spec["source_url"])
+    if spec.get("source_format") == "pdf":
+        if not content.startswith(b"%PDF-"):
+            raise ValueError("Downloaded content does not look like PDF")
+        try:
+            import pdfplumber
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                if not pdf.pages:
+                    raise ValueError("Downloaded PDF has no pages")
+        except ImportError as error:
+            raise RuntimeError("PDF support requires pdfplumber; install requirements.txt") from error
+    else:
+        if b"<html" not in content[:3000].lower():
+            raise ValueError("Downloaded content does not look like HTML")
+        # Keep the previous snapshot if the upstream page is incomplete or its structure changes.
+        parse_document(content.decode("utf-8"), number=spec["number"], source_url=spec["source_url"])
     DATA.mkdir(parents=True, exist_ok=True)
-    temp = source.with_suffix(".html.tmp")
+    temp = source.with_suffix(source.suffix + ".tmp")
     temp.write_bytes(content)
     temp.replace(source)
     print("Fetched", source, "(%d bytes)" % len(content))
 
 
-def parse(document_key="63b"):
+def parse(document_key="63b", pages=None):
     spec = get_document(document_key)
     paths = document_paths(ROOT, document_key)
     source, document_path = paths["source"], paths["json"]
     if not source.exists():
         raise FileNotFoundError("Source missing. Run: python3 main.py fetch")
     try:
-        document = parse_document(source.read_text(encoding="utf-8"),
-                                  number=spec["number"], source_url=spec["source_url"])
+        if spec.get("source_format") == "pdf":
+            document = parse_pdf_document(
+                source, number=spec["number"], source_url=spec["source_url"], pages=pages,
+                asset_dir=ROOT / "html" / "assets" / spec["slug"],
+                asset_prefix="assets/" + spec["slug"],
+            )
+        else:
+            if pages is not None:
+                raise ValueError("--pages is supported only for PDF documents")
+            document = parse_document(source.read_text(encoding="utf-8"),
+                                      number=spec["number"], source_url=spec["source_url"])
         document["subtitle"] = spec["title"]
+        if "title_ja" in spec:
+            document["title"]["html_ja"] = spec["title_ja"]
+        if "subtitle_ja" in spec:
+            document["subtitle_ja"] = spec["subtitle_ja"]
         document["description"] = spec["description"]
         document["pdf_url"] = spec["pdf_url"]
+        document["series"] = spec.get("series", "Digital Identity Guidelines · Revision 4")
         existing = read_json(document_path) if document_path.exists() else None
         document["created_at"] = (existing or {}).get("created_at", datetime.now(timezone.utc).isoformat())
         document["source_fetched_at"] = datetime.fromtimestamp(source.stat().st_mtime, timezone.utc).isoformat()
@@ -78,7 +106,8 @@ def parse(document_key="63b"):
         # Keep the temporary download for diagnosis or a retry when parsing fails.
         raise
     else:
-        source.unlink()
+        if spec.get("source_format") != "pdf":
+            source.unlink()
     print("Parsed %d blocks and %d headings." % (
         len(document["contents"]), sum(block["kind"] == "heading" for block in document["contents"])))
     print("%s translations requiring review: %d changed." % (spec["number"], changed))
@@ -92,8 +121,11 @@ def build(document_key="63b"):
         raise FileNotFoundError("Blocks missing. Run: python3 main.py parse")
     document = read_json(document_path)
     document.setdefault("subtitle", spec["title"])
+    document.setdefault("subtitle_ja", spec.get("subtitle_ja", ""))
     document.setdefault("description", spec["description"])
     document.setdefault("pdf_url", spec["pdf_url"])
+    document.setdefault("source_format", spec.get("source_format", "html"))
+    document.setdefault("series", spec.get("series", "Digital Identity Guidelines · Revision 4"))
     audit_translations(document)
     output = output_path.parent
     output.mkdir(exist_ok=True)
@@ -134,12 +166,29 @@ def translate(args):
     build(args.document)
 
 
+def parse_pages(value):
+    if value is None:
+        return None
+    pages = set()
+    for part in value.split(","):
+        match = re.fullmatch(r"\s*(\d+)(?:-(\d+))?\s*", part)
+        if not match:
+            raise ValueError("Invalid PDF page range: " + part)
+        start = int(match.group(1))
+        end = int(match.group(2) or start)
+        if start < 1 or end < start:
+            raise ValueError("Invalid PDF page range: " + part)
+        pages.update(range(start, end + 1))
+    return sorted(pages)
+
+
 def main():
     cli = argparse.ArgumentParser(description="Build bilingual reading sites for NIST SP 800-63 Revision 4")
     cli.add_argument("command", choices=["fetch", "parse", "build", "update", "import", "translate"])
     cli.add_argument("--document", choices=DOCUMENTS, default="63b",
                      help="volume to process (default: 63b)")
     cli.add_argument("--file", type=Path, help="JSON file for the import command")
+    cli.add_argument("--pages", help="PDF page numbers for a preview, e.g. 7-8,15,21")
     cli.add_argument("--cli", choices=["agy", "gemini"], default="agy", help="translation CLI (default: agy)")
     cli.add_argument("--model", help="model passed to the translation CLI")
     cli.add_argument("--effort", choices=["low", "medium", "high"],
@@ -153,7 +202,7 @@ def main():
     if args.command in ("fetch", "update"):
         fetch(args.document)
     if args.command in ("parse", "update"):
-        parse(args.document)
+        parse(args.document, pages=parse_pages(args.pages))
     if args.command in ("build", "update"):
         build(args.document)
     if args.command == "import":
