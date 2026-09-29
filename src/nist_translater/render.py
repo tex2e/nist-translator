@@ -79,6 +79,9 @@ def build_site(document, meta, template_path, output_path):
             item["html_ja"] = ""
             item["status"] = "stale"
             stale += 1
+        elif block["status"] == "source_only":
+            item["html_ja"] = ""
+            item["status"] = "source_only"
         elif not block["html_ja"]:
             item["html_ja"] = ""
             item["status"] = "missing"
