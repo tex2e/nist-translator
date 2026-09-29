@@ -331,6 +331,9 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
                     key=lambda image: (image["x0"], image["top"], image["x1"], image["bottom"]))
     for index, image in enumerate(images, 1):
         box = (image["x0"], image["top"], image["x1"], image["bottom"])
+        if (box[0] >= page.width or box[2] <= 0 or
+                box[1] >= page.height or box[3] <= 0):
+            continue  # Embedded images outside the PDF page cannot be shown or cropped.
         if ((box[0] < 65 and box[2] - box[0] < page.width * 0.7) or
                 box[1] < 68 or box[3] > page.height - 58 or
                 (box[2] - box[0]) * (box[3] - box[1]) < 2500 or

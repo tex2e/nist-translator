@@ -110,7 +110,11 @@ def run_cli(batch, cli="agy", model=None, timeout=180, effort=None):
     except subprocess.TimeoutExpired as error:
         raise CliExecutionError("CLI timed out after %d seconds" % timeout) from error
     if result.returncode != 0:
-        raise CliExecutionError("CLI exited with status %d" % result.returncode)
+        diagnostic = (result.stderr or result.stdout or "").strip()
+        if len(diagnostic) > 1200:
+            diagnostic = "…" + diagnostic[-1200:]
+        detail = ": " + diagnostic if diagnostic else ""
+        raise CliExecutionError("CLI exited with status %d%s" % (result.returncode, detail))
     try:
         envelope = json.loads(result.stdout)
     except json.JSONDecodeError as error:
