@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 
 
 SOURCE_URL = "https://pages.nist.gov/800-63-4/sp800-63b.html"
-HEADING_TAGS = {"h1": 1, "h2": 2, "h3": 3, "h4": 4}
+HEADING_TAGS = {"h1": 1, "h2": 2, "h3": 3, "h4": 4, "h5": 5}
 INLINE_TAGS = {"strong", "em", "code", "sup", "sub", "small", "kbd"}
 
 
@@ -69,6 +69,10 @@ def parse_document(source, number="SP 800-63B-4", source_url=SOURCE_URL,
                    min_blocks=500, min_headings=50):
     soup = BeautifulSoup(source, "html.parser")
     root = soup.select_one("body > div.container > div.row")
+    if root is None:
+        # NIST's newer Technical Series HTML uses a semantic #Content/#Body
+        # layout instead of the older pages.nist.gov container structure.
+        root = soup.select_one("#Content > #Body")
     if root is None:
         raise ValueError("NIST body structure changed: content row not found")
 
@@ -144,6 +148,22 @@ def parse_document(source, number="SP 800-63B-4", source_url=SOURCE_URL,
         elif node.name == "div" and "footnotes" in node.get("class", []):
             for item in node.select("li[role='doc-endnote']"):
                 add("footnote", item)
+        elif node.name == "div" and "footnote" in node.get("class", []):
+            for item in node.select("li[role='doc-endnote']"):
+                add("footnote", item)
+        elif node.name == "div" and "Table_Anchor" in node.get("class", []):
+            tables = node.find_all("table")
+            if tables:
+                for table in tables:
+                    add("table", table, content=table_html(table, source_url))
+            else:
+                add("paragraph", node)
+        elif node.name == "div" and "Figure" in node.get("class", []):
+            add("figure", node)
+        elif node.name == "div" and "inline_box" in node.get("class", []):
+            add("note", node)
+        elif node.name == "div" and "blockquote" in node.get("class", []):
+            add("note", node)
         elif node.name == "div" and "highlighter-rouge" in node.get("class", []):
             # These blocks contain LaTeX pagination commands, not reader content.
             continue

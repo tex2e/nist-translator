@@ -120,7 +120,10 @@ def _text_lines(page, running_headers=None):
                 continue
             repeated_header = line["top"] < 66 and text in (running_headers or set())
             page_number = (line["top"] > page.height * 0.9 and
-                           re.fullmatch(r"(?:\d{1,3}|[ivxlcdm]{1,8})", text, re.I))
+                           re.fullmatch(
+                               r"(?:\d{1,3}|[ivxlcdm]{1,8}|\d{1,3}-\s?\d{1,2}|"
+                               r"(?:ES|[A-D])-\s?\d{1,2})",
+                               text, re.I))
             if repeated_header or page_number:
                 continue  # Repeated running headers and printed page labels are page furniture.
             result.append({**line, "text": text, "size": _size(line),
@@ -310,23 +313,64 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
         (table for table in page.find_tables()
          if not _is_layout_artifact_table(table.bbox, page)),
         key=lambda table: table.bbox[1]))
+    table_details = {}
+    for table in tables:
+        source_html, structured = _table_html(table)
+        extracted_text = ""
+        if not source_html:
+            extracted_text = _normal(
+                page.crop(_bounded_bbox(table.bbox, page)).extract_text() or "")
+        table_details[id(table)] = (source_html, structured, extracted_text)
+
+    duplicate_parents = {}
+    for table in tables:
+        source_html, structured, extracted_text = table_details[id(table)]
+        if source_html or structured or extracted_text:
+            continue
+        x0, top, x1, bottom = table.bbox
+        width, height = x1 - x0, bottom - top
+        area = width * height
+        if (width > page.width * 0.15 or height > page.height * 0.04 or
+                area <= 0):
+            continue
+        center_x, center_y = (x0 + x1) / 2, (top + bottom) / 2
+        parents = []
+        for parent in tables:
+            if parent is table:
+                continue
+            parent_html, parent_structured, _ = table_details[id(parent)]
+            if not parent_html or not parent_structured:
+                continue
+            px0, ptop, px1, pbottom = parent.bbox
+            parent_area = (px1 - px0) * (pbottom - ptop)
+            if (parent_area <= area or area / parent_area > 0.02 or
+                    not (px0 <= center_x <= px1 and ptop <= center_y <= pbottom)):
+                continue
+            parents.append(parent)
+        if len(parents) == 1:
+            duplicate_parents[id(table)] = parents[0]
     footnote_top = next((line["top"] for line in lines
                          if line["top"] > page.height * 0.66 and line["size"] <= 10.5
                          and FOOTNOTE.match(line["text"])), None)
     entries = []
     for index, table in enumerate(tables, 1):
-        source_html, structured = _table_html(table)
+        source_html, structured, extracted_text = table_details[id(table)]
         if not source_html:
-            source_html = html.escape(_normal(
-                page.crop(_bounded_bbox(table.bbox, page)).extract_text() or "[Table]"))
+            source_html = html.escape(extracted_text or "[Table]")
         box = {"x0": table.bbox[0], "top": table.bbox[1],
                "x1": table.bbox[2], "bottom": table.bbox[3]}
         image, image_hash = _save_crop(page, table.bbox, asset_dir, asset_prefix,
                                        "p%04d-table-%02d.png" % (page_number, index), table=True)
-        entries.append({"kind": "table", "text": source_html, "top": box["top"],
-                        "bbox": _bbox(box), "source_image": image,
-                        "source_image_hash": image_hash,
-                        "extraction_note": "表の行列構造を要確認" if not structured else "表と原本画像を照合してください"})
+        entry = {"kind": "table", "text": source_html, "top": box["top"],
+                 "bbox": _bbox(box), "source_image": image,
+                 "source_image_hash": image_hash,
+                 "extraction_note": "表の行列構造を要確認" if not structured else "表と原本画像を照合してください"}
+        parent = duplicate_parents.get(id(table))
+        if parent is not None:
+            pbox = {"x0": parent.bbox[0], "top": parent.bbox[1],
+                    "x1": parent.bbox[2], "bottom": parent.bbox[3]}
+            entry["_duplicate_parent_bbox"] = _bbox(pbox)
+        entries.append(entry)
     images = sorted(page.images,
                     key=lambda image: (image["x0"], image["top"], image["x1"], image["bottom"]))
     for index, image in enumerate(images, 1):
@@ -418,6 +462,20 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
             previous["bbox"][3] = max(previous["bbox"][3], item["bbox"][3])
         else:
             grouped.append(item)
+    table_ids_by_bbox = {
+        tuple(item["bbox"]): index
+        for index, item in enumerate(grouped, 1)
+        if item["kind"] == "table"
+    }
+    for item in grouped:
+        parent_bbox = item.pop("_duplicate_parent_bbox", None)
+        if parent_bbox is None:
+            continue
+        parent_index = table_ids_by_bbox.get(tuple(parent_bbox))
+        if parent_index is None:
+            raise ValueError("Nested table artifact parent was not retained")
+        item["duplicate_artifact_of"] = "pdf-p%04d-b%04d" % (page_number, parent_index)
+        item["extraction_note"] = "小さな空チェックボックスcrop。親表の原本画像に含まれる重複領域"
     return grouped
 
 
@@ -473,6 +531,10 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
                     "source_page": page_number,
                     "source_refs": [{"page": page_number, "bbox": item["bbox"]}],
                 }
+                if item.get("duplicate_artifact_of"):
+                    block["duplicate_artifact_of"] = item["duplicate_artifact_of"]
+                    block["status"] = "source_only"
+                    block["review_note"] = "空チェックボックス画像の重複crop。親表の原本画像に含まれる。"
                 if kind == "heading":
                     match = HEADING.match(item["text"])
                     block["level"] = min(match.group(1).count(".") + 1, 3) if match and match.group(1) else 1
