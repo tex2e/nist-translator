@@ -111,6 +111,16 @@ def audit_translations(document):
             changed += 1
     blocks_by_id = {block["id"]: block for block in contents(document)}
     block_ids = set(blocks_by_id)
+    for block in contents(document):
+        parent_id = block.get("duplicate_artifact_of")
+        if not parent_id:
+            continue
+        parent = blocks_by_id.get(parent_id)
+        if (not parent or parent.get("kind") != "table" or
+                parent.get("source_page") != block.get("source_page")):
+            raise ValueError("Invalid duplicate artifact parent: " + block["id"])
+        if block.get("status") != "source_only" or block.get("html_ja"):
+            raise ValueError("Duplicate table artifact must remain hidden source-only: " + block["id"])
     grouped_members = set()
     for group in document.get("math_groups", []):
         key = group.get("id")
@@ -138,6 +148,7 @@ def make_queue(document):
         {"id": block["id"], "source_hash": block["source_hash"], "html": block["html"], "html_ja": ""}
         for block in contents(document)
         if (block["kind"] in TRANSLATABLE and block["status"] in {"untranslated", "stale"}
+            and not block.get("duplicate_artifact_of")
             and (block["kind"] != "figure" or source_text(block)))
     ]
 
@@ -180,6 +191,10 @@ def carry_translations(previous, current):
             by_hash.setdefault((prior.get("kind"), prior.get("source_hash")), []).append(prior)
     used = set()
     for block in contents(current):
+        if block.get("duplicate_artifact_of"):
+            block["html_ja"] = ""
+            block["status"] = "source_only"
+            continue
         prior = old.get(block["id"])
         exact = (prior and prior.get("html") == block["html"] and
                  prior.get("kind") == block["kind"] and

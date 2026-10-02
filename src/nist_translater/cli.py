@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import io
 import re
 import shutil
@@ -8,6 +9,7 @@ from pathlib import Path
 
 from .auto_translate import batches, translate_pending
 from .documents import DOCUMENTS, document_paths, get_document
+from .index_page import build_translation_index
 from .parser import parse_document
 from .pdf_parser import parse_pdf_document
 from .render import build_site
@@ -19,6 +21,16 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
 SOURCE = DATA / "sp800-63b.html"  # Backwards-compatible aliases for the original volume.
 DOCUMENT = DATA / "sp800-63b-trans.json"
+
+
+def _compact_table_urls(value):
+    def compact_url(match):
+        cell = match.group(1)
+        if cell.strip().startswith(("http://", "https://")):
+            cell = re.sub(r"\s+", "", cell)
+        return "<td>%s</td>" % cell
+
+    return re.sub(r"<td>(.*?)</td>", compact_url, value)
 
 
 def fetch(document_key="63b"):
@@ -68,6 +80,30 @@ def parse(document_key="63b", pages=None):
                 asset_dir=ROOT / "html" / "assets" / spec["slug"],
                 asset_prefix="assets/" + spec["slug"],
             )
+            for source_text, replacement in spec.get("pdf_text_replacements", {}).items():
+                for block in document["contents"]:
+                    if source_text not in block["html"]:
+                        continue
+                    block["html"] = block["html"].replace(source_text, replacement)
+                    block["source_hash"] = hashlib.sha256((
+                        block["kind"] + "\n" + block["html"] + "\n" +
+                        block.get("source_image_hash", "")
+                    ).encode("utf-8")).hexdigest()[:16]
+            if spec.get("compact_pdf_table_urls"):
+                for block in document["contents"]:
+                    if block["kind"] != "table":
+                        continue
+                    normalized = _compact_table_urls(block["html"])
+                    if normalized != block["html"]:
+                        block["html"] = normalized
+                        block["source_hash"] = hashlib.sha256((
+                            block["kind"] + "\n" + block["html"] + "\n" +
+                            block.get("source_image_hash", "")
+                        ).encode("utf-8")).hexdigest()[:16]
+                    block["source_hash"] = hashlib.sha256((
+                        block["kind"] + "\n" + block["html"] + "\n" +
+                        block.get("source_image_hash", "")
+                    ).encode("utf-8")).hexdigest()[:16]
         else:
             if pages is not None:
                 raise ValueError("--pages is supported only for PDF documents")
@@ -81,6 +117,8 @@ def parse(document_key="63b", pages=None):
         document["description"] = spec["description"]
         document["pdf_url"] = spec["pdf_url"]
         document["series"] = spec.get("series", "Digital Identity Guidelines · Revision 4")
+        if spec.get("catalog_record_url"):
+            document["catalog_record_url"] = spec["catalog_record_url"]
         existing = read_json(document_path) if document_path.exists() else None
         document["created_at"] = (existing or {}).get("created_at", datetime.now(timezone.utc).isoformat())
         document["source_fetched_at"] = datetime.fromtimestamp(source.stat().st_mtime, timezone.utc).isoformat()
@@ -100,6 +138,10 @@ def parse(document_key="63b", pages=None):
                 block["html_ja"] = entry.get("ja", "")
                 block["status"] = entry.get("status", "untranslated" if block["kind"] != "table" else "source_only")
             document = carry_translations(old_blocks, document)
+        if spec.get("compact_pdf_table_urls"):
+            for block in document["contents"]:
+                if block["kind"] == "table" and block["html_ja"]:
+                    block["html_ja"] = _compact_table_urls(block["html_ja"])
         changed = audit_translations(document)
         write_json(document_path, document)
     except Exception:
@@ -133,6 +175,7 @@ def build(document_key="63b"):
                ROOT / "templates" / "page.html", output_path)
     shutil.copyfile(ROOT / "static" / "style.css", output / "style.css")
     print("Built", output_path)
+    print("Built", build_translation_index(ROOT))
 
 
 def import_file(path, document_key="63b"):
@@ -184,7 +227,7 @@ def parse_pages(value):
 
 def main():
     cli = argparse.ArgumentParser(description="Build bilingual reading sites for NIST SP 800-63 Revision 4")
-    cli.add_argument("command", choices=["fetch", "parse", "build", "update", "import", "translate"])
+    cli.add_argument("command", choices=["fetch", "parse", "build", "update", "import", "translate", "index"])
     cli.add_argument("--document", choices=DOCUMENTS, default="63b",
                      help="volume to process (default: 63b)")
     cli.add_argument("--file", type=Path, help="JSON file for the import command")
@@ -211,3 +254,5 @@ def main():
         import_file(args.file, args.document)
     if args.command == "translate":
         translate(args)
+    if args.command == "index":
+        print("Built", build_translation_index(ROOT))

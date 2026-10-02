@@ -11,6 +11,17 @@ NIST の正式版PDFを要件確認の基準にしてください。このサイ
 | SP 800-63B-4 | Authentication & Authenticator Management | `html/sp800-63b.html` |
 | SP 800-63C-4 | Federation & Assertions | `html/sp800-63c.html` |
 | SP 800-18 Rev. 2 | Developing Security, Privacy, and Cybersecurity Supply Chain Risk Management Plans for Systems（PDF 原文抽出） | `html/sp800-18r2.html` |
+| SP 800-92 | Guide to Computer Security Log Management（PDF 原文抽出・翻訳中） | `html/sp800-92.html` |
+| SP 800-98 | Guidelines for Securing Radio Frequency Identification (RFID) Systems（PDF 原文抽出・翻訳中） | `html/sp800-98.html` |
+| SP 800-101 Rev. 1 | Guidelines on Mobile Device Forensics（PDF 原文抽出・翻訳中） | `html/sp800-101r1.html` |
+| SP 800-119 | Guidelines for the Secure Deployment of IPv6（PDF 原文抽出・翻訳中） | `html/sp800-119.html` |
+| SP 800-122 | Guide to Protecting the Confidentiality of Personally Identifiable Information (PII)（PDF 原文抽出・翻訳中） | `html/sp800-122.html` |
+| SP 800-123 | Guide to General Server Security（PDF 原文抽出・翻訳中） | `html/sp800-123.html` |
+| SP 800-121 Rev. 2 | Guide to Bluetooth Security（2022年1月更新を含むPDF原文抽出・翻訳中） | `html/sp800-121r2.html` |
+| SP 800-125 | Guide to Security for Full Virtualization Technologies（PDF 原文抽出・翻訳中） | `html/sp800-125.html` |
+| SP 800-125A Rev. 1 | Security Recommendations for Server-based Hypervisor Platforms（PDF 原文抽出・翻訳中） | `html/sp800-125ar1.html` |
+| SP 800-125B | Secure Virtual Network Configuration for Virtual Machine (VM) Protection（PDF 原文抽出・翻訳済みドラフト、図4件は原文保持） | `html/sp800-125b.html` |
+| SP 800-171 Rev. 3 | Protecting Controlled Unclassified Information in Nonfederal Systems and Organizations（NIST 公式 HTML 原文） | `html/sp800-171r3.html` |
 | SP 800-126 Rev. 4 | Technical Specification for the Security Content Automation Protocol (SCAP): SCAP Version 1.4（PDF 原文抽出） | `html/sp800-126r4.html` |
 | SP 800-126A Rev. 4 | SCAP 1.4 Component Specification Version Updates: An Annex to NIST SP 800-126r4（PDF 原文抽出） | `html/sp800-126ar4.html` |
 | SP 800-172 Rev. 3 | Enhanced Security Requirements for Protecting Controlled Unclassified Information（PDF 原文抽出） | `html/sp800-172r3.html` |
@@ -38,9 +49,24 @@ NIST の正式版PDFを要件確認の基準にしてください。このサイ
 | SP 800-188 | De-Identifying Government Datasets: Techniques and Governance（PDF 原文抽出） | `html/sp800-188.html` |
 | SP 800-181 Rev. 1 | Workforce Framework for Cybersecurity (NICE Framework)（PDF 原文抽出・翻訳前） | `html/sp800-181r1.html`（未生成） |
 | SP 800-182 | Computer Security Division 2015 Annual Report（PDF 原文抽出） | `html/sp800-182.html` |
+| SP 800-168 | Approximate Matching: Definition and Terminology（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-168.html` |
+| SP 800-167 | Guide to Application Whitelisting（PDF 原文抽出・翻訳中） | `html/sp800-167.html` |
+| SP 800-166 | Derived PIV Application and Data Model Test Guidelines（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-166.html` |
+| SP 800-165 | Computer Security Division 2012 Annual Report（PDF 原文抽出・ドラフト翻訳完了） | `html/sp800-165.html` |
+| SP 800-163 Rev. 1 | Vetting the Security of Mobile Applications（PDF 原文抽出・ドラフト翻訳完了：576/584ブロック、図版8ブロックは原文保持） | `html/sp800-163r1.html` |
+| SP 800-162 | Guide to Attribute Based Access Control (ABAC) Definition and Considerations（PDF 原文抽出・ドラフト翻訳完了：462/482ブロック、図版20ブロックは原文保持） | `html/sp800-162.html` |
 | SP 800-176 | Computer Security Division 2014 Annual Report（PDF 原文抽出・翻訳中） | `html/sp800-176.html` |
-| SP 800-183 | Networks of 'Things'（PDF 原文抽出・翻訳前） | `html/sp800-183.html`（未生成） |
-| SP 800-184 | Guide for Cybersecurity Event Recovery（PDF 原文抽出・翻訳前） | `html/sp800-184.html`（未生成） |
+| SP 800-183 | Networks of 'Things'（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-183.html` |
+| SP 800-184 | Guide for Cybersecurity Event Recovery（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-184.html` |
+| SP 800-145 | The NIST Definition of Cloud Computing（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-145.html` |
+| SP 800-146 | Cloud Computing Synopsis and Recommendations（PDF 原文抽出・949/967ブロック翻訳済み、18ブロック原文保持） | `html/sp800-146.html` |
+| SP 800-147 | BIOS Protection Guidelines（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-147.html` |
+| SP 800-147B | BIOS Protection Guidelines for Servers（PDF 原文抽出・ドラフト翻訳完了：387/428ブロック、図版・参考文献41ブロックは原文保持） | `html/sp800-147b.html` |
+| SP 800-150 | Guide to Cyber Threat Information Sharing（PDF 原文抽出・翻訳済みドラフト） | `html/sp800-150.html` |
+| SP 800-152 | A Profile for U.S. Federal Cryptographic Key Management Systems (CKMS)（PDF 原文抽出・ドラフト翻訳完了：1,315/1,318ブロック、図版3ブロックは原文保持） | `html/sp800-152.html` |
+| SP 800-153 | Guidelines for Securing Wireless Local Area Networks (WLANs)（PDF 原文抽出・ドラフト翻訳完了：255/256ブロック、図版1ブロックは原文保持） | `html/sp800-153.html` |
+| SP 800-156 | Representation of PIV Chain-of-Trust for Import and Export（PDF 原文抽出・ドラフト翻訳完了：429/454ブロック、図版・XMLスキーマ等25ブロックは原文保持） | `html/sp800-156.html` |
+| SP 800-157 | Guidelines for Derived Personal Identity Verification (PIV) Credentials（PDF 原文抽出・ドラフト翻訳完了：471/474ブロック、図版3ブロックは原文保持） | `html/sp800-157.html` |
 | SP 800-185 | SHA-3 Derived Functions: cSHAKE, KMAC, TupleHash, and ParallelHash（PDF 原文抽出・翻訳前） | `html/sp800-185.html`（未生成） |
 | SP 800-187 | Guide to LTE Security（PDF 原文抽出） | `html/sp800-187.html` |
 | SP 800-186 | Recommendations for Discrete Logarithm-based Cryptography: Elliptic Curve Domain Parameters（PDF 原文抽出） | `html/sp800-186.html` |
@@ -67,6 +93,12 @@ NIST の正式版PDFを要件確認の基準にしてください。このサイ
 | SP 800-201 | NIST Cloud Computing Forensic Reference Architecture（PDF 原文抽出） | `html/sp800-201.html` |
 | SP 800-55 Vol. 2 | Measurement Guide for Information Security: Volume 2 — Developing an Information Security Measurement Program（PDF 原文抽出） | `html/sp800-55v2.html` |
 | SP 800-55 Vol. 1 | Measurement Guide for Information Security: Volume 1 — Identifying and Selecting Measures（PDF 原文抽出） | `html/sp800-55v1.html` |
+| SP 800-144 | Guidelines on Security and Privacy in Public Cloud Computing（PDF 原文抽出・翻訳完了：471/984ブロック、参考文献・図表513ブロック原文保持） | `html/sp800-144.html` |
+| SP 800-142 | Practical Combinatorial Testing（PDF 原文抽出・ドラフト翻訳完了：666/977ブロック、図表・抽出崩れ・参考文献311ブロック原文保持） | `html/sp800-142.html` |
+| SP 800-111 | Guide to Storage Encryption Technologies for End User Devices（PDF 原文抽出・ドラフト翻訳完了：434/437ブロック、図版3ブロック原文保持） | `html/sp800-111.html` |
+| SP 800-161 Rev. 1 (Update 1) | Cybersecurity Supply Chain Risk Management Practices for Systems and Organizations（PDF 原文抽出） | `html/sp800-161r1upd1.html` |
+| SP 800-35 | Guide to Information Technology Security Services（PDF 原文抽出・翻訳完了：1030/1049ブロック、19ブロック原文保持） | `html/sp800-35.html` |
+| SP 800-49 | Federal S/MIME V3 Client Profile（PDF 原文抽出・ドラフト翻訳完了：401/402ブロック、図版1ブロックは原文保持） | `html/sp800-49.html` |
 | SP 800-50 Rev. 1 | Building a Cybersecurity and Privacy Learning Program（PDF 原文抽出） | `html/sp800-50r1.html` |
 | SP 800-204D | Strategies for the Integration of Software Supply Chain Security in DevSecOps CI/CD Pipelines（PDF 原文抽出） | `html/sp800-204d.html` |
 | SP 800-108 Rev. 1 (Update 1) | Recommendation for Key Derivation Using Pseudorandom Functions（PDF 原文抽出） | `html/sp800-108r1upd1.html` |
@@ -93,7 +125,7 @@ python3 main.py update --document 63a
 python3 -m http.server 8000 --directory html
 ```
 
-`--document` には `63`、`63a`、`63b`、`63c`、`18r2`、`66r2`、`126r4`、`126ar4`、`172r3`、`172ar3`、`70r5`、`81r3`、`228upd1`、`88r2`、`90c`、`61r3`、`201`、`55v2`、`55v1`、`50r1`、`204d`、`204c`、`204b`、`204a`、`204`、`203`、`202`、`193`、`192`、`190`、`189`、`188`、`187`、`186`、`184`、`108r1upd1`、`227`、`226`、`225`、`223`、`221`、`221a`、`218a`、`218`、`216`、`220`、`219r1`、`215`、`213`、`213a`、`207a`、`214`、`211`、`210`、`209`、`208`、`207`、`206`、`205`、`131ar2`、`238`、`236`、`234`、`233`、`232`、`231`、`229` を指定します。省略時は従来どおり `63b` です。`update` はNISTから原文を取得し、JSONを作成または更新してHTMLを出力します。各処理は個別にも実行できます。
+`--document` には `63`、`63a`、`63b`、`63c`、`18r2`、`66r2`、`87r2`、`125`、`125ar1`、`125b`、`126r4`、`126ar4`、`126r2`、`126a`、`126r1`、`171r3`、`172r3`、`172ar3`、`70r5`、`81r3`、`228upd1`、`88r2`、`90c`、`61r3`、`201`、`55v2`、`55v1`、`50r1`、`49`、`35`、`204d`、`204c`、`204b`、`204a`、`204`、`203`、`202`、`193`、`192`、`190`、`189`、`188`、`187`、`186`、`184`、`108r1upd1`、`227`、`226`、`225`、`223`、`221`、`221a`、`218a`、`218`、`216`、`220`、`219r1`、`215`、`213`、`213a`、`207a`、`214`、`211`、`210`、`209`、`208`、`207`、`206`、`205`、`131ar2`、`170`、`168`、`167`、`166`、`165`、`163r1`、`162`、`157`、`156`、`145`、`144`、`142`、`146`、`147`、`147b`、`150`、`152`、`153`、`238`、`236`、`234`、`233`、`232`、`231`、`229`、`111`、`161r1upd1` を指定します。省略時は従来どおり `63b` です。`update` はNISTから原文を取得し、JSONを作成または更新してHTMLを出力します。各処理は個別にも実行できます。
 
 ```sh
 python3 main.py fetch --document 63c
@@ -113,9 +145,19 @@ python3 scripts/update_sp800_final_catalog.py
 
 再取得にはネット接続が必要です。NISTが一覧を更新した後に実行すると、台帳も最新化されます。
 
+## 対訳一覧ページ
+
+**html/index.html** は現行 Final 資料の一覧です。資料番号・タイトルの検索と翻訳状態の絞り込みができ、訳文ページとNIST原文へ移動できます。進捗はカタログの古い値に依存せず、生成時に各翻訳JSONから再集計します。
+
+一覧だけを生成する場合:
+
+    python3 scripts/build_translation_index.py
+
+各資料のHTML生成時と、現行Final資料カタログの更新時にも一覧を自動で再生成します。コマンドから単独実行する場合は **python3 main.py index** を使います。
+
 ## PDF だけの資料
 
-`18r2`、`126r4`、`126ar4`、`172r3`、`172ar3`、`70r5`、`81r3`、`88r2`、`228upd1`、`131ar2`、`90c`、`61r3`、`227`、`226`、`223`、`221`、`221a`、`218a`、`201`、`55v2`、`204d`、`204c`、`204b`、`204a`、`204`、`203`、`202`、`193`、`192`、`190`、`188`、`187`、`186`、`184`、`219r1`、`215`、`213`、`213a`、`207a`、`214`、`211`、`210`、`209`、`208`、`207`、`206`、`205`、`238`、`236`、`234`、`233`、`232`、`231`、`229` は PDF 原本から抽出した資料です。訳文は `draft` で、PDF原文の抽出状態は `needs_review` です。表や図は HTML と原本から切り出した画像を併記します。図中の文字や複雑な表を含め、原文と照合してから抽出状態を `verified` にしてください。
+`18r2`、`49`、`35`、`87r2`、`126r4`、`126ar4`、`126r2`、`126a`、`126r1`、`172r3`、`172ar3`、`70r5`、`81r3`、`88r2`、`228upd1`、`131ar2`、`170`、`168`、`167`、`166`、`165`、`163r1`、`162`、`157`、`156`、`145`、`142`、`146`、`147`、`147b`、`150`、`152`、`153`、`90c`、`61r3`、`227`、`226`、`223`、`221`、`221a`、`218a`、`201`、`55v2`、`204d`、`204c`、`204b`、`204a`、`204`、`203`、`202`、`193`、`192`、`190`、`188`、`187`、`186`、`184`、`219r1`、`215`、`213`、`213a`、`207a`、`214`、`211`、`210`、`209`、`208`、`207`、`206`、`205`、`238`、`236`、`234`、`233`、`232`、`231`、`229`、`111`、`161r1upd1` は PDF 原本から抽出した資料です。訳文は `draft` で、PDF原文の抽出状態は `needs_review` です。表や図は HTML と原本から切り出した画像を併記します。図中の文字や複雑な表を含め、原文と照合してから抽出状態を `verified` にしてください。
 
 ```sh
 python3 main.py fetch --document 131ar2

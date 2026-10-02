@@ -2,6 +2,7 @@
 
 import json
 import re
+import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,18 +12,24 @@ from bs4 import BeautifulSoup
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from src.nist_translater.index_page import build_translation_index
+
 SOURCE_URL = "https://csrc.nist.gov/publications/sp800"
 OUTPUT = ROOT / "data" / "sp800-final-catalog.json"
 
 
 def _normal_number(value):
     value = re.sub(r"^\s*SP\s*", "", value, flags=re.I)
-    value = re.sub(r"\s+REV(?:ISION)?\.?\s*[0-9A-Z]+\b", "", value, flags=re.I)
+    # Keep revision and volume identifiers so one translated edition is not
+    # incorrectly counted as every Final revision. The catalog number omits
+    # Update labels even when its record URL points at an updated PDF.
+    value = re.sub(r"\s*\(?UPDATE\s*[0-9A-Z]+\)?\s*$", "", value, flags=re.I)
     return re.sub(r"[^A-Z0-9]", "", value.upper())
 
 
 def _translation_progress():
-    progress = {}
+    progress = {"by_number": {}, "by_record_url": {}}
     for path in (ROOT / "data").glob("sp800-*-trans.json"):
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
@@ -33,21 +40,32 @@ def _translation_progress():
         blocks = document.get("contents", [])
         if not key or not blocks:
             continue
-        translated = sum(bool(block.get("html_ja", "").strip()) for block in blocks)
+        translated = sum(
+            block.get("status") in {"draft", "reviewed"}
+            and bool(block.get("html_ja", "").strip())
+            for block in blocks
+        )
+        source_only = sum(block.get("status") == "source_only" for block in blocks)
         complete = all(
             block.get("status") in {"draft", "reviewed", "source_only"}
             and (block.get("html_ja", "").strip() or block.get("status") == "source_only")
             for block in blocks
         )
-        state = "translated" if complete else "in_progress" if translated else "not_started"
+        state = "translated" if complete else "in_progress" if translated or source_only else "not_started"
         slug = path.name.removeprefix("sp800-").removesuffix("-trans.json")
-        progress[key] = {
+        item = {
             "translation_status": state,
             "translated_blocks": translated,
+            "source_only_blocks": source_only,
             "total_blocks": len(blocks),
             "json_path": path.relative_to(ROOT).as_posix(),
             "html_path": (ROOT / "html" / ("sp800-%s.html" % slug)).relative_to(ROOT).as_posix(),
         }
+        if key:
+            progress["by_number"][key] = item
+        record_url = document.get("catalog_record_url")
+        if record_url:
+            progress["by_record_url"][record_url] = item
     return progress
 
 
@@ -87,11 +105,14 @@ def fetch_catalog():
             "release_date": release_date.get_text(" ", strip=True),
             "record_url": urljoin(SOURCE_URL, title_link.get("href", "")),
         }
-        record.update(progress.get(key, {
+        progress_item = progress["by_record_url"].get(record["record_url"])
+        if progress_item is None:
+            progress_item = progress["by_number"].get(key)
+        record.update(progress_item or {
             "translation_status": "not_started",
             "translated_blocks": 0,
             "total_blocks": 0,
-        }))
+        })
         records.append(record)
 
     if not records:
@@ -113,6 +134,7 @@ def main():
     in_progress = sum(item["translation_status"] == "in_progress" for item in catalog["records"])
     print("Saved %d current Final SP 800 records to %s" % (catalog["record_count"], OUTPUT))
     print("Translation progress: %d translated, %d in progress" % (translated, in_progress))
+    print("Built", build_translation_index(ROOT))
 
 
 if __name__ == "__main__":
