@@ -12,6 +12,7 @@ from .documents import DOCUMENTS, document_paths, get_document
 from .index_page import build_translation_index
 from .parser import parse_document
 from .pdf_parser import parse_pdf_document
+from .pdf_math import preserve_sp800_22_math, restore_extraction
 from .render import build_site
 from .storage import read_json, write_json
 from .translation import audit_translations, carry_translations, make_queue, merge_translations
@@ -123,7 +124,8 @@ def parse(document_key="63b", pages=None):
         document["created_at"] = (existing or {}).get("created_at", datetime.now(timezone.utc).isoformat())
         document["source_fetched_at"] = datetime.fromtimestamp(source.stat().st_mtime, timezone.utc).isoformat()
         if existing:
-            document = carry_translations(existing, document)
+            previous = restore_extraction(existing) if spec.get("preserve_pdf_math") else existing
+            document = carry_translations(previous, document)
         elif document_key == "63b" and (DATA / "blocks.json").exists() and (DATA / "ja.json").exists():
             # One-time migration from the previous split data files.
             old_blocks = read_json(DATA / "blocks.json")
@@ -142,6 +144,11 @@ def parse(document_key="63b", pages=None):
             for block in document["contents"]:
                 if block["kind"] == "table" and block["html_ja"]:
                     block["html_ja"] = _compact_table_urls(block["html_ja"])
+        if spec.get("preserve_pdf_math"):
+            document = preserve_sp800_22_math(
+                document, source, ROOT / "html" / "assets" / spec["slug"],
+                "assets/" + spec["slug"], previous_document=existing,
+            )
         changed = audit_translations(document)
         write_json(document_path, document)
     except Exception:
@@ -174,6 +181,8 @@ def build(document_key="63b"):
     build_site(document, {"fetched_at": document.get("source_fetched_at")},
                ROOT / "templates" / "page.html", output_path)
     shutil.copyfile(ROOT / "static" / "style.css", output / "style.css")
+    if (ROOT / "static" / "vendor" / "katex").exists():
+        shutil.copytree(ROOT / "static" / "vendor" / "katex", output / "vendor" / "katex", dirs_exist_ok=True)
     print("Built", output_path)
     print("Built", build_translation_index(ROOT))
 

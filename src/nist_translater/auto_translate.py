@@ -74,6 +74,8 @@ def make_prompt(batch):
         "Return every input block exactly once, in the same order. "
         "HTML tags are represented by __HTML_TAG_NNN__ placeholders. Copy every placeholder exactly, in the same order; "
         "do not translate, remove, add, or reorder placeholders. The Python caller will restore the original tags. "
+        "Copy all LaTeX formulas between \\( ... \\) or \\[ ... \\] verbatim, including variables and values. "
+        "Never replace structural formulas with positioned glyphs or add htmlStyle, mathrlap, vphantom or layout commands. "
         "Preserve each requirement word only when it appears in exactly this uppercase form in the English block: "
         "SHALL, SHALL NOT, SHOULD, SHOULD NOT, MAY, NEED NOT, CAN or CANNOT. "
         "Keep each such uppercase token verbatim alongside its Japanese meaning, exactly the same number of times. "
