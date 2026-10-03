@@ -16,7 +16,9 @@ HEADING = re.compile(r"^(?:(\d{1,3}(?:\.\d+)*\.?)\s+|Appendix\s+[A-Z](?::|\s))",
 LIST_ITEM = re.compile(r"^(?:[•●▪]\s+|(\d+)\.\s+)")
 FOOTNOTE = re.compile(r"^\d{1,2}\s+\S")
 FRONT_HEADINGS = {"Abstract", "Keywords", "Acknowledgments", "Table of Contents",
-                  "Reports on Computer Systems Technology"}
+                  "Reports on Computer Systems Technology", "References"}
+REFERENCE_LABEL = re.compile(r"^\[[A-Za-z0-9 .-]{1,32}\]$")
+REFERENCE_ENTRY = re.compile(r"^\[[A-Za-z0-9 .-]{1,32}\](?=\s|$)")
 
 
 def _normal(text):
@@ -24,9 +26,15 @@ def _normal(text):
                    .replace("\ufb02", "fl").split())
 
 
+def _footer_signature(text):
+    """Normalize variable OCR spacing in repeated footer titles."""
+    return re.sub(r"\s+", "", text).casefold()
+
+
 def _join_lines(left, right):
-    # Keep a printed hyphen: it may be part of an identifier or compound word.
-    return left + ("" if left.endswith("-") else " ") + right
+    # Keep printed hyphens and percent escapes when a URL wraps at a line edge.
+    percent_escape = left.endswith("%") and re.match(r"^[0-9A-Fa-f]{2}", right)
+    return left + ("" if left.endswith("-") or percent_escape else " ") + right
 
 
 def _bbox(item):
@@ -103,7 +111,7 @@ def _chars_text(chars):
     return _normal("".join(parts))
 
 
-def _text_lines(page, running_headers=None):
+def _text_lines(page, running_headers=None, running_footers=None):
     raw_lines = page.extract_text_lines(layout=False)
     result = []
     for raw_line in raw_lines:
@@ -119,13 +127,15 @@ def _text_lines(page, running_headers=None):
                     re.fullmatch(r"PAGE\s+\d+", page_label, re.I)):
                 continue
             repeated_header = line["top"] < 66 and text in (running_headers or set())
+            repeated_footer = (line["top"] > page.height * 0.88 and
+                               _footer_signature(text) in (running_footers or set()))
             page_number = (line["top"] > page.height * 0.9 and
                            re.fullmatch(
                                r"(?:\d{1,3}|[ivxlcdm]{1,8}|\d{1,3}-\s?\d{1,2}|"
                                r"(?:ES|[A-D])-\s?\d{1,2})",
                                text, re.I))
-            if repeated_header or page_number:
-                continue  # Repeated running headers and printed page labels are page furniture.
+            if repeated_header or repeated_footer or page_number:
+                continue  # Repeated headers/footers and printed page labels are page furniture.
             result.append({**line, "text": text, "size": _size(line),
                            "bold_ratio": _bold_ratio(line)})
     table_of = next((line for line in result if line["text"].lower() == "table of"), None)
@@ -205,11 +215,11 @@ def _is_layout_artifact_table(box, page):
             (width >= page.width * 0.9 and height <= page.height * 0.12))
 
 
-def _has_parallel_columns(page, running_headers=None):
+def _has_parallel_columns(page, running_headers=None, running_footers=None):
     midpoint = page.width / 2
     tables = [table.bbox for table in page.find_tables()
               if not _is_layout_artifact_table(table.bbox, page)]
-    lines = [line for line in _text_lines(page, running_headers)
+    lines = [line for line in _text_lines(page, running_headers, running_footers)
              if line["top"] < page.height * 0.76 and
              not any(_inside(line, box) for box in tables)]
     left = [line for line in lines if line["x1"] < midpoint - 5]
@@ -290,22 +300,28 @@ def _kind(line, footnote_top):
         return "heading"
     if text in FRONT_HEADINGS and line["size"] >= 11:
         return "heading"
-    if text.isupper() and len(text) < 150 and line["size"] >= 11:
+    if (text.isupper() and len(text) < 150 and line["size"] >= 11 and
+            not text.endswith((".", "!", "?")) and not REFERENCE_LABEL.fullmatch(text)):
         return "heading"
     if (text.lower().startswith("major accomplishments in fy ") or
             text.lower().startswith("fy 2024 event topics included:")):
         return "heading"
     if len(text) < 150 and line["size"] >= 20:
         return "heading"
-    if LIST_ITEM.match(text):
+    marker = LIST_ITEM.match(text)
+    if marker:
+        ordinal = marker.group(1)
+        if ordinal and len(ordinal) == 4 and 1800 <= int(ordinal) <= 2200:
+            return "paragraph"  # Publication years are not ordered-list markers.
         return "list_item"
     if text.startswith("Note:") and line["x0"] >= 100:
         return "note"
     return "paragraph"
 
 
-def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None):
-    lines = _text_lines(page, running_headers)
+def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None,
+                running_footers=None):
+    lines = _text_lines(page, running_headers, running_footers)
     toc_page = (any(line["text"] == "Table of Contents" for line in lines) or
                 sum(bool(re.fullmatch(r".+?\s*\.{3,}\s*\d{1,3}\s*", line["text"]))
                     for line in lines) >= 6)
@@ -429,6 +445,20 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
         0 if toc_page and item.get("text") == "Table of Contents" else 1,
         0 if item.get("text", "").strip().upper() == "FOREWORD" else 1,
         item["top"], item["bbox"][0]))
+    # Some PDFs bold the opening clause of a numbered list item. The section
+    # heading heuristic catches that first line before LIST_ITEM can run. A
+    # same-size continuation with a hanging indent identifies the list layout.
+    for index, item in enumerate(entries[:-1]):
+        continuation = entries[index + 1]
+        marker = LIST_ITEM.match(item.get("text", ""))
+        indent = continuation["bbox"][0] - item["bbox"][0]
+        gap = continuation["bbox"][1] - item["bbox"][3]
+        if (item["kind"] == "heading" and marker and marker.group(1) and
+                len(item["text"]) >= 40 and continuation["kind"] == "paragraph" and
+                item.get("size", 0) <= 13 and
+                abs(item.get("size", 0) - continuation.get("size", 0)) <= 0.5 and
+                12 <= indent <= 40 and 0 <= gap <= 7):
+            item["kind"] = "list_item"
     grouped = []
     for item in entries:
         if item["kind"] in {"table", "figure"} or toc_page:
@@ -462,6 +492,34 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
             previous["bbox"][3] = max(previous["bbox"][3], item["bbox"][3])
         else:
             grouped.append(item)
+    # Reference lists place a short citation key in a narrow left column and
+    # its citation in the right column on the same baseline. Keep each record
+    # together even when the horizontal gap caused pdfplumber to split it.
+    merged_grouped = []
+    for item in grouped:
+        previous = merged_grouped[-1] if merged_grouped else None
+        label_gap = (item["bbox"][0] - previous["bbox"][2]
+                     if previous else 0)
+        same_reference_row = (
+            previous and REFERENCE_LABEL.fullmatch(previous["text"].strip()) and
+            previous["kind"] in {"heading", "paragraph"} and
+            item["kind"] == "paragraph" and
+            abs(item["bbox"][1] - previous["bbox"][1]) <= 1.5 and
+            0 < label_gap <= 65)
+        reference_continuation = (
+            previous and REFERENCE_ENTRY.match(previous["text"].strip()) and
+            previous["kind"] == item["kind"] == "paragraph" and
+            item["bbox"][0] - previous["bbox"][0] >= 50 and
+            item["bbox"][1] - previous["bbox"][3] <= 7 and
+            item["bbox"][1] >= previous["bbox"][3])
+        if same_reference_row or reference_continuation:
+            previous["kind"] = "paragraph"
+            previous["text"] = _join_lines(previous["text"], item["text"])
+            previous["bbox"][2] = max(previous["bbox"][2], item["bbox"][2])
+            previous["bbox"][3] = max(previous["bbox"][3], item["bbox"][3])
+        else:
+            merged_grouped.append(item)
+    grouped = merged_grouped
     table_ids_by_bbox = {
         tuple(item["bbox"]): index
         for index, item in enumerate(grouped, 1)
@@ -497,23 +555,30 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
         warnings = []
         text_characters = 0
         header_pages = defaultdict(set)
+        footer_pages = defaultdict(set)
         lines_by_page = {physical_page: _text_lines(page)
                          for physical_page, page in enumerate(pdf.pages, start=1)}
         for physical_page, page_lines in lines_by_page.items():
+            page = pdf.pages[physical_page - 1]
             for line in page_lines:
                 if line["top"] < 66:
                     header_pages[line["text"]].add(physical_page)
+                if line["top"] > page.height * 0.88:
+                    footer_pages[_footer_signature(line["text"])].add(physical_page)
         running_headers = {text for text, header_pages_seen in header_pages.items()
                            if len(header_pages_seen) >= 2}
+        running_footers = {text for text, footer_pages_seen in footer_pages.items()
+                           if len(footer_pages_seen) >= 2}
         for page_number in selected:
             page = pdf.pages[page_number - 1]
             readable = sum(char.get("upright", True) for char in page.chars)
             text_characters += readable
             if readable < 20:
                 warnings.append("PDF p.%d: 抽出できる文字が少ないため OCR または画像の照合が必要" % page_number)
-            if _has_parallel_columns(page, running_headers):
+            if _has_parallel_columns(page, running_headers, running_footers):
                 warnings.append("PDF p.%d: 二段組の可能性があるため読み順を原本と照合してください" % page_number)
-            items = _page_items(page, page_number, asset_dir, asset_prefix, running_headers)
+            items = _page_items(page, page_number, asset_dir, asset_prefix,
+                                running_headers, running_footers)
             for index, item in enumerate(items, 1):
                 kind = item["kind"]
                 source_text = LIST_ITEM.sub("", item["text"], count=1) if kind == "list_item" else item["text"]
@@ -561,16 +626,24 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
             previous = next((block for block in reversed(blocks[:index])
                              if block["source_page"] == current["source_page"] - 1
                              and block["kind"] != "footnote"), None)
-            if (previous and previous["kind"] == "paragraph" and
+            reference_continuation = (
+                previous and REFERENCE_ENTRY.match(previous["html"]) and
+                not REFERENCE_ENTRY.match(current["html"]) and
+                current["source_refs"][0]["bbox"][1] < 100 and
+                current["source_refs"][0]["bbox"][0] >=
+                previous["source_refs"][0]["bbox"][0] + 50 and
+                not previous["html"].rstrip().endswith((".", "!", "?", ";", ":")))
+            if (previous and previous["kind"] in {"paragraph", "list_item"} and
                     (previous["html"].endswith("-") or
-                     (current["html"] and current["html"][0].islower())) and
+                     (current["html"] and current["html"][0].islower()) or
+                     reference_continuation) and
                     not any(block["source_page"] == current["source_page"] and
                             block["kind"] != "footnote" for block in blocks[:index]
                             if block is not previous)):
                 previous["html"] = _join_lines(previous["html"], current["html"])
                 previous["source_refs"].extend(current["source_refs"])
                 previous["source_hash"] = hashlib.sha256(
-                    ("paragraph\n" + previous["html"]).encode("utf-8")).hexdigest()[:16]
+                    (previous["kind"] + "\n" + previous["html"]).encode("utf-8")).hexdigest()[:16]
                 del blocks[index]
         return {
             "title": {"text": "NIST " + number, "html_ja": ""},
