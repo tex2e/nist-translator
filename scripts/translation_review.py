@@ -84,7 +84,9 @@ def _valid_fix(block, japanese):
     if not isinstance(japanese, str) or not japanese.strip() or japanese == block["html_ja"]:
         return False
     try:
-        assert_same_html_structure(block["html"], japanese)
+        # A correction to a restored math block must leave its formulas alone.
+        assert_same_html_structure(block["html"], japanese,
+                                   preserve_math=block["kind"] == "math")
     except ValueError:
         return False
     return Counter(NORMATIVE.findall(japanese)) == Counter(NORMATIVE.findall(source_text(block)))
