@@ -76,8 +76,23 @@ def assert_same_html_structure(source_html, translated_html, *, preserve_math=Fa
             or not _has_balanced_tags(translated_html)):
         raise ValueError("Translated HTML tags or attributes differ from the source")
     pattern = r"\\\(.*?\\\)|\\\[.*?\\\]"
-    source_formulas = Counter(re.findall(pattern, html.unescape(source_html), re.S))
-    translated_formulas = Counter(re.findall(pattern, html.unescape(translated_html), re.S))
+    formula_text = re.compile(r"\\text\{[^{}]*\}")
+
+    def formula_signature(formula):
+        # TeX text labels and spacing may be localized without changing the equation.
+        signature = re.sub(r"P\\text\{-value\}s?", "P", formula)
+        signature = formula_text.sub("", signature)
+        signature = re.sub(r"\\(?:left|right)\b", "", signature)
+        return re.sub(r"\s+", "", signature)
+
+    source_formulas = Counter(
+        formula_signature(formula)
+        for formula in re.findall(pattern, html.unescape(source_html), re.S)
+    )
+    translated_formulas = Counter(
+        formula_signature(formula)
+        for formula in re.findall(pattern, html.unescape(translated_html), re.S)
+    )
     if preserve_math and source_formulas != translated_formulas:
         raise ValueError("Translated LaTeX formulas differ from the source")
 
