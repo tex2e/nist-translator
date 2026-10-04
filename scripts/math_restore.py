@@ -9,6 +9,8 @@ the LaTeX itself are in skills/nist-document-extraction/SKILL.md.
     python scripts/math_restore.py apply   KEY WORK_DIR
     python scripts/math_restore.py render  KEY WORK_DIR --pdf-dir DIR
     python scripts/math_restore.py check   KEY WORK_DIR
+    python scripts/math_restore.py revise-export KEY WORK_DIR --pdf-dir DIR
+    python scripts/math_restore.py revise-apply  KEY WORK_DIR
     python scripts/math_restore.py figures-export KEY WORK_DIR --pdf-dir DIR
     python scripts/math_restore.py figures-apply  KEY WORK_DIR --pdf-dir DIR
 
@@ -33,6 +35,12 @@ which the reviewer is not given.
 ``check`` marks blocks whose display matches the original as ``verified``. It
 accepts a batch's ``ok`` verdicts only if the reviewer reported every planted
 error in that batch.
+
+``revise-export`` writes ``revise.batch.json`` with the restored blocks whose
+display was found to differ from the original, together with the reviewer's
+observation. A restorer answers with ``revise.result.json``: a list of
+``{"id", "html", "html_ja", "notes"}``. ``revise-apply`` stores the corrected
+blocks as unchecked drafts, so they go through ``render`` and ``check`` again.
 
 ``figures-export`` finds regions of drawn graphics that enclose extracted text
 (diagram labels end up as stray paragraphs) and writes ``figures.batch.json``
@@ -435,8 +443,11 @@ def render(key, work, pdf_dir):
             "original": [original_crop(source) for source in block["replaces"]],
             "extracted_before": [originals[source]["html"] for source in block["replaces"]
                                  if source in originals]})
-    for path in list(work.glob("check.*.batch.json")) + list(work.glob("check.*.key.json")):
-        path.unlink()
+    # Verdicts from an earlier render would otherwise be matched to the new
+    # batches, which reuse the same file names and ids.
+    for pattern in ("check.*.batch.json", "check.*.key.json", "check.*.result.json"):
+        for path in work.glob(pattern):
+            path.unlink()
     planted_total = batch_count = 0
     for index in range(0, len(items), CHECK_BATCH):
         group = items[index:index + CHECK_BATCH]
@@ -510,6 +521,76 @@ def check(key, work):
     print(" ".join("%s=%d" % item for item in sorted(counts.items())))
     for line in skipped:
         print("SKIPPED", line)
+
+
+def revise_export(key, work, pdf_dir):
+    import pypdfium2
+
+    document = read_json(_path(key))
+    originals = {block["id"]: block for block in
+                 document.get("math_preservation", {}).get("original_blocks", [])}
+    work.mkdir(parents=True, exist_ok=True)
+    pdf, page_images, items = None, {}, []
+    scale = DPI / 72
+    for block in document["contents"]:
+        checked = block.get("math_reconstruction", {}).get("source_check", {})
+        if block["kind"] != "math" or checked.get("browser_status") != "failed":
+            continue
+        images = []
+        for source in block["replaces"]:
+            path = work / (source + ".png")
+            if not path.exists() and source in originals:
+                if pdf is None:
+                    pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
+                number = originals[source]["source_page"]
+                if number not in page_images:
+                    page_images[number] = pdf[number - 1].render(
+                        scale=scale).to_pil().convert("RGB")
+                image = page_images[number]
+                _, top, _, bottom = originals[source]["source_refs"][0]["bbox"]
+                image.crop((0, max(0, (top - 10) * scale), image.width,
+                            min(image.height, (bottom + 10) * scale))).save(path)
+            images.append(str(path))
+        items.append({"id": block["id"], "page": block["source_page"],
+                      "html": block["html"], "html_ja": block["html_ja"],
+                      "images": images, "difference_found": checked.get("observations", "")})
+    write_json(work / "revise.batch.json", {"document": document["number"], "blocks": items})
+    print("Exported %d blocks to revise" % len(items))
+
+
+def revise_apply(key, work):
+    document = read_json(_path(key))
+    batch = {item["id"] for item in read_json(work / "revise.batch.json")["blocks"]}
+    answers = {answer["id"]: answer for answer in read_json(work / "revise.result.json")}
+    if set(answers) != batch:
+        raise ValueError("Answers do not cover the batch exactly")
+    counts = Counter()
+    for block in document["contents"]:
+        answer = answers.get(block["id"])
+        if answer is None:
+            continue
+        problem = _problem(block, answer)
+        if problem:
+            counts["rejected"] += 1
+            print("REJECTED", block["id"], problem)
+            continue
+        if answer["html"] == block["html"] and answer["html_ja"] == block["html_ja"]:
+            counts["unchanged"] += 1
+            continue
+        block["html"], block["html_ja"] = answer["html"], answer["html_ja"]
+        block["source_hash"] = _source_hash("math", answer["html"])
+        # A corrected block is unchecked and its translation unreviewed again.
+        block["extraction_status"], block["status"] = "needs_review", "draft"
+        block.pop("translation_check", None)
+        block.pop("translation_fix_rounds", None)
+        reconstruction = block["math_reconstruction"]
+        reconstruction["revised_after"] = reconstruction.pop("source_check")["observations"]
+        if answer.get("notes"):
+            reconstruction["restorer_notes"] = answer["notes"]
+        counts["revised"] += 1
+    audit_translations(document)
+    write_json(_path(key), document)
+    print(" ".join("%s=%d" % item for item in sorted(counts.items())) or "nothing applied")
 
 
 FIGURE_DPI = 216
@@ -704,6 +785,7 @@ def figures_apply(key, work, pdf_dir):
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("command", choices=["export", "apply", "render", "check",
+                                         "revise-export", "revise-apply",
                                          "figures-export", "figures-apply"])
     cli.add_argument("key", help="document key such as sp800-38b")
     cli.add_argument("work", type=Path, help="working directory for batches and images")
@@ -714,6 +796,10 @@ def main():
     args = cli.parse_args()
     if args.command == "export":
         export(args.key, args.work, args.pdf_dir, _page_set(args.pages), args.every_block)
+    elif args.command == "revise-export":
+        revise_export(args.key, args.work, args.pdf_dir)
+    elif args.command == "revise-apply":
+        revise_apply(args.key, args.work)
     elif args.command == "figures-export":
         figures_export(args.key, args.work, args.pdf_dir)
     elif args.command == "figures-apply":
