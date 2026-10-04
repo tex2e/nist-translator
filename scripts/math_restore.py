@@ -128,7 +128,7 @@ def _results(work, stem):
     return answers, skipped
 
 
-def candidates(document, pdf, page_filter=(), every_block=False):
+def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
     """Blocks that may contain mathematics, with the page data used to find them.
 
     Glyph geometry finds raised and lowered text, italic fonts find variables
@@ -146,6 +146,8 @@ def candidates(document, pdf, page_filter=(), every_block=False):
         number = block["source_page"]
         if page_filter and number not in page_filter:
             continue
+        if only_ids and block["id"] not in only_ids:
+            continue
         if number not in pages:
             pages[number] = verifier.PageData(pdf[number - 1], pdfium_c)
         page = pages[number]
@@ -156,7 +158,8 @@ def candidates(document, pdf, page_filter=(), every_block=False):
                   if x0 - 1 <= (char["x0"] + char["x1"]) / 2 <= x1 + 1 and
                   top - 1 <= (char["top"] + char["bottom"]) / 2 <= bottom + 1]
         eligible.append(block)
-        if (every_block or MATH_REASONS & set(reasons) or LONE_CAPITAL.search(text) or
+        if (every_block or only_ids or MATH_REASONS & set(reasons) or
+                LONE_CAPITAL.search(text) or
                 any(ITALIC.search(char["font"]) or
                     (("Symbol" in char["font"] or "Math" in char["font"]) and
                      char["text"] not in "•·") for char in inside)):
@@ -173,7 +176,7 @@ def candidates(document, pdf, page_filter=(), every_block=False):
     return [block for block in eligible if block["id"] in chosen], pages
 
 
-def export(key, work, pdf_dir, page_filter=(), every_block=False):
+def export(key, work, pdf_dir, page_filter=(), every_block=False, only_ids=()):
     import pypdfium2
 
     document = read_json(_path(key))
@@ -182,7 +185,7 @@ def export(key, work, pdf_dir, page_filter=(), every_block=False):
         raise ValueError("Local PDF does not match source_sha256")
     pdf = pypdfium2.PdfDocument(str(pdf_path))
     work.mkdir(parents=True, exist_ok=True)
-    blocks, pages = candidates(document, pdf, page_filter, every_block)
+    blocks, pages = candidates(document, pdf, page_filter, every_block, only_ids)
     images, items = {}, []
     scale = DPI / 72
     for block in blocks:
@@ -360,6 +363,8 @@ PLANTS = [
     (r"_\{i-1\}", "_{i+1}"), (r"_\{n-1\}", "_{n+1}"), (r"\\oplus", "\\parallel"),
     (r"\\le\b", "\\ge"), (r"\\ge\b", "\\le"), (r"\\lceil", "\\lfloor"),
     (r"\^\{?([a-zA-Z])\}?", None), (r"_\{?([a-zA-Z0-9])\}?", None), (r"(\d)", None),
+    # Last resort for formulas with no index or digit: a lone variable letter.
+    (r"(?<![\\a-zA-Z])([a-zA-Z])(?![a-zA-Z])", None),
 ]
 
 
@@ -791,11 +796,14 @@ def main():
     cli.add_argument("work", type=Path, help="working directory for batches and images")
     cli.add_argument("--pdf-dir", type=Path, default=ROOT / "data")
     cli.add_argument("--pages", help="export: only these pages, e.g. 9-18,25")
+    cli.add_argument("--ids", type=Path,
+                     help="export: only the block ids in this JSON list (for retries)")
     cli.add_argument("--every-block", action="store_true",
                      help="export: offer every text block, not only likely mathematics")
     args = cli.parse_args()
     if args.command == "export":
-        export(args.key, args.work, args.pdf_dir, _page_set(args.pages), args.every_block)
+        export(args.key, args.work, args.pdf_dir, _page_set(args.pages), args.every_block,
+               set(read_json(args.ids)) if args.ids else ())
     elif args.command == "revise-export":
         revise_export(args.key, args.work, args.pdf_dir)
     elif args.command == "revise-apply":
