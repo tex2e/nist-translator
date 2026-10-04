@@ -41,6 +41,11 @@ SCHEMA = {
 }
 
 TAG_RE = re.compile(r"<[^>]+>")
+FORMULA_RE = re.compile(
+    re.escape("\\(") + r".*?" + re.escape("\\)") + "|"
+    + re.escape("\\[") + r".*?" + re.escape("\\]"),
+    re.S,
+)
 
 
 def _protect_tags(html):
@@ -61,10 +66,31 @@ def _restore_tags(value, source_html):
         raise TranslationError("HTML tag placeholders were changed or omitted")
     return re.sub(r"__HTML_TAG_(\d{3})__", lambda match: tags[int(match.group(1))], value)
 
+
+def _protect_formulas(value):
+    formulas = []
+
+    def replace(match):
+        formulas.append(match.group(0))
+        return '<nist-formula data-index="%03d"/>' % (len(formulas) - 1)
+
+    return FORMULA_RE.sub(replace, value), formulas
+
+
+def _restore_formulas(value, source_html):
+    formulas = FORMULA_RE.findall(source_html)
+    expected = ["%03d" % index for index in range(len(formulas))]
+    pattern = re.compile(r'<nist-formula data-index="(\d{3})"/>')
+    tokens = pattern.findall(value)
+    if sorted(tokens) != expected:
+        raise TranslationError("LaTeX formula placeholders were changed, omitted or duplicated")
+    return pattern.sub(lambda match: formulas[int(match.group(1))], value)
+
 def make_prompt(batch):
     items = []
     for item in batch:
-        protected, _ = _protect_tags(item["html"])
+        protected, _ = _protect_formulas(item["html"])
+        protected, _ = _protect_tags(protected)
         items.append({"id": item["id"], "source_hash": item["source_hash"], "html": protected})
     return (
         "Translate the text nodes in the following NIST publication fragments into natural, precise Japanese. "
@@ -74,7 +100,8 @@ def make_prompt(batch):
         "Return every input block exactly once, in the same order. "
         "HTML tags are represented by __HTML_TAG_NNN__ placeholders. Copy every placeholder exactly, in the same order; "
         "do not translate, remove, add, or reorder placeholders. The Python caller will restore the original tags. "
-        "Copy all LaTeX formulas between \\( ... \\) or \\[ ... \\] verbatim, including variables and values. "
+        "Each LaTeX formula is temporarily replaced by a self-closing HTML tag represented by one tag placeholder. "
+        "Copy all tag placeholders exactly, in order; the caller restores each original formula verbatim. "
         "Never replace structural formulas with positioned glyphs or add htmlStyle, mathrlap, vphantom or layout commands. "
         "Preserve each requirement word only when it appears in exactly this uppercase form in the English block: "
         "SHALL, SHALL NOT, SHOULD, SHOULD NOT, MAY, NEED NOT, CAN or CANNOT. "
@@ -157,7 +184,9 @@ def validate_response(response, batch):
             raise TranslationError("Translation entry has an invalid shape")
         if item["id"] != expected["id"] or item["source_hash"] != expected["source_hash"]:
             raise TranslationError("Translation ID, hash or order differs from the request")
-        japanese = _restore_tags(item["html_ja"], expected["html"])
+        protected_source, _ = _protect_formulas(expected["html"])
+        japanese = _restore_tags(item["html_ja"], protected_source)
+        japanese = _restore_formulas(japanese, expected["html"])
         if not isinstance(japanese, str) or not japanese.strip():
             raise TranslationError("Translation is empty for " + expected["id"])
         if any(ord(character) < 32 and character not in "\n\t" for character in japanese):
