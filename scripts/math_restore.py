@@ -7,7 +7,7 @@ the LaTeX itself are in skills/nist-document-extraction/SKILL.md.
 
     python scripts/math_restore.py export  KEY WORK_DIR --pdf-dir DIR [--pages 9-18] [--every-block]
     python scripts/math_restore.py apply   KEY WORK_DIR
-    python scripts/math_restore.py render  KEY WORK_DIR
+    python scripts/math_restore.py render  KEY WORK_DIR --pdf-dir DIR
     python scripts/math_restore.py check   KEY WORK_DIR
     python scripts/math_restore.py figures-export KEY WORK_DIR --pdf-dir DIR
     python scripts/math_restore.py figures-apply  KEY WORK_DIR --pdf-dir DIR
@@ -385,10 +385,30 @@ renderMathInElement(document.body, {{delimiters: [
 </script>"""
 
 
-def render(key, work):
+def render(key, work, pdf_dir):
     document = read_json(_path(key))
     originals = {block["id"]: block for block in
                  document.get("math_preservation", {}).get("original_blocks", [])}
+    work.mkdir(parents=True, exist_ok=True)
+    page_images = {}
+
+    def original_crop(source):
+        """The crop written by export, rebuilt from the PDF if it is gone."""
+        path = work / (source + ".png")
+        if not path.exists() and source in originals:
+            import pypdfium2
+
+            block = originals[source]
+            number = block["source_page"]
+            if number not in page_images:
+                pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
+                page_images[number] = pdf[number - 1].render(
+                    scale=DPI / 72).to_pil().convert("RGB")
+            image, scale = page_images[number], DPI / 72
+            _, top, _, bottom = block["source_refs"][0]["bbox"]
+            image.crop((0, max(0, (top - 10) * scale), image.width,
+                        min(image.height, (bottom + 10) * scale))).save(path)
+        return str(path)
 
     def shoot(name, english, japanese):
         page_path = work / (name + ".html")
@@ -412,7 +432,7 @@ def render(key, work):
             "block": block["id"], "page": block["source_page"],
             "source_hash": block["source_hash"], "html": block["html"],
             "html_ja": block["html_ja"],
-            "original": [str(work / (source + ".png")) for source in block["replaces"]],
+            "original": [original_crop(source) for source in block["replaces"]],
             "extracted_before": [originals[source]["html"] for source in block["replaces"]
                                  if source in originals]})
     for path in list(work.glob("check.*.batch.json")) + list(work.glob("check.*.key.json")):
@@ -493,6 +513,7 @@ def check(key, work):
 
 
 FIGURE_DPI = 216
+CAPTION = re.compile(r"(Figure|Fig\.?|Table)\s*[A-Z]?\.?\d+", re.I)
 
 
 def _figure_regions(document, pdf):
@@ -550,6 +571,12 @@ def _figure_regions(document, pdf):
                                      block["source_refs"][0]["bbox"][2]) / 2 <= x1 + 4 and
                        top - 4 <= (block["source_refs"][0]["bbox"][1] +
                                    block["source_refs"][0]["bbox"][3]) / 2 <= bottom + 4]
+            # A caption or a body paragraph that the drawing's frame happens to
+            # enclose stays a text block; only short labels belong to the figure.
+            members = [block for block in members
+                       if block["kind"] != "heading" and
+                       len(TAGLESS.sub("", block["html"])) <= 150 and
+                       not CAPTION.match(TAGLESS.sub("", block["html"]).strip())]
             if len(members) < 2:
                 continue
             # Grow to the text that belongs to the drawing (labels may overhang).
@@ -692,7 +719,10 @@ def main():
     elif args.command == "figures-apply":
         figures_apply(args.key, args.work, args.pdf_dir)
     else:
-        {"apply": apply, "render": render, "check": check}[args.command](args.key, args.work)
+        if args.command == "render":
+            render(args.key, args.work, args.pdf_dir)
+        else:
+            {"apply": apply, "check": check}[args.command](args.key, args.work)
 
 
 if __name__ == "__main__":
