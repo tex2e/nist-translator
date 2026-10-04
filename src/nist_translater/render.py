@@ -27,7 +27,7 @@ def build_site(document, meta, template_path, output_path):
     stale = 0
     headings = []
     for block in document["contents"]:
-        if block.get("duplicate_artifact_of"):
+        if block.get("duplicate_artifact_of") or block.get("math_duplicate_of"):
             continue
         math_group = math_by_member.get(block["id"])
         if math_group:
@@ -116,7 +116,12 @@ def build_site(document, meta, template_path, output_path):
         extraction_pending=sum(block.get("extraction_status") == "needs_review"
                                for block in visible),
         extraction_warnings=document.get("extraction_warnings", []),
-        has_math=bool(math_groups),
+        has_math=bool(math_groups) or any(block.get("kind") == "math" or "data-tex=" in block.get("html", "") for block in document["contents"]),
+        math_preservation=document.get("math_preservation"),
+        math_pending=sum(block.get("kind") == "math" and
+                         (block.get("extraction_status") == "needs_review" or
+                          block.get("status") != "reviewed")
+                         for block in document["contents"]),
         fetched_at=fetched_at or "取得日不明", headings=headings,
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
