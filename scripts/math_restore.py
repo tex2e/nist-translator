@@ -5,16 +5,17 @@ whose ``html`` and ``html_ja`` carry KaTeX LaTeX in ``\\(...\\)`` / ``\\[...\\]`
 with the replaced extraction blocks kept in ``math_preservation``. Rules for
 the LaTeX itself are in skills/nist-document-extraction/SKILL.md.
 
-    python scripts/math_restore.py export  KEY WORK_DIR --pdf-dir DIR [--pages 9-18]
+    python scripts/math_restore.py export  KEY WORK_DIR --pdf-dir DIR [--pages 9-18] [--every-block]
     python scripts/math_restore.py apply   KEY WORK_DIR
     python scripts/math_restore.py render  KEY WORK_DIR
     python scripts/math_restore.py check   KEY WORK_DIR
+    python scripts/math_restore.py figures-export KEY WORK_DIR --pdf-dir DIR
+    python scripts/math_restore.py figures-apply  KEY WORK_DIR --pdf-dir DIR
 
 ``export`` writes ``restore.NNN.batch.json`` and a 300 dpi crop of each
-candidate block: blocks with raised, lowered or mixed-size glyphs or
-mathematical symbols, or, with ``--pages``, every text block on those pages
-(variables set in italics on the baseline are not detectable from glyph
-geometry). A restorer answers each batch with ``restore.NNN.result.json``: a
+candidate block: blocks with raised, lowered or mixed-size glyphs, mathematical
+symbols, italic fonts or a lone capital letter, and the blocks right next to
+them. ``--every-block`` offers every text block instead. A restorer answers each batch with ``restore.NNN.result.json``: a
 list of ``{"id", "is_math", "html", "html_ja", "notes", "merged_into"}``. A
 block whose text belongs to a formula restored in another block of the same
 batch names that block in ``merged_into`` and is removed.
@@ -32,6 +33,13 @@ which the reviewer is not given.
 ``check`` marks blocks whose display matches the original as ``verified``. It
 accepts a batch's ``ok`` verdicts only if the reviewer reported every planted
 error in that batch.
+
+``figures-export`` finds regions of drawn graphics that enclose extracted text
+(diagram labels end up as stray paragraphs) and writes ``figures.batch.json``
+with a crop of each. A reviewer answers with ``figures.result.json``: a list of
+``{"id", "is_figure", "label_ja"}``. ``figures-apply`` replaces the blocks
+inside each confirmed figure with one ``source_excerpt`` block that shows the
+original image, as SP 800-22r1 does.
 """
 
 import argparse
@@ -63,6 +71,10 @@ KATEX = ROOT / "static" / "vendor" / "katex"
 FORMULA = re.compile(r"\\\(.*?\\\)|\\\[.*?\\\]", re.S)
 TAGLESS = re.compile(r"<[^>]+>")
 MATH_REASONS = {"math_symbol", "raised_or_lowered_text", "mixed_size", "bad_character"}
+ITALIC = re.compile(r"Ital|Obli")
+# A capital letter standing alone ("the function, W, for") is usually a variable.
+LONE_CAPITAL = re.compile(r"(?<![A-Za-z0-9.'’-])[B-HJ-Z](?![A-Za-z0-9.'’-])")
+NEAR = 14  # points: fragments of a formula sit right next to it
 
 
 def _path(key):
@@ -108,10 +120,53 @@ def _results(work, stem):
     return answers, skipped
 
 
-def export(key, work, pdf_dir, all_pages=()):
-    import pypdfium2
+def candidates(document, pdf, page_filter=(), every_block=False):
+    """Blocks that may contain mathematics, with the page data used to find them.
+
+    Glyph geometry finds raised and lowered text, italic fonts find variables
+    set on the baseline, and anything right next to such a block is included
+    because formulas are often extracted as several fragments.
+    """
     import pypdfium2.raw as pdfium_c
     import verify_extraction as verifier
+
+    pages, eligible, chosen = {}, [], set()
+    for block in document["contents"]:
+        if (block["kind"] in {"figure", "math", "source_excerpt", "code"} or
+                len(block["source_refs"]) != 1 or block.get("duplicate_artifact_of")):
+            continue
+        number = block["source_page"]
+        if page_filter and number not in page_filter:
+            continue
+        if number not in pages:
+            pages[number] = verifier.PageData(pdf[number - 1], pdfium_c)
+        page = pages[number]
+        x0, top, x1, bottom = block["source_refs"][0]["bbox"]
+        text = verifier._block_text(block)
+        reasons, _ = verifier._layout_reasons(block, page, text)
+        inside = [char for char in page.chars
+                  if x0 - 1 <= (char["x0"] + char["x1"]) / 2 <= x1 + 1 and
+                  top - 1 <= (char["top"] + char["bottom"]) / 2 <= bottom + 1]
+        eligible.append(block)
+        if (every_block or MATH_REASONS & set(reasons) or LONE_CAPITAL.search(text) or
+                any(ITALIC.search(char["font"]) or
+                    (("Symbol" in char["font"] or "Math" in char["font"]) and
+                     char["text"] not in "•·") for char in inside)):
+            chosen.add(block["id"])
+    boxes = {}
+    for block in eligible:
+        if block["id"] in chosen:
+            boxes.setdefault(block["source_page"], []).append(block["source_refs"][0]["bbox"])
+    for block in eligible:
+        box = block["source_refs"][0]["bbox"]
+        if any(box[1] - NEAR <= other[3] and other[1] - NEAR <= box[3]
+               for other in boxes.get(block["source_page"], [])):
+            chosen.add(block["id"])
+    return [block for block in eligible if block["id"] in chosen], pages
+
+
+def export(key, work, pdf_dir, page_filter=(), every_block=False):
+    import pypdfium2
 
     document = read_json(_path(key))
     pdf_path = Path(pdf_dir) / (key + ".pdf")
@@ -119,31 +174,14 @@ def export(key, work, pdf_dir, all_pages=()):
         raise ValueError("Local PDF does not match source_sha256")
     pdf = pypdfium2.PdfDocument(str(pdf_path))
     work.mkdir(parents=True, exist_ok=True)
-    pages, images, items = {}, {}, []
+    blocks, pages = candidates(document, pdf, page_filter, every_block)
+    images, items = {}, []
     scale = DPI / 72
-    for block in document["contents"]:
-        if (block["kind"] in {"figure", "math", "source_excerpt", "code"} or
-                len(block["source_refs"]) != 1 or block.get("duplicate_artifact_of")):
-            continue
+    for block in blocks:
         number = block["source_page"]
-        if number not in pages:
-            pages[number] = verifier.PageData(pdf[number - 1], pdfium_c)
-        page = pages[number]
-        x0, top, x1, bottom = block["source_refs"][0]["bbox"]
-        text = verifier._block_text(block)
-        reasons, _ = verifier._layout_reasons(block, page, text)
-        symbol_font = any(
-            ("Symbol" in char["font"] or "Math" in char["font"]) and char["text"] not in "•·"
-            for char in page.chars
-            if x0 - 1 <= (char["x0"] + char["x1"]) / 2 <= x1 + 1 and
-            top - 1 <= (char["top"] + char["bottom"]) / 2 <= bottom + 1)
-        if all_pages:
-            if number not in all_pages:
-                continue
-        elif not (MATH_REASONS & set(reasons) or symbol_font):
-            continue
+        _, top, _, bottom = block["source_refs"][0]["bbox"]
         if number not in images:
-            images[number] = page.page.render(scale=scale).to_pil().convert("RGB")
+            images[number] = pages[number].page.render(scale=scale).to_pil().convert("RGB")
         image = images[number]
         # Keep the full text width and a little context above and below.
         crop = image.crop((0, max(0, (top - 10) * scale),
@@ -454,16 +492,205 @@ def check(key, work):
         print("SKIPPED", line)
 
 
+FIGURE_DPI = 216
+
+
+def _figure_regions(document, pdf):
+    """Clusters of drawn objects that enclose at least two extracted blocks."""
+    import pypdfium2.raw as pdfium_c
+    import verify_extraction as verifier
+
+    by_page = {}
+    for block in document["contents"]:
+        if block["kind"] not in {"source_excerpt", "footnote"} and len(block["source_refs"]) == 1:
+            by_page.setdefault(block["source_page"], []).append(block)
+    regions = []
+    for number in sorted(by_page):
+        if number <= 3:
+            continue  # cover and title pages carry logos and ornaments, not figures
+        page = verifier.PageData(pdf[number - 1], pdfium_c)
+        boxes = [[g["x0"], g["top"], g["x1"], g["bottom"]] for g in page.graphics
+                 # Skip rules in the page margins and hairlines across the page.
+                 if g["top"] > 60 and g["bottom"] < page.height - 50 and
+                 g["x0"] > 40 and g["x1"] < page.width - 40 and
+                 not (g["height"] < 3 and g["width"] > page.width * 0.6) and
+                 not (g["width"] < 3 and g["height"] > page.height * 0.5)]
+        def near(a, b):
+            if (a[0] - 14 <= b[2] and b[0] - 14 <= a[2] and
+                    a[1] - 14 <= b[3] and b[1] - 14 <= a[3]):
+                return True
+            # Columns of one diagram stand side by side with a wider gap.
+            overlap = min(a[3], b[3]) - max(a[1], b[1])
+            gap = max(a[0], b[0]) - min(a[2], b[2])
+            return overlap >= 0.5 * min(a[3] - a[1], b[3] - b[1]) > 15 and gap <= 90
+
+        clusters = [box + [1] for box in boxes]
+        changed = True
+        while changed:
+            changed = False
+            for first in clusters:
+                for second in clusters:
+                    if first is not second and near(first, second):
+                        clusters.remove(first)
+                        clusters.remove(second)
+                        clusters.append([min(first[0], second[0]), min(first[1], second[1]),
+                                         max(first[2], second[2]), max(first[3], second[3]),
+                                         first[4] + second[4]])
+                        changed = True
+                        break
+                if changed:
+                    break
+        for x0, top, x1, bottom, objects in clusters:
+            if objects < 4 or bottom - top < 45 or x1 - x0 < 90:
+                continue
+            if bottom - top > page.height * 0.75 and x1 - x0 > page.width * 0.7:
+                continue  # a frame around the page, not a figure
+            members = [block for block in by_page[number]
+                       if x0 - 4 <= (block["source_refs"][0]["bbox"][0] +
+                                     block["source_refs"][0]["bbox"][2]) / 2 <= x1 + 4 and
+                       top - 4 <= (block["source_refs"][0]["bbox"][1] +
+                                   block["source_refs"][0]["bbox"][3]) / 2 <= bottom + 4]
+            if len(members) < 2:
+                continue
+            # Grow to the text that belongs to the drawing (labels may overhang).
+            for block in members:
+                bx0, btop, bx1, bbottom = block["source_refs"][0]["bbox"]
+                x0, top, x1, bottom = min(x0, bx0), min(top, btop), max(x1, bx1), max(bottom, bbottom)
+            # Rotated labels beside the drawing are neither blocks nor graphics.
+            for char in page.chars:
+                if (not char["upright"] and top <= (char["top"] + char["bottom"]) / 2 <= bottom
+                        and x0 - 40 <= (char["x0"] + char["x1"]) / 2 <= x1 + 40):
+                    x0, x1 = min(x0, char["x0"]), max(x1, char["x1"])
+            regions.append({"page": number, "members": members,
+                            "bbox": [round(max(0, x0 - 4), 1), round(max(0, top - 4), 1),
+                                     round(min(page.width, x1 + 4), 1),
+                                     round(min(page.height, bottom + 4), 1)]})
+    return regions
+
+
+def figures_export(key, work, pdf_dir):
+    import pypdfium2
+
+    document = read_json(_path(key))
+    pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
+    work.mkdir(parents=True, exist_ok=True)
+    items = []
+    for index, region in enumerate(_figure_regions(document, pdf), 1):
+        scale = 150 / 72
+        image = pdf[region["page"] - 1].render(scale=scale).to_pil().convert("RGB")
+        x0, top, x1, bottom = region["bbox"]
+        # Show some surroundings so that a caption above or below is visible.
+        crop = image.crop((0, max(0, (top - 40) * scale), image.width,
+                           min(image.height, (bottom + 40) * scale)))
+        name = "figure.%03d.png" % index
+        crop.save(work / name)
+        items.append({"id": "f%03d" % index, "page": region["page"], "bbox": region["bbox"],
+                      "image": str(work / name),
+                      "blocks": [{"id": block["id"], "kind": block["kind"],
+                                  "text": TAGLESS.sub(" ", block["html"])[:160]}
+                                 for block in region["members"]]})
+    write_json(work / "figures.batch.json", {"document": document["number"], "regions": items})
+    print("Exported %d candidate figure regions (%d blocks)" % (
+        len(items), sum(len(item["blocks"]) for item in items)))
+
+
+def figures_apply(key, work, pdf_dir):
+    import pypdfium2
+
+    document = read_json(_path(key))
+    slug = key[len("sp800-"):]
+    asset_dir, prefix = ROOT / "html" / "assets" / slug, "assets/" + slug
+    pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
+    batch = {item["id"]: item for item in read_json(work / "figures.batch.json")["regions"]}
+    answers = {answer["id"]: answer for answer in read_json(work / "figures.result.json")}
+    if set(answers) != set(batch):
+        raise ValueError("Answers do not cover the regions exactly")
+    preservation = document.get("math_preservation") or {
+        "version": VERSION, "source_sha256": document["source_sha256"],
+        "storage_format": "semantic_inline_katex", "coordinate_layout_region_count": 0,
+        "mode": "katex_inline", "resolution_dpi": FIGURE_DPI, "crop_count": 0,
+        "original_record_count": len(document["contents"]),
+        "regions": [], "equation_regions": [], "empty_artifact_ids": [], "original_blocks": []}
+    used = [int(match.group(1)) for block in document["contents"]
+            if (match := re.search(r"-preserved-(\d+)$", block["id"]))]
+    counter = max(used, default=0)
+    present = {block["id"] for block in document["contents"]}
+    replaced, inserts, counts = {}, {}, Counter()
+    for identifier, item in batch.items():
+        answer = answers[identifier]
+        members = [entry["id"] for entry in item["blocks"]]
+        if not answer.get("is_figure"):
+            counts["not_figure"] += 1
+            continue
+        if not all(member in present for member in members):
+            counts["changed_since_export"] += 1
+            continue
+        counter += 1
+        number = item["page"]
+        x0, top, x1, bottom = item["bbox"]
+        scale = FIGURE_DPI / 72
+        image = pdf[number - 1].render(scale=scale).to_pil().convert("RGB").crop(
+            (x0 * scale, top * scale, x1 * scale, bottom * scale))
+        name = "p%04d-preserved-%03d.png" % (number, counter)
+        asset_dir.mkdir(parents=True, exist_ok=True)
+        image.save(asset_dir / name)
+        image_hash = hashlib.sha256((asset_dir / name).read_bytes()).hexdigest()
+        label = answer.get("label_ja") or "図"
+        source_html = '<img src="%s/%s" alt="%s" width="%d" height="%d" loading="lazy">' % (
+            prefix, name, html.escape("PDF p.%d：%s（原本画像）" % (number, label), quote=True),
+            round((x1 - x0) * 96 / 72), round((bottom - top) * 96 / 72))
+        block_id = "pdf-p%04d-preserved-%03d" % (number, counter)
+        inserts[members[0]] = {
+            "id": block_id, "kind": "source_excerpt", "html": source_html, "html_ja": "",
+            "status": "source_only", "extraction_status": "verified", "source_page": number,
+            "source_refs": [{"page": number, "bbox": item["bbox"]}],
+            "source_hash": hashlib.sha256(("source_excerpt\n" + source_html + "\n" + image_hash)
+                                          .encode("utf-8")).hexdigest()[:16],
+            "source_image_hash": image_hash, "source_excerpt_type": "figure",
+            "source_label": label, "source_image": "%s/%s" % (prefix, name), "replaces": members}
+        for member in members:
+            replaced[member] = block_id
+        preservation["regions"].append({
+            "id": block_id, "page": number, "bbox": item["bbox"], "type": "figure",
+            "label": label, "asset": "%s/%s" % (prefix, name), "replaces": members})
+        counts["figures"] += 1
+    contents = []
+    for block in document["contents"]:
+        if block["id"] in inserts:
+            contents.append(inserts[block["id"]])
+        if block["id"] in replaced:
+            preservation["original_blocks"].append(block)
+            counts["blocks_replaced"] += 1
+        else:
+            contents.append(block)
+    document["contents"] = contents
+    if preservation["original_blocks"]:
+        preservation["crop_count"] = len(preservation["regions"])
+        preservation["equation_region_count"] = len(preservation["equation_regions"])
+        preservation["replaced_block_count"] = len(preservation["original_blocks"])
+        document["math_preservation"] = preservation
+    audit_translations(document)
+    write_json(_path(key), document)
+    print(" ".join("%s=%d" % item for item in sorted(counts.items())) or "nothing applied")
+
+
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    cli.add_argument("command", choices=["export", "apply", "render", "check"])
+    cli.add_argument("command", choices=["export", "apply", "render", "check",
+                                         "figures-export", "figures-apply"])
     cli.add_argument("key", help="document key such as sp800-38b")
     cli.add_argument("work", type=Path, help="working directory for batches and images")
     cli.add_argument("--pdf-dir", type=Path, default=ROOT / "data")
-    cli.add_argument("--pages", help="export: offer every text block on these pages")
+    cli.add_argument("--pages", help="export: only these pages, e.g. 9-18,25")
+    cli.add_argument("--every-block", action="store_true",
+                     help="export: offer every text block, not only likely mathematics")
     args = cli.parse_args()
     if args.command == "export":
-        export(args.key, args.work, args.pdf_dir, _page_set(args.pages))
+        export(args.key, args.work, args.pdf_dir, _page_set(args.pages), args.every_block)
+    elif args.command == "figures-export":
+        figures_export(args.key, args.work, args.pdf_dir)
+    elif args.command == "figures-apply":
+        figures_apply(args.key, args.work, args.pdf_dir)
     else:
         {"apply": apply, "render": render, "check": check}[args.command](args.key, args.work)
 
