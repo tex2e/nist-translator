@@ -6,8 +6,10 @@ from collections import Counter
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
+from .pdf_equations import inline_katex_html
 
-TRANSLATABLE = {"heading", "paragraph", "list_item", "note", "definition_term", "definition", "table", "figure", "footnote"}
+
+TRANSLATABLE = {"heading", "paragraph", "list_item", "note", "definition_term", "definition", "table", "figure", "footnote", "math"}
 NORMATIVE = re.compile(r"\b(?:SHALL NOT|SHOULD NOT|NEED NOT|SHALL|SHOULD|MAY|CANNOT|CAN)\b")
 STATUSES = {"untranslated", "draft", "reviewed", "stale", "source_only"}
 
@@ -68,11 +70,31 @@ def _has_balanced_tags(html):
     return not stack
 
 
-def assert_same_html_structure(source_html, translated_html):
+def assert_same_html_structure(source_html, translated_html, *, preserve_math=False):
     """Preserve tags and functional attributes while allowing translated image alt text."""
     if (_tag_inventory(source_html) != _tag_inventory(translated_html)
             or not _has_balanced_tags(translated_html)):
         raise ValueError("Translated HTML tags or attributes differ from the source")
+    pattern = r"\\\(.*?\\\)|\\\[.*?\\\]"
+    formula_text = re.compile(r"\\text\{[^{}]*\}")
+
+    def formula_signature(formula):
+        # TeX text labels and spacing may be localized without changing the equation.
+        signature = re.sub(r"P\\text\{-value\}s?", "P", formula)
+        signature = formula_text.sub("", signature)
+        signature = re.sub(r"\\(?:left|right)\b", "", signature)
+        return re.sub(r"\s+", "", signature)
+
+    source_formulas = Counter(
+        formula_signature(formula)
+        for formula in re.findall(pattern, html.unescape(source_html), re.S)
+    )
+    translated_formulas = Counter(
+        formula_signature(formula)
+        for formula in re.findall(pattern, html.unescape(translated_html), re.S)
+    )
+    if preserve_math and source_formulas != translated_formulas:
+        raise ValueError("Translated LaTeX formulas differ from the source")
 
 
 def audit_translations(document):
@@ -89,6 +111,9 @@ def audit_translations(document):
             raise ValueError("Source HTML must be text: " + key)
         if not isinstance(block.get("html_ja"), str):
             raise ValueError("Translation must be text: " + key)
+        if block.get("kind") == "math":
+            inline_katex_html(block["html"])
+            inline_katex_html(block["html_ja"])
         status = block.get("status")
         if status not in STATUSES:
             raise ValueError("Invalid translation status: " + key)
@@ -149,6 +174,7 @@ def make_queue(document):
         for block in contents(document)
         if (block["kind"] in TRANSLATABLE and block["status"] in {"untranslated", "stale"}
             and not block.get("duplicate_artifact_of")
+            and not block.get("math_duplicate_of")
             and (block["kind"] != "figure" or source_text(block)))
     ]
 
@@ -168,11 +194,13 @@ def merge_translations(document, incoming):
         japanese = item.get("html_ja", "")
         if not japanese:
             continue
+        if block.get("kind") == "math":
+            inline_katex_html(japanese)
         if not isinstance(japanese, str):
             raise ValueError("Translation must be text: " + str(key))
         if block["status"] == "reviewed":
             continue
-        assert_same_html_structure(block["html"], japanese)
+        assert_same_html_structure(block["html"], japanese, preserve_math=True)
         if Counter(NORMATIVE.findall(japanese)) != Counter(NORMATIVE.findall(source_text(block))):
             raise ValueError("Requirement terms differ for " + key)
         block["html_ja"] = japanese

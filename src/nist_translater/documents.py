@@ -56,6 +56,7 @@ DOCUMENTS = {
         "series": "NIST Special Publication · PDF 原文抽出",
     },
     "22r1": {
+        "preserve_pdf_math": True,
         "number": "SP 800-22 Rev. 1",
         "title": "A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryptographic Applications",
         "title_ja": "暗号応用向け乱数・疑似乱数生成器の統計的テストスイート",
