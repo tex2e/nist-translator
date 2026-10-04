@@ -118,6 +118,10 @@ def build_site(document, meta, template_path, output_path):
         extraction_warnings=document.get("extraction_warnings", []),
         has_math=bool(math_groups) or any(block.get("kind") == "math" or "data-tex=" in block.get("html", "") for block in document["contents"]),
         math_preservation=document.get("math_preservation"),
+        math_pending=sum(block.get("kind") == "math" and
+                         (block.get("extraction_status") == "needs_review" or
+                          block.get("status") != "reviewed")
+                         for block in document["contents"]),
         fetched_at=fetched_at or "取得日不明", headings=headings,
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
