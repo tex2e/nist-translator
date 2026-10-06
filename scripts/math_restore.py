@@ -251,6 +251,13 @@ def apply(key, work):
     batches, skipped = _results(work, "restore")
     answers = {answer["id"]: answer for _, result in batches for answer in result}
     by_id = {block["id"]: block for block in document["contents"]}
+    # A table whose duplicate fragments are hidden must stay a table, and the
+    # hidden fragments stay as they are.
+    pinned = {block["id"] for block in document["contents"] if block.get("duplicate_artifact_of")}
+    pinned |= {block["duplicate_artifact_of"] for block in document["contents"]
+               if block.get("duplicate_artifact_of")}
+    answers = {identifier: answer for identifier, answer in answers.items()
+               if identifier not in pinned and answer.get("merged_into") not in pinned}
     merged = {}
     for answer in answers.values():
         target = answer.get("merged_into")
