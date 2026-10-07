@@ -128,6 +128,61 @@ def _results(work, stem):
     return answers, skipped
 
 
+def _span(block):
+    """The box around every part of a block on its page."""
+    boxes = [ref["bbox"] for ref in block["source_refs"] if ref["page"] == block["source_page"]]
+    return [min(box[0] for box in boxes), min(box[1] for box in boxes),
+            max(box[2] for box in boxes), max(box[3] for box in boxes)]
+
+
+def _recon(block):
+    """Where a rebuilt block keeps the record of its comparison with the original."""
+    return block.get("math_reconstruction") or block.get("paragraph_merge")
+
+
+TERMINAL = re.compile(r"[.:;?!)\]”\"]$")
+STARTS_ITEM = re.compile(r"^(\d+\.|[a-z]\.|\(|•|–|-\s|[A-Z][a-z]+:)")
+
+
+def fragment_groups(document):
+    """Runs of consecutive blocks that look like the lines of one paragraph.
+
+    A line that fills the column and does not end a sentence, followed closely
+    by text at the same left edge, is taken to continue; so is the last block
+    of a page followed by a lower-case start on the next page. A restorer looks
+    at the original before anything is merged.
+    """
+    blocks = [block for block in document["contents"]
+              if not block.get("duplicate_artifact_of") and not block.get("math_duplicate_of")]
+    text = lambda block: html.unescape(TAGLESS.sub("", block["html"])).strip()
+    groups, current = [], []
+    for first, second in zip(blocks, blocks[1:]):
+        joined = False
+        if (first["kind"] in {"paragraph", "list_item", "footnote", "math"} and
+                second["kind"] in {"paragraph", "footnote", "math"} and
+                first.get("source_refs") and second.get("source_refs")):
+            end, start = first["source_refs"][-1], second["source_refs"][0]
+            a, b = text(first), text(second)
+            wide = end["bbox"][2] - end["bbox"][0] > 200
+            if a and b and wide and not TERMINAL.search(a) and not STARTS_ITEM.match(b):
+                if end["page"] == start["page"]:
+                    gap = start["bbox"][1] - end["bbox"][3]
+                    joined = -3 <= gap <= 5 and abs(start["bbox"][0] - end["bbox"][0]) < 40
+                elif start["page"] == end["page"] + 1:
+                    joined = (b[0].islower() and end["bbox"][3] > 600 and
+                              start["bbox"][1] < 140)
+        if joined:
+            if not current:
+                current = [first]
+            current.append(second)
+        elif current:
+            groups.append(current)
+            current = []
+    if current:
+        groups.append(current)
+    return groups
+
+
 def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
     """Blocks that may contain mathematics, with the page data used to find them.
 
@@ -141,7 +196,11 @@ def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
     pages, eligible, chosen = {}, [], set()
     for block in document["contents"]:
         if (block["kind"] in {"figure", "math", "source_excerpt", "code"} or
-                len(block["source_refs"]) != 1 or block.get("duplicate_artifact_of")):
+                block.get("duplicate_artifact_of") or
+                # A block assembled from several pieces is offered only when
+                # asked for by id, and only if it lies on one page.
+                (len(block["source_refs"]) != 1 and not (
+                    only_ids and len({ref["page"] for ref in block["source_refs"]}) == 1))):
             continue
         number = block["source_page"]
         if page_filter and number not in page_filter:
@@ -151,7 +210,7 @@ def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
         if number not in pages:
             pages[number] = verifier.PageData(pdf[number - 1], pdfium_c)
         page = pages[number]
-        x0, top, x1, bottom = block["source_refs"][0]["bbox"]
+        x0, top, x1, bottom = _span(block)
         text = verifier._block_text(block)
         reasons, _ = verifier._layout_reasons(block, page, text)
         inside = [char for char in page.chars
@@ -167,16 +226,16 @@ def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
     boxes = {}
     for block in eligible:
         if block["id"] in chosen:
-            boxes.setdefault(block["source_page"], []).append(block["source_refs"][0]["bbox"])
+            boxes.setdefault(block["source_page"], []).append(_span(block))
     for block in eligible:
-        box = block["source_refs"][0]["bbox"]
+        box = _span(block)
         if any(box[1] - NEAR <= other[3] and other[1] - NEAR <= box[3]
                for other in boxes.get(block["source_page"], [])):
             chosen.add(block["id"])
     return [block for block in eligible if block["id"] in chosen], pages
 
 
-def export(key, work, pdf_dir, page_filter=(), every_block=False, only_ids=()):
+def export(key, work, pdf_dir, page_filter=(), every_block=False, only_ids=(), fragments=False):
     import pypdfium2
 
     document = read_json(_path(key))
@@ -185,12 +244,27 @@ def export(key, work, pdf_dir, page_filter=(), every_block=False, only_ids=()):
         raise ValueError("Local PDF does not match source_sha256")
     pdf = pypdfium2.PdfDocument(str(pdf_path))
     work.mkdir(parents=True, exist_ok=True)
-    blocks, pages = candidates(document, pdf, page_filter, every_block, only_ids)
+    groups = []
+    if fragments:
+        groups = [group for group in fragment_groups(document)
+                  if all(len({ref["page"] for ref in block["source_refs"]}) == 1 or
+                         block is group[-1] or block is group[0] for block in group)]
+        import pypdfium2.raw as pdfium_c
+        import verify_extraction as verifier
+        blocks = [block for group in groups for block in group]
+        pages = {}
+        for block in blocks:
+            if block["source_page"] not in pages:
+                pages[block["source_page"]] = verifier.PageData(
+                    pdf[block["source_page"] - 1], pdfium_c)
+    else:
+        blocks, pages = candidates(document, pdf, page_filter, every_block, only_ids)
+    group_of = {block["id"]: index + 1 for index, group in enumerate(groups) for block in group}
     images, items = {}, []
     scale = DPI / 72
     for block in blocks:
         number = block["source_page"]
-        _, top, _, bottom = block["source_refs"][0]["bbox"]
+        _, top, _, bottom = _span(block)
         if number not in images:
             images[number] = pages[number].page.render(scale=scale).to_pil().convert("RGB")
         image = images[number]
@@ -202,9 +276,28 @@ def export(key, work, pdf_dir, page_filter=(), every_block=False, only_ids=()):
         items.append({"id": block["id"], "kind": block["kind"], "page": number,
                       "ordinal": block.get("ordinal"), "en": block["html"],
                       "ja": block.get("html_ja", ""), "image": str(work / name)})
-    count = _write_batches(work, "restore", {
-        "document": document["number"], "title": document.get("subtitle", ""),
-        "dpi": DPI}, items, BATCH)
+        if fragments:
+            items[-1]["group"] = group_of[block["id"]]
+    header = {"document": document["number"], "title": document.get("subtitle", ""), "dpi": DPI}
+    if fragments:
+        # A paragraph must not be split between two batches.
+        for path in work.glob("restore.*.batch.json"):
+            path.unlink()
+        chunks, chunk = [], []
+        for group in groups:
+            members = [item for item in items if item["group"] == group_of[group[0]["id"]]]
+            if chunk and len(chunk) + len(members) > BATCH:
+                chunks.append(chunk)
+                chunk = []
+            chunk += members
+        if chunk:
+            chunks.append(chunk)
+        for index, chunk in enumerate(chunks):
+            write_json(work / ("restore.%03d.batch.json" % (index + 1)),
+                       dict(header, mode="paragraphs", blocks=chunk))
+        count = len(chunks)
+    else:
+        count = _write_batches(work, "restore", header, items, BATCH)
     print("Exported %d candidate blocks on %d pages in %d batches to %s" % (
         len(items), len(images), count, work))
 
@@ -246,6 +339,29 @@ def _problem(block, answer):
     return None
 
 
+def _paragraph_problem(block, answer):
+    """Why a merged paragraph without mathematics cannot be stored, or None."""
+    english, japanese = answer.get("html", ""), answer.get("html_ja", "")
+    if not english.strip() or not japanese.strip():
+        return "empty html or html_ja"
+    if FORMULA.search(html.unescape(english)):
+        return "a paragraph with a formula must be answered with is_math"
+    try:
+        assert_same_html_structure(english, japanese)
+    except ValueError as error:
+        return str(error)
+    probe = dict(block, html=english)
+    if Counter(NORMATIVE.findall(japanese)) != Counter(NORMATIVE.findall(source_text(probe))):
+        return "requirement keywords differ between html and html_ja"
+    return None
+
+
+def _inner(value):
+    """A paragraph block stores its text without the enclosing <p>."""
+    match = re.fullmatch(r"\s*<p>(.*)</p>\s*", value, re.S)
+    return match.group(1) if match and "<p>" not in match.group(1) else value
+
+
 def apply(key, work):
     document = read_json(_path(key))
     batches, skipped = _results(work, "restore")
@@ -265,7 +381,8 @@ def apply(key, work):
     for answer in answers.values():
         target = answer.get("merged_into")
         if target:
-            if target not in answers or not answers[target].get("is_math"):
+            if target not in answers or not (answers[target].get("is_math") or
+                                             answers[target].get("is_paragraph")):
                 raise ValueError("%s merges into %s, which is not a restored block" % (
                     answer["id"], target))
             merged.setdefault(target, []).append(answer["id"])
@@ -278,10 +395,16 @@ def apply(key, work):
     used = [int(match.group(1)) for block in document["contents"]
             if (match := re.search(r"-math-(\d+)$", block["id"]))]
     counter = max(used, default=0)
+    paragraph_counter = max((int(match.group(1)) for block in document["contents"]
+                             if (match := re.search(r"-para-(\d+)$", block["id"]))), default=0)
     rejected = []
     for identifier, answer in answers.items():
         if answer.get("is_math") and identifier in by_id:
             problem = _problem(by_id[identifier], answer)
+            if problem:
+                rejected.append((identifier, problem))
+        elif answer.get("is_paragraph") and identifier in by_id and merged.get(identifier):
+            problem = _paragraph_problem(by_id[identifier], answer)
             if problem:
                 rejected.append((identifier, problem))
     refused = {identifier for identifier, _ in rejected}
@@ -301,6 +424,29 @@ def apply(key, work):
         if target or block["id"] in refused:
             counts["rejected"] += 1
             contents.append(block)
+            continue
+        if answer.get("is_paragraph") and not answer.get("is_math") and merged.get(block["id"]):
+            # Lines of one paragraph without mathematics: one ordinary block.
+            paragraph_counter += 1
+            members = [block] + [by_id[other] for other in merged[block["id"]]]
+            joined = dict(block)
+            for field in ("translation_check", "translation_fix_rounds", "extraction_check"):
+                joined.pop(field, None)
+            joined.update({
+                "id": "pdf-p%04d-para-%03d" % (block["source_page"], paragraph_counter),
+                "html": _inner(answer["html"]), "html_ja": _inner(answer["html_ja"]),
+                "status": "draft", "extraction_status": "needs_review",
+                "source_refs": [ref for member in members for ref in member["source_refs"]],
+                "replaces": [member["id"] for member in members],
+                "merged_source_hashes": {member["id"]: member["source_hash"] for member in members},
+                "paragraph_merge": {"method": "lines_of_one_paragraph"},
+            })
+            joined["source_hash"] = _source_hash(joined["kind"], joined["html"])
+            if answer.get("notes"):
+                joined["paragraph_merge"]["restorer_notes"] = answer["notes"]
+            preservation["original_blocks"] += members
+            contents.append(joined)
+            counts["paragraphs_merged"] += 1
             continue
         if not answer.get("is_math"):
             counts["not_math"] += 1
@@ -428,7 +574,7 @@ def render(key, work, pdf_dir):
                 page_images[number] = pdf[number - 1].render(
                     scale=DPI / 72).to_pil().convert("RGB")
             image, scale = page_images[number], DPI / 72
-            _, top, _, bottom = block["source_refs"][0]["bbox"]
+            _, top, _, bottom = _span(block)
             image.crop((0, max(0, (top - 10) * scale), image.width,
                         min(image.height, (bottom + 10) * scale))).save(path)
         return str(path)
@@ -447,8 +593,8 @@ def render(key, work, pdf_dir):
 
     items = []
     for block in document["contents"]:
-        checked = block.get("math_reconstruction", {}).get("source_check", {})
-        if (block["kind"] != "math" or
+        checked = (_recon(block) or {}).get("source_check", {})
+        if (not (block["kind"] == "math" or block.get("paragraph_merge")) or
                 checked.get("rendered_source_hash") == block["source_hash"]):
             continue
         items.append({
@@ -524,12 +670,14 @@ def check(key, work):
                 # This reviewer let a planted error through; do not rely on its "ok".
                 counts["ok_from_unreliable_batch"] += 1
                 continue
-            block["math_reconstruction"]["source_check"] = {
+            _recon(block)["source_check"] = {
                 "method": "original_pdf_browser_comparison", "page": block["source_page"],
                 "dpi": DPI, "browser_status": "passed" if passed else "failed",
                 "rendered_source_hash": block["source_hash"],
                 "observations": answer.get("observations", "")}
             block["extraction_status"] = "verified" if passed else "needs_review"
+            if block.get("paragraph_merge") and passed:
+                block["extraction_check"] = "visual"
             counts["verified" if passed else "failed"] += 1
     audit_translations(document)
     write_json(_path(key), document)
@@ -562,7 +710,7 @@ def revise_export(key, work, pdf_dir):
                     page_images[number] = pdf[number - 1].render(
                         scale=scale).to_pil().convert("RGB")
                 image = page_images[number]
-                _, top, _, bottom = originals[source]["source_refs"][0]["bbox"]
+                _, top, _, bottom = _span(originals[source])
                 image.crop((0, max(0, (top - 10) * scale), image.width,
                             min(image.height, (bottom + 10) * scale))).save(path)
             images.append(str(path))
@@ -808,12 +956,14 @@ def main():
     cli.add_argument("--pages", help="export: only these pages, e.g. 9-18,25")
     cli.add_argument("--ids", type=Path,
                      help="export: only the block ids in this JSON list (for retries)")
+    cli.add_argument("--fragments", action="store_true",
+                     help="export: the runs of blocks that look like lines of one paragraph")
     cli.add_argument("--every-block", action="store_true",
                      help="export: offer every text block, not only likely mathematics")
     args = cli.parse_args()
     if args.command == "export":
         export(args.key, args.work, args.pdf_dir, _page_set(args.pages), args.every_block,
-               set(read_json(args.ids)) if args.ids else ())
+               set(read_json(args.ids)) if args.ids else (), args.fragments)
     elif args.command == "revise-export":
         revise_export(args.key, args.work, args.pdf_dir)
     elif args.command == "revise-apply":
