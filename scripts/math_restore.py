@@ -191,7 +191,9 @@ def fragment_groups(document):
             current = []
     if current:
         groups.append(current)
-    return groups
+    # A run that a restorer has already looked at and left alone is not offered again.
+    return [group for group in groups
+            if not all(block.get("fragment_reviewed") for block in group)]
 
 
 def candidates(document, pdf, page_filter=(), every_block=False, only_ids=()):
@@ -461,6 +463,9 @@ def apply(key, work):
             continue
         if not answer.get("is_math"):
             counts["not_math"] += 1
+            if "is_paragraph" in answer:
+                # Seen in a paragraph batch and left as it is.
+                block["fragment_reviewed"] = True
             contents.append(block)
             continue
         counter += 1
