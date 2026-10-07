@@ -256,6 +256,9 @@ def apply(key, work):
     pinned = {block["id"] for block in document["contents"] if block.get("duplicate_artifact_of")}
     pinned |= {block["duplicate_artifact_of"] for block in document["contents"]
                if block.get("duplicate_artifact_of")}
+    # Blocks already shown through a KaTeX group keep that representation.
+    pinned |= {member for group in document.get("math_groups", [])
+               for member in group.get("members", [])}
     answers = {identifier: answer for identifier, answer in answers.items()
                if identifier not in pinned and answer.get("merged_into") not in pinned}
     merged = {}
