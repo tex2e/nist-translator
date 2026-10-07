@@ -524,6 +524,16 @@ PLANTS = [
 ]
 
 
+PROSE_PLANTS = [
+    (r" is not ", " is "), (r" are not ", " are "), (r" cannot ", " can "),
+    (r" before ", " after "), (r" after ", " before "), (r" private ", " public "),
+    (r" public ", " private "), (r" either ", " both "), (r" all ", " some "),
+    (r" at least ", " at most "), (r" more than ", " less than "), (r" static ", " ephemeral "),
+    (r" ephemeral ", " static "), (r" and ", " or "), (r" or ", " and "),
+    (r" required ", " permitted "), (r" first ", " second "), (r" the ", " each "),
+]
+
+
 def _planted(source_html):
     """A copy of the block with one wrong symbol, or None if nothing suits."""
     formulas = list(FORMULA.finditer(source_html))
@@ -541,6 +551,14 @@ def _planted(source_html):
             else:
                 changed = text[:match.start()] + replacement + text[match.end():]
             return source_html[:formula.start()] + changed + source_html[formula.end():]
+    # Prose without a formula: change one word so that the sentence still reads
+    # naturally but no longer says what the original says.
+    for pattern, replacement in PROSE_PLANTS:
+        for match in re.finditer(pattern, source_html):
+            inside_formula = any(f.start() <= match.start() < f.end() for f in formulas)
+            inside_tag = source_html.rfind("<", 0, match.start()) > source_html.rfind(">", 0, match.start())
+            if match.start() > 25 and not inside_formula and not inside_tag:
+                return source_html[:match.start()] + replacement + source_html[match.end():]
     return None
 
 
@@ -616,7 +634,11 @@ def render(key, work, pdf_dir):
         # everything through is detected.
         planted = []
         for item in group[::max(1, len(group) // 4)]:
-            wrong, wrong_ja = _planted(item["html"]), _planted(item["html_ja"])
+            wrong = _planted(item["html"])
+            # The translation of a plain paragraph has nothing to plant in; the
+            # changed English then also disagrees with the Japanese.
+            wrong_ja = _planted(item["html_ja"]) or (
+                item["html_ja"] if not FORMULA.search(item["html"]) else None)
             if wrong and wrong_ja and len(planted) < 4:
                 planted.append(dict(item, html=wrong, html_ja=wrong_ja, planted=True))
         # Nothing the reviewer sees may tell a planted copy from a real block,
