@@ -164,10 +164,21 @@ def fragment_groups(document):
             end, start = first["source_refs"][-1], second["source_refs"][0]
             a, b = text(first), text(second)
             wide = end["bbox"][2] - end["bbox"][0] > 200
-            if a and b and wide and not TERMINAL.search(a) and not STARTS_ITEM.match(b):
+            same_line = (end["page"] == start["page"] and
+                         abs(start["bbox"][1] - end["bbox"][1]) < 3 and
+                         start["bbox"][0] >= end["bbox"][2] - 1)
+            if a and b and same_line and first["kind"] == second["kind"] == "paragraph":
+                # Words of one justified line that were extracted separately:
+                # they only continue a paragraph that has already begun, since
+                # table rows look the same.
+                joined = bool(current)
+            elif a and b and wide and not TERMINAL.search(a) and not STARTS_ITEM.match(b):
                 if end["page"] == start["page"]:
                     gap = start["bbox"][1] - end["bbox"][3]
-                    joined = -3 <= gap <= 5 and abs(start["bbox"][0] - end["bbox"][0]) < 40
+                    indent = start["bbox"][0] - end["bbox"][0]
+                    # A reference entry: label at the margin, text hanging-indented.
+                    hanging = a.startswith("[") and 40 <= indent <= 130
+                    joined = -3 <= gap <= 5 and (abs(indent) < 40 or hanging)
                 elif start["page"] == end["page"] + 1:
                     joined = (b[0].islower() and end["bbox"][3] > 600 and
                               start["bbox"][1] < 140)
@@ -580,22 +591,31 @@ def render(key, work, pdf_dir):
     page_images = {}
 
     def original_crop(source):
-        """The crop written by export, rebuilt from the PDF if it is gone."""
-        path = work / (source + ".png")
-        if not path.exists() and source in originals:
-            import pypdfium2
+        """Crops of a replaced block, one per page it lies on.
 
-            block = originals[source]
-            number = block["source_page"]
-            if number not in page_images:
-                pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
-                page_images[number] = pdf[number - 1].render(
-                    scale=DPI / 72).to_pil().convert("RGB")
-            image, scale = page_images[number], DPI / 72
-            _, top, _, bottom = _span(block)
-            image.crop((0, max(0, (top - 10) * scale), image.width,
-                        min(image.height, (bottom + 10) * scale))).save(path)
-        return str(path)
+        The first is the one written by export; all are rebuilt from the PDF
+        when missing.
+        """
+        block = originals.get(source)
+        if block is None:
+            return [str(work / (source + ".png"))]
+        paths = []
+        for index, number in enumerate(sorted({ref["page"] for ref in block["source_refs"]})):
+            path = work / (source + (".png" if index == 0 else ".p%d.png" % number))
+            if not path.exists():
+                import pypdfium2
+
+                if number not in page_images:
+                    pdf = pypdfium2.PdfDocument(str(Path(pdf_dir) / (key + ".pdf")))
+                    page_images[number] = pdf[number - 1].render(
+                        scale=DPI / 72).to_pil().convert("RGB")
+                image, scale = page_images[number], DPI / 72
+                boxes = [ref["bbox"] for ref in block["source_refs"] if ref["page"] == number]
+                top, bottom = min(box[1] for box in boxes), max(box[3] for box in boxes)
+                image.crop((0, max(0, (top - 10) * scale), image.width,
+                            min(image.height, (bottom + 10) * scale))).save(path)
+            paths.append(str(path))
+        return paths
 
     def shoot(name, english, japanese):
         page_path = work / (name + ".html")
@@ -619,7 +639,7 @@ def render(key, work, pdf_dir):
             "block": block["id"], "page": block["source_page"],
             "source_hash": block["source_hash"], "html": block["html"],
             "html_ja": block["html_ja"],
-            "original": [original_crop(source) for source in block["replaces"]],
+            "original": [path for source in block["replaces"] for path in original_crop(source)],
             "extracted_before": [originals[source]["html"] for source in block["replaces"]
                                  if source in originals]})
     # Verdicts from an earlier render would otherwise be matched to the new
