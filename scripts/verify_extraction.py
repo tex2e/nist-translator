@@ -221,7 +221,9 @@ def _layout_reasons(block, page, text):
 
 def _evaluate(document, pdf, held_pages, pdfium_c):
     """Return {block id: [reasons]} for every block; an empty list passes."""
-    blocks = [block for block in document["contents"] if not block.get("duplicate_artifact_of")]
+    # Running headers and footers are not part of the reading flow.
+    blocks = [block for block in document["contents"]
+              if not block.get("duplicate_artifact_of") and not block.get("page_furniture")]
     by_page = {}
     for block in blocks:
         by_page.setdefault(block["source_page"], []).append(block)
@@ -383,7 +385,7 @@ def _ocr_agrees(block, text, words):
     return ratio >= (0.93 if len(expected) >= 20 else 0.8)
 
 
-def process(key, pdf_dir, cache_dir, apply, calibrate, held):
+def process(key, pdf_dir, cache_dir, apply, calibrate, held, keep=False):
     import pypdfium2
     import pypdfium2.raw as pdfium_c
 
@@ -395,7 +397,7 @@ def process(key, pdf_dir, cache_dir, apply, calibrate, held):
     # Re-running re-evaluates earlier automatic promotions under the current rules.
     reset = 0
     for block in document["contents"]:
-        if block.get("extraction_check") == CHECK_TAG:
+        if block.get("extraction_check") == CHECK_TAG and not keep:
             del block["extraction_check"]
             block["extraction_status"] = "needs_review"
             reset += 1
@@ -473,6 +475,8 @@ def main():
     cli.add_argument("--apply", action="store_true", help="write verified status to the JSON files")
     cli.add_argument("--calibrate", action="store_true",
                      help="also evaluate blocks that already have a status and report agreement")
+    cli.add_argument("--keep", action="store_true",
+                     help="leave earlier automatic promotions as they are instead of re-evaluating them")
     args = cli.parse_args()
     keys = args.keys or sorted(path.name[:-len("-trans.json")]
                                for path in (ROOT / "data").glob("*-trans.json"))
@@ -484,7 +488,7 @@ def main():
     total, promoted, calibration = Counter(), 0, Counter()
     for key in keys:
         summary = process(key, args.pdf_dir, args.cache_dir, args.apply,
-                          args.calibrate, held.get(key, {}))
+                          args.calibrate, held.get(key, {}), args.keep)
         total.update(summary["reasons"])
         promoted += summary["promoted"]
         calibration.update(summary["calibration"])

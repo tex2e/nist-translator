@@ -72,8 +72,15 @@ def _has_balanced_tags(html):
 
 def assert_same_html_structure(source_html, translated_html, *, preserve_math=False):
     """Preserve tags and functional attributes while allowing translated image alt text."""
-    if (_tag_inventory(source_html) != _tag_inventory(translated_html)
-            or not _has_balanced_tags(translated_html)):
+    # English ordinal suffixes (10<sup>th</sup>) have no Japanese counterpart,
+    # so a translation may drop any number of those superscripts.
+    without_ordinals = re.sub(r"<sup>(?:st|nd|rd|th)</sup>", "", source_html)
+    full, least, found = (_tag_inventory(source_html), _tag_inventory(without_ordinals),
+                          _tag_inventory(translated_html))
+    plain_sup = ("sup", ())
+    same = ({**found, plain_sup: 0} == {**full, plain_sup: 0} and
+            least[plain_sup] <= found[plain_sup] <= full[plain_sup])
+    if not same or not _has_balanced_tags(translated_html):
         raise ValueError("Translated HTML tags or attributes differ from the source")
     pattern = r"\\\(.*?\\\)|\\\[.*?\\\]"
     formula_text = re.compile(r"\\text\{[^{}]*\}")
