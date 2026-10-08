@@ -11,6 +11,10 @@ from .translation import audit_translations
 
 
 PDF_URL = "https://doi.org/10.6028/NIST.SP.800-63b-4"
+OFFICIAL_MARKS = {
+    "nist_logo": ("NIST logo", "NIST のロゴ"),
+    "doc_seal": ("U.S. Department of Commerce seal", "米国商務省の紋章"),
+}
 
 
 def build_site(document, meta, template_path, output_path):
@@ -71,7 +75,18 @@ def build_site(document, meta, template_path, output_path):
         item = dict(block)
         item["english_html"] = Markup(block["html"])
         item["japanese_html"] = Markup(block["html_ja"])
-        if block["kind"] == "figure" and block["html_ja"]:
+        if block.get("official_mark"):
+            # An unofficial translation must not display protected official marks.
+            name_en, name_ja = OFFICIAL_MARKS[block["official_mark"]]
+            for image in BeautifulSoup(block["html"], "html.parser").find_all("img"):
+                published = output_path.parent / image.get("src", "")
+                if published.is_file():
+                    published.unlink()  # a re-extraction may have written it again
+            item["english_html"] = Markup(
+                '<span class="withheld-mark">[%s — not reproduced on this unofficial site]</span>' % name_en)
+            item["figure_description"] = (
+                "［%s。公的な標章のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % name_ja)
+        elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""
         if document.get("source_format") == "pdf" and block.get("source_page"):
