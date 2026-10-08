@@ -14,6 +14,7 @@ PDF_URL = "https://doi.org/10.6028/NIST.SP.800-63b-4"
 OFFICIAL_MARKS = {
     "nist_logo": ("NIST logo", "NIST のロゴ"),
     "doc_seal": ("U.S. Department of Commerce seal", "米国商務省の紋章"),
+    "contains_nist_logo": ("Figure that shows the NIST logo", "NIST のロゴが写っている図"),
 }
 
 
@@ -89,7 +90,10 @@ def build_site(document, meta, template_path, output_path):
                 item["english_html"] = Markup(
                     '<span class="withheld-mark">[%s — not reproduced on this unofficial site]</span>'
                     % name_en)
+                described = BeautifulSoup(block["html_ja"] or "", "html.parser").find("img")
                 item["figure_description"] = (
+                    (described.get("alt", "") + " " if described and
+                     block["official_mark"] == "contains_nist_logo" else "") +
                     "［%s。公的な標章のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % name_ja)
         elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
