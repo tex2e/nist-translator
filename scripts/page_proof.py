@@ -117,6 +117,11 @@ def apply(key, folder):
     by_id = {block["id"]: block for block in document["contents"]}
     counts = Counter()
     problems, held, listed, stale = {}, set(), {}, set()
+    on_page = Counter()
+    for block in document["contents"]:
+        if block.get("column_reflow") and not block.get("page_furniture") and block["kind"] in TEXT:
+            for number in {ref["page"] for ref in block["source_refs"]}:
+                on_page[number] += 1
     for result_path in sorted(folder.glob("proof.*.result.json")):
         key_data = json.loads(result_path.with_name(result_path.name.replace("result", "key")).read_text())
         try:
@@ -138,6 +143,10 @@ def apply(key, folder):
             if ids is None:
                 continue
             found = [p for p in page.get("problems", []) if (page["page"], p["n"]) not in planted]
+            # A listing that leaves out blocks verified earlier makes their text look missing.
+            partial = len(ids) < on_page.get(page["page"], 0)
+            if partial:
+                page["missing_text"] = []
             structural = bool(page.get("missing_text")) or any(
                 p.get("type") != "text" or not p.get("corrected_text") for p in found)
             for index, identifier in enumerate(ids, 1):
