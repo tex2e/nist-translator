@@ -242,9 +242,11 @@ class PdfMathTests(unittest.TestCase):
         self.assertIn(
             r"\begin{vmatrix}0&amp;1&amp;0", blocks["pdf-p0033-math-072"]["html"]
         )
-        self.assertIn(r"\frac{M/3+2/9}{2^M}", blocks["pdf-p0047-math-145"]["html"])
         self.assertIn(
-            r"\frac{|\xi_J(x)(\mathrm{obs})-J|}", blocks["pdf-p0087-math-293"]["html"]
+            r"\frac{\left(M/3+2/9\right)}{2^M}", blocks["pdf-p0047-math-145"]["html"]
+        )
+        self.assertIn(
+            r"\frac{|\xi_J(x)(\mathrm{obs})-J|}", blocks["pdf-p0086-math-368"]["html"]
         )
         for block in blocks.values():
             if block["kind"] == "math":
