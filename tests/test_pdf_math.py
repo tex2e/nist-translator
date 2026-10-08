@@ -66,7 +66,7 @@ class PdfMathTests(unittest.TestCase):
         self.assertNotIn(r"v_{iv_{1}}", blocks[113]["html"])
         self.assertIn(r"\(v_1\)", blocks[113]["html"])
         self.assertIn(r"\(2^m\)", blocks[151]["html"])
-        self.assertIn(r"2^m=2^3=8", blocks[167]["html"])
+        self.assertIn(r"2^m = 2^3 = 8", blocks[167]["html"])
         self.assertIn(r"\begin{aligned}\chi^2", blocks[198]["html"])
         table = BeautifulSoup(blocks[204]["html"], "html.parser").table
         self.assertEqual(len(table.select("tr")), 9)
@@ -240,7 +240,7 @@ class PdfMathTests(unittest.TestCase):
             blocks["pdf-p0031-math-061"]["html"],
         )
         self.assertIn(
-            r"\begin{pmatrix}0&amp;1&amp;0", blocks["pdf-p0033-math-072"]["html"]
+            r"\begin{vmatrix}0&amp;1&amp;0", blocks["pdf-p0033-math-072"]["html"]
         )
         self.assertIn(r"\frac{M/3+2/9}{2^M}", blocks["pdf-p0047-math-145"]["html"])
         self.assertIn(
