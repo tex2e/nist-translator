@@ -158,7 +158,25 @@ def fragment_groups(document):
     groups, current = [], []
     for first, second in zip(blocks, blocks[1:]):
         joined = False
-        if (first["kind"] in {"paragraph", "list_item", "footnote", "math"} and
+        if first.get("source_refs") and second.get("source_refs"):
+            end, start = first["source_refs"][-1], second["source_refs"][0]
+            a, b = text(first), text(second)
+            entry = current[0] if current else first
+            # The continuation lines of a reference entry share one left edge.
+            hang = (entry["source_refs"][1]["bbox"][0]
+                    if text(entry).startswith("[") and len(entry["source_refs"]) > 1 else None)
+            in_entry = (hang is not None and a and b and end["page"] == start["page"] and
+                        not b.startswith("["))
+            if in_entry and abs(start["bbox"][1] - end["bbox"][1]) < 3 and \
+                    start["bbox"][0] >= end["bbox"][2] - 1:
+                # A word further along the last line, whatever kind it was given.
+                joined = True
+            elif in_entry and -3 <= start["bbox"][1] - end["bbox"][3] <= 5 and \
+                    abs(start["bbox"][0] - hang) < 6:
+                joined = True
+        if joined:
+            pass
+        elif (first["kind"] in {"paragraph", "list_item", "footnote", "math"} and
                 second["kind"] in {"paragraph", "footnote", "math"} and
                 first.get("source_refs") and second.get("source_refs")):
             end, start = first["source_refs"][-1], second["source_refs"][0]
