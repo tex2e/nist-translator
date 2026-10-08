@@ -11,10 +11,14 @@ from .translation import audit_translations
 
 
 PDF_URL = "https://doi.org/10.6028/NIST.SP.800-63b-4"
+# Pictures the site does not reproduce: (English label, Japanese label, reason).
 OFFICIAL_MARKS = {
-    "nist_logo": ("NIST logo", "NIST のロゴ"),
-    "doc_seal": ("U.S. Department of Commerce seal", "米国商務省の紋章"),
-    "contains_nist_logo": ("Figure that shows the NIST logo", "NIST のロゴが写っている図"),
+    "nist_logo": ("NIST logo", "NIST のロゴ", "公的な標章のため"),
+    "doc_seal": ("U.S. Department of Commerce seal", "米国商務省の紋章", "公的な標章のため"),
+    "contains_nist_logo": ("Figure that shows the NIST logo", "NIST のロゴが写っている図",
+                           "公的な標章のため"),
+    "person_photo": ("Photograph of people", "人物の写真", "人物が写っているため"),
+    "other_logo": ("Logo of an organization or program", "組織・プログラムのロゴ", "ロゴのため"),
 }
 
 
@@ -78,7 +82,7 @@ def build_site(document, meta, template_path, output_path):
         item["japanese_html"] = Markup(block["html_ja"])
         if block.get("official_mark"):
             # An unofficial translation must not display protected official marks.
-            name_en, name_ja = OFFICIAL_MARKS[block["official_mark"]]
+            name_en, name_ja, reason = OFFICIAL_MARKS[block["official_mark"]]
             sources = [image.get("src", "") for image in
                        BeautifulSoup(block["html"], "html.parser").find_all("img")]
             for source in sources + [block.get("source_image") or ""]:
@@ -93,8 +97,8 @@ def build_site(document, meta, template_path, output_path):
                 described = BeautifulSoup(block["html_ja"] or "", "html.parser").find("img")
                 item["figure_description"] = (
                     (described.get("alt", "") + " " if described and
-                     block["official_mark"] == "contains_nist_logo" else "") +
-                    "［%s。公的な標章のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % name_ja)
+                     block["official_mark"] not in {"nist_logo", "doc_seal"} else "") +
+                    "［%s。%s、この非公式サイトには掲載していない。原本 PDF を参照。］" % (name_ja, reason))
         elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""

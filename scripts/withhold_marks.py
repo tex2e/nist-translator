@@ -5,7 +5,8 @@
 The NIST logo and the Department of Commerce seal are protected marks; this
 site is an unofficial translation and must not display them. LIST.json holds
 ``[document key, block id, mark]`` entries (mark: ``nist_logo``, ``doc_seal``
-or ``contains_nist_logo`` for a larger figure that shows the logo) chosen by looking at the images. Each listed figure block gets
+``contains_nist_logo`` for a larger figure that shows the logo, ``person_photo``
+for a photograph of people, ``other_logo`` for another organisation's logo) chosen by looking at the images. Each listed figure block gets
 ``official_mark``; the page builder then prints a short note in place of the
 image, and the image file is removed from ``html/assets``. The block and its
 provenance stay in the data.
