@@ -190,14 +190,181 @@ def apply(key, folder):
     print(key, dict(counts))
 
 
+def _needs_rebuild(block):
+    state = block.get("column_reflow", {}).get("page_proof", "")
+    return state.startswith("structural") or state == "page_has_structural_problems"
+
+
+def rebuild_export(key, folder, proof_folder, per_batch):
+    """Pages whose blocks are wrongly divided or ordered, for a restorer to lay out again."""
+    document = json.loads((ROOT / "data" / (key + "-trans.json")).read_text())
+    folder.mkdir(parents=True, exist_ok=True)
+    text = [block for block in document["contents"]
+            if block.get("column_reflow") and not block.get("page_furniture") and block["kind"] in TEXT]
+    missing = document.get("column_reflow", {}).get("missing_text", {})
+    wanted = sorted({block["source_page"] for block in text if _needs_rebuild(block)} |
+                    {int(page) for page in missing})
+    count = 0
+    for start in range(0, len(wanted), per_batch):
+        count += 1
+        batch, ids = {"document": key, "pages": []}, {}
+        for page in wanted[start:start + per_batch]:
+            own = [block for block in text if block["source_page"] == page]
+            carried = [block for block in text if block["source_page"] < page and
+                       any(ref["page"] == page for ref in block["source_refs"])]
+            items = []
+            for index, block in enumerate(own, 1):
+                item = {"n": index, "kind": block["kind"], "text": html.unescape(block["html"])}
+                note = block["column_reflow"].get("proof_note")
+                if note:
+                    item["checker_note"] = note
+                if len({ref["page"] for ref in block["source_refs"]}) > 1:
+                    item["runs_on_to_page"] = block["source_refs"][-1]["page"]
+                items.append(item)
+            batch["pages"].append({
+                "page": page,
+                "images": [str(proof_folder / ("p%04d-%s.png" % (page, half))) for half in ("top", "bottom")],
+                "already_covered_at_top": [html.unescape(block["html"])[-300:] for block in carried],
+                "checker_missing_text": missing.get(str(page), []),
+                "blocks": items})
+            ids[str(page)] = [[block["id"], block["source_hash"]] for block in own]
+        (folder / ("rebuild.%03d.batch.json" % count)).write_text(
+            json.dumps(batch, ensure_ascii=False, indent=1))
+        (folder / ("rebuild.%03d.key.json" % count)).write_text(json.dumps(ids))
+    print(key, "pages", len(wanted), "batches", count)
+
+
+def rebuild_apply(key, folder):
+    path = ROOT / "data" / (key + "-trans.json")
+    document = json.loads(path.read_text())
+    contents = document["contents"]
+    by_id = {block["id"]: block for block in contents}
+    counts = Counter()
+    for result_path in sorted(folder.glob("rebuild.*.result.json")):
+        ids = json.loads(result_path.with_name(result_path.name.replace("result", "key")).read_text())
+        try:
+            result = json.loads(result_path.read_text())
+        except ValueError:
+            counts["unreadable result"] += 1
+            continue
+        for page in result.get("pages", []):
+            listed = ids.get(str(page.get("page")))
+            if not listed:
+                continue
+            old = [by_id.get(identifier) for identifier, _ in listed]
+            if any(block is None or block["source_hash"] != digest
+                   for block, (_, digest) in zip(old, listed)):
+                counts["pages changed since export"] += 1
+                continue
+            new, bad = [], False
+            for index, item in enumerate(page.get("blocks", []), 1):
+                sources = [old[n - 1] for n in item.get("from", []) if 1 <= n <= len(old)]
+                wording = " ".join(str(item.get("text", "")).split())
+                if not wording or item.get("kind") not in TEXT:
+                    bad = True
+                    break
+                boxes = [ref["bbox"] for block in sources for ref in block["source_refs"]
+                         if ref["page"] == page["page"]]
+                later = [ref for block in sources for ref in block["source_refs"]
+                         if ref["page"] != page["page"]]
+                box = ([min(b[0] for b in boxes), min(b[1] for b in boxes),
+                        max(b[2] for b in boxes), max(b[3] for b in boxes)] if boxes else None)
+                source = html.escape(wording, quote=False)
+                block = {"id": "pdf-p%04d-r%04d" % (page["page"], index), "kind": item["kind"],
+                         "html": source,
+                         "source_hash": hashlib.sha256(
+                             (item["kind"] + "\n" + source + "\n").encode()).hexdigest()[:16],
+                         "html_ja": "", "status": "untranslated", "extraction_status": "needs_review",
+                         "source_page": page["page"],
+                         "source_refs": ([{"page": page["page"], "bbox": box}] if box else
+                                         [{"page": page["page"], "bbox": [0, 0, 612, 792]}]) + later,
+                         "column_reflow": {"rebuilt": True,
+                                           "from": [block["id"] for block in sources],
+                                           "column": None, "gutters": []}}
+                if not box:
+                    block["column_reflow"]["region_unknown"] = True
+                if item.get("kind") == "heading":
+                    block["level"] = 2
+                if item.get("kind") == "list_item":
+                    block.update(ordered=bool(item.get("ordinal")), ordinal=item.get("ordinal"), depth=0)
+                if item.get("not_content"):
+                    block["page_furniture"] = True
+                if item.get("continues_from_previous_page"):
+                    block["column_reflow"]["continues_from_previous_page"] = True
+                new.append(block)
+            if bad or not new:
+                counts["pages with an invalid answer"] += 1
+                continue
+            positions = [contents.index(block) for block in old]
+            first = min(positions)
+            # Figures and tables between the old blocks keep their place after
+            # the rebuilt block that took over the text block before them.
+            taken = {}
+            for block in new:
+                for identifier in block["column_reflow"]["from"]:
+                    taken[identifier] = block
+            sequence, pending = [], []
+            last_new = None
+            for block in contents[first:max(positions) + 1]:
+                if block in old:
+                    target = taken.get(block["id"])
+                    if target is not None:
+                        last_new = target
+                    continue
+                pending.append((last_new, block))
+            for block in new:
+                sequence.append(block)
+                sequence.extend(other for anchor, other in pending if anchor is block)
+            sequence = [other for anchor, other in pending if anchor is None] + sequence
+            contents[first:max(positions) + 1] = sequence
+            for block in old:
+                by_id.pop(block["id"], None)
+            for block in new:
+                by_id[block["id"]] = block
+            counts["pages rebuilt"] += 1
+            counts["blocks"] += len(new)
+            document.get("column_reflow", {}).get("missing_text", {}).pop(str(page["page"]), None)
+    # A paragraph that a rebuilt page continues from the page before.
+    index = 1
+    while index < len(contents):
+        block = contents[index]
+        if block.get("column_reflow", {}).get("continues_from_previous_page"):
+            previous = next((other for other in reversed(contents[:index])
+                             if other.get("column_reflow") and not other.get("page_furniture") and
+                             other["kind"] in TEXT), None)
+            del block["column_reflow"]["continues_from_previous_page"]
+            if (previous is not None and previous["source_refs"][-1]["page"] == block["source_page"] - 1
+                    and previous["kind"] in {"paragraph", "list_item", "footnote"}):
+                left, right = html.unescape(previous["html"]), html.unescape(block["html"])
+                joined = left + right if left.endswith("-") and False else left + " " + right
+                previous["html"] = html.escape(joined, quote=False)
+                previous["source_hash"] = hashlib.sha256(
+                    (previous["kind"] + "\n" + previous["html"] + "\n").encode()).hexdigest()[:16]
+                previous["source_refs"] += block["source_refs"]
+                previous["extraction_status"] = "needs_review"
+                previous.pop("extraction_check", None)
+                previous["column_reflow"].pop("page_proof", None)
+                del contents[index]
+                counts["joined across a page break"] += 1
+                continue
+        index += 1
+    path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
+    print(key, dict(counts))
+
+
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    cli.add_argument("command", choices=["export", "apply"])
+    cli.add_argument("command", choices=["export", "apply", "rebuild-export", "rebuild-apply"])
+    cli.add_argument("--proof-dir", type=Path, help="rebuild-export: folder holding the page images")
     cli.add_argument("key")
     cli.add_argument("folder", type=Path)
     cli.add_argument("--pages-per-batch", type=int, default=3)
     args = cli.parse_args()
-    if args.command == "export":
+    if args.command == "rebuild-export":
+        rebuild_export(args.key, args.folder, args.proof_dir, args.pages_per_batch)
+    elif args.command == "rebuild-apply":
+        rebuild_apply(args.key, args.folder)
+    elif args.command == "export":
         export(args.key, args.folder, args.pages_per_batch)
     else:
         apply(args.key, args.folder)
