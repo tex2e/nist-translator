@@ -367,7 +367,18 @@ def _ocr_agrees(block, text, words):
     found = [word for word in words
              if x0 - 2 <= (word[0] + word[2]) / 2 <= x1 + 2 and
              top - 2 <= (word[1] + word[3]) / 2 <= bottom + 2]
-    found.sort(key=lambda word: (round((word[1] + word[3]) / 2 / 6), word[0]))
+    # Group the words into printed lines by their vertical centres, then read
+    # each line left to right. Bucketing the centres on a fixed grid would
+    # scatter the words of a line whose baseline jitters across a grid edge.
+    found.sort(key=lambda word: (word[1] + word[3]) / 2)
+    rows = []
+    for word in found:
+        centre = (word[1] + word[3]) / 2
+        if rows and centre - rows[-1][0] <= 0.5 * max(word[3] - word[1], rows[-1][1]):
+            rows[-1][2].append(word)
+        else:
+            rows.append([centre, word[3] - word[1], [word]])
+    found = [word for row in rows for word in sorted(row[2], key=lambda item: item[0])]
     expected = text
     if block["kind"] == "list_item":
         seen = "".join(word[4] for word in found)
