@@ -117,7 +117,11 @@ def apply(verdict_dir, issues_path):
         document = read_json(path)
         blocks = {block["id"]: block for block in document["contents"]}
         for answer in answers:
-            block = blocks[answer["id"]]
+            block = blocks.get(answer["id"])
+            if block is None:
+                # Merged into another block since the export.
+                counts["gone"] += 1
+                continue
             # The source or the translation may have changed since the export.
             if answer.get("source_hash") != block["source_hash"] or not _reviewable(document, block):
                 counts["skipped"] += 1
