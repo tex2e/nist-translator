@@ -6,7 +6,7 @@
   <meta name="description" content="NIST SP 800-132 の英文と日本語訳を並べて読むための非公式サイト（NIST の公式翻訳ではありません）">
   <title>パスワードベース鍵導出に関する推奨事項：第1部：ストレージアプリケーション | NIST SP 800-132 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
@@ -25,6 +25,7 @@
         <h1>Recommendation for Password-Based Key Derivation: Part 1: Storage Applications</h1>
 <p class="subtitle-translation" lang="ja">パスワードベース鍵導出に関する推奨事項：第1部：ストレージアプリケーション</p>        <p>NIST SP 800-132（Recommendation for Password-Based Key Derivation: Part 1: Storage Applications）の英文と日本語訳を段落ごとに並べた閲覧用ページです。保存データまたはデータ保護鍵を保護するため、パスワードやパスフレーズからマスター鍵を導出する手法を規定します。CSRCは2023年5月11日に改訂を決定し、公開草案の準備は未開始と告知しています。 翻訳は有志による非公式のもので、NIST および米国商務省が作成・承認・推奨したものではありません。要件の確認には<a href="https://doi.org/10.6028/NIST.SP.800-132">NIST の正式版 PDF</a>を参照してください。</p>
         <p class="pdf-notice">PDF から抽出した原文は原本との照合待ちです。</p>
+        <p class="pdf-notice">本文の数式はLaTeXの構造からKaTeXで表示しています。</p>
         <div class="metadata">
           <span>原文取得日: 2026-09-27</span>
           <span>訳文: 119 / 121 ブロック</span>
@@ -508,12 +509,12 @@
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>PBKDFアルゴリズムの詳細を以下に示す。</p>        </div>
       </section>
-      <section class="row pair table" id="pdf-p0011-b0008">
+      <section class="row pair math" id="pdf-p0011-math-001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
-<table><tr><th>Input:</th><td><i>P</i></td><td>Password</td></tr><tr><td></td><td><i>S</i></td><td>Salt</td></tr><tr><td></td><td><i>C</i></td><td>Iteration count</td></tr><tr><td></td><td><i>kLen</i></td><td>Length of MK in bits; at most (2<sup>32</sup>−1) × <i>hLen</i></td></tr><tr><th>Parameter:</th><td>PRF</td><td>HMAC with an approved hash function</td></tr><tr><td></td><td><i>hLen</i></td><td>Digest size of the hash function</td></tr><tr><th>Output:</th><td><i>mk</i></td><td>Master key</td></tr><tr><th>Algorithm:</th><td colspan="2"><strong>If</strong> (<i>kLen</i> &gt; (2<sup>32</sup>−1) × <i>hLen</i>)<br>&nbsp;&nbsp;<strong>Return</strong> an error indicator and stop;<br><i>len</i> = ⌈<i>kLen</i> / <i>hLen</i>⌉;<br><i>r</i> = <i>kLen</i> − (<i>len</i> − 1) × <i>hLen</i>;<br><strong>For</strong> <i>i</i> = 1 to <i>len</i><br>&nbsp;&nbsp;<i>T</i><sub>i</sub> = 0;<br>&nbsp;&nbsp;<i>U</i><sub>0</sub> = <i>S</i> || Int(<i>i</i>);<br>&nbsp;&nbsp;<strong>For</strong> <i>j</i> = 1 to <i>C</i><br>&nbsp;&nbsp;&nbsp;&nbsp;<i>U</i><sub>j</sub> = HMAC(<i>P</i>, <i>U</i><sub>j−1</sub>)<br>&nbsp;&nbsp;&nbsp;&nbsp;<i>T</i><sub>i</sub> = <i>T</i><sub>i</sub> ⊕ <i>U</i><sub>j</sub><br><strong>Return</strong> <i>mk</i> = <i>T</i><sub>1</sub> || <i>T</i><sub>2</sub> || … || <i>T</i><sub>len&lt;0,…,r−1&gt;</sub></td></tr></table>
+<table><tr><th>Input:</th><td>\(P\)</td><td>Password</td></tr><tr><td></td><td>\(S\)</td><td>Salt</td></tr><tr><td></td><td>\(C\)</td><td>Iteration count</td></tr><tr><td></td><td>\(\mathit{kLen}\)</td><td>Length of MK in bits; at most \((2^{32}-1) \times \mathit{hLen}\)</td></tr><tr><th>Parameter:</th><td>PRF</td><td>HMAC with an <strong>approved</strong> hash function</td></tr><tr><td></td><td>\(\mathit{hlen}\)</td><td>Digest size of the hash function</td></tr><tr><th>Output:</th><td>\(\mathit{mk}\)</td><td>Master key</td></tr><tr><th>Algorithm:</th><td colspan="2"><strong>If</strong> (\(\mathit{kLen} &gt; (2^{32}-1) \times \mathit{hLen}\))<br>&nbsp;&nbsp;<strong>Return</strong> an error indicator and stop;<br>\(\mathit{len} = \lceil \mathit{kLen} / \mathit{hLen} \rceil\);<br>\(r = \mathit{kLen} - (\mathit{len} - 1) \times \mathit{hLen}\);<br><strong>For</strong> \(i = 1\) to \(\mathit{len}\)<br>&nbsp;&nbsp;\(\mathrm{T}_{\mathrm{i}} = 0\);<br>&nbsp;&nbsp;\(U_0 = S \parallel \mathrm{Int}(i)\);<br>&nbsp;&nbsp;<strong>For</strong> \(j = 1\) to \(C\)<br>&nbsp;&nbsp;&nbsp;&nbsp;\(U_j = \mathit{HMAC}(P, U_{j-1})\)<br>&nbsp;&nbsp;&nbsp;&nbsp;\(T_i = T_i \oplus U_j\)<br><strong>Return</strong> \(\mathit{mk} = T_1 \parallel T_2 \parallel \ldots \parallel T_{\mathit{len}}\langle 0 \ldots r-1 \rangle\)</td></tr></table>
 <div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf#page=11">原本 PDF p.11</a></div>        </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<table><tr><th>入力：</th><td><i>P</i></td><td>パスワード</td></tr><tr><td></td><td><i>S</i></td><td>ソルト</td></tr><tr><td></td><td><i>C</i></td><td>反復回数</td></tr><tr><td></td><td><i>kLen</i></td><td>MKのビット単位の長さ。最大で(2<sup>32</sup>−1) × <i>hLen</i></td></tr><tr><th>パラメータ：</th><td>PRF</td><td>承認済みハッシュ関数を用いるHMAC</td></tr><tr><td></td><td><i>hLen</i></td><td>ハッシュ関数のダイジェスト長</td></tr><tr><th>出力：</th><td><i>mk</i></td><td>マスター鍵</td></tr><tr><th>アルゴリズム：</th><td colspan="2"><strong>If</strong> (<i>kLen</i> &gt; (2<sup>32</sup>−1) × <i>hLen</i>)<br>&nbsp;&nbsp;エラー指標を<strong>Return</strong>して停止する;<br><i>len</i> = ⌈<i>kLen</i> / <i>hLen</i>⌉;<br><i>r</i> = <i>kLen</i> − (<i>len</i> − 1) × <i>hLen</i>;<br><strong>For</strong> <i>i</i> = 1 to <i>len</i><br>&nbsp;&nbsp;<i>T</i><sub>i</sub> = 0;<br>&nbsp;&nbsp;<i>U</i><sub>0</sub> = <i>S</i> || Int(<i>i</i>);<br>&nbsp;&nbsp;<strong>For</strong> <i>j</i> = 1 to <i>C</i><br>&nbsp;&nbsp;&nbsp;&nbsp;<i>U</i><sub>j</sub> = HMAC(<i>P</i>, <i>U</i><sub>j−1</sub>)<br>&nbsp;&nbsp;&nbsp;&nbsp;<i>T</i><sub>i</sub> = <i>T</i><sub>i</sub> ⊕ <i>U</i><sub>j</sub><br><strong>Return</strong> <i>mk</i> = <i>T</i><sub>1</sub> || <i>T</i><sub>2</sub> || … || <i>T</i><sub>len&lt;0,…,r−1&gt;</sub></td></tr></table>        </div>
+<table><tr><th>入力：</th><td>\(P\)</td><td>パスワード</td></tr><tr><td></td><td>\(S\)</td><td>ソルト</td></tr><tr><td></td><td>\(C\)</td><td>反復回数</td></tr><tr><td></td><td>\(\mathit{kLen}\)</td><td>MKのビット単位の長さ。最大で\((2^{32}-1) \times \mathit{hLen}\)</td></tr><tr><th>パラメータ：</th><td>PRF</td><td><strong>承認された</strong>ハッシュ関数を用いるHMAC</td></tr><tr><td></td><td>\(\mathit{hlen}\)</td><td>ハッシュ関数のダイジェスト長</td></tr><tr><th>出力：</th><td>\(\mathit{mk}\)</td><td>マスター鍵</td></tr><tr><th>アルゴリズム：</th><td colspan="2"><strong>If</strong> (\(\mathit{kLen} &gt; (2^{32}-1) \times \mathit{hLen}\))<br>&nbsp;&nbsp;エラー指標を<strong>Return</strong>して停止する;<br>\(\mathit{len} = \lceil \mathit{kLen} / \mathit{hLen} \rceil\);<br>\(r = \mathit{kLen} - (\mathit{len} - 1) \times \mathit{hLen}\);<br><strong>For</strong> \(i = 1\) to \(\mathit{len}\)<br>&nbsp;&nbsp;\(\mathrm{T}_{\mathrm{i}} = 0\);<br>&nbsp;&nbsp;\(U_0 = S \parallel \mathrm{Int}(i)\);<br>&nbsp;&nbsp;<strong>For</strong> \(j = 1\) to \(C\)<br>&nbsp;&nbsp;&nbsp;&nbsp;\(U_j = \mathit{HMAC}(P, U_{j-1})\)<br>&nbsp;&nbsp;&nbsp;&nbsp;\(T_i = T_i \oplus U_j\)<br><strong>Return</strong> \(\mathit{mk} = T_1 \parallel T_2 \parallel \ldots \parallel T_{\mathit{len}}\langle 0 \ldots r-1 \rangle\)</td></tr></table>        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0012-b0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -709,11 +710,12 @@ A.2 PBKDF</h2>        </div>
 <h3>
 A.2.1 ソルトの長さ</h3>        </div>
       </section>
-      <section class="row pair paragraph" id="pdf-p0016-b0013">
+      <section class="row pair math" id="pdf-p0016-math-002">
         <div class="english col-sm-12 col-md-6 text" lang="en">
-<p>The purpose of the salt is to allow the generation of a large set of keys corresponding to each password, for a fixed iteration count. For a given password, the number of possible resulting keys is approximately 2<sup><i>sLen</i></sup>, where sLen is the length of the salt in bits.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf#page=16">原本 PDF p.16</a></div>        </div>
+<p>The purpose of the salt is to allow the generation of a large set of keys corresponding to each password, for a fixed iteration count. For a given password, the number of possible resulting keys is approximately \(2^{\mathit{sLen}}\), where \(\mathit{sLen}\) is the length of the salt in bits.</p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf#page=16">原本 PDF p.16</a></div>        </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<p>ソルトの目的は、反復回数を固定した場合に、各パスワードに対応する多数の鍵の集合を生成できるようにすることである。ある与えられたパスワードに対して、結果として得られる可能性のある鍵の数は約2<sup><i>sLen</i></sup>である。ここでsLenはソルトのビット長である。</p>        </div>
+<p>ソルトの目的は、反復回数を固定した場合に、各パスワードに対応する多数の鍵の集合を生成できるようにすることである。ある与えられたパスワードに対して、結果として得られる可能性のある鍵の数は約\(2^{\mathit{sLen}}\)である。ここで\(\mathit{sLen}\)はソルトのビット長である。</p>        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0016-b0015">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -727,11 +729,12 @@ A.2.1 ソルトの長さ</h3>        </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>任意で、ソルトを使用する他のアプリケーションとの間で起こり得るあらゆる相互作用を避けるため、purposeと呼ばれる、アプリケーション、メッセージ、または利用者に固有の変数を、次に示すように、ソルトのランダム生成部分の前に付加してもよい。</p>        </div>
       </section>
-      <section class="row pair paragraph" id="pdf-p0016-b0020">
+      <section class="row pair math" id="pdf-p0016-math-003">
         <div class="english col-sm-12 col-md-6 text" lang="en">
-<p>S = purpose || rv.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf#page=16">原本 PDF p.16</a></div>        </div>
+<div class="math-content">\[ S = \mathit{purpose} \parallel \mathit{rv}. \]</div>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf#page=16">原本 PDF p.16</a></div>        </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<p>S = purpose || rv.</p>        </div>
+<div class="math-content">\[ S = \mathit{purpose} \parallel \mathit{rv}. \]</div>        </div>
       </section>
       <section class="row pair heading" id="pdf-p0016-b0021">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -823,5 +826,17 @@ A.3 DPKの保護</h3>        </div>
       </footer>
     </main>
   </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
 </body>
 </html>
