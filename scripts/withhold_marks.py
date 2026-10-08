@@ -35,7 +35,8 @@ def main():
                 continue
             block["official_mark"] = mark
             counts[mark] += 1
-            for source in re.findall(r'<img[^>]*src="([^"]+)"', block["html"]):
+            sources = re.findall(r'<img[^>]*src="([^"]+)"', block["html"])
+            for source in sources + ([block["source_image"]] if block.get("source_image") else []):
                 image = ROOT / "html" / source
                 if image.exists():
                     image.unlink()

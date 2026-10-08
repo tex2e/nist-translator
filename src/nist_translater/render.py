@@ -78,14 +78,19 @@ def build_site(document, meta, template_path, output_path):
         if block.get("official_mark"):
             # An unofficial translation must not display protected official marks.
             name_en, name_ja = OFFICIAL_MARKS[block["official_mark"]]
-            for image in BeautifulSoup(block["html"], "html.parser").find_all("img"):
-                published = output_path.parent / image.get("src", "")
-                if published.is_file():
+            sources = [image.get("src", "") for image in
+                       BeautifulSoup(block["html"], "html.parser").find_all("img")]
+            for source in sources + [block.get("source_image") or ""]:
+                published = output_path.parent / source
+                if source and published.is_file():
                     published.unlink()  # a re-extraction may have written it again
-            item["english_html"] = Markup(
-                '<span class="withheld-mark">[%s — not reproduced on this unofficial site]</span>' % name_en)
-            item["figure_description"] = (
-                "［%s。公的な標章のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % name_ja)
+            item["source_image"] = None  # a crop of the original that shows the mark
+            if block["kind"] == "figure":
+                item["english_html"] = Markup(
+                    '<span class="withheld-mark">[%s — not reproduced on this unofficial site]</span>'
+                    % name_en)
+                item["figure_description"] = (
+                    "［%s。公的な標章のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % name_ja)
         elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""
