@@ -31,12 +31,12 @@ for _path in ("/usr/share/dict/words",):
     if Path(_path).exists():
         WORDS = {word.strip().lower() for word in Path(_path).read_text().split()}
 BULLET = re.compile(r"^[•●▪■◆»\x80-\x9f\uf000-\uf8ff]\s*")
+MARKER = re.compile(r"(?:\d{1,2}[.)]|[a-z][.)]|[•●▪■◆»\x80-\x9f\uf000-\uf8ff])")
 LEADER = re.compile(r"\.{4,}\s*[0-9ivxlc]{1,4}$")
 TERMINAL = re.compile(r"[.:;?!][\"'”’)\]]*$")
 
 
 LIGATURE = "\x00"
-EXPANSIONS = ("f", "fi", "fl", "ff", "ffi", "ffl")
 
 
 def _stems(word):
@@ -50,30 +50,48 @@ def _known(word):
     return bool(WORDS & _stems(word))
 
 
-def _text(chars, narrow):
+def _text(chars, narrow=None):
     """Text of one line; a too-wide ``f`` is a ligature the font maps to plain f."""
     parts, previous, seen = [], None, set()
+    # Letters sit at a usual gap: zero, a tracking value, or an overlap where
+    # the recorded widths are too large (the same font name can carry both).
+    # A space is clearly wider than the letter gaps around it, so each gap is
+    # judged against the median of its neighbours.
     gaps = [b["x0"] - a["x1"] for a, b in zip(chars, chars[1:])]
-    space = 1.0
-    wide = sorted(gap for gap in gaps if gap > space)
-    if len(gaps) >= 6 and len(wide) >= 0.7 * len(gaps):
-        space = 1.8 * wide[len(wide) // 2]  # letterspaced: only the larger gaps are spaces
-    elif len(gaps) >= 20 and not wide and max(gaps) > 0.25:
-        space = 0.5 * max(gaps)  # a line squeezed to fit: its widest gaps are the spaces
-    for char in chars:
+    limits = []
+    for index in range(len(gaps)):
+        near = sorted(gaps[max(0, index - 4):index + 5])
+        base = near[len(near) // 2]
+        if len(near) < 5:
+            whole = sorted(gaps)
+            base = min(base, whole[len(whole) // 2])
+        limits.append(1.8 * base if base > 1.0 else base + 1.0)
+    whole = sorted(gaps)
+    if len(gaps) >= 20 and all(gap <= limit for gap, limit in zip(gaps, limits)):
+        base = whole[len(whole) // 2]
+        if whole[-1] - base > 0.25:  # a line squeezed to fit: its widest gaps are the spaces
+            limits = [base + 0.5 * (whole[-1] - base)] * len(gaps)
+    overlapping = [gap < -1.0 for gap in gaps]
+    for index, char in enumerate(chars):
         position = (round(char["x0"], 2), round(char["top"], 2), char["text"])
         if position in seen:
             continue
         seen.add(position)
-        if previous and char["x0"] - previous["x1"] > space:
+        if previous and index and gaps[index - 1] > limits[index - 1]:
             parts.append(" ")
-        base = narrow.get((char.get("fontname"), round(char["size"], 1)))
-        if char["text"] == "f" and base and char["x1"] - char["x0"] > 1.45 * base:
-            parts.append(LIGATURE + ("2" if char["x1"] - char["x0"] > 1.9 * base else "1"))
+        width = char["x1"] - char["x0"]
+        ratio = width / (char["size"] or 10)
+        base = (narrow or {}).get((char.get("fontname"), round(char["size"], 1)))
+        inflated = any(overlapping[max(0, index - 2):index + 2])  # widths here are not real
+        if char["text"] == "f" and ratio > 0.45 and base and width > 1.45 * base and not inflated:
+            parts.append(LIGATURE + ("3" if ratio > 0.75 else "2" if ratio > 0.6 else "1"))
         else:
             parts.append(char["text"])
         previous = char
     return _normal("".join(parts))
+
+
+CLASSES = {"1": ("fi", "fl"), "2": ("ff",), "3": ("ffi", "ffl")}
 
 
 def _resolve(text):
@@ -82,27 +100,28 @@ def _resolve(text):
 
     def word(match):
         token = match.group(0)
-        slots = re.findall(LIGATURE + r"([12])", token)
-        options = [""]
-        for _ in slots:
-            options = [head + "\x01" + tail for head in options for tail in EXPANSIONS]
+        slots = re.findall(LIGATURE + r"([123])", token)
+        options = [[]]
+        for slot in slots:
+            options = [head + [tail] for head in options for tail in CLASSES[slot]]
         best = None
-        for option in options:
-            pieces = option.split("\x01")[1:]
+        for index, option in enumerate(options):
             candidate = token
-            for piece in pieces:
-                candidate = re.sub(LIGATURE + r"[12]", piece, candidate, count=1)
+            for piece in option:
+                candidate = re.sub(LIGATURE + r"[123]", piece, candidate, count=1)
+            if index == 0:
+                first = candidate
             if all(_known(part) for part in re.findall(r"[A-Za-z]+", candidate) if len(part) > 2):
                 best = candidate
                 break
         if best is None:
-            best = token
-            for slot in slots:
-                best = re.sub(LIGATURE + r"[12]", "f", best, count=1)
-            guesses.append(best)
+            best = first
+            if len(options) > 1:
+                guesses.append(best)
         return best
 
-    return re.sub(r"[A-Za-z%s12]*%s[12][A-Za-z%s12]*" % (LIGATURE, LIGATURE, LIGATURE), word, text), guesses
+    pattern = r"[A-Za-z%s123]*%s[123][A-Za-z%s123]*" % (LIGATURE, LIGATURE, LIGATURE)
+    return re.sub(pattern, word, text), guesses
 
 
 def _fragment(line, chars):
@@ -218,6 +237,16 @@ def _cells(lines):
     """Lines of one column; cells set side by side inside it are read one after the other."""
     lines = sorted(lines, key=lambda line: (line["top"], line["x0"]))
     width = max(line["x1"] for line in lines) - min(line["x0"] for line in lines)
+    for marker in [line for line in lines if MARKER.fullmatch(line["text"])]:
+        row = [line for line in lines if line is not marker and line["x0"] > marker["x1"] and
+               min(line["bottom"], marker["bottom"]) - max(line["top"], marker["top"]) >
+               0.5 * (marker["bottom"] - marker["top"])]
+        if row:
+            target = min(row, key=lambda line: line["x0"])
+            target["text"] = marker["text"] + " " + target["text"]
+            target["x0"] = marker["x0"]
+            target["marker_x1"] = marker["x1"]
+            lines = [line for line in lines if line is not marker]
 
     def partner(index):
         line = lines[index]
@@ -258,14 +287,16 @@ def _cells(lines):
 
 def _join(left, right):
     if left.endswith("-") and right[:1].islower():
-        head = re.search(r"([A-Za-z%s12]+)-$" % LIGATURE, left)
-        tail = re.match(r"[a-z%s12]+" % LIGATURE, right)
+        head = re.search(r"([A-Za-z%s123]+)-$" % LIGATURE, left)
+        tail = re.match(r"[a-z%s123]+" % LIGATURE, right)
         if head and tail:
             word, guesses = _resolve(head.group(1) + tail.group(0))
             # A word split by hyphenation; a compound keeps its printed hyphen.
             if not guesses and _known(word):
                 return left[:-1] + right
         return left + right
+    if re.search(r"\S[-_/]$", left) and not re.search(r"\s[-–—]$", left):
+        return left + right  # a printed hyphen, underscore or slash at the line end
     if re.search(r"https?://\S*[/._-]$", left) and re.match(r"^\S+$", right.split(" ")[0]) \
             and not right[:1].isupper():
         return left + right  # URL wrapped inside itself
@@ -295,7 +326,9 @@ def _paragraphs(lines, page_height):
             same_style = False  # a run-in heading above its paragraph
             previous["kind"] = "heading" if previous["kind"] == "paragraph" else previous["kind"]
         if (previous and not all_bold and line["bold_ratio"] >= 0.9 and last["bold_ratio"] < 0.5 and
-                TERMINAL.search(last["text"])):
+                (TERMINAL.search(last["text"]) or
+                 last["x1"] < max(item["x1"] for item in previous["lines"]) - 30 or
+                 re.search(r"https?://\S+$", last["text"]))):
             same_style = False  # a heading right below the end of a paragraph
         if last is not None and LEADER.search(last["text"]):
             same_style = False  # a table-of-contents entry ends at its page number
@@ -394,7 +427,7 @@ def _mark_furniture(blocks, pages):
         if len(text) <= 200 and (box[3] < 0.1 * height or box[1] > 0.9 * height):
             groups.setdefault(re.sub(r"\d+", "#", text), []).append(block)
     for members in groups.values():
-        if len(members) >= max(4, pages * 0.1):
+        if len(members) >= 3:
             for block in members:
                 block["page_furniture"] = True
 
