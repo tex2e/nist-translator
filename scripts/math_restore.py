@@ -152,8 +152,10 @@ def fragment_groups(document):
     of a page followed by a lower-case start on the next page. A restorer looks
     at the original before anything is merged.
     """
+    # Running headers and footers do not separate the text before and after them.
     blocks = [block for block in document["contents"]
-              if not block.get("duplicate_artifact_of") and not block.get("math_duplicate_of")]
+              if not block.get("duplicate_artifact_of") and not block.get("math_duplicate_of")
+              and not block.get("page_furniture")]
     text = lambda block: html.unescape(TAGLESS.sub("", block["html"])).strip()
     groups, current = [], []
     for first, second in zip(blocks, blocks[1:]):
@@ -198,8 +200,11 @@ def fragment_groups(document):
                     hanging = a.startswith("[") and 40 <= indent <= 130
                     joined = -3 <= gap <= 5 and (abs(indent) < 40 or hanging)
                 elif start["page"] == end["page"] + 1:
-                    joined = (b[0].islower() and end["bbox"][3] > 600 and
-                              start["bbox"][1] < 140)
+                    # The page ends in the middle of a sentence and the next
+                    # one opens with running text.
+                    joined = (end["bbox"][3] > 600 and start["bbox"][1] < 140 and
+                              (b[0].islower() or a.endswith(",") or
+                               (len(b) > 60 and not b[:1].isdigit())))
         if joined:
             if not current:
                 current = [first]

@@ -174,6 +174,7 @@ def make_queue(document):
         for block in contents(document)
         if (block["kind"] in TRANSLATABLE and block["status"] in {"untranslated", "stale"}
             and not block.get("duplicate_artifact_of")
+            and not block.get("page_furniture")
             and not block.get("math_duplicate_of")
             and (block["kind"] != "figure" or source_text(block)))
     ]

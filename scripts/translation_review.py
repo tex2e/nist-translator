@@ -42,6 +42,7 @@ MAX_BATCH_CHARS = 45000
 def _reviewable(document, block):
     return (block.get("status") == "draft" and block.get("html_ja", "").strip() and
             not block.get("duplicate_artifact_of") and
+            not block.get("page_furniture") and
             (document.get("source_format") != "pdf" or
              block.get("extraction_status") == "verified"))
 

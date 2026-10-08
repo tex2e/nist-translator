@@ -27,7 +27,8 @@ def build_site(document, meta, template_path, output_path):
     stale = 0
     headings = []
     for block in document["contents"]:
-        if block.get("duplicate_artifact_of") or block.get("math_duplicate_of"):
+        if (block.get("duplicate_artifact_of") or block.get("math_duplicate_of") or
+                block.get("page_furniture")):
             continue
         math_group = math_by_member.get(block["id"])
         if math_group:
