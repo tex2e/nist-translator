@@ -184,6 +184,15 @@ def _layout_reasons(block, page, text):
         reasons.append("neighbour_text")
     if any(not char["upright"] for char in inside):
         reasons.append("rotated_text")
+    if block["kind"] == "footnote":
+        # The raised reference number that opens a footnote is not a formula.
+        body = statistics.median(char["size"] for char in inside)
+        first = min(char["top"] for char in inside)
+        start = min(char["x0"] for char in inside)
+        marker = [char for char in inside
+                  if char["text"].isdigit() and char["size"] < body - 0.6 and
+                  char["top"] - first < body and char["x0"] - start < 14]
+        inside = [char for char in inside if not any(char is other for other in marker)] or inside
     sizes = [char["size"] for char in inside]
     size = statistics.median(sizes)
     if any(abs(value - size) > 0.6 for value in sizes):
@@ -235,7 +244,7 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
         reasons = []
         text = texts[block["id"]] = _block_text(block)
         number = block["source_page"]
-        if block["kind"] not in TEXT_KINDS:
+        if block["kind"] not in TEXT_KINDS and block["kind"] != "footnote":
             reasons.append("kind_" + block["kind"])
         if len(block["source_refs"]) != 1:
             reasons.append("page_spanning")
@@ -332,6 +341,18 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
                 if not (previous["kind"] == "list_item" and block["kind"] == "list_item"
                         ) and not new_page_heading:
                     reasons.append("continues_previous")
+    # A paragraph without closing punctuation is a complete unit (a label, a
+    # title line, a list row) when the block after it starts afresh: a line
+    # cut out of a running paragraph leaves its continuation right below it.
+    for index, block in enumerate(flow):
+        reasons = results[block["id"]]
+        if "no_terminal_punctuation" not in reasons:
+            continue
+        following = flow[index + 1] if index + 1 < len(flow) else None
+        if following is None or (following["kind"] in TEXT_KINDS and not (
+                {"continues_previous", "continues_heading", "starts_mid_sentence"} &
+                set(results[following["id"]]))):
+            reasons.remove("no_terminal_punctuation")
     return results, pages
 
 
@@ -392,6 +413,13 @@ def _ocr_agrees(block, text, words):
         prefix = str(block["ordinal"])
         if seen.startswith(prefix) and not expected.startswith(prefix):
             seen = seen[len(prefix):]
+    entry = TOC_ENTRY.match(text)
+    if entry:
+        # OCR reads the dot leaders as junk: compare the title and the page label.
+        title, _, label = text.rpartition(" — ")
+        title, label = _alnum(title), _alnum(label)
+        head = difflib.SequenceMatcher(None, title, seen[:len(title)], autojunk=False).ratio()
+        return bool(title) and head >= 0.93 and seen.endswith(label)
     ratio = difflib.SequenceMatcher(None, expected, seen, autojunk=False).ratio()
     return ratio >= (0.93 if len(expected) >= 20 else 0.8)
 
