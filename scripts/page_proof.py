@@ -29,10 +29,25 @@ SCALE = 2.5
 TEXT = {"paragraph", "heading", "list_item", "note", "footnote"}
 
 
+def _record(block):
+    """Where the outcome of the page check is kept on a block."""
+    if "column_reflow" in block:
+        return block["column_reflow"]
+    return block.setdefault("page_check", {})
+
+
+def _state(block):
+    return (block.get("column_reflow") or block.get("page_check") or {}).get("page_proof")
+
+
+def _text_block(block):
+    return (not block.get("page_furniture") and not block.get("duplicate_artifact_of") and
+            block["kind"] in TEXT and bool(block.get("source_refs")))
+
+
 def _blocks(document):
     return [block for block in document["contents"]
-            if block.get("column_reflow") and not block.get("page_furniture") and
-            block["kind"] in TEXT and block.get("extraction_status") == "needs_review"]
+            if _text_block(block) and block.get("extraction_status") == "needs_review"]
 
 
 def _plant(text, rng):
@@ -74,7 +89,7 @@ def export(key, folder, per_batch):
         chunk = numbers[start:start + per_batch]
         candidates = [(page, index) for page in chunk for index, block in enumerate(pages[page])
                       if len(block["html"]) >= 120 and len(block["source_refs"]) == 1 and
-                      block["column_reflow"].get("page_proof") is None]
+                      _state(block) is None]
         rng.shuffle(candidates)
         planted = None
         for page in chunk:
@@ -86,7 +101,7 @@ def export(key, folder, per_batch):
                 picture.crop((0, int(height * 0.46), picture.width, height)).save(images[1])
             items = []
             for index, block in enumerate(pages[page]):
-                text = html.unescape(block["html"])
+                text = " ".join(html.unescape(re.sub(r"<[^>]+>", " ", block["html"])).split())
                 if planted is None and candidates and (page, index) == candidates[0]:
                     changed = _plant(text, rng)
                     if changed:
@@ -119,7 +134,7 @@ def apply(key, folder):
     problems, held, listed, stale = {}, set(), {}, set()
     on_page = Counter()
     for block in document["contents"]:
-        if block.get("column_reflow") and not block.get("page_furniture") and block["kind"] in TEXT:
+        if _text_block(block):
             for number in {ref["page"] for ref in block["source_refs"]}:
                 on_page[number] += 1
     for result_path in sorted(folder.glob("proof.*.result.json")):
@@ -174,33 +189,38 @@ def apply(key, folder):
         text_only = found and all(p.get("type") == "text" and p.get("corrected_text") for p in found)
         if not found:
             if identifier in held:
-                block["column_reflow"]["page_proof"] = "page_has_structural_problems"
+                _record(block)["page_proof"] = "page_has_structural_problems"
                 counts["on a page with structural problems"] += 1
             elif pages >= {ref["page"] for ref in block["source_refs"]}:
                 block["extraction_status"] = "verified"
                 block["extraction_check"] = "visual-page"
-                block["column_reflow"]["page_proof"] = "matches_original"
+                _record(block)["page_proof"] = "matches_original"
                 counts["verified"] += 1
             else:
                 counts["waiting for its other page"] += 1
+        elif text_only and len(found) == 1 and "<" in block["html"]:
+            # Markup would be lost by storing the checker's plain text.
+            _record(block)["page_proof"] = "structural:text_in_marked_up_block"
+            _record(block)["proof_note"] = note
+            counts["text differs in a block with markup"] += 1
         elif text_only and len(found) == 1:
             block["html"] = html.escape(" ".join(found[0]["corrected_text"].split()), quote=False)
             block["source_hash"] = hashlib.sha256(
                 (block["kind"] + "\n" + block["html"] + "\n").encode()).hexdigest()[:16]
-            block["column_reflow"]["page_proof"] = "text_corrected_by_checker"
-            block["column_reflow"]["proof_note"] = note
+            _record(block)["page_proof"] = "text_corrected_by_checker"
+            _record(block)["proof_note"] = note
             counts["text corrected, to be checked again"] += 1
         else:
-            block["column_reflow"]["page_proof"] = "structural:" + ",".join(
+            _record(block)["page_proof"] = "structural:" + ",".join(
                 sorted({str(p.get("type")) for p in found}))
-            block["column_reflow"]["proof_note"] = note
+            _record(block)["proof_note"] = note
             counts["structural problem"] += 1
     path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
     print(key, dict(counts))
 
 
 def _needs_rebuild(block):
-    state = block.get("column_reflow", {}).get("page_proof", "")
+    state = _state(block) or ""
     return state.startswith("structural") or state == "page_has_structural_problems"
 
 
@@ -208,8 +228,7 @@ def rebuild_export(key, folder, proof_folder, per_batch):
     """Pages whose blocks are wrongly divided or ordered, for a restorer to lay out again."""
     document = json.loads((ROOT / "data" / (key + "-trans.json")).read_text())
     folder.mkdir(parents=True, exist_ok=True)
-    text = [block for block in document["contents"]
-            if block.get("column_reflow") and not block.get("page_furniture") and block["kind"] in TEXT]
+    text = [block for block in document["contents"] if _text_block(block)]
     missing = document.get("column_reflow", {}).get("missing_text", {})
     wanted = sorted({block["source_page"] for block in text if _needs_rebuild(block)} |
                     {int(page) for page in missing})
@@ -224,7 +243,7 @@ def rebuild_export(key, folder, proof_folder, per_batch):
             items = []
             for index, block in enumerate(own, 1):
                 item = {"n": index, "kind": block["kind"], "text": html.unescape(block["html"])}
-                note = block["column_reflow"].get("proof_note")
+                note = _record(block).get("proof_note")
                 if note:
                     item["checker_note"] = note
                 if len({ref["page"] for ref in block["source_refs"]}) > 1:
@@ -339,8 +358,7 @@ def rebuild_apply(key, folder):
         block = contents[index]
         if block.get("column_reflow", {}).get("continues_from_previous_page"):
             previous = next((other for other in reversed(contents[:index])
-                             if other.get("column_reflow") and not other.get("page_furniture") and
-                             other["kind"] in TEXT), None)
+                             if _text_block(other)), None)
             del block["column_reflow"]["continues_from_previous_page"]
             if (previous is not None and previous["source_refs"][-1]["page"] == block["source_page"] - 1
                     and previous["kind"] in {"paragraph", "list_item", "footnote"}):
@@ -356,7 +374,7 @@ def rebuild_apply(key, folder):
                 previous["html_ja"], previous["status"] = "", "untranslated"
                 previous.pop("translation_check", None)
                 previous.pop("translation_fix_rounds", None)
-                previous["column_reflow"].pop("page_proof", None)
+                _record(previous).pop("page_proof", None)
                 del contents[index]
                 counts["joined across a page break"] += 1
                 continue
