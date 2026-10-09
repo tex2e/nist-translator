@@ -352,6 +352,10 @@ def rebuild_apply(key, folder):
                 previous["source_refs"] += block["source_refs"]
                 previous["extraction_status"] = "needs_review"
                 previous.pop("extraction_check", None)
+                # Its translation no longer covers the whole text.
+                previous["html_ja"], previous["status"] = "", "untranslated"
+                previous.pop("translation_check", None)
+                previous.pop("translation_fix_rounds", None)
                 previous["column_reflow"].pop("page_proof", None)
                 del contents[index]
                 counts["joined across a page break"] += 1

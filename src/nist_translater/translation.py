@@ -10,7 +10,7 @@ from .pdf_equations import inline_katex_html
 
 
 TRANSLATABLE = {"heading", "paragraph", "list_item", "note", "definition_term", "definition", "table", "figure", "footnote", "math"}
-NORMATIVE = re.compile(r"\b(?:SHALL NOT|SHOULD NOT|NEED NOT|SHALL|SHOULD|MAY|CANNOT|CAN)\b")
+NORMATIVE = re.compile(r"\b(?:SHALL NOT|SHOULD NOT|NEED NOT|SHALL|SHOULD|MAY(?!\s+\d{4}\b)|CANNOT|CAN)\b")
 STATUSES = {"untranslated", "draft", "reviewed", "stale", "source_only"}
 
 
