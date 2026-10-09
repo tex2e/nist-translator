@@ -253,10 +253,16 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
         number = block["source_page"]
         if block["kind"] not in TEXT_KINDS and block["kind"] != "footnote":
             reasons.append("kind_" + block["kind"])
-        if len(block["source_refs"]) != 1:
+        refs = block["source_refs"]
+        # A paragraph that the parser carried over a page break is read region
+        # by region; anything assembled in another way stays for a visual check.
+        spanning = len(refs) == 2 and refs[1]["page"] == refs[0]["page"] + 1 and \
+            block["kind"] in {"paragraph", "list_item"} and not block.get("replaces")
+        if len(refs) != 1 and not spanning:
             reasons.append("page_spanning")
-        if number in held_pages:
-            reasons.append("page_" + held_pages[number])
+        for ref in refs:
+            if ref["page"] in held_pages and "page_" + held_pages[ref["page"]] not in reasons:
+                reasons.append("page_" + held_pages[ref["page"]])
         if not text:
             reasons.append("empty")
         if not reasons:
@@ -267,7 +273,12 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
                 reasons.append("page_rotated")
             if page.scanned:
                 reasons.append("page_scanned")
-            raw = page.bounded_text(block["source_refs"][0]["bbox"])
+            raws = [page.bounded_text(refs[0]["bbox"])]
+            if spanning:
+                if refs[1]["page"] not in pages:
+                    pages[refs[1]["page"]] = PageData(pdf[refs[1]["page"] - 1], pdfium_c)
+                raws.append(pages[refs[1]["page"]].bounded_text(refs[1]["bbox"]))
+            raw = "\n".join(raws)
             # A hyphen at a line end may be a compound or a word split by
             # hyphenation; the two cannot be told apart from the text alone.
             # PDFium rejoins such a word itself and marks the spot with U+0002.
@@ -282,6 +293,10 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
             if other != text:
                 reasons.append("text_mismatch")
             layout, details = _layout_reasons(block, page, text)
+            if spanning:
+                tail, _ = _layout_reasons({**block, "source_refs": [refs[1]]},
+                                          pages[refs[1]["page"]], text)
+                layout = layout + [reason for reason in tail if reason not in layout]
             reasons.extend(layout)
             if details:
                 info[block["id"]] = details
@@ -398,8 +413,9 @@ def _alnum(text):
     return re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFKD", text).lower())
 
 
-def _ocr_agrees(block, text, words):
-    x0, top, x1, bottom = block["source_refs"][0]["bbox"]
+def _ocr_region(box, words):
+    """OCR words inside a region, in reading order."""
+    x0, top, x1, bottom = box
     found = [word for word in words
              if x0 - 2 <= (word[0] + word[2]) / 2 <= x1 + 2 and
              top - 2 <= (word[1] + word[3]) / 2 <= bottom + 2]
@@ -419,7 +435,12 @@ def _ocr_agrees(block, text, words):
         else:
             rows.append([centre, [word]])
         rows[-1][0] = centre
-    found = [word for row in rows for word in sorted(row[1], key=lambda item: item[0])]
+    return [word for row in rows for word in sorted(row[1], key=lambda item: item[0])]
+
+
+def _ocr_agrees(block, text, regions):
+    """``regions`` pairs each source region of the block with its page's OCR words."""
+    found = [word for box, words in regions for word in _ocr_region(box, words)]
     expected = text
     if block["kind"] == "list_item":
         seen = "".join(word[4] for word in found)
@@ -490,9 +511,10 @@ def process(key, pdf_dir, cache_dir, apply, calibrate, held, keep=False):
         if current != "needs_review" and not calibrate:
             continue
         if not reasons:
-            words = _ocr_words(pages[block["source_page"]],
-                               Path(cache_dir) / key / ("p%04d.json" % block["source_page"]))
-            if not _ocr_agrees(block, _block_text(block), words):
+            regions = [(ref["bbox"], _ocr_words(
+                pages[ref["page"]], Path(cache_dir) / key / ("p%04d.json" % ref["page"])))
+                for ref in block["source_refs"]]
+            if not _ocr_agrees(block, _block_text(block), regions):
                 reasons = ["ocr_disagrees"]
         if calibrate:
             summary["calibration"][(current, "pass" if not reasons else "hold")] += 1
