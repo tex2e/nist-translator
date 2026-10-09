@@ -237,12 +237,16 @@ def rebuild_export(key, folder, proof_folder, per_batch):
         count += 1
         batch, ids = {"document": key, "pages": []}, {}
         for page in wanted[start:start + per_batch]:
-            own = [block for block in text if block["source_page"] == page]
+            on_page = [block for block in text if block["source_page"] == page]
+            # Blocks already verified stay as they are; they are shown for orientation only.
+            own = [block for block in on_page if block.get("extraction_status") != "verified"]
+            done = [block for block in on_page if block.get("extraction_status") == "verified"]
             carried = [block for block in text if block["source_page"] < page and
                        any(ref["page"] == page for ref in block["source_refs"])]
             items = []
             for index, block in enumerate(own, 1):
-                item = {"n": index, "kind": block["kind"], "text": html.unescape(block["html"])}
+                item = {"n": index, "kind": block["kind"],
+                        "text": " ".join(html.unescape(re.sub(r"<[^>]+>", " ", block["html"])).split())}
                 note = _record(block).get("proof_note")
                 if note:
                     item["checker_note"] = note
@@ -254,6 +258,8 @@ def rebuild_export(key, folder, proof_folder, per_batch):
                 "images": [str(proof_folder / ("p%04d-%s.png" % (page, half))) for half in ("top", "bottom")],
                 "already_covered_at_top": [html.unescape(block["html"])[-300:] for block in carried],
                 "checker_missing_text": missing.get(str(page), []),
+                "already_verified": [html.unescape(re.sub(r"<[^>]+>", " ", block["html"]))[:160]
+                                     for block in done],
                 "blocks": items})
             ids[str(page)] = [[block["id"], block["source_hash"]] for block in own]
         (folder / ("rebuild.%03d.batch.json" % count)).write_text(
@@ -298,7 +304,11 @@ def rebuild_apply(key, folder):
                 box = ([min(b[0] for b in boxes), min(b[1] for b in boxes),
                         max(b[2] for b in boxes), max(b[3] for b in boxes)] if boxes else None)
                 source = html.escape(wording, quote=False)
-                block = {"id": "pdf-p%04d-r%04d" % (page["page"], index), "kind": item["kind"],
+                number = index
+                while "pdf-p%04d-r%04d" % (page["page"], number) in by_id or any(
+                        other["id"] == "pdf-p%04d-r%04d" % (page["page"], number) for other in new):
+                    number += 100
+                block = {"id": "pdf-p%04d-r%04d" % (page["page"], number), "kind": item["kind"],
                          "html": source,
                          "source_hash": hashlib.sha256(
                              (item["kind"] + "\n" + source + "\n").encode()).hexdigest()[:16],
