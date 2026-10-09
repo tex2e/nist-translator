@@ -401,14 +401,19 @@ def _ocr_agrees(block, text, words):
     # each line left to right. Bucketing the centres on a fixed grid would
     # scatter the words of a line whose baseline jitters across a grid edge.
     found.sort(key=lambda word: (word[1] + word[3]) / 2)
+    heights = sorted(word[3] - word[1] for word in found)
+    step = 0.45 * heights[len(heights) // 2] if heights else 0
     rows = []
     for word in found:
         centre = (word[1] + word[3]) / 2
-        if rows and centre - rows[-1][0] <= 0.5 * max(word[3] - word[1], rows[-1][1]):
-            rows[-1][2].append(word)
+        # Centres within a line differ by a fraction of the letter height;
+        # the next line starts a full line height further down.
+        if rows and centre - rows[-1][0] <= step:
+            rows[-1][1].append(word)
         else:
-            rows.append([centre, word[3] - word[1], [word]])
-    found = [word for row in rows for word in sorted(row[2], key=lambda item: item[0])]
+            rows.append([centre, [word]])
+        rows[-1][0] = centre
+    found = [word for row in rows for word in sorted(row[1], key=lambda item: item[0])]
     expected = text
     if block["kind"] == "list_item":
         seen = "".join(word[4] for word in found)
@@ -428,7 +433,8 @@ def _ocr_agrees(block, text, words):
         title, _, label = text.rpartition(" — ")
         title, label = _alnum(title), _alnum(label)
         head = difflib.SequenceMatcher(None, title, seen[:len(title)], autojunk=False).ratio()
-        return bool(title) and head >= 0.93 and seen.endswith(label)
+        # The page label must follow the title; leader junk may surround it.
+        return bool(title) and head >= 0.93 and label in seen[max(0, len(title) - 2):]
     ratio = difflib.SequenceMatcher(None, expected, seen, autojunk=False).ratio()
     return ratio >= (0.93 if len(expected) >= 20 else 0.8)
 
