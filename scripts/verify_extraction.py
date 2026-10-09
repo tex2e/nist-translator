@@ -80,6 +80,8 @@ def _pdfium_text(raw, kind, toc):
             joined = match.group(1).rstrip(" .") + " — " + match.group(2)
     if kind == "list_item":
         joined = LIST_ITEM.sub("", joined, count=1)
+        # A bullet drawn with an unmapped symbol glyph, or a small "o" bullet.
+        joined = re.sub(r"^(?:[\x00-\x1f\x80-\x9f\uf000-\uf8ff]|o(?= [A-Z]))\s*", "", joined, count=1)
     return _leaders(joined)
 
 
@@ -193,6 +195,11 @@ def _layout_reasons(block, page, text):
                   if char["text"].isdigit() and char["size"] < body - 0.6 and
                   char["top"] - first < body and char["x0"] - start < 14]
         inside = [char for char in inside if not any(char is other for other in marker)] or inside
+    if block["kind"] == "list_item":
+        # The bullet glyph is often set in another size and on another baseline.
+        first = min(inside, key=lambda char: (round(char["top"] / 4), char["x0"]))
+        if not first["text"].isalnum() and len(inside) > 1:
+            inside = [char for char in inside if char is not first]
     sizes = [char["size"] for char in inside]
     size = statistics.median(sizes)
     if any(abs(value - size) > 0.6 for value in sizes):
@@ -346,13 +353,15 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
     # cut out of a running paragraph leaves its continuation right below it.
     for index, block in enumerate(flow):
         reasons = results[block["id"]]
-        if "no_terminal_punctuation" not in reasons:
+        open_reasons = {"no_terminal_punctuation", "list_item_open"} & set(reasons)
+        if not open_reasons:
             continue
         following = flow[index + 1] if index + 1 < len(flow) else None
         if following is None or (following["kind"] in TEXT_KINDS and not (
                 {"continues_previous", "continues_heading", "starts_mid_sentence"} &
                 set(results[following["id"]]))):
-            reasons.remove("no_terminal_punctuation")
+            for reason in open_reasons:
+                reasons.remove(reason)
     return results, pages
 
 
