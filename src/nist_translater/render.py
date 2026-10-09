@@ -80,6 +80,11 @@ def build_site(document, meta, template_path, output_path):
         item = dict(block)
         item["english_html"] = Markup(block["html"])
         item["japanese_html"] = Markup(block["html_ja"])
+        # An unverified table is shown as the image of the original; its
+        # extracted text is offered below as an unchecked reference.
+        if (block["kind"] == "table" and block.get("source_image") and
+                block.get("extraction_status") == "needs_review" and not block.get("official_mark")):
+            item["image_authoritative"] = True
         if block.get("official_mark"):
             # An unofficial translation must not display protected official marks.
             name_en, name_ja, reason = OFFICIAL_MARKS[block["official_mark"]]
@@ -142,7 +147,8 @@ def build_site(document, meta, template_path, output_path):
         series=document.get("series", "Digital Identity Guidelines · Revision 4"),
         included_pages=document.get("included_pages", []),
         extraction_partial=document.get("extraction_partial", False),
-        extraction_pending=sum(block.get("extraction_status") == "needs_review"
+        extraction_pending=sum(block.get("extraction_status") == "needs_review" and
+                               not block.get("image_authoritative")
                                for block in visible),
         extraction_warnings=document.get("extraction_warnings", []),
         has_math=bool(math_groups) or any(block.get("kind") == "math" or "data-tex=" in block.get("html", "") for block in document["contents"]),
