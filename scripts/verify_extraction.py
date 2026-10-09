@@ -42,7 +42,7 @@ LIST_ITEM = re.compile(r"^(?:[•●▪]\s+|(\d+)\.\s+)")
 TOC_ENTRY = re.compile(r"^.+ — (?:\d{1,3}|[ivxlc]{1,6}|[A-Z]-\d{1,2})$")
 TAG = re.compile(r"<[^>]+>")
 TERMINAL = re.compile(r"[.:;?!][\"'”’)\]]*$")
-STARTS_OK = re.compile(r"^(?:[▪•●■]\s+)?[\"'“‘(\[]?[A-Z0-9]")
+STARTS_OK = re.compile(r"^(?:[▪•●■]\s+)?(?:[\"'“‘(\[]?[A-Z0-9]|[a-z]{1,2}[.)]\s|\([a-z]{1,4}\)\s)")
 # Formula operators and letters whose extraction order/position is unreliable.
 MATH = re.compile(r"[=^≡≤≥±×÷∑∏√∈∉⊕⊗≠≈∞∀∃∧∨¬→←↔⇒∥∙·Ͱ-Ͽ∀-⋿⟀-⟯]")
 
@@ -81,7 +81,7 @@ def _pdfium_text(raw, kind, toc):
     if kind == "list_item":
         joined = LIST_ITEM.sub("", joined, count=1)
         # A bullet drawn with an unmapped symbol glyph, or a small "o" bullet.
-        joined = re.sub(r"^(?:[\x00-\x1f\x80-\x9f\uf000-\uf8ff]|o(?= [A-Z]))\s*", "", joined, count=1)
+        joined = re.sub(r"^(?:[\x00-\x1f\x80-\x9f\uf000-\uf8ff\u2013\u2212]|o(?= [A-Z]))\s*", "", joined, count=1)
     return _leaders(joined)
 
 
@@ -357,9 +357,11 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
         if not open_reasons:
             continue
         following = flow[index + 1] if index + 1 < len(flow) else None
-        if following is None or (following["kind"] in TEXT_KINDS and not (
-                {"continues_previous", "continues_heading", "starts_mid_sentence"} &
-                set(results[following["id"]]))):
+        # A caption is followed by its table or figure.
+        if following is None or following["kind"] in {"table", "figure"} or (
+                following["kind"] in TEXT_KINDS and not (
+                    {"continues_previous", "continues_heading", "starts_mid_sentence"} &
+                    set(results[following["id"]]))):
             for reason in open_reasons:
                 reasons.remove(reason)
     return results, pages
