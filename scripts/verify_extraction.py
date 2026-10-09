@@ -275,6 +275,10 @@ def _evaluate(document, pdf, held_pages, pdfium_c):
                     re.search(r"[-\u2010\u2011][ \t]*[\r\n]+\s*\S", raw)):
                 reasons.append("line_end_hyphen")
             other = _pdfium_text(raw, block["kind"], number in toc_pages)
+            if block["kind"] == "footnote" and other.startswith(text + " "):
+                # The page number printed right below the last footnote.
+                if re.fullmatch(r"\d{1,3}|[ivxlc]{1,6}|[A-Z]-\d{1,3}", other[len(text) + 1:]):
+                    other = text
             if other != text:
                 reasons.append("text_mismatch")
             layout, details = _layout_reasons(block, page, text)
