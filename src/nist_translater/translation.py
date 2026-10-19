@@ -11,6 +11,15 @@ from .pdf_equations import inline_katex_html
 
 TRANSLATABLE = {"heading", "paragraph", "list_item", "note", "definition_term", "definition", "table", "figure", "footnote", "math"}
 NORMATIVE = re.compile(r"\b(?:SHALL NOT|SHOULD NOT|NEED NOT|SHALL|SHOULD|MAY(?!\s+\d{4}\b)|CANNOT|CAN)\b")
+
+
+def requirement_terms(text):
+    """Uppercase requirement keywords; a heading set entirely in capitals has none."""
+    if not re.search(r"[a-z]", text):
+        return Counter()
+    return Counter(NORMATIVE.findall(text))
+
+
 STATUSES = {"untranslated", "draft", "reviewed", "stale", "source_only"}
 
 
@@ -135,7 +144,7 @@ def audit_translations(document):
             raise ValueError("Translated block is empty: " + key)
         if status in {"draft", "reviewed"}:
             assert_same_html_structure(block["html"], block["html_ja"])
-            if Counter(NORMATIVE.findall(block["html_ja"])) != Counter(NORMATIVE.findall(source_text(block))):
+            if Counter(NORMATIVE.findall(block["html_ja"])) != requirement_terms(source_text(block)):
                 raise ValueError("Requirement terms differ in stored translation: " + key)
         if document.get("source_format") == "pdf" and status == "reviewed" and block.get("extraction_status") != "verified":
             raise ValueError("PDF source must be verified before translation review: " + key)
@@ -209,7 +218,7 @@ def merge_translations(document, incoming):
         if block["status"] == "reviewed":
             continue
         assert_same_html_structure(block["html"], japanese, preserve_math=True)
-        if Counter(NORMATIVE.findall(japanese)) != Counter(NORMATIVE.findall(source_text(block))):
+        if Counter(NORMATIVE.findall(japanese)) != requirement_terms(source_text(block)):
             raise ValueError("Requirement terms differ for " + key)
         block["html_ja"] = japanese
         block["status"] = "draft"

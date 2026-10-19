@@ -30,7 +30,7 @@ from nist_translater.storage import read_json, write_json  # noqa: E402
 from collections import Counter  # noqa: E402
 
 from nist_translater.translation import (  # noqa: E402
-    NORMATIVE, assert_same_html_structure, audit_translations, source_text)
+    NORMATIVE, assert_same_html_structure, audit_translations, requirement_terms, source_text)
 
 REVIEW_TAG = "claude-review"   # translation accepted by a reviewer
 FIX_TAG = "claude-fix"         # reviewer's correction stored, awaiting re-review
@@ -90,7 +90,7 @@ def _valid_fix(block, japanese):
                                    preserve_math=block["kind"] == "math")
     except ValueError:
         return False
-    return Counter(NORMATIVE.findall(japanese)) == Counter(NORMATIVE.findall(source_text(block)))
+    return Counter(NORMATIVE.findall(japanese)) == requirement_terms(source_text(block))
 
 
 def apply(verdict_dir, issues_path):
