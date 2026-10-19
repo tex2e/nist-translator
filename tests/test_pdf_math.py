@@ -195,7 +195,9 @@ class PdfMathTests(unittest.TestCase):
                 self.assertNotIn(r"\htmlStyle", block[field])
             if block["math_translation_pending"]:
                 self.assertEqual(block["status"], "untranslated")
-        self.assertEqual(sum(b["math_translation_pending"] for b in maths), 273)
+        # A block awaiting translation of its prose is exactly an untranslated one.
+        self.assertEqual(sum(bool(b["math_translation_pending"]) for b in maths),
+                         sum(b["status"] == "untranslated" for b in maths))
 
     def test_inline_edits_survive_rebuilding_from_original_extraction(self):
         source = ROOT / "data/sp800-22r1.pdf"

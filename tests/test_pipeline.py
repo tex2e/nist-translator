@@ -105,7 +105,10 @@ class PipelineTests(unittest.TestCase):
             output = Path(directory) / "page.html"
             build_site(document, {}, ROOT / "templates/page.html", output)
             soup = BeautifulSoup(output.read_text(encoding="utf-8"), "html.parser")
-            self.assertIsNotNone(soup.select_one('.japanese[lang="ja"] img[alt^="アウトオブバンド"]'))
+            # The Japanese column describes the figure in words; the image is shown once, in English.
+            japanese = soup.select_one('section.figure .japanese[lang="ja"]')
+            self.assertIsNotNone(japanese)
+            self.assertIn("アウトオブバンドデバイス", japanese.get_text())
             self.assertIn("無効化には複数の形態がある", output.read_text(encoding="utf-8"))
 
 
