@@ -19,6 +19,7 @@ OFFICIAL_MARKS = {
                            "公的な標章のため"),
     "person_photo": ("Photograph of people", "人物の写真", "人物が写っているため"),
     "other_logo": ("Logo of an organization or program", "組織・プログラムのロゴ", "ロゴのため"),
+    "decorative": ("Decorative picture", "装飾の画像", "本文を読むのに必要のない装飾のため"),
 }
 
 
