@@ -46,8 +46,11 @@ def _text_block(block):
 
 
 def _blocks(document):
+    # Members of a hand-built formula group are shown through the group's TeX.
+    grouped = {member for group in document.get("math_groups", []) for member in group.get("members", [])}
     return [block for block in document["contents"]
-            if _text_block(block) and block.get("extraction_status") == "needs_review"]
+            if _text_block(block) and block.get("extraction_status") == "needs_review" and
+            block["id"] not in grouped]
 
 
 def _plant(text, rng):
