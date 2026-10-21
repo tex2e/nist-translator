@@ -15,6 +15,7 @@ leaves pages with structural problems as ``needs_review``.
 """
 
 import argparse
+import copy
 import hashlib
 import html
 import json
@@ -271,6 +272,24 @@ def rebuild_export(key, folder, proof_folder, per_batch):
     print(key, "pages", len(wanted), "batches", count)
 
 
+def _archive_replaced(document, blocks):
+    """Keep the extracted records a rebuilt page replaced.
+
+    Re-extraction (restore_extraction) starts from the raw records, so a
+    document that keeps them must not lose the ones a rebuild took over.
+    Rebuilt blocks are not raw records; their own sources are kept already.
+    """
+    archive = document.get("math_preservation")
+    if not archive:
+        return
+    kept = archive.setdefault("rebuilt_blocks", [])
+    known = {block["id"] for block in kept}
+    for block in blocks:
+        if not block.get("column_reflow", {}).get("rebuilt") and block["id"] not in known:
+            kept.append(copy.deepcopy(block))
+            known.add(block["id"])
+
+
 def rebuild_apply(key, folder):
     path = ROOT / "data" / (key + "-trans.json")
     document = json.loads(path.read_text())
@@ -360,6 +379,7 @@ def rebuild_apply(key, folder):
             contents[first:max(positions) + 1] = sequence
             for block in old:
                 by_id.pop(block["id"], None)
+            _archive_replaced(document, old)
             for block in new:
                 by_id[block["id"]] = block
             counts["pages rebuilt"] += 1

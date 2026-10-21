@@ -91,9 +91,11 @@ def restore_extraction(document):
     archive = document.get("math_preservation", {})
     if not archive:
         return result
+    # Records that a page rebuild replaced are raw records too; the rebuilt
+    # blocks themselves are not, so they are left out.
     blocks = {
         block["id"]: deepcopy(block)
-        for block in archive["original_blocks"]
+        for block in archive["original_blocks"] + archive.get("rebuilt_blocks", [])
         if not block.get("replaces")
     }
     blocks.update(
@@ -101,6 +103,7 @@ def restore_extraction(document):
             block["id"]: deepcopy(block)
             for block in document["contents"]
             if not block.get("replaces") and block["kind"] != "source_excerpt"
+            and not block.get("column_reflow", {}).get("rebuilt")
         }
     )
     result["contents"] = sorted(blocks.values(), key=lambda block: block["id"])
