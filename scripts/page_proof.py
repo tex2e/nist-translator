@@ -71,7 +71,7 @@ def _plant(text, rng):
     return planted if planted != text else None
 
 
-def export(key, folder, per_batch):
+def export(key, folder, per_batch, only_pages=None):
     import pypdfium2
     document = json.loads((ROOT / "data" / (key + "-trans.json")).read_text())
     folder.mkdir(parents=True, exist_ok=True)
@@ -84,7 +84,8 @@ def export(key, folder, per_batch):
                 pages.setdefault(page, []).append(block)
             else:
                 pages.setdefault(page, []).insert(0, block)
-    numbers = sorted(page for page, blocks in pages.items() if blocks)
+    numbers = sorted(page for page, blocks in pages.items() if blocks and
+                     (only_pages is None or page in only_pages))
     rng = random.Random(key)
     count = 0
     for start in range(0, len(numbers), per_batch):
@@ -423,13 +424,15 @@ def main():
     cli.add_argument("key")
     cli.add_argument("folder", type=Path)
     cli.add_argument("--pages-per-batch", type=int, default=3)
+    cli.add_argument("--pages", help="export: only these pages (comma-separated)")
     args = cli.parse_args()
     if args.command == "rebuild-export":
         rebuild_export(args.key, args.folder, args.proof_dir, args.pages_per_batch)
     elif args.command == "rebuild-apply":
         rebuild_apply(args.key, args.folder)
     elif args.command == "export":
-        export(args.key, args.folder, args.pages_per_batch)
+        export(args.key, args.folder, args.pages_per_batch,
+               {int(page) for page in args.pages.split(",")} if args.pages else None)
     else:
         apply(args.key, args.folder)
 
