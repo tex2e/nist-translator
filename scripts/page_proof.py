@@ -238,10 +238,20 @@ def rebuild_export(key, folder, proof_folder, per_batch):
     wanted = sorted({block["source_page"] for block in text if _needs_rebuild(block)} |
                     {int(page) for page in missing})
     count = 0
+    pdf = None
+    proof_folder.mkdir(parents=True, exist_ok=True)
     for start in range(0, len(wanted), per_batch):
         count += 1
         batch, ids = {"document": key, "pages": []}, {}
         for page in wanted[start:start + per_batch]:
+            images = [proof_folder / ("p%04d-%s.png" % (page, half)) for half in ("top", "bottom")]
+            if not all(image.exists() for image in images):
+                import pypdfium2
+                pdf = pdf or pypdfium2.PdfDocument(str(ROOT / "data" / (key + ".pdf")))
+                picture = pdf[page - 1].render(scale=SCALE).to_pil()
+                height = picture.height
+                picture.crop((0, 0, picture.width, int(height * 0.54))).save(images[0])
+                picture.crop((0, int(height * 0.46), picture.width, height)).save(images[1])
             on_page = [block for block in text if block["source_page"] == page]
             # Blocks already verified stay as they are; they are shown for orientation only.
             own = [block for block in on_page if block.get("extraction_status") != "verified"]
