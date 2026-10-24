@@ -30,6 +30,17 @@ class MailContinuationTests(unittest.TestCase):
             self.assertNotIn('registry5',b[field])
             self.assertNotIn('レジストリ5',b[field])
 
+    def test_sender_list_service_name_and_following_advice_are_one_paragraph(self):
+        d=self.document();bs={b['id']:b for b in d['contents']}
+        merged=bs['pdf-p0089-b0007']
+        self.assertNotIn('pdf-p0090-b0001',bs)
+        self.assertEqual([r['page'] for r in merged['source_refs']],[89,90])
+        self.assertIn('Spam and Open Relay Blocking System',merged['html'])
+        self.assertIn('Spam and Open Relay Blocking System',merged['html_ja'])
+        self.assertIn('maintain a dynamic reject list',merged['html'])
+        self.assertIn('動的な拒否リスト',merged['html_ja'])
+        self.assertIn('pdf-p0090-b0001',{b['id'] for b in d['source_repairs']['original_blocks']})
+
     def test_mail_footnotes_remain_superscripts_in_both_languages(self):
         bs={b['id']:b for b in self.document()['contents']}
         for block_id,number,joined in [
@@ -40,6 +51,12 @@ class MailContinuationTests(unittest.TestCase):
             ('pdf-p0067-b0004','15','clients15'),
             ('pdf-p0070-b0004',['17','18'],'occasions.1718'),
             ('pdf-p0072-b0008','19','OpenSSL19'),
+            ('pdf-p0086-b0004',['24','25'],'Symantec24'),
+            ('pdf-p0089-b0007',['27','28','29'],'Project27'),
+            ('pdf-p0090-b0007','30','checks.30'),
+            ('pdf-p0091-b0005','31','component31'),
+            ('pdf-p0092-b0001','32','Connect.”32'),
+            ('pdf-p0093-b0008','33','IMAP,33'),
         ]:
             for field in ['html','html_ja']:
                 with self.subTest(block=block_id,field=field):
