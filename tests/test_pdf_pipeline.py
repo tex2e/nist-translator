@@ -177,6 +177,36 @@ class PdfPipelineTests(unittest.TestCase):
             self.assertIn("NIST PDF 原文", soup.get_text())
             self.assertNotIn("NIST HTML 原文", soup.get_text())
 
+    def test_cross_page_footnote_has_an_anchor_and_complete_page_range(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source=Path(directory)/'source.pdf';output=Path(directory)/'page.html'
+            make_pdf(source,pages=2)
+            document=parse_pdf_document(source,'SP 800-999','https://example.test/source.pdf')
+            footnote=next(b for b in document['contents'] if b['kind']=='footnote')
+            footnote['source_page_end']=2
+            build_site(document,{},ROOT/'templates/page.html',output)
+            soup=BeautifulSoup(output.read_text(),'html.parser')
+            section=soup.find('section',id=footnote['id'])
+            self.assertIsNotNone(section)
+            self.assertIn('原本 PDF pp.1–2',section.get_text())
+            self.assertEqual(section.select_one('.source-ref a')['href'],'https://example.test/source.pdf#page=1')
+
+    def test_multi_paragraph_note_does_not_nest_paragraph_elements(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source=Path(directory)/'source.pdf';output=Path(directory)/'page.html'
+            make_pdf(source)
+            document=parse_pdf_document(source,'SP 800-999','https://example.test/source.pdf')
+            note=next(b for b in document['contents'] if b['kind']=='paragraph')
+            note.update(kind='note',html='<p>First condition.</p><p>Second condition.</p>',
+                        html_ja='<p>第1の条件。</p><p>第2の条件。</p>',status='draft')
+            build_site(document,{},ROOT/'templates/page.html',output)
+            soup=BeautifulSoup(output.read_text(),'html.parser')
+            section=soup.find('section',id=note['id'])
+            for language in ['english','japanese']:
+                column=section.select_one('.'+language)
+                self.assertEqual(len(column.find_all('p',recursive=False)),2)
+                self.assertIsNone(column.select_one('p p'))
+
     def test_pdf_reparse_preserves_exact_text_and_marks_changed_text_stale(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "source.pdf"

@@ -57,9 +57,9 @@
         </figure>
       </section>
       {% elif block.kind in ['figure', 'footnote'] %}
-      <section class="row source-only pair {{ block.kind }}" aria-label="{{ '図表' if block.kind == 'figure' else '脚注' }}の英日対訳">
+      <section class="row source-only pair {{ block.kind }}" id="{{ block.id }}" aria-label="{{ '図表' if block.kind == 'figure' else '脚注' }}の英日対訳">
         <div class="block-label col-12">{{ '図表' if block.kind == 'figure' else '脚注' }}</div>
-        <div class="english col-sm-12 col-md-6 text" lang="en">{{ block.english_html }}{% if block.source_page_url %}<div class="source-ref"><a href="{{ block.source_page_url }}">原本 PDF p.{{ block.source_page }}</a></div>{% endif %}</div>
+        <div class="english col-sm-12 col-md-6 text" lang="en">{{ block.english_html }}{% if block.source_page_url %}<div class="source-ref"><a href="{{ block.source_page_url }}">原本 PDF {% if block.source_page_end and block.source_page_end > block.source_page %}pp.{{ block.source_page }}–{{ block.source_page_end }}{% else %}p.{{ block.source_page }}{% endif %}</a></div>{% endif %}</div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
           {% if block.kind == 'figure' and block.figure_description %}<p>{{ block.figure_description }}</p>
           {% elif block.kind == 'figure' and block.status == 'source_only' %}<span class="pending">原文のみ</span>
@@ -77,6 +77,7 @@
           <details class="source-image"><summary>抽出したテキスト（原本と未照合・参考）</summary>{{ block.english_html }}</details>
           {% elif block.kind == 'table' %}{{ block.english_html }}
           {% elif block.kind in ['math', 'code'] %}{{ block.english_html }}
+          {% elif block.kind == 'note' and block.english_html.startswith('<p>') %}{{ block.english_html }}
           {% else %}<p>{% if block.kind == 'list_item' %}<span class="list-marker">{{ block.ordinal ~ '.' if block.ordered else '•' }}</span>{% endif %}{{ block.english_html }}</p>{% endif %}
           {% if block.source_image and not block.image_authoritative %}<details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="{{ block.source_image }}" alt="原本 PDF p.{{ block.source_page }} の画像抜粋"></details>{% endif %}
           {% if block.source_page_url %}<div class="source-ref"><a href="{{ block.source_page_url }}">原本 PDF {% if block.source_page_end and block.source_page_end > block.source_page %}pp.{{ block.source_page }}–{{ block.source_page_end }}{% else %}p.{{ block.source_page }}{% endif %}</a></div>{% endif %}
@@ -84,9 +85,9 @@
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
           {% if block.kind == 'heading' %}<h{{ block.level + 1 }}>
-          {% elif block.kind not in ['table', 'math', 'code'] %}<p>{% endif %}
+          {% elif block.kind not in ['table', 'math', 'code'] and not (block.kind == 'note' and block.html_ja.startswith('<p>')) %}<p>{% endif %}
           {% if block.kind == 'list_item' %}<span class="list-marker">{{ block.ordinal ~ '.' if block.ordered else '•' }}</span>{% endif %}{% if block.image_authoritative and block.html_ja %}<details class="source-image"><summary>抽出したテキストの訳（原本と未照合・参考）</summary>{{ block.japanese_html }}</details>{% elif block.html_ja %}{{ block.japanese_html }}{% else %}<span class="pending">{{ '原文更新後、再確認待ち' if block.status == 'stale' else ('原文のみ' if block.status == 'source_only' else '翻訳準備中') }}</span>{% endif %}
-          {% if block.kind == 'heading' %}</h{{ block.level + 1 }}>{% elif block.kind not in ['table', 'math', 'code'] %}</p>{% endif %}
+          {% if block.kind == 'heading' %}</h{{ block.level + 1 }}>{% elif block.kind not in ['table', 'math', 'code'] and not (block.kind == 'note' and block.html_ja.startswith('<p>')) %}</p>{% endif %}
           {% if block.status == 'draft' and block.html_ja %}<span class="draft-badge">未レビュー訳</span>{% endif %}
         </div>
       </section>
