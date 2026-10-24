@@ -35,6 +35,7 @@ class MailContinuationTests(unittest.TestCase):
         for block_id,number,joined in [
             ('pdf-p0049-b0002','10','filters10'),
             ('pdf-p0056-b0006','12','DNS12'),
+            ('pdf-p0061-b0007','13','[RFC7489]13'),
         ]:
             for field in ['html','html_ja']:
                 with self.subTest(block=block_id,field=field):
