@@ -259,7 +259,9 @@ def merge_translations(document, incoming):
 def carry_translations(previous, current):
     """Preserve compatible translations; mark changed source HTML as stale."""
     from .pdf_source_repairs import preserve_source_repairs
+    from .math_preservation import preserve_restored_math
     current = preserve_source_repairs(previous, current)
+    current = preserve_restored_math(previous, current)
     previous_blocks = contents(previous)
     pdf_changed = (current.get("source_format") == "pdf"
                    and previous.get("source_sha256") and current.get("source_sha256")
