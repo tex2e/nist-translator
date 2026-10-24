@@ -36,9 +36,14 @@ class MailContinuationTests(unittest.TestCase):
             ('pdf-p0049-b0002','10','filters10'),
             ('pdf-p0056-b0006','12','DNS12'),
             ('pdf-p0061-b0007','13','[RFC7489]13'),
+            ('pdf-p0065-b0001','14','(ARC)14'),
+            ('pdf-p0067-b0004','15','clients15'),
+            ('pdf-p0070-b0004',['17','18'],'occasions.1718'),
+            ('pdf-p0072-b0008','19','OpenSSL19'),
         ]:
             for field in ['html','html_ja']:
                 with self.subTest(block=block_id,field=field):
                     soup=BeautifulSoup(bs[block_id][field],'html.parser')
-                    self.assertEqual([s.get_text() for s in soup.find_all('sup')],[number])
+                    expected=number if isinstance(number,list) else [number]
+                    self.assertEqual([s.get_text() for s in soup.find_all('sup')],expected)
                     self.assertNotIn(joined,bs[block_id][field])
