@@ -5,6 +5,7 @@ import html
 import json
 import re
 from collections import Counter
+from copy import deepcopy
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
@@ -260,6 +261,9 @@ def carry_translations(previous, current):
     from .pdf_source_repairs import preserve_source_repairs
     current = preserve_source_repairs(previous, current)
     previous_blocks = contents(previous)
+    pdf_changed = (current.get("source_format") == "pdf"
+                   and previous.get("source_sha256") and current.get("source_sha256")
+                   and previous["source_sha256"] != current["source_sha256"])
     old = {block["id"]: block for block in previous_blocks}
     by_hash = {}
     if current.get("source_format") == "pdf":
@@ -298,6 +302,9 @@ def carry_translations(previous, current):
             if len(matches) == 1:
                 prior = matches[0]
                 exact = prior.get("html") == block["html"]
+        if pdf_changed:
+            # Identical extracted wording does not certify a new PDF version.
+            exact = False
         if prior:
             used.add(prior["id"])
         if exact and prior.get("extraction_status") == "verified":
@@ -315,6 +322,29 @@ def carry_translations(previous, current):
                 block["status"] = "stale"
         else:
             block["status"] = "stale"
+        # Provenance is part of the accepted translation, not just its label.
+        # Preserve active review/reuse records only for the unchanged source.
+        history_keys = ("translation_review_history", "translation_reuse_previous_reviews",
+                        "unverified_source_review_history", "translation_review_suspended")
+        active_keys = ("translation_check", "translation_review", "translation_fix_rounds",
+                       "translation_reuse")
+        for key in history_keys:
+            if key in prior:
+                block[key] = deepcopy(prior[key])
+        if block["status"] != "stale":
+            for key in active_keys:
+                if key in prior:
+                    block[key] = deepcopy(prior[key])
+        elif any(key in prior for key in active_keys):
+            block.setdefault("translation_review_history", []).append({
+                "reason": "source_pdf_changed" if pdf_changed else "source_changed_or_translation_structure_stale",
+                "prior_id": prior["id"], "source_hash": prior["source_hash"],
+                "html": prior["html"], "html_ja": prior_html_ja,
+                "source_refs": deepcopy(prior.get("source_refs", [])),
+                "previous_pdf_sha256": previous.get("source_sha256"),
+                "current_pdf_sha256": current.get("source_sha256"),
+                "previous_review": {key: deepcopy(prior[key]) for key in active_keys if key in prior},
+            })
     # Keep hand-authored PDF formula groups across reparses only while every
     # source block they cover is unchanged. A changed extraction drops the
     # affected group so stale TeX cannot hide newly extracted source text.
