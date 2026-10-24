@@ -51,7 +51,9 @@ def build_site(document, meta, template_path, output_path):
             item = dict(block)
             item["kind"] = "math"
             item["html_ja"] = math_group.get("tex_ja", math_group["tex"])
-            item["status"] = "draft"
+            # Group formulas/prefixes can differ from individual member text.
+            # audit_translations validates the explicit group review hash.
+            item["status"] = "reviewed" if math_group.get("status") == "reviewed" else "draft"
             item["extraction_status"] = (
                 "needs_review" if any(part.get("extraction_status") == "needs_review"
                                       for part in members) else "verified"

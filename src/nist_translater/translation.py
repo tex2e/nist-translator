@@ -1,6 +1,8 @@
 """Translation operations and HTML-integrity checks for the document JSON."""
 
+import hashlib
 import html
+import json
 import re
 from collections import Counter
 
@@ -113,6 +115,17 @@ def assert_same_html_structure(source_html, translated_html, *, preserve_math=Fa
         raise ValueError("Translated LaTeX formulas differ from the source")
 
 
+def math_group_review_hash(group):
+    """Bind group review to formulas, prefixes, membership and source hashes."""
+    payload = {
+        "members": group["members"], "source_hashes": group["source_hashes"],
+        "tex": group["tex"], "tex_ja": group.get("tex_ja", group["tex"]),
+        "prefix_html": group.get("prefix_html", ""),
+        "prefix_html_ja": group.get("prefix_html_ja", ""),
+    }
+    return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+
 def audit_translations(document):
     from .source_quality import encoding_issues
     blocks = {b["id"]: b for b in contents(document)}
@@ -186,6 +199,13 @@ def audit_translations(document):
                 or any(source_hashes[member] != blocks_by_id[member]["source_hash"]
                        for member in members)):
             raise ValueError("Stale or missing source hashes in KaTeX group: " + key)
+        if group.get("status") == "reviewed":
+            review = group.get("translation_review", {})
+            if (review.get("content_hash") != math_group_review_hash(group)
+                    or any(blocks_by_id[member].get("status") != "reviewed"
+                           or blocks_by_id[member].get("extraction_status") != "verified"
+                           for member in members)):
+                raise ValueError("Stale or incomplete KaTeX group review: " + key)
         grouped_members.update(members)
     return changed
 
