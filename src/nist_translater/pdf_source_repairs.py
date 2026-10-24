@@ -95,8 +95,10 @@ def preserve_source_repairs(previous, current):
                                  key=lambda b: (b["source_page"], b["source_refs"][0]["bbox"][1],
                                                 b["source_refs"][0]["bbox"][0]))
     current["source_repairs"] = deepcopy(repair)
-    current["included_pages"] = sorted(set(current.get("included_pages", [])) |
-                                       {r["page"] for b in retained for r in b["source_refs"]})
+    # A continuation reference does not mean the whole following page was
+    # extracted. Only whole pinned pages add coverage. Otherwise math carry
+    # can try to reconstruct unrelated formulae on an unrequested next page.
+    current["included_pages"] = sorted(set(current.get("included_pages", [])) | pages)
     if current.get("pdf_page_count"):
         current["extraction_partial"] = len(current["included_pages"]) != current["pdf_page_count"]
     from .source_quality import encoding_issues

@@ -6,8 +6,10 @@ import html
 def encoding_issues(document):
     issues = []
     for block in document.get("contents", []):
+        # An erroneous furniture label once concealed broken mathematical
+        # fragments. That label alone must never hide a loss marker.
         if any(block.get(k) for k in (
-                "page_furniture", "math_duplicate_of", "duplicate_artifact_of", "official_mark")):
+                "math_duplicate_of", "duplicate_artifact_of", "official_mark")):
             continue
         for field in ("html", "html_ja"):
             value = block.get(field, "")
