@@ -114,6 +114,12 @@ def assert_same_html_structure(source_html, translated_html, *, preserve_math=Fa
 
 
 def audit_translations(document):
+    from .source_quality import encoding_issues
+    blocks = {b["id"]: b for b in contents(document)}
+    for issue in encoding_issues(document):
+        block = blocks[issue["id"]]
+        if block.get("extraction_status") == "verified" or block.get("status") == "reviewed":
+            raise ValueError("Replacement character cannot be verified/reviewed: " + block["id"])
     ids = set()
     changed = 0
     for block in contents(document):
@@ -192,6 +198,7 @@ def make_queue(document):
             and not block.get("duplicate_artifact_of")
             and not block.get("page_furniture")
             and not block.get("math_duplicate_of")
+            and "\ufffd" not in html.unescape(block["html"])
             and (block["kind"] != "figure" or source_text(block)))
     ]
 
@@ -209,6 +216,8 @@ def merge_translations(document, incoming):
         if item.get("source_hash") != block["source_hash"]:
             raise ValueError("Source changed for block: " + str(key))
         japanese = item.get("html_ja", "")
+        if "\ufffd" in html.unescape(block["html"]) or (isinstance(japanese, str) and "\ufffd" in html.unescape(japanese)):
+            raise ValueError("Repair replacement characters before translating: " + key)
         if not japanese:
             continue
         if block.get("kind") == "math":
@@ -228,6 +237,8 @@ def merge_translations(document, incoming):
 
 def carry_translations(previous, current):
     """Preserve compatible translations; mark changed source HTML as stale."""
+    from .pdf_source_repairs import preserve_source_repairs
+    current = preserve_source_repairs(previous, current)
     previous_blocks = contents(previous)
     old = {block["id"]: block for block in previous_blocks}
     by_hash = {}

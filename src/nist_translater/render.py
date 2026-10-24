@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
 from .translation import audit_translations
+from .source_quality import assert_publishable_source
 
 
 PDF_URL = "https://doi.org/10.6028/NIST.SP.800-63b-4"
@@ -24,6 +25,7 @@ OFFICIAL_MARKS = {
 
 
 def build_site(document, meta, template_path, output_path):
+    assert_publishable_source(document)
     audit_translations(document)
     math_groups = document.get("math_groups", [])
     math_by_member = {

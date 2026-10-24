@@ -235,3 +235,11 @@ tests/                     パーサーと訳文更新の検証
 ```sh
 python3 -m unittest discover -s tests
 ```
+
+公開前には、原文・訳文と生成済みHTMLの置換文字「�」を横断検査します。残存があれば終了コード1になります。
+
+```sh
+.venv/bin/python scripts/audit_source_encoding.py --report reports/source-encoding-audit.json
+```
+
+置換文字を含む原文は翻訳対象から外し、照合済み・レビュー済みにはできません。ページ生成も拒否します。既知のPDFに対する文字変換・図領域の補正は原本のSHA-256に限定し、再抽出時にも正本JSON内の修復を保持します。原本の版が変わった場合は再確認が必要です。[修復範囲・再発防止の詳細](reports/source-encoding-repair.md)を参照してください。

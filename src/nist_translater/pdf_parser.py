@@ -11,6 +11,8 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from .pdf_source_repairs import figure_region, repair_font_maps
+
 
 HEADING = re.compile(r"^(?:(\d{1,3}(?:\.\d+)*\.?)\s+|Appendix\s+[A-Z](?::|\s))", re.I)
 LIST_ITEM = re.compile(r"^(?:[•●▪]\s+|(\d+)\.\s+)")
@@ -320,12 +322,19 @@ def _kind(line, footnote_top):
 
 
 def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None,
-                running_footers=None):
-    lines = _text_lines(page, running_headers, running_footers)
+                running_footers=None, reviewed_figure=None):
+    text_page = page
+    if reviewed_figure:
+        box, _ = reviewed_figure
+        text_page = page.filter(lambda obj: not (
+            obj.get("object_type") == "char" and
+            box[0] <= (obj["x0"] + obj["x1"]) / 2 <= box[2] and
+            box[1] <= (obj["top"] + obj["bottom"]) / 2 <= box[3]))
+    lines = _text_lines(text_page, running_headers, running_footers)
     toc_page = (any(line["text"] == "Table of Contents" for line in lines) or
                 sum(bool(re.fullmatch(r".+?\s*\.{3,}\s*\d{1,3}\s*", line["text"]))
                     for line in lines) >= 6)
-    tables = ([] if toc_page else sorted(
+    tables = ([] if toc_page or reviewed_figure else sorted(
         (table for table in page.find_tables()
          if not _is_layout_artifact_table(table.bbox, page)),
         key=lambda table: table.bbox[1]))
@@ -387,7 +396,15 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
                     "x1": parent.bbox[2], "bottom": parent.bbox[3]}
             entry["_duplicate_parent_bbox"] = _bbox(pbox)
         entries.append(entry)
-    images = sorted(page.images,
+    if reviewed_figure:
+        box, label = reviewed_figure
+        url, image_hash = _save_crop(page, box, asset_dir, asset_prefix,
+                                     "p%04d-reviewed-figure.png" % page_number)
+        entries.append({"kind": "figure", "text": (
+            '<img src="%s" alt="%s">' % (html.escape(url, quote=True), html.escape(label, quote=True))
+            if url else "[" + label + "]"), "top": box[1], "bbox": box,
+            "source_image_hash": image_hash, "extraction_note": "原本照合済みの図領域。図外の本文は別ブロックで保持。"})
+    images = sorted([] if reviewed_figure else page.images,
                     key=lambda image: (image["x0"], image["top"], image["x1"], image["bottom"]))
     for index, image in enumerate(images, 1):
         box = (image["x0"], image["top"], image["x1"], image["bottom"])
@@ -546,7 +563,9 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
         raise RuntimeError("PDF support requires pdfplumber; install requirements.txt") from error
 
     path = Path(path)
+    source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
     with pdfplumber.open(str(path)) as pdf:
+        font_repairs = repair_font_maps(pdf, source_sha256)
         page_count = len(pdf.pages)
         selected = list(range(1, page_count + 1)) if pages is None else sorted(set(pages))
         if not selected or any(page < 1 or page > page_count for page in selected):
@@ -578,7 +597,8 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
             if _has_parallel_columns(page, running_headers, running_footers):
                 warnings.append("PDF p.%d: 二段組の可能性があるため読み順を原本と照合してください" % page_number)
             items = _page_items(page, page_number, asset_dir, asset_prefix,
-                                running_headers, running_footers)
+                                running_headers, running_footers,
+                                figure_region(source_sha256, page_number))
             for index, item in enumerate(items, 1):
                 kind = item["kind"]
                 source_text = LIST_ITEM.sub("", item["text"], count=1) if kind == "list_item" else item["text"]
@@ -645,6 +665,11 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
                 previous["source_hash"] = hashlib.sha256(
                     (previous["kind"] + "\n" + previous["html"]).encode("utf-8")).hexdigest()[:16]
                 del blocks[index]
+        from .source_quality import encoding_issues
+        losses = encoding_issues({"contents": blocks})
+        for issue in losses:
+            warnings.append("PDF p.%s: %sに置換文字が%d箇所。原本照合と文字変換の修復が必要" %
+                            (issue["page"], issue["id"], issue["count"]))
         return {
             "title": {"text": "NIST " + number, "html_ja": ""},
             "number": number,
@@ -653,10 +678,12 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
             "source_format": "pdf",
             "source_url": source_url,
             "source_fetched_at": "",
-            "source_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "source_sha256": source_sha256,
+            "pdf_font_repairs": font_repairs,
             "pdf_page_count": page_count,
             "included_pages": selected,
             "extraction_partial": len(selected) != page_count,
             "extraction_warnings": warnings,
+            "encoding_issues": losses,
             "contents": blocks,
         }
