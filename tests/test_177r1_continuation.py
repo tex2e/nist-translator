@@ -29,3 +29,15 @@ class MailContinuationTests(unittest.TestCase):
             self.assertEqual(soup.sup.get_text(),'5')
             self.assertNotIn('registry5',b[field])
             self.assertNotIn('レジストリ5',b[field])
+
+    def test_mail_footnotes_remain_superscripts_in_both_languages(self):
+        bs={b['id']:b for b in self.document()['contents']}
+        for block_id,number,joined in [
+            ('pdf-p0049-b0002','10','filters10'),
+            ('pdf-p0056-b0006','12','DNS12'),
+        ]:
+            for field in ['html','html_ja']:
+                with self.subTest(block=block_id,field=field):
+                    soup=BeautifulSoup(bs[block_id][field],'html.parser')
+                    self.assertEqual([s.get_text() for s in soup.find_all('sup')],[number])
+                    self.assertNotIn(joined,bs[block_id][field])
