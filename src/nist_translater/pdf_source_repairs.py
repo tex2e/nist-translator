@@ -10,6 +10,11 @@ from copy import deepcopy
 
 
 PROFILES = {
+    "fc63bcd61715d0181dd8e85998b1e6201ae3515fc6626102101cab1841e11ec6": {
+        "figures": {
+            36: ([60, 260, 524, 634], "Figure 1: Control Structure"),
+        },
+    },
     "3ba5248bab614da212440a1bcfe814f0068ef95ebc2d73025742bc78a89c865a": {
         "fonts": {"ECEAGV+Calibri": {"019F": "ti"}},
         "figures": {

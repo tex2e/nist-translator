@@ -30,6 +30,31 @@ def block(key="p1", text="Clean source", page=1):
 
 
 class SourceEncodingTests(unittest.TestCase):
+    def test_53r5_control_diagram_keeps_callouts_and_excludes_false_tables(self):
+        import pdfplumber
+        from src.nist_translater.pdf_parser import _page_items
+        from src.nist_translater.pdf_source_repairs import figure_region
+        path = ROOT / "data/sp800-53r5.pdf"
+        if not path.exists():
+            self.skipTest("Original 53r5 PDF is unavailable")
+        source_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        region = figure_region(source_sha, 36)
+        self.assertIsNotNone(region)
+        self.assertIsNone(figure_region("different-pdf", 36))
+        with pdfplumber.open(path) as pdf, tempfile.TemporaryDirectory() as tmp:
+            items = _page_items(pdf.pages[35], 36, Path(tmp), "assets/53r5",
+                                reviewed_figure=region)
+        figures = [item for item in items if item["kind"] == "figure"]
+        self.assertEqual(len(figures), 1)
+        self.assertEqual(figures[0]["bbox"], [60, 260, 524, 634])
+        self.assertFalse(any(item["kind"] == "table" for item in items))
+        body = " ".join(item["text"] for item in items if item["kind"] != "figure")
+        self.assertIn("Security and privacy controls have the following structure", body)
+        self.assertIn("FIGURE 1: CONTROL STRUCTURE", body)
+        self.assertIn("section prescribes a security or privacy capability", body)
+        self.assertNotIn("Control Identifier", body)
+        self.assertNotIn("Organization-defined Parameter", body)
+
     def test_font_fix_requires_pdf_font_code_and_bad_mapping_to_match(self):
         class Stream:
             data = b"<019F> <FFFD>\n<014C> <FFFD>\n<01AB> <FFFD>\n<0100> <FFFD>"
