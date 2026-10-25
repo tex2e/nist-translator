@@ -175,6 +175,7 @@ def build(document_key="63b"):
     document.setdefault("pdf_url", spec["pdf_url"])
     document.setdefault("source_format", spec.get("source_format", "html"))
     document.setdefault("series", spec.get("series", "Digital Identity Guidelines · Revision 4"))
+    document["home_url"] = spec.get("home_url", "index.html")
     audit_translations(document)
     output = output_path.parent
     output.mkdir(exist_ok=True)
@@ -184,7 +185,11 @@ def build(document_key="63b"):
     if (ROOT / "static" / "vendor" / "katex").exists():
         shutil.copytree(ROOT / "static" / "vendor" / "katex", output / "vendor" / "katex", dirs_exist_ok=True)
     print("Built", output_path)
-    print("Built", build_translation_index(ROOT))
+    if spec.get("family") == "fips":
+        from .fips_index import build_fips_index
+        print("Built", build_fips_index(ROOT))
+    else:
+        print("Built", build_translation_index(ROOT))
 
 
 def import_file(path, document_key="63b"):

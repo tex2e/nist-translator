@@ -2425,10 +2425,16 @@ def get_document(key):
 
 def document_paths(root, key):
     spec = get_document(key)
-    slug = spec["slug"]
+    # SP 800 files are named sp800-<slug>; other series give their own stem.
+    stem = spec.get("file_stem", "sp800-" + spec["slug"])
     extension = ".pdf" if spec.get("source_format") == "pdf" else ".html"
     return {
-        "source": Path(root) / "data" / ("sp800-%s%s" % (slug, extension)),
-        "json": Path(root) / "data" / ("sp800-%s-trans.json" % slug),
-        "html": Path(root) / "html" / ("sp800-%s.html" % slug),
+        "source": Path(root) / "data" / (stem + extension),
+        "json": Path(root) / "data" / (stem + "-trans.json"),
+        "html": Path(root) / "html" / (stem + ".html"),
     }
+
+
+from .fips_documents import FIPS_DOCUMENTS  # noqa: E402
+
+DOCUMENTS.update(FIPS_DOCUMENTS)

@@ -156,7 +156,11 @@ def build_site(document, meta, template_path, output_path):
                                not block.get("image_authoritative")
                                for block in visible),
         extraction_warnings=document.get("extraction_warnings", []),
-        has_math=bool(math_groups) or any(block.get("kind") == "math" or "data-tex=" in block.get("html", "") for block in document["contents"]),
+        has_math=bool(math_groups) or any(
+            block.get("kind") == "math" or "data-tex=" in block.get("html", "") or
+            "\\(" in block.get("html", "") or "\\[" in block.get("html", "")
+            for block in document["contents"]),
+        home_url=document.get("home_url", "index.html"),
         math_preservation=document.get("math_preservation"),
         math_pending=sum(block.get("kind") == "math" and
                          (block.get("extraction_status") == "needs_review" or
