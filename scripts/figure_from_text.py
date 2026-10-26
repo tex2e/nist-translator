@@ -33,6 +33,20 @@ def _crop(pdf, page_number, box, path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _drawing_box(key, page_number, upper, lower):
+    """The extent of the lines, boxes, curves and characters between two heights."""
+    import pdfplumber
+    with pdfplumber.open(str(ROOT / "data" / (key + ".pdf"))) as pdf:
+        page = pdf.pages[page_number - 1]
+        bottom_limit = lower if lower is not None else page.height - 50
+        items = [item for item in page.lines + page.rects + page.curves + page.chars
+                 if item["top"] >= upper - 1 and item["bottom"] <= bottom_limit + 1]
+    if not items:
+        return None
+    return [min(item["x0"] for item in items), min(item["top"] for item in items),
+            max(item["x1"] for item in items), max(item["bottom"] for item in items)]
+
+
 def main():
     import pypdfium2
     entries = json.loads(Path(sys.argv[1]).read_text())
@@ -49,11 +63,22 @@ def main():
         if any(block["source_page"] != page_number for block in members):
             raise ValueError("%s %s..%s spans pages" % (key, first, last))
         caption_block = contents[ids.index(caption)]
-        top = min(block["source_refs"][0]["bbox"][1] for block in members) - 8
-        bottom = (caption_block["source_refs"][0]["bbox"][1] - 2
-                  if caption_block["source_page"] == page_number and
-                  caption_block["source_refs"][0]["bbox"][1] > top else
-                  max(block["source_refs"][0]["bbox"][3] for block in members) + 8)
+        caption_top = (caption_block["source_refs"][0]["bbox"][1]
+                       if caption_block["source_page"] == page_number else None)
+        # The drawing lies between the body text before it and its caption.
+        before = [block for block in contents[:start]
+                  if block.get("source_page") == page_number and not block.get("page_furniture")
+                  and block["kind"] != "figure" and block.get("source_refs")]
+        known = [ref["bbox"][3] for ref in (before[-1]["source_refs"] if before else [])
+                 if ref["page"] == page_number and ref["bbox"][3] - ref["bbox"][1] < 600]
+        upper = max(known) if known else 60
+        lower = caption_top if caption_top and caption_top > upper else None
+        box = _drawing_box(key, page_number, upper, lower)
+        if box is None:
+            labels = [block["source_refs"][0]["bbox"] for block in members]
+            box = [min(b[0] for b in labels), min(b[1] for b in labels) - 8,
+                   max(b[2] for b in labels), max(b[3] for b in labels) + 8]
+        top, bottom = box[1] - 6, box[3] + 6
         width = pdfs[key][page_number - 1].get_size()[0]
         box = [60, max(0, top), width - 60, bottom]
         number = sum(block.get("figure_from_text") is not None for block in contents
