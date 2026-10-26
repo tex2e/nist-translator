@@ -37,7 +37,7 @@ def write_catalog(root=ROOT):
     path = Path(root) / CATALOG
     path.write_text(json.dumps({
         "source_url": "https://csrc.nist.gov/publications/fips",
-        "selection_rule": "Current CSRC FIPS rows with Status=Final.",
+        "selection_rule": "Current CSRC FIPS rows with Status=Final, except FIPS 140-2 (superseded by FIPS 140-3).",
         "record_count": len(FIPS_DOCUMENTS),
         "records": catalog_records(),
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
