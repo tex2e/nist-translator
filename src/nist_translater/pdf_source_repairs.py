@@ -15,6 +15,8 @@ PROFILES = {
             51: ([160, 153, 493, 300], "Figure 1: Symmetric-key cryptoperiod"),
             73: ([134, 508, 478, 696], "Figure 2: Algorithm originator-usage period example"),
             93: ([149, 129, 437, 513], "Figure 3: Key state and transition example"),
+            102: ([333, 247, 535, 600], "Figure 4: Key-management phases"),
+            104: ([124, 72, 489, 435], "Figure 5: Key-management states and phases"),
         },
     },
     "fc63bcd61715d0181dd8e85998b1e6201ae3515fc6626102101cab1841e11ec6": {

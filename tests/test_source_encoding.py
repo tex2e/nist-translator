@@ -30,6 +30,37 @@ def block(key="p1", text="Clean source", page=1):
 
 
 class SourceEncodingTests(unittest.TestCase):
+    def test_57pt1_phase_diagrams_keep_surrounding_prose(self):
+        import pdfplumber
+        from src.nist_translater.pdf_parser import _page_items
+        from src.nist_translater.pdf_source_repairs import figure_region
+        path = ROOT / "data/sp800-57pt1r5.pdf"
+        if not path.exists():
+            self.skipTest("Original 57pt1r5 PDF is unavailable")
+        source_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        cases = [
+            (102, [333, 247, 535, 600], "Figure 4: Key-management phases",
+             "A key shall not be able to transfer back to any previous phase."),
+            (104, [124, 72, 489, 435], "Figure 5: Key-management states and phases",
+             "Entity and key registration"),
+        ]
+        with pdfplumber.open(path) as pdf:
+            for page, bbox, caption, prose in cases:
+                with self.subTest(page=page):
+                    region = figure_region(source_sha, page)
+                    self.assertIsNotNone(region)
+                    self.assertIsNone(figure_region("different-pdf", page))
+                    items = _page_items(pdf.pages[page - 1], page, None,
+                                        "assets/57pt1r5", reviewed_figure=region)
+                    figures = [i for i in items if i["kind"] == "figure"]
+                    self.assertEqual(len(figures), 1)
+                    self.assertEqual(figures[0]["bbox"], bbox)
+                    self.assertFalse(any(i["kind"] == "table" for i in items))
+                    body = " ".join(i["text"] for i in items if i["kind"] != "figure")
+                    self.assertIn(caption, body)
+                    self.assertIn(prose, body)
+                    self.assertNotIn("Pre-Operational Phase", body)
+
     def test_57pt1_key_state_diagram_keeps_caption_and_excludes_false_body(self):
         import pdfplumber
         from src.nist_translater.pdf_parser import _page_items
