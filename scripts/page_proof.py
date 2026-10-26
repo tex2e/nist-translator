@@ -27,7 +27,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCALE = 2.5
-TEXT = {"paragraph", "heading", "list_item", "note", "footnote"}
+TEXT = {"paragraph", "heading", "list_item", "note", "footnote", "math", "code"}
+# A restorer may lay a page out with display formulas ("math": LaTeX inside \\[ \\])
+# and algorithms ("code": pseudocode lines kept as printed).
 
 
 def _record(block):
@@ -337,6 +339,16 @@ def rebuild_apply(key, folder):
                 box = ([min(b[0] for b in boxes), min(b[1] for b in boxes),
                         max(b[2] for b in boxes), max(b[3] for b in boxes)] if boxes else None)
                 source = html.escape(wording, quote=False)
+                if item.get("kind") == "math":
+                    source = '<div class="math-content">' + source + "</div>"
+                elif item.get("kind") == "code":
+                    lines = [line.rstrip() for line in str(item.get("text", "")).split("\n")]
+                    while lines and not lines[0].strip():
+                        lines.pop(0)
+                    while lines and not lines[-1].strip():
+                        lines.pop()
+                    source = ('<pre class="algorithm"><code>' +
+                              html.escape("\n".join(lines), quote=False) + "</code></pre>")
                 number = index
                 while "pdf-p%04d-r%04d" % (page["page"], number) in by_id or any(
                         other["id"] == "pdf-p%04d-r%04d" % (page["page"], number) for other in new):
@@ -360,6 +372,9 @@ def rebuild_apply(key, folder):
                     block.update(ordered=bool(item.get("ordinal")), ordinal=item.get("ordinal"), depth=0)
                 if item.get("not_content"):
                     block["page_furniture"] = True
+                if item.get("kind") == "code":
+                    # Algorithms are shown as printed on both sides, as program listings are.
+                    block.update(html_ja=source, status="source_only")
                 if item.get("continues_from_previous_page"):
                     block["column_reflow"]["continues_from_previous_page"] = True
                 new.append(block)
