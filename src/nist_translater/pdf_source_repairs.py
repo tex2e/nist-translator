@@ -14,6 +14,7 @@ PROFILES = {
         "figures": {
             51: ([160, 153, 493, 300], "Figure 1: Symmetric-key cryptoperiod"),
             73: ([134, 508, 478, 696], "Figure 2: Algorithm originator-usage period example"),
+            93: ([149, 129, 437, 513], "Figure 3: Key state and transition example"),
         },
     },
     "fc63bcd61715d0181dd8e85998b1e6201ae3515fc6626102101cab1841e11ec6": {
