@@ -10,6 +10,11 @@ from copy import deepcopy
 
 
 PROFILES = {
+    "cc32391022c1382ac7c91490f6bcc8838e0f889925270da23ef4e800e2ecb7ad": {
+        "figures": {
+            51: ([160, 153, 493, 300], "Figure 1: Symmetric-key cryptoperiod"),
+        },
+    },
     "fc63bcd61715d0181dd8e85998b1e6201ae3515fc6626102101cab1841e11ec6": {
         "figures": {
             36: ([60, 260, 524, 634], "Figure 1: Control Structure"),
