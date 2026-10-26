@@ -49,6 +49,7 @@ def export(folder, key):
 
 
 def apply(folder, key):
+    """Store descriptions; a checker's verdicts (<key>.figures.check.json) decide the status."""
     path = ROOT / "data" / (key + "-trans.json")
     document = json.loads(path.read_text())
     blocks = {block["id"]: block for block in document["contents"]}
@@ -56,19 +57,38 @@ def apply(folder, key):
     if not result.exists():
         print(key, "no result")
         return
-    done = 0
+    checks = {}
+    if (folder / (key + ".figures.check.json")).exists():
+        checks = {item["id"]: item for item in json.loads((folder / (key + ".figures.check.json")).read_text())}
+    counts = {"reviewed": 0, "corrected, to be checked again": 0, "unchecked": 0, "crop problem": 0}
     for item in json.loads(result.read_text()):
         block = blocks.get(item.get("id"))
         description = " ".join(str(item.get("alt_ja", "")).split())
         if block is None or block["source_hash"] != item.get("source_hash") or not description:
             print(key, "skipped", item.get("id"))
             continue
+        check = checks.get(block["id"], {})
+        if check.get("verdict") == "issue" and check.get("suggested_alt_ja"):
+            description = " ".join(check["suggested_alt_ja"].split())
+            block["status"], block["translation_check"] = "draft", "claude-fix"
+            block["review_note"] = check.get("note", "")
+            counts["corrected, to be checked again"] += 1
+        elif check.get("verdict") == "ok":
+            block["status"], block["translation_check"] = "reviewed", "claude-review"
+            counts["reviewed"] += 1
+        else:
+            block["status"] = "draft"
+            counts["unchecked"] += 1
+        if item.get("crop_problem") or check.get("crop_ok") is False:
+            block["crop_problem"] = item.get("crop_problem") or check.get("note", "")
+            counts["crop problem"] += 1
+        elif check.get("crop_ok"):
+            # The checker saw the whole figure in the crop of the original page.
+            block["extraction_status"], block["extraction_check"] = "verified", "visual"
         block["html_ja"] = re.sub(r'alt="[^"]*"', 'alt="%s"' % html.escape(description, quote=True),
                                   block["html"], count=1)
-        block["status"] = "draft"
-        done += 1
     path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
-    print(key, "described", done)
+    print(key, counts)
 
 
 def main():
