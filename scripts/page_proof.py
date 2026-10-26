@@ -43,9 +43,15 @@ def _state(block):
     return (block.get("column_reflow") or block.get("page_check") or {}).get("page_proof")
 
 
+# A document with "page_proof_tables": true (mathematical FIPS, whose tables
+# the extractor breaks up) has its tables checked and laid out again too.
+WITH_TABLES = False
+
+
 def _text_block(block):
+    kinds = TEXT | {"table"} if WITH_TABLES else TEXT
     return (not block.get("page_furniture") and not block.get("duplicate_artifact_of") and
-            block["kind"] in TEXT and bool(block.get("source_refs")))
+            block["kind"] in kinds and bool(block.get("source_refs")))
 
 
 def _blocks(document):
@@ -329,7 +335,7 @@ def rebuild_apply(key, folder):
             for index, item in enumerate(page.get("blocks", []), 1):
                 sources = [old[n - 1] for n in item.get("from", []) if 1 <= n <= len(old)]
                 wording = " ".join(str(item.get("text", "")).split())
-                if not wording or item.get("kind") not in TEXT:
+                if not wording or item.get("kind") not in TEXT | ({"table"} if WITH_TABLES else set()):
                     bad = True
                     break
                 boxes = [ref["bbox"] for block in sources for ref in block["source_refs"]
@@ -341,6 +347,17 @@ def rebuild_apply(key, folder):
                 source = html.escape(wording, quote=False)
                 if item.get("kind") == "math":
                     source = '<div class="math-content">' + source + "</div>"
+                elif item.get("kind") == "table":
+                    # Rows are text lines, cells are separated by " | ";
+                    # "header_rows" leading rows are header cells.
+                    rows = [line for line in str(item.get("text", "")).split("\n") if line.strip()]
+                    heads = int(item.get("header_rows") or 0)
+                    source = "<table>" + "".join(
+                        "<tr>" + "".join(
+                            ("<th>%s</th>" if number < heads else "<td>%s</td>") %
+                            html.escape(" ".join(cell.split()), quote=False)
+                            for cell in row.split(" | ")) + "</tr>"
+                        for number, row in enumerate(rows)) + "</table>"
                 elif item.get("kind") == "code":
                     lines = [line.rstrip() for line in str(item.get("text", "")).split("\n")]
                     while lines and not lines[0].strip():
@@ -451,6 +468,9 @@ def main():
     cli.add_argument("--pages-per-batch", type=int, default=3)
     cli.add_argument("--pages", help="export: only these pages (comma-separated)")
     args = cli.parse_args()
+    global WITH_TABLES
+    WITH_TABLES = bool(json.loads((ROOT / "data" / (args.key + "-trans.json")).read_text())
+                       .get("page_proof_tables"))
     if args.command == "rebuild-export":
         rebuild_export(args.key, args.folder, args.proof_dir, args.pages_per_batch)
     elif args.command == "rebuild-apply":
