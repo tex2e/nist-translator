@@ -68,10 +68,12 @@
         </div>
       </section>
       {% else %}
+      {% set heading_rank = block.level + 1 if block.kind == 'heading' else 0 %}
+      {% set heading_tag = [heading_rank, 6]|min %}
       <section class="row pair {{ block.kind }}{% if block.math_result_table %} math-result-table{% endif %}{% if block.kind == 'list_item' %} depth-{{ block.depth }}{% endif %}" id="{{ block.id }}">
         <div class="english col-sm-12 col-md-6 text" lang="en">
           {% if block.kind == 'heading' %}
-          <h{{ block.level + 1 }}>{{ block.english_html }}</h{{ block.level + 1 }}>
+          <h{{ heading_tag }}{% if heading_rank > 6 %} role="heading" aria-level="{{ heading_rank }}"{% endif %}>{{ block.english_html }}</h{{ heading_tag }}>
           {% elif block.kind == 'table' and block.image_authoritative %}
           <figure class="table-image"><img src="{{ block.source_image }}" alt="原本 PDF p.{{ block.source_page }} の表の画像"><figcaption>この表は原本の画像を正とします。</figcaption></figure>
           <details class="source-image"><summary>抽出したテキスト（原本と未照合・参考）</summary>{{ block.english_html }}</details>
@@ -84,10 +86,10 @@
           {% if block.math_review_notes %}<p class="pdf-notice">原本照合メモ: {{ block.math_review_notes }}</p>{% endif %}
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-          {% if block.kind == 'heading' %}<h{{ block.level + 1 }}>
+          {% if block.kind == 'heading' %}<h{{ heading_tag }}{% if heading_rank > 6 %} role="heading" aria-level="{{ heading_rank }}"{% endif %}>
           {% elif block.kind not in ['table', 'math', 'code'] and not (block.kind == 'note' and block.html_ja.startswith('<p>')) %}<p>{% endif %}
           {% if block.kind == 'list_item' %}<span class="list-marker">{{ block.ordinal ~ '.' if block.ordered else '•' }}</span>{% endif %}{% if block.image_authoritative and block.html_ja %}<details class="source-image"><summary>抽出したテキストの訳（原本と未照合・参考）</summary>{{ block.japanese_html }}</details>{% elif block.html_ja %}{{ block.japanese_html }}{% else %}<span class="pending">{{ '原文更新後、再確認待ち' if block.status == 'stale' else ('原文のみ' if block.status == 'source_only' else '翻訳準備中') }}</span>{% endif %}
-          {% if block.kind == 'heading' %}</h{{ block.level + 1 }}>{% elif block.kind not in ['table', 'math', 'code'] and not (block.kind == 'note' and block.html_ja.startswith('<p>')) %}</p>{% endif %}
+          {% if block.kind == 'heading' %}</h{{ heading_tag }}>{% elif block.kind not in ['table', 'math', 'code'] and not (block.kind == 'note' and block.html_ja.startswith('<p>')) %}</p>{% endif %}
           {% if block.status == 'draft' and block.html_ja %}<span class="draft-badge">未レビュー訳</span>{% endif %}
         </div>
       </section>
