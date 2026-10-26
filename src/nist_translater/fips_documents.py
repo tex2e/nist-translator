@@ -1,7 +1,5 @@
 """Metadata for the NIST FIPS publications (Federal Information Processing Standards).
 
-FIPS 140-2, superseded by FIPS 140-3, is not included.
-
 Keys and file stems are "fips-<number>", so the files never clash with SP 800
 files (data/fips-197.pdf, data/fips-197-trans.json, html/fips-197.html).
 """
@@ -36,6 +34,10 @@ FIPS_DOCUMENTS = dict([
           "暗号モジュールのセキュリティ要件",
           "暗号モジュールの設計・実装に求めるセキュリティ要件と、その検証の枠組み（ISO/IEC 19790 と ISO/IEC 24759 の採用）を定めます。",
           "NIST.FIPS.140-3.pdf", "140-3/final", release_date="2019-03-22"),
+    _fips("140-2", "Security Requirements for Cryptographic Modules",
+          "暗号モジュールのセキュリティ要件（旧版）",
+          "暗号モジュールに求める4段階のセキュリティ要件を定めた旧版の規格です。現在は FIPS 140-3 に置き換えられています。",
+          "NIST.FIPS.140-2.pdf", "140-2/upd2/final", release_date="2001-05-25", superseded_by="FIPS 140-3"),
     _fips("180-4", "Secure Hash Standard (SHS)",
           "セキュアハッシュ標準（SHS）",
           "SHA-1 と SHA-2 系列（SHA-224、SHA-256、SHA-384、SHA-512 など）のハッシュアルゴリズムを定めます。",
