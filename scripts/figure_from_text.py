@@ -36,7 +36,7 @@ def _crop(pdf, page_number, box, path):
 
 def _caption_top(page, caption_html):
     """Where the caption ("Figure 9." ...) is printed, found in the PDF text."""
-    match = re.match(r"\s*((?:Figure|Fig\.)\s*[A-Z]?\d+[.:])", re.sub(r"<[^>]+>", "", caption_html))
+    match = re.match(r"\s*((?:Figure|Fig\.)\s*[A-Z]?\d+(?:-\d+)?[.:])", re.sub(r"<[^>]+>", "", caption_html))
     if not match:
         return None
     label = match.group(1).replace(" ", "")
@@ -72,13 +72,22 @@ def _drawing_box(key, page_number, upper, caption_html):
         if not graphics:
             return None
         top, bottom = graphics[0]["top"], graphics[0]["bottom"]
-        if lower - bottom > 40:
+        if lower - bottom > 70:  # labels may sit between the drawing and its caption
             return None
         for item in graphics[1:]:
             if item["bottom"] < top - 24:
                 break
             top = min(top, item["top"])
-        chars = [item for item in page.chars if item["top"] >= top - 14 and item["bottom"] <= lower - 1]
+        # Labels and headings printed just above the drawing (short lines, not
+        # body text) belong to it.
+        width = page.width - 144
+        for line in sorted((line for line in page.extract_text_lines() if line["bottom"] <= top + 1),
+                           key=lambda line: -line["bottom"]):
+            if (top - line["bottom"] > 22 or line["x1"] - line["x0"] > 0.6 * width or line["top"] < upper
+                    or line["text"].rstrip().endswith(".")):
+                break
+            top = line["top"]
+        chars = [item for item in page.chars if item["top"] >= top - 2 and item["bottom"] <= lower - 1]
         items = [item for item in graphics if item["top"] >= top - 1] + chars
     return [min(item["x0"] for item in items), min(item["top"] for item in items),
             max(item["x1"] for item in items), max(item["bottom"] for item in items)]
