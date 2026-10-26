@@ -332,6 +332,12 @@ def rebuild_apply(key, folder):
                 counts["pages changed since export"] += 1
                 continue
             new, bad = [], False
+            # Only the last block that takes text from an input block continues
+            # where that input block continues (its refs on later pages).
+            last_taker = {}
+            for index, item in enumerate(page.get("blocks", []), 1):
+                for n in item.get("from", []):
+                    last_taker[n] = index
             for index, item in enumerate(page.get("blocks", []), 1):
                 sources = [old[n - 1] for n in item.get("from", []) if 1 <= n <= len(old)]
                 wording = " ".join(str(item.get("text", "")).split())
@@ -340,8 +346,8 @@ def rebuild_apply(key, folder):
                     break
                 boxes = [ref["bbox"] for block in sources for ref in block["source_refs"]
                          if ref["page"] == page["page"]]
-                later = [ref for block in sources for ref in block["source_refs"]
-                         if ref["page"] != page["page"]]
+                later = [ref for n in item.get("from", []) if 1 <= n <= len(old) and last_taker[n] == index
+                         for ref in old[n - 1]["source_refs"] if ref["page"] != page["page"]]
                 box = ([min(b[0] for b in boxes), min(b[1] for b in boxes),
                         max(b[2] for b in boxes), max(b[3] for b in boxes)] if boxes else None)
                 source = html.escape(wording, quote=False)
