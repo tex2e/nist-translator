@@ -30,6 +30,31 @@ def block(key="p1", text="Clean source", page=1):
 
 
 class SourceEncodingTests(unittest.TestCase):
+    def test_57pt1_key_state_diagram_keeps_caption_and_excludes_false_body(self):
+        import pdfplumber
+        from src.nist_translater.pdf_parser import _page_items
+        from src.nist_translater.pdf_source_repairs import figure_region
+        path = ROOT / "data/sp800-57pt1r5.pdf"
+        if not path.exists():
+            self.skipTest("Original 57pt1r5 PDF is unavailable")
+        source_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        region = figure_region(source_sha, 93)
+        self.assertIsNotNone(region)
+        self.assertIsNone(figure_region("different-pdf", 93))
+        with pdfplumber.open(path) as pdf:
+            items = _page_items(pdf.pages[92], 93, None, "assets/57pt1r5",
+                                reviewed_figure=region)
+        figures = [item for item in items if item["kind"] == "figure"]
+        self.assertEqual(len(figures), 1)
+        self.assertEqual(figures[0]["bbox"], [149, 129, 437, 513])
+        self.assertFalse(any(item["kind"] == "table" for item in items))
+        body = " ".join(item["text"] for item in items if item["kind"] != "figure")
+        self.assertIn("Figure 3: Key state and transition example", body)
+        self.assertIn("Key states are defined from a system point of view", body)
+        self.assertIn("SP 800-152 discusses the", body)
+        self.assertNotIn("Pre-Activation", body)
+        self.assertNotIn("Protect and Process", body)
+
     def test_53r5_control_diagram_keeps_callouts_and_excludes_false_tables(self):
         import pdfplumber
         from src.nist_translater.pdf_parser import _page_items
