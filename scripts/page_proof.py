@@ -346,6 +346,9 @@ def rebuild_apply(key, folder):
                         max(b[2] for b in boxes), max(b[3] for b in boxes)] if boxes else None)
                 source = html.escape(wording, quote=False)
                 if item.get("kind") == "math":
+                    # KaTeX's auto-render needs the display delimiters in the page.
+                    if not source.startswith("\\["):
+                        source = "\\[" + source + "\\]"
                     source = '<div class="math-content">' + source + "</div>"
                 elif item.get("kind") == "table":
                     # Rows are text lines, cells are separated by " | ";
@@ -364,8 +367,11 @@ def rebuild_apply(key, folder):
                         lines.pop(0)
                     while lines and not lines[-1].strip():
                         lines.pop()
-                    source = ('<pre class="algorithm"><code>' +
-                              html.escape("\n".join(lines), quote=False) + "</code></pre>")
+                    listing = html.escape("\n".join(lines), quote=False)
+                    # An algorithm written with inline LaTeX is kept out of <pre>, which
+                    # KaTeX's auto-render skips; the class keeps its lines and indentation.
+                    source = ('<div class="algorithm">' + listing + "</div>" if "\\(" in listing else
+                              '<pre class="algorithm"><code>' + listing + "</code></pre>")
                 number = index
                 while "pdf-p%04d-r%04d" % (page["page"], number) in by_id or any(
                         other["id"] == "pdf-p%04d-r%04d" % (page["page"], number) for other in new):
