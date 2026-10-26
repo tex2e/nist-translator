@@ -52,11 +52,34 @@ def _row(record, progress):
             .replace('<td class="number">SP ', '<td class="number">FIPS '))
 
 
+def _shown_only(root, record):
+    """Progress counted over the blocks a page shows.
+
+    Running heads, labels inside drawings, duplicates and withheld official
+    marks are kept in the data but never shown, so they are not counted as
+    untranslated.
+    """
+    path = Path(root) / record["json_path"]
+    if not path.is_file():
+        return _load_document(root, record)
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["contents"] = [block for block in document.get("contents", [])
+                            if not (block.get("page_furniture") or block.get("official_mark") or
+                                    block.get("math_duplicate_of") or block.get("duplicate_artifact_of"))]
+    shown = Path(root) / ".fips-index-shown.json"
+    shown.write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
+    try:
+        progress = _load_document(root, dict(record, json_path=shown.name))
+    finally:
+        shown.unlink()
+    return progress
+
+
 def build_fips_index(root=ROOT):
     root = Path(root).resolve()
     records = sorted(catalog_records(), key=lambda record: [
         int(part) if part.isdigit() else part for part in record["number"].replace("-", " ").split()])
-    rows = [(record, _load_document(root, record)) for record in records]
+    rows = [(record, _shown_only(root, record)) for record in records]
     counts = Counter(progress["status"] for _, progress in rows)
     page = Template((root / "templates" / "fips-index.html").read_text(encoding="utf-8"))
     html = page.substitute(
