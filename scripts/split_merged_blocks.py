@@ -111,6 +111,36 @@ def split(block, findings):
     return pieces, None
 
 
+def _place(pieces, block):
+    """Page references of the pieces: each runs from its own start to the next piece's.
+
+    A piece that starts inside the block has the region of its first PDF
+    paragraph; the first piece keeps the block's region on its start page.
+    A piece whose successor starts on a later page also covers the pages up
+    to there (the top of the page, down to where the successor begins).
+    """
+    pages = sorted({ref["page"] for ref in block["source_refs"]})
+    for index, piece in enumerate(pieces):
+        start = piece["source_page"]
+        if index == 0:
+            piece["source_refs"] = [copy.deepcopy(ref) for ref in block["source_refs"] if ref["page"] == start]
+        if index + 1 < len(pieces):
+            following = pieces[index + 1]
+            end, top = following["source_page"], following["source_refs"][0]["bbox"][1]
+        else:
+            end, top = pages[-1], None
+        for page in range(start + 1, end + 1):
+            own = [copy.deepcopy(ref) for ref in block["source_refs"] if ref["page"] == page]
+            if page == end and top is not None:
+                if top - 72.0 < 10:
+                    continue  # the next piece starts at the top of that page
+                piece["source_refs"].append({"page": page, "bbox": [72.0, 72.0, 540.0, round(top - 1, 1)]})
+            else:
+                piece["source_refs"] += own or [{"page": page, "bbox": [72.0, 72.0, 540.0, 720.0]}]
+        piece["source_refs"] = [ref for ref in piece["source_refs"]
+                                if not (ref["page"] == start and index and ref is not piece["source_refs"][0])]
+
+
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("key")
@@ -178,10 +208,7 @@ def main():
                 item["split_from_ja"] = block.get("html_ja", "")
             _rehash(item)
             new.append(item)
-        # The last piece carries the original's continuation onto later pages.
-        later = [ref for ref in block["source_refs"] if ref["page"] > new[-1]["source_page"]]
-        if later and new[-1]["source_refs"] != block["source_refs"]:
-            new[-1]["source_refs"] += later
+        _place(new, block)
         for item in new[1:]:
             item["split_from_ja"] = "(see %s)" % new[0]["id"]
         position = contents.index(block)

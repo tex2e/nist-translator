@@ -33,6 +33,8 @@ def export(folder, key, chars):
     verified = {block["id"] for block in document["contents"]
                 if block.get("extraction_status") == "verified" or document.get("source_format") != "pdf"}
     kinds = {block["id"]: block["kind"] for block in document["contents"]}
+    earlier = {block["id"]: block["split_from_ja"] for block in document["contents"]
+               if block.get("split_from_ja")}
     queue = [item for item in make_queue(document) if item["id"] in verified and kinds[item["id"]] != "figure"]
     folder.mkdir(parents=True, exist_ok=True)
     batches, batch, size = [], [], 0
@@ -40,8 +42,13 @@ def export(folder, key, chars):
         if batch and size + len(item["html"]) > chars:
             batches.append(batch)
             batch, size = [], 0
-        batch.append({"id": item["id"], "kind": kinds[item["id"]],
-                      "source_hash": item["source_hash"], "en": item["html"]})
+        entry = {"id": item["id"], "kind": kinds[item["id"]],
+                 "source_hash": item["source_hash"], "en": item["html"]}
+        # A block split out of a larger one: the earlier translation of the
+        # whole block, for the translator to reuse its wording.
+        if earlier.get(item["id"]):
+            entry["earlier_ja"] = earlier[item["id"]]
+        batch.append(entry)
         size += len(item["html"])
     if batch:
         batches.append(batch)

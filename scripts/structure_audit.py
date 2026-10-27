@@ -90,15 +90,23 @@ def audit(key, pages=None):
             texts = [(block, norm(block["html"])) for block in near]
             for position, paragraph in enumerate(paragraphs(page)):
                 # Blocks keep list items and footnotes without their marker.
-                probe = norm(re.sub(r"^(\d+\.?|[a-z]\.|•|\(\w\))\s+", "", paragraph["text"]))[:40]
+                # A long probe: lists repeat their opening words ("Cryptoperiod:
+                # Given the use of an approved algorithm ...") from item to item.
+                probe = norm(re.sub(r"^(\d+\.?|[a-z]\.|•|\(\w\))\s+", "", paragraph["text"]))[:80]
                 if len(probe) < 12:
                     continue
                 hits = [(block, text.find(probe)) for block, text in texts if probe in text]
+                # Prefer the blocks printed on this page over similar text nearby.
+                here = [(block, offset) for block, offset in hits
+                        if any(ref["page"] == number for ref in block.get("source_refs", []))]
+                hits = here or hits
                 if not hits:
                     findings.append({"page": number, "type": "missing", "text": paragraph["text"][:160]})
                 elif all(offset > 3 for _, offset in hits):  # a footnote keeps its number
                     block, offset = hits[0]
-                    if position == 0 and block["source_page"] < number:
+                    starts_new = paragraph["heading"] or re.match(
+                        r"^(\d+\.|[a-z]\.|•|\(\w\))\s", paragraph["text"]) is not None
+                    if position == 0 and block["source_page"] < number and not starts_new:
                         continue  # the paragraph runs on from the page before
                     findings.append({"page": number, "type": "merged", "id": block["id"],
                                      "kind": block["kind"], "heading": paragraph["heading"],

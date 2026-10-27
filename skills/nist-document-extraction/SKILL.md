@@ -71,3 +71,7 @@ LaTeXで組まれたPDFでは、テキスト層でfiの合字がfになること
 図の中の文字が本文として抽出されていたら、`scripts/figure_from_text.py`で原本から図を切り出し、文字のブロックには`figure_text_of`と`page_furniture`を付けて本文から外す。切り出し範囲はPDFの線・枠・曲線・文字から求めるので、切り出した画像を目で確認する。
 
 組み直し後は、すべての式をローカルKaTeXで構文確認する（`scripts/math_restore.py`の`_katex_errors`）。
+
+## 固定の訳語
+
+全資料で次の訳語を使う（2026-10-28 利用者指示）。keying material は「鍵素材」（「鍵材料」としない）。private key は「秘密鍵」（「私有鍵」「プライベート鍵」としない）。複合語も「秘密署名鍵」「鍵合意用秘密鍵」のように秘密鍵に合わせる。secret key（共通鍵）と private key が同じ箇所に並び、両方を秘密鍵とすると区別できなくなる場合は、secret key を「共通鍵」とする。
