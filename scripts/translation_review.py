@@ -4,8 +4,12 @@ Only blocks whose English source is trustworthy are offered for review: every
 block of an HTML-sourced document, and PDF blocks with
 ``extraction_status=verified``.
 
-    python scripts/translation_review.py export [--size N] [--fixed] OUT_DIR [KEY ...]
-    python scripts/translation_review.py apply VERDICT_DIR [--issues FILE]
+    python scripts/translation_review.py export [--size N] [--fixed] [--reviewer R] OUT_DIR [KEY ...]
+    python scripts/translation_review.py apply VERDICT_DIR [--issues FILE] [--reviewer R]
+
+``--reviewer`` names who reviews (default ``claude``); the block records
+``<reviewer>-review``, ``<reviewer>-fix`` or ``<reviewer>-issue``. Use the
+same name for ``export --fixed`` and the ``apply`` that follows it.
 
 ``export`` writes ``<key>.<nnn>.batch.json``; a reviewer answers each with
 ``<key>.<nnn>.verdict.json``: a JSON array of
@@ -32,9 +36,6 @@ from collections import Counter  # noqa: E402
 from nist_translater.translation import (  # noqa: E402
     NORMATIVE, assert_same_html_structure, audit_translations, requirement_terms, source_text)
 
-REVIEW_TAG = "claude-review"   # translation accepted by a reviewer
-FIX_TAG = "claude-fix"         # reviewer's correction stored, awaiting re-review
-ISSUE_TAG = "claude-issue"     # disputed; left as a draft for a human
 MAX_FIX_ROUNDS = 2
 MAX_BATCH_CHARS = 45000
 
@@ -53,12 +54,16 @@ def _keys(names):
                            for path in (ROOT / "data").glob("*-trans.json"))
 
 
-def export(out_dir, size, names, fixed):
+def _tags(reviewer):
+    return reviewer + "-review", reviewer + "-fix", reviewer + "-issue"
+
+
+def export(out_dir, size, names, fixed, reviewer="claude"):
     out_dir.mkdir(parents=True, exist_ok=True)
     batches = blocks = 0
     for key in _keys(names):
         document = read_json(ROOT / "data" / (key + "-trans.json"))
-        wanted = FIX_TAG if fixed else None
+        wanted = _tags(reviewer)[1] if fixed else None
         items = [{"id": block["id"], "kind": block["kind"],
                   "source_hash": block["source_hash"],
                   "en": block["html"], "ja": block["html_ja"]}
@@ -94,7 +99,8 @@ def _valid_fix(block, japanese):
     return Counter(NORMATIVE.findall(japanese)) == requirement_terms(source_text(block))
 
 
-def apply(verdict_dir, issues_path):
+def apply(verdict_dir, issues_path, reviewer="claude"):
+    review_tag, fix_tag, issue_tag = _tags(reviewer)
     verdicts, rejected = {}, []
     for batch_path in sorted(verdict_dir.glob("*.batch.json")):
         path = batch_path.with_name(batch_path.name.replace(".batch.json", ".verdict.json"))
@@ -129,18 +135,18 @@ def apply(verdict_dir, issues_path):
                 continue
             if answer["verdict"] == "ok":
                 block["status"] = "reviewed"
-                block["translation_check"] = REVIEW_TAG
+                block["translation_check"] = review_tag
                 counts["reviewed"] += 1
                 continue
             rounds = block.get("translation_fix_rounds", 0)
             fix = answer.get("suggested_ja", "")
             if rounds < MAX_FIX_ROUNDS and _valid_fix(block, fix):
                 block["html_ja"] = fix
-                block["translation_check"] = FIX_TAG
+                block["translation_check"] = fix_tag
                 block["translation_fix_rounds"] = rounds + 1
                 action = "fixed"
             else:
-                block["translation_check"] = ISSUE_TAG
+                block["translation_check"] = issue_tag
                 action = "unresolved"
             counts[action] += 1
             issues.append({"document_key": key, "id": block["id"], "action": action,
@@ -162,15 +168,17 @@ def main():
     exporter.add_argument("--size", type=int, default=40, help="blocks per batch")
     exporter.add_argument("--fixed", action="store_true",
                           help="only corrected drafts awaiting re-review")
+    exporter.add_argument("--reviewer", default="claude")
     exporter.add_argument("keys", nargs="*")
     applier = commands.add_parser("apply")
     applier.add_argument("verdict_dir", type=Path)
     applier.add_argument("--issues", type=Path, help="write blocks with issues to this JSON file")
+    applier.add_argument("--reviewer", default="claude")
     args = cli.parse_args()
     if args.command == "export":
-        export(args.out_dir, args.size, args.keys, args.fixed)
+        export(args.out_dir, args.size, args.keys, args.fixed, args.reviewer)
     else:
-        apply(args.verdict_dir, args.issues)
+        apply(args.verdict_dir, args.issues, args.reviewer)
 
 
 if __name__ == "__main__":
