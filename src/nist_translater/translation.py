@@ -259,8 +259,10 @@ def merge_translations(document, incoming):
 def carry_translations(previous, current):
     """Preserve compatible translations; mark changed source HTML as stale."""
     from .pdf_source_repairs import preserve_source_repairs
+    from .pdf_reconstruction import preserve_pdf_reconstruction
     from .math_preservation import preserve_restored_math
     current = preserve_source_repairs(previous, current)
+    current = preserve_pdf_reconstruction(previous, current)
     current = preserve_restored_math(previous, current)
     previous_blocks = contents(previous)
     pdf_changed = (current.get("source_format") == "pdf"
@@ -311,6 +313,16 @@ def carry_translations(previous, current):
             used.add(prior["id"])
         if exact and prior.get("extraction_status") == "verified":
             block["extraction_status"] = "verified"
+            # Source proof is part of an accepted extraction. Keep it only
+            # with an identical, identified PDF and identical source text.
+            if (current.get("source_format") == "pdf"
+                    and previous.get("source_sha256")
+                    and previous["source_sha256"] == current.get("source_sha256")):
+                for key in ("extraction_check", "page_check", "fragment_reviewed",
+                            "structure_recheck", "source_repair_check",
+                            "source_reference_history", "previous_translation_check"):
+                    if key in prior:
+                        block[key] = deepcopy(prior[key])
         prior_html_ja = (prior or {}).get("html_ja", (prior or {}).get("ja", ""))
         if (not prior or prior.get("kind") != block.get("kind") or
                 (block.get("kind") == "figure" and not exact) or not prior_html_ja):

@@ -55,3 +55,35 @@ class TranslationProvenanceTests(unittest.TestCase):
         self.assertEqual(result["translation_review_history"][-1]["reason"], "source_pdf_changed")
         self.assertEqual(result["translation_review_history"][-1]["previous_pdf_sha256"], "old-pdf")
         self.assertEqual(result["translation_review_history"][-1]["current_pdf_sha256"], "new-pdf")
+
+    def test_same_pdf_keeps_source_proof_without_aliasing(self):
+        self.previous["source_sha256"] = "same-pdf"
+        evidence = {"extraction_check": "visual-page", "page_check": {"page_proof": "matches_original"},
+                    "fragment_reviewed": True, "structure_recheck": {"result": "ok"}}
+        self.block.update(deepcopy(evidence))
+        raw = self.raw()
+        raw["source_sha256"] = "same-pdf"
+        for key in evidence:
+            raw["contents"][0].pop(key, None)
+        result = carry_translations(self.previous, raw)["contents"][0]
+        for key, value in evidence.items():
+            self.assertEqual(result[key], value)
+        result["page_check"]["page_proof"] = "changed"
+        self.assertEqual(self.block["page_check"]["page_proof"], "matches_original")
+
+    def test_changed_source_or_pdf_does_not_inherit_source_proof(self):
+        self.block.update(extraction_check="visual-page", page_check={"page_proof": "matches_original"})
+        self.previous["source_sha256"] = "same-pdf"
+        for change in ("source", "pdf", "missing-hash"):
+            raw = self.raw()
+            raw["source_sha256"] = "same-pdf"
+            for key in ("extraction_check", "page_check"):
+                raw["contents"][0].pop(key, None)
+            if change == "source":
+                raw["contents"][0].update(html="Changed", source_hash="new")
+            else:
+                raw["source_sha256"] = "different" if change == "pdf" else None
+            result = carry_translations(self.previous, raw)["contents"][0]
+            with self.subTest(change=change):
+                self.assertNotIn("extraction_check", result)
+                self.assertNotIn("page_check", result)
