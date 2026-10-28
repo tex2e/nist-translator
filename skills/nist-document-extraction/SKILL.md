@@ -76,7 +76,7 @@ LaTeXで組まれたPDFでは、テキスト層でfiの合字がfになること
 
 全資料で次の訳語を使う（2026-10-28 利用者指示）。
 
-- keying material は「鍵素材」（「鍵材料」としない）。secret keying material は「シークレット鍵素材」。鍵導出の文脈では「シークレット」が中間成果物の値を表すため、private key の「秘密鍵」と区別する。
+- keying material は「鍵素材」（「鍵材料」としない）。secret keying material は「シークレット鍵素材」。shared secret key は「共有シークレット鍵」。shared secret key は「共有シークレット鍵」。鍵導出の文脈では「シークレット」が中間成果物の値を表すため、private key の「秘密鍵」と区別する。
 - private key は「秘密鍵」（「私有鍵」「プライベート鍵」としない）。鍵の名前は「署名用秘密鍵」「鍵合意用秘密鍵」「認可用秘密鍵」「認証用秘密鍵」「鍵輸送用秘密鍵」の形にする。
 - symmetric は「共通鍵」（共通鍵暗号、共通鍵アルゴリズム。「対称鍵」としない）。共通鍵暗号と公開鍵暗号を対比させる。asymmetric の暗号方式（非対称鍵暗号、非対称鍵アルゴリズムなど）は「公開鍵暗号」「公開鍵アルゴリズム」とし、鍵そのもの（asymmetric key、asymmetric key pair）は「非対称鍵」「非対称鍵ペア」のまま残す（「公開鍵ペア」は公開鍵2つの組と誤読されやすい）。secret key（共通鍵）と private key が同じ箇所に並ぶ場合も、secret key は「共通鍵」として区別する。
 - should（推奨）は「すべき」（「望ましい」としない）。desirable、preferable などは「望ましい」でよい。
