@@ -24,6 +24,9 @@ def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("key", help="file name without -trans.json, e.g. sp800-90b")
     cli.add_argument("--dry-run", action="store_true")
+    cli.add_argument("--tables-as-is", action="store_true",
+                     help="pin a page even if its only unverified blocks are tables (kept as extracted, "
+                          "shown as the original image with the text folded)")
     args = cli.parse_args()
     path = ROOT / "data" / (args.key + "-trans.json")
     document = json.loads(path.read_text())
@@ -33,8 +36,15 @@ def main():
     pages = defaultdict(list)
     for block in document["contents"]:
         pages[block["source_page"]].append(block)
-    ready = sorted(p for p, blocks in pages.items()
-                   if all(b.get("extraction_status") == "verified" for b in blocks))
+    def settled(b):
+        if b.get("extraction_status") == "verified":
+            return True
+        # Hidden records (running heads, figure labels, duplicates) and, if asked, tables kept as
+        # extracted do not decide what readers see as text, so they do not hold a page back.
+        hidden = any(b.get(k) for k in ("page_furniture", "math_duplicate_of", "duplicate_artifact_of",
+                                        "figure_text_of", "official_mark"))
+        return hidden or (args.tables_as_is and b["kind"] == "table")
+    ready = sorted(p for p, blocks in pages.items() if all(settled(b) for b in blocks))
     waiting = sorted(set(pages) - set(ready))
     repair = document.setdefault("source_repairs", {"source_sha256": document["source_sha256"],
                                                     "pages": [], "original_blocks": [], "history": []})
