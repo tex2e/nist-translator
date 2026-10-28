@@ -1,3 +1,4 @@
+import re
 import tempfile
 import unittest
 from copy import deepcopy
@@ -92,10 +93,8 @@ class PipelineTests(unittest.TestCase):
         document = deepcopy(self.document)
         figure = next(block for block in document["contents"] if block["kind"] == "figure")
         footnote = next(block for block in document["contents"] if block["kind"] == "footnote")
-        figure["html_ja"] = figure["html"].replace(
-            'alt="Diagram showing authentication secret being transferred from out-of-band device to session being authenticated"',
-            'alt="アウトオブバンドデバイスから認証対象セッションへ認証シークレットを転送する図"',
-        )
+        figure["html_ja"] = re.sub(r'alt="[^"]*"', 'alt="アウトオブバンドデバイスから認証対象セッションへ認証シークレットを転送する図"',
+                                   figure["html"])
         figure["status"] = "reviewed"
         footnote["html_ja"] = footnote["html"].replace(
             "Invalidation can take several forms", "無効化には複数の形態がある",

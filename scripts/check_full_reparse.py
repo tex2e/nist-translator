@@ -51,11 +51,19 @@ def main():
     added = [new[k] for k in new if k not in old]
     changed = [{"previous": old[k], "current": new[k]} for k in old if k in new and old[k] != new[k]]
     order_same = [b["id"] for b in document["contents"]] == [b["id"] for b in result["contents"]]
+    def by_page(blocks):
+        pages = {}
+        for b in blocks:
+            pages.setdefault(b["source_page"], []).append(b["id"])
+        return pages
+    old_pages, new_pages = by_page(document["contents"]), by_page(result["contents"])
+    order_pages = sorted(p for p in old_pages if old_pages[p] != new_pages.get(p))
     report = {
         "document": name, "pdf_sha256": digest, "pages": len(raw["included_pages"]),
         "canonical_blocks": len(old), "reparse_blocks": len(new),
         "missing": len(missing), "added": len(added), "changed": len(changed),
         "order_identical": order_same,
+        "order_pages": order_pages,
         "exact_match": document["contents"] == result["contents"],
         "encoding_issues": len(encoding_issues(result)),
         "affected_pages": sorted({b["source_page"] for b in missing + added}

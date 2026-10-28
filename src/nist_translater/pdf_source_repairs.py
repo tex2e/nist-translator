@@ -105,18 +105,28 @@ def preserve_source_repairs(previous, current):
                 and b["id"] not in pinned_ids
                 and not any((r["page"], tuple(r["bbox"])) in spans
                             for r in b.get("source_refs", []))]
-    # Blocks of a pinned page keep the canonical order checked against the
-    # original (e.g. a footnote placed after the text it belongs to);
-    # anything else is ordered by position on its page.
-    canonical = {id(b): index for index, b in enumerate(retained)}
+    # Retained blocks keep the canonical order checked against the original
+    # (e.g. a footnote placed after the text it belongs to, or a split
+    # paragraph that continues on the next page before the rest of the
+    # earlier page). Other blocks are ordered by position and merged in
+    # before the first retained block that comes later in the source.
+    def position(block):
+        ref = block["source_refs"][0]["bbox"] if block.get("source_refs") else [0, 0]
+        return (block["source_page"], ref[1], ref[0])
 
-    def order(block):
-        if id(block) in canonical and block["source_page"] in pages:
-            return (block["source_page"], 0, canonical[id(block)], 0)
-        return (block["source_page"], 1, block["source_refs"][0]["bbox"][1],
-                block["source_refs"][0]["bbox"][0])
+    def goes_before(block, kept):
+        if kept["source_page"] != block["source_page"]:
+            return kept["source_page"] > block["source_page"]
+        return kept["source_page"] not in pages and position(kept) > position(block)
 
-    current["contents"] = sorted(ordinary + retained, key=order)
+    ordinary.sort(key=position)
+    merged, index = [], 0
+    for kept in retained:
+        while index < len(ordinary) and goes_before(ordinary[index], kept):
+            merged.append(ordinary[index])
+            index += 1
+        merged.append(kept)
+    current["contents"] = merged + ordinary[index:]
     current["source_repairs"] = deepcopy(repair)
     # A continuation reference does not mean the whole following page was
     # extracted. Only whole pinned pages add coverage. Otherwise math carry

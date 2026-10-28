@@ -103,8 +103,10 @@ class PdfMathTests(unittest.TestCase):
 
     def test_repair_preserves_original_records_and_translations_for_reparse(self):
         restored = restore_extraction(self.document)
-        self.assertEqual(len(restored["contents"]), 2927)
-        self.assertEqual(len({b["id"] for b in restored["contents"]}), 2927)
+        # 2927 raw records, less 3 duplicates retired by the original-PDF
+        # comparison (archived in source_repairs, not in math_preservation).
+        self.assertEqual(len(restored["contents"]), 2924)
+        self.assertEqual(len({b["id"] for b in restored["contents"]}), 2924)
         self.assertTrue(all(not b.get("replaces") for b in restored["contents"]))
         archived = {
             b["id"]: b for b in self.document["math_preservation"]["original_blocks"]
