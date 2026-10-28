@@ -30,10 +30,11 @@ def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("key", help="document key without sp800- (e.g. 47r1)")
     cli.add_argument("--out", type=Path)
+    cli.add_argument("--data", type=Path, help="check this JSON instead of data/<key>-trans.json")
     args = cli.parse_args()
     spec = get_document(args.key)
     name = "sp800-" + args.key if not args.key.startswith("fips-") else args.key
-    path, pdf = ROOT / "data" / (name + "-trans.json"), ROOT / "data" / (name + ".pdf")
+    path, pdf = args.data or ROOT / "data" / (name + "-trans.json"), ROOT / "data" / (name + ".pdf")
     before = path.read_bytes()
     document = json.loads(before)
     digest = hashlib.sha256(pdf.read_bytes()).hexdigest()

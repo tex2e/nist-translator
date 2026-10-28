@@ -105,9 +105,18 @@ def preserve_source_repairs(previous, current):
                 and b["id"] not in pinned_ids
                 and not any((r["page"], tuple(r["bbox"])) in spans
                             for r in b.get("source_refs", []))]
-    current["contents"] = sorted(ordinary + retained,
-                                 key=lambda b: (b["source_page"], b["source_refs"][0]["bbox"][1],
-                                                b["source_refs"][0]["bbox"][0]))
+    # Blocks of a pinned page keep the canonical order checked against the
+    # original (e.g. a footnote placed after the text it belongs to);
+    # anything else is ordered by position on its page.
+    canonical = {id(b): index for index, b in enumerate(retained)}
+
+    def order(block):
+        if id(block) in canonical and block["source_page"] in pages:
+            return (block["source_page"], 0, canonical[id(block)], 0)
+        return (block["source_page"], 1, block["source_refs"][0]["bbox"][1],
+                block["source_refs"][0]["bbox"][0])
+
+    current["contents"] = sorted(ordinary + retained, key=order)
     current["source_repairs"] = deepcopy(repair)
     # A continuation reference does not mean the whole following page was
     # extracted. Only whole pinned pages add coverage. Otherwise math carry

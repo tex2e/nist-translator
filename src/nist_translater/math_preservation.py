@@ -37,8 +37,27 @@ def preserve_restored_math(previous, current):
             raise ValueError("Overlapping restored math source: " + formula["id"])
         removed.update(members)
         retained.append(deepcopy(formula))
-    current["contents"] = sorted(
-        [b for b in current["contents"] if b["id"] not in removed] + retained,
-        key=lambda b: (b["source_page"], b["source_refs"][0]["bbox"][1],
-                       b["source_refs"][0]["bbox"][0]))
+    # A formula already present under its own id (e.g. on a pinned page) keeps
+    # its place; one rebuilt from raw fragments goes where its first fragment was.
+    # Formulae with no such anchor are placed by position on the page.
+    first = {}
+    for formula in retained:
+        members = [formula["id"]] if formula["id"] in raw and raw[formula["id"]].get("kind") == "math" \
+            and raw[formula["id"]].get("html") == formula["html"] else formula.get("replaces", [])
+        for member in members:
+            first.setdefault(member, formula)
+            break
+    result, placed = [], set()
+    for block in current["contents"]:
+        formula = first.get(block["id"])
+        if formula is not None and id(formula) not in placed:
+            result.append(formula)
+            placed.add(id(formula))
+        elif block["id"] not in removed:
+            result.append(block)
+    rest = [f for f in retained if id(f) not in placed]
+    if rest:
+        result = sorted(result + rest, key=lambda b: (b["source_page"], b["source_refs"][0]["bbox"][1],
+                                                      b["source_refs"][0]["bbox"][0]))
+    current["contents"] = result
     return current

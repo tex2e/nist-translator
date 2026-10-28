@@ -124,7 +124,8 @@ def main():
         rehash(block)
         if block.get("html_ja"):
             ratio = difflib.SequenceMatcher(None, plain(old), plain(value)).ratio()
-            if ratio >= 0.97 and block["kind"] != "table":
+            same_tags = re.findall(r"</?(\w+)", old) == re.findall(r"</?(\w+)", value)
+            if ratio >= 0.97 and same_tags and block["kind"] != "table":
                 block["status"] = "draft"
             else:
                 block["html_ja"] = ""
