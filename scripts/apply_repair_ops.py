@@ -100,12 +100,19 @@ def main():
     spec = json.loads(args.ops.read_text())
     path = ROOT / "data" / (spec["document"] + "-trans.json")
     document = json.loads(path.read_text())
-    if document["source_sha256"] != spec["pdf_sha256"]:
-        raise SystemExit("PDF hash differs from the comparison; not applied")
-    pdf_path = ROOT / "data" / (spec["document"] + ".pdf")
-    if hashlib.sha256(pdf_path.read_bytes()).hexdigest() != spec["pdf_sha256"]:
-        raise SystemExit("local PDF differs from the comparison; not applied")
-    locator = Locator(pdf_path)
+    html_source = document.get("source_format") != "pdf"
+    if html_source:
+        # An HTML-sourced document has no PDF: only figure descriptions apply.
+        if any(op["op"] != "figure" or op.get("crop_png") for op in spec["ops"]):
+            raise SystemExit("HTML-sourced document: only figure ops without crops are supported")
+        locator = None
+    else:
+        if document["source_sha256"] != spec["pdf_sha256"]:
+            raise SystemExit("PDF hash differs from the comparison; not applied")
+        pdf_path = ROOT / "data" / (spec["document"] + ".pdf")
+        if hashlib.sha256(pdf_path.read_bytes()).hexdigest() != spec["pdf_sha256"]:
+            raise SystemExit("local PDF differs from the comparison; not applied")
+        locator = Locator(pdf_path)
     contents = document["contents"]
     blocks = {b["id"]: b for b in contents}
     archive, retired, touched, warnings = {}, [], {}, []
@@ -249,7 +256,7 @@ def main():
         if block in contents:
             contents.remove(block)
     # Exact source references from the text layer where the text is found.
-    for block in touched.values():
+    for block in ([] if html_source else touched.values()):
         if block["kind"] in ("figure", "table") or block.get("page_furniture"):
             continue
         pages = sorted({r["page"] for r in block.get("source_refs", [])} | {block["source_page"]})
@@ -262,10 +269,12 @@ def main():
             warnings.append("text not located: " + block["id"])
     pinned = set()
     for block in list(touched.values()) + retired:
+        if html_source:
+            break
         pinned |= {r["page"] for r in block.get("source_refs", [])} | {block["source_page"]}
-    repair = document.setdefault("source_repairs", {"source_sha256": spec["pdf_sha256"], "pages": [],
+    repair = document.setdefault("source_repairs", {"source_sha256": spec.get("pdf_sha256"), "pages": [],
                                                     "original_blocks": [], "history": []})
-    if repair.get("source_sha256") != spec["pdf_sha256"]:
+    if repair.get("source_sha256") != spec.get("pdf_sha256"):
         raise SystemExit("existing source_repairs belong to another PDF")
     repair.setdefault("history", []).append({k: copy.deepcopy(v) for k, v in repair.items()
                                              if k not in ("original_blocks", "history")})
