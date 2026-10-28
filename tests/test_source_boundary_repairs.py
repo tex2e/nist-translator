@@ -61,4 +61,6 @@ class SourceBoundaryRepairsTests(unittest.TestCase):
                                  {b['id']:b for b in expected})
                 if slug=='182':
                     tail=next(b for b in current['contents'] if b['id']=='pdf-p0110-r0111')
-                    self.assertEqual(tail['status'],'untranslated')
+                    canonical=next(b for b in d['contents'] if b['id']=='pdf-p0110-r0111')
+                    # The reparse keeps the block's translation state, whatever it is now.
+                    self.assertEqual(tail['status'],canonical['status'])
