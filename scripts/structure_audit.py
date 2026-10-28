@@ -27,7 +27,11 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def norm(text):
-    return re.sub(r"[^a-z0-9]", "", html.unescape(re.sub(r"<[^>]+>", " ", text)).lower())
+    text = html.unescape(re.sub(r"<[^>]+>", " ", text))
+    # LaTeX in restored formulas: drop command names (\mathit, \text, \le ...)
+    # so that "\mathit{reseed\_counter}" compares like the PDF's "reseed_counter".
+    text = re.sub(r"\\(?:[a-zA-Z]+|.)", " ", text)
+    return re.sub(r"[^a-z0-9]", "", text.lower())
 
 
 def _lines(page):
