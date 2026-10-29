@@ -100,7 +100,12 @@ def build_site(document, meta, template_path, output_path):
                 if source and published.is_file():
                     published.unlink()  # a re-extraction may have written it again
             item["source_image"] = None  # a crop of the original that shows the mark
-            if block["kind"] == "figure":
+            if block["kind"] != "figure":
+                # A photo or seal extracted as a table or text: show the same note as a
+                # withheld figure, never the extracted text around it.
+                item["kind"] = "figure"
+                item["status"] = "source_only"
+            if item["kind"] == "figure":
                 item["english_html"] = Markup(
                     '<span class="withheld-mark">[%s — not reproduced on this unofficial site]</span>'
                     % name_en)
