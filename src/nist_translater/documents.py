@@ -1395,7 +1395,7 @@ DOCUMENTS = {
         "title_ja": "鍵確立方式における鍵導出方法に関する推奨事項",
         "subtitle_ja": "鍵確立方式における鍵導出方法",
         "slug": "56cr2",
-        "description": "NIST SP 800-56AまたはSP 800-56Bで定義される鍵確立方式で確立した共有秘密から、鍵素材を導出する方法を規定します。2026年1月6日に改訂計画が告知されましたが、後継版は未公開のため、本訳は現行FinalのRev. 2に基づきます。",
+        "description": "NIST SP 800-56AまたはSP 800-56Bで定義される鍵確立方式で確立した共有シークレットから、鍵素材を導出する方法を規定します。2026年1月6日に改訂計画が告知されましたが、後継版は未公開のため、本訳は現行FinalのRev. 2に基づきます。",
         "source_format": "pdf",
         "source_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Cr2.pdf",
         "pdf_url": "https://doi.org/10.6028/NIST.SP.800-56Cr2",
