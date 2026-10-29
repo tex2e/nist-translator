@@ -179,6 +179,27 @@ def _render_row(record, progress):
     )
 
 
+def _historical_section(root, records):
+    """Withdrawn publications that have a page but are not in the current Final catalog."""
+    from .documents import DOCUMENTS
+    listed = {record.get("number", "").replace("800-", "") for record in records}
+    rows = []
+    for key, spec in DOCUMENTS.items():
+        if key in listed or key.startswith("fips-") or "歴史資料" not in spec.get("series", ""):
+            continue
+        page = "sp800-%s.html" % spec.get("slug", key)
+        if not (root / "html" / page).is_file():
+            continue
+        esc = lambda value: escape(str(value or ""), quote=True)
+        rows.append('<li><a href="%s">%s</a> %s（%s）</li>' % (
+            esc(page), esc(spec["number"]), esc(spec.get("title_ja", "")), esc(spec.get("series", ""))))
+    if not rows:
+        return ""
+    return ('<section class="historical" aria-label="廃止された資料"><h2>廃止された資料（歴史資料）</h2>'
+            '<p>NIST が廃止した資料です。現在の要件ではなく、原文の記録・参照用の訳です。上の一覧（現行 Final）には含めていません。</p>'
+            '<ul>%s</ul></section>' % "".join(rows))
+
+
 def build_translation_index(root=ROOT):
     root = Path(root).resolve()
     catalog_path = root / CATALOG
@@ -207,6 +228,7 @@ def build_translation_index(root=ROOT):
         source_only_total=_format_number(source_only_total),
         pending_total=_format_number(pending_total),
         table_rows="\n".join(_render_row(record, progress) for record, progress in progress_rows),
+        historical_section=_historical_section(root, records),
     )
     output_path = root / OUTPUT
     output_path.parent.mkdir(parents=True, exist_ok=True)
