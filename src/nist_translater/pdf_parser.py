@@ -665,6 +665,8 @@ def parse_pdf_document(path, number, source_url, pages=None, asset_dir=None,
                 previous["source_hash"] = hashlib.sha256(
                     (previous["kind"] + "\n" + previous["html"]).encode("utf-8")).hexdigest()[:16]
                 del blocks[index]
+        from .private_glyphs import repair_private_glyphs
+        repair_private_glyphs({"source_sha256": source_sha256, "contents": blocks})
         from .source_quality import encoding_issues
         losses = encoding_issues({"contents": blocks})
         for issue in losses:
