@@ -1,6 +1,6 @@
 """Have Codex review the batches written by ``translation_review.py export``.
 
-    python scripts/codex_review.py BATCH_DIR [--jobs N] [--effort E]
+    python scripts/codex_review.py BATCH_DIR [--jobs N] [--effort E] [--model M]
 
 For each ``<key>.<nnn>.batch.json`` without a ``.verdict.json``, Codex (the
 codex plugin's companion, read-only, no file writes) reads the batch in the
@@ -39,12 +39,14 @@ Batch:
 """
 
 
-def review(batch_path, effort):
+def review(batch_path, effort, model=None):
     verdict_path = batch_path.with_name(batch_path.name.replace(".batch.json", ".verdict.json"))
     batch = json.loads(batch_path.read_text())
     command = ["node", str(COMPANION), "task"]
     if effort:
         command += ["--effort", effort]
+    if model:
+        command += ["--model", model]
     command.append(RULES + json.dumps(batch, ensure_ascii=False, indent=1))
     run = subprocess.run(command, capture_output=True, text=True, timeout=1800)
     text = run.stdout
@@ -69,12 +71,13 @@ def main():
     cli.add_argument("batch_dir", type=Path)
     cli.add_argument("--jobs", type=int, default=1)
     cli.add_argument("--effort", choices=["low", "medium", "high", "xhigh"])
+    cli.add_argument("--model", help="codex model, e.g. gpt-6-luna (default: the codex CLI default)")
     args = cli.parse_args()
     todo = [path for path in sorted(args.batch_dir.glob("*.batch.json"))
             if not path.with_name(path.name.replace(".batch.json", ".verdict.json")).exists()]
     print("batches to review:", len(todo), flush=True)
     with ThreadPoolExecutor(args.jobs) as pool:
-        for name, result in pool.map(lambda path: review(path, args.effort), todo):
+        for name, result in pool.map(lambda path: review(path, args.effort, args.model), todo):
             print(name, result, flush=True)
 
 

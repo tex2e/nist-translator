@@ -5,7 +5,7 @@
 A pinned page (source_repairs.pages) keeps its canonical blocks when the same
 PDF is extracted again, instead of the extractor's raw blocks. Only pages on
 which every block (including hidden ones) has extraction_status "verified" are
-pinned, so the canonical text there has been compared with the original. Pages
+pinned (a page is also held by blocks continuing onto it from the page before), so the canonical text there has been compared with the original. Pages
 with no canonical block are left alone. The PDF hash binds the pinning: a
 different PDF needs a new comparison.
 """
@@ -44,6 +44,12 @@ def main():
         hidden = any(b.get(k) for k in ("page_furniture", "math_duplicate_of", "duplicate_artifact_of",
                                         "figure_text_of", "official_mark"))
         return hidden or (args.tables_as_is and b["kind"] == "table")
+    # A page with no block of its own (its text continues a block from the page before) belongs to
+    # the blocks that reference it.
+    for block in document["contents"]:
+        for ref in block.get("source_refs", []):
+            if ref["page"] != block["source_page"] and block not in pages[ref["page"]]:
+                pages[ref["page"]].append(block)
     ready = sorted(p for p, blocks in pages.items() if all(settled(b) for b in blocks))
     waiting = sorted(set(pages) - set(ready))
     repair = document.setdefault("source_repairs", {"source_sha256": document["source_sha256"],
