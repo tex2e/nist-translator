@@ -10,7 +10,9 @@ OPS_JSON: {"document": "sp800-130", "pdf_sha256": "...", "evidence_directory": "
 - {"op": "retire", "id", "note"}: a duplicate, fragment or false record; removed from contents.
 - {"op": "merge", "into", "from": [ids], "html", "note"}: "into" gets the whole text,
    the "from" blocks are retired.
-- {"op": "split", "id", "parts": [{"kind", "html", ...}], "note"}: the first part keeps the id.
+- {"op": "split", "id", "parts": [{"kind", "html", optional "html_ja", ...}], "note"}: the first
+   part keeps the id. A part's "html_ja" (the old translation cut at the same place) is kept
+   as a draft for review.
 - {"op": "insert", "after", "kind", "html", "source_page", "note", ...}: text missing from the
    document; a new block after "after".
 - {"op": "furniture", "id", "note"}: running header/footer or page number; kept but hidden.
@@ -205,10 +207,14 @@ def main():
             set_text(block, parts[0]["html"], note)
             if block["status"] == "draft":
                 block["html_ja"], block["status"] = "", "untranslated"
+            if parts[0].get("html_ja"):
+                block["html_ja"], block["status"] = parts[0]["html_ja"], "draft"
             mark(block, note)
             for offset, part in enumerate(parts[1:], 1):
                 piece = new_block(block, fresh_id(op["id"]), part)
                 piece["split_from"] = op["id"]
+                if part.get("html_ja"):
+                    piece["html_ja"], piece["status"] = part["html_ja"], "draft"
                 mark(piece, note)
                 contents.insert(at + offset, piece)
         elif kind == "insert":
