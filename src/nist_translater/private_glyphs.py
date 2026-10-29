@@ -9,7 +9,10 @@ and was confirmed against the page images and the surrounding words.
 import hashlib
 import re
 
-_TT = lambda after: "tti" if after.startswith("n") else "tt"  # sengs -> settings, aributes -> attributes
+_TT = lambda before, after: "tti" if after.startswith("n") else "tt"  # se+tti+ngs -> settings, a+tt+ributes -> attributes
+# Inside a word U+E000 is the Calibri "ti" ligature; standing alone (bold headings) it is a slash:
+# "SELECTION <U+E000> ACCEPTANCE" -> "SELECTION / ACCEPTANCE".
+_TI = lambda before, after: "ti" if (before or after) else "/"
 
 _WINGDINGS = {"": " ", "": "■", "": "▪", "": "←", "": "→",
               "": "✗", "": "✓"}
@@ -18,7 +21,7 @@ _SYMBOL = {"": "−", "": "•"}
 PROFILES = {
     # SP 800-53A Rev. 5: Calibri ligatures
     "75665570048b969ad465a4f4f1db425ce505c374951c2c64e462949c6b21be47": {
-        "": "ti", "": _TT, "": "ft", "": _TT, "": "tf"},
+        "": _TI, "": _TT, "": "ft", "": _TT, "": "tf"},
     "efd3f02258276fb294d62a73bb0a6ec80051fd625d5197584220beaface31718": _WINGDINGS,  # 101r1
     "9a383e711d8dc0ce4500db01b459257c0500e287415c1632a8a027dd8ca7f91e": _WINGDINGS,  # 167
     "72eb105cd5ddb77b9adaadb097dfd1b428d86cf7edd81219c27dde0b437ac8b5": {"": "✓"},  # 121r2, Wingdings 2
@@ -43,7 +46,8 @@ def replace_private_glyphs(text, mapping):
             return match.group(0)
         if callable(value):
             after = re.match(r"[A-Za-z]*", text[match.end():]).group(0)
-            return value(after)
+            before = re.search(r"[A-Za-z]*$", text[:match.start()]).group(0)
+            return value(before, after)
         return value
     return _PRIVATE.sub(one, text)
 

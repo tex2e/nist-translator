@@ -24,6 +24,8 @@ OPS_JSON: {"document": "sp800-130", "pdf_sha256": "...", "evidence_directory": "
    compared (default "visual-page"; e.g. "layout-sample+text-layer" when the page itself
    was not viewed but its layout was, and every word of the table region was matched).
 
+Any op may carry "check" to record how it was compared (default "visual-page").
+
 Every touched block is archived in source_repairs.original_blocks first, and the pages it
 spans are pinned so a reparse of the same PDF keeps the repair. A changed English text gets
 a new source_hash; its earlier translation is kept (status draft, for review) when the text
@@ -183,7 +185,7 @@ def main():
                 set_text(block, op["html"], note)
             elif any(key in op for key in ("kind", "level")):
                 rehash(block)
-            mark(block, note)
+            mark(block, note, op.get("check"))
         elif kind == "retire":
             block = take(op["id"])
             block["retired_note"] = note
@@ -196,7 +198,7 @@ def main():
             set_text(block, op["html"], note)
             if op.get("html_ja"):
                 block["html_ja"], block["status"] = op["html_ja"], "draft"
-            mark(block, note)
+            mark(block, note, op.get("check"))
         elif kind == "split":
             block = take(op["id"])
             at = contents.index(block)
@@ -209,13 +211,13 @@ def main():
                 block["html_ja"], block["status"] = "", "untranslated"
             if parts[0].get("html_ja"):
                 block["html_ja"], block["status"] = parts[0]["html_ja"], "draft"
-            mark(block, note)
+            mark(block, note, op.get("check"))
             for offset, part in enumerate(parts[1:], 1):
                 piece = new_block(block, fresh_id(op["id"]), part)
                 piece["split_from"] = op["id"]
                 if part.get("html_ja"):
                     piece["html_ja"], piece["status"] = part["html_ja"], "draft"
-                mark(piece, note)
+                mark(piece, note, op.get("check"))
                 contents.insert(at + offset, piece)
         elif kind == "insert":
             anchor = take(op["after"]) if op["after"] in blocks else None
