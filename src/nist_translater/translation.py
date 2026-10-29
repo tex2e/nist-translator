@@ -40,6 +40,16 @@ def source_text(block):
     return " ".join(BeautifulSoup(value, "html.parser").stripped_strings)
 
 
+def source_requirement_text(block):
+    """English text whose requirement words the translation must keep, image descriptions included
+    (the raw Japanese HTML, alt attributes and all, is what gets counted)."""
+    text = source_text(block)
+    if "<img" in block["html"]:
+        alts = [img.get("alt", "") for img in BeautifulSoup(block["html"], "html.parser").find_all("img")]
+        text = " ".join([text] + alts)
+    return text
+
+
 def _tag_shape(node):
     if isinstance(node, NavigableString):
         return None
@@ -164,7 +174,7 @@ def audit_translations(document):
             raise ValueError("Translated block is empty: " + key)
         if status in {"draft", "reviewed"}:
             assert_same_html_structure(block["html"], block["html_ja"])
-            if Counter(NORMATIVE.findall(block["html_ja"])) != requirement_terms(source_text(block)):
+            if Counter(NORMATIVE.findall(block["html_ja"])) != requirement_terms(source_requirement_text(block)):
                 raise ValueError("Requirement terms differ in stored translation: " + key)
         if document.get("source_format") == "pdf" and status == "reviewed" and block.get("extraction_status") != "verified":
             raise ValueError("PDF source must be verified before translation review: " + key)
@@ -248,7 +258,7 @@ def merge_translations(document, incoming):
         if block["status"] == "reviewed":
             continue
         assert_same_html_structure(block["html"], japanese, preserve_math=True)
-        if Counter(NORMATIVE.findall(japanese)) != requirement_terms(source_text(block)):
+        if Counter(NORMATIVE.findall(japanese)) != requirement_terms(source_requirement_text(block)):
             raise ValueError("Requirement terms differ for " + key)
         block["html_ja"] = japanese
         block["status"] = "draft"

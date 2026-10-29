@@ -16,7 +16,11 @@ OPS_JSON: {"document": "sp800-130", "pdf_sha256": "...", "evidence_directory": "
 - {"op": "furniture", "id", "note"}: running header/footer or page number; kept but hidden.
 - {"op": "order", "ids": [...]}: put these blocks consecutively in this order.
 - {"op": "figure", "id", "alt_en", "alt_ja", "note", optional "crop_png", "bbox"}.
-- {"op": "table", "id", "html", "note"}: a table restored as HTML from the original.
+- {"op": "table", "id", "html", "note", optional "bbox", "check"}: a table restored as HTML
+   from the original. "bbox" is [x0, top, x1, bottom] on the block's page, or a list of
+   [page, bbox] pairs for a table that continues across pages. "check" records how it was
+   compared (default "visual-page"; e.g. "layout-sample+text-layer" when the page itself
+   was not viewed but its layout was, and every word of the table region was matched).
 
 Every touched block is archived in source_repairs.original_blocks first, and the pages it
 spans are pinned so a reparse of the same PDF keeps the repair. A changed English text gets
@@ -140,9 +144,9 @@ def main():
             block.pop("translation_check", None)
             block.pop("translation_fix_rounds", None)
 
-    def mark(block, note):
+    def mark(block, note, check=None):
         block["extraction_status"] = "verified"
-        block["extraction_check"] = "visual-page"
+        block["extraction_check"] = check or "visual-page"
         block.pop("page_furniture", None)
         if isinstance(block.get("column_reflow"), dict):
             block["column_reflow"]["page_proof"] = "matches_original"
@@ -245,9 +249,13 @@ def main():
             block = take(op["id"])
             set_text(block, op["html"], note)
             block["html_ja"], block["status"] = "", "untranslated"
-            for key in ("source_image",):
+            for key in ("source_image", "image_authoritative"):
                 block.pop(key, None)
-            mark(block, note)
+            if op.get("bbox"):
+                block["source_refs"] = [{"page": r[0], "bbox": r[1]} for r in op["bbox"]] \
+                    if isinstance(op["bbox"][0], list) and len(op["bbox"][0]) == 2 else \
+                    [{"page": block["source_page"], "bbox": op["bbox"]}]
+            mark(block, note, op.get("check"))
         else:
             raise SystemExit("unknown op " + kind)
 

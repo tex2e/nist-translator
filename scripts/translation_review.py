@@ -34,7 +34,7 @@ from nist_translater.storage import read_json, write_json  # noqa: E402
 from collections import Counter  # noqa: E402
 
 from nist_translater.translation import (  # noqa: E402
-    NORMATIVE, assert_same_html_structure, audit_translations, requirement_terms, source_text)
+    NORMATIVE, assert_same_html_structure, audit_translations, requirement_terms, source_requirement_text, source_text)
 
 MAX_FIX_ROUNDS = 2
 MAX_BATCH_CHARS = 45000
@@ -96,7 +96,7 @@ def _valid_fix(block, japanese):
                                    preserve_math=block["kind"] == "math")
     except ValueError:
         return False
-    return Counter(NORMATIVE.findall(japanese)) == requirement_terms(source_text(block))
+    return Counter(NORMATIVE.findall(japanese)) == requirement_terms(source_requirement_text(block))
 
 
 def apply(verdict_dir, issues_path, reviewer="claude"):
