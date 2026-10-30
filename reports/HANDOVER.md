@@ -29,6 +29,15 @@
 - 要約は `data/<資料>-summary.json`（`{number, model, created_at, summary, review}`）。Sonnet が 209 件を書き、codex が確認した（76 件は問題なし、133 件に指摘）。codex は資料の冒頭しか見ておらず、修正案は誤りが多かった。そのため指摘は自動で適用せず、Opus が全文と照らして最終判断した（keep 111、fix 22。`scripts/apply_summary_judgments.py`、`bulk-20261030/summaries/judge/`）。`build` は要約があればページと meta description に使う。
 - 「職員」は staff・employee・officials などの訳として残している（personnel の訳だけ「要員」）。
 - 60v2r1 の灰色の例外値は `<em>` で表している。
+- 10-31（公開の準備）
+  - **IEEE の転載部分を掲載しない**: 160v1r1 の付録 H〜J にある ISO/IEC/IEEE 15288 の各プロセスの目的文 30 件は、「Reprinted with permission from IEEE」の転載部分。データから英文・訳文を消し、ページには原本 PDF を参照する注記を出す（`third_party_excerpt`、`scripts/withhold_excerpts.py`）。
+  - **用語集の定義（未対応）**: 160v1r1 の用語集にある [4]（ISO 15288）出典の定義は、残したまま。
+  - **作業記録を追跡から外した**: `reports/work-in-progress/` は .gitignore に入れ、追跡から外した（手元には残る）。build_all.py は `scripts/` に移した。
+  - **履歴を書き換えた**: `git filter-repo` で全履歴から次を消した。
+    - `reports/work-in-progress/`
+    - 現行に無い `html/assets/` の画像（非掲載の標章・人物写真を含む）
+    - 160v1r1 の JSON・HTML の旧版
+  - **バックアップ**: 書き換え前の全履歴は `../nist-translator-backup-20261031.bundle`。
 
 ### 残作業（10-31 追加・保留中）
 - **NIST IR の翻訳**: 依頼者は NIST IR（Interagency or Internal Reports）の資料も翻訳したい。ただし実作業は依頼者の指示があるまで保留する。着手するときに決めること:
