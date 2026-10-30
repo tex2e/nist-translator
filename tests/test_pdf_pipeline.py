@@ -174,7 +174,7 @@ class PdfPipelineTests(unittest.TestCase):
             self.assertEqual(len(soup.select(".pair")), 4)
             self.assertEqual(soup.select_one(".source-ref a")["href"],
                              "https://example.test/source.pdf#page=1")
-            self.assertIn("NIST PDF 原文", soup.get_text())
+            self.assertIn("原文URL", soup.get_text())
             self.assertNotIn("NIST HTML 原文", soup.get_text())
 
     def test_cross_page_footnote_has_an_anchor_and_complete_page_range(self):
