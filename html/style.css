@@ -23,8 +23,9 @@ main { min-width: 0; padding: 1rem 0 4rem; }
 .pair p, .pair h2, .pair h3, .pair h4, .pair h5 { margin: .25rem 0; }
 .pair h2 { font-size: 1.55rem; }.pair h3 { font-size: 1.3rem; }.pair h4 { font-size: 1.12rem; }.pair h5 { font-size: 1rem; }
 .pair.heading { margin-top: 1.2rem; }
-.pair.list_item .english, .pair.list_item .japanese { position: relative; padding-left: 2.5rem; }
-.list-marker { position: absolute; left: 1rem; width: 1.1rem; color: var(--blue); text-align: right; }
+.list-line { display: flex; align-items: baseline; gap: .45em; }
+.list-marker { flex: 0 0 auto; min-width: 1.5em; color: var(--blue); text-align: right; white-space: nowrap; }
+.list-body { flex: 1 1 auto; min-width: 0; }
 .pair.list_item.depth-1 { margin-left: 1.5rem; }.pair.list_item.depth-2 { margin-left: 3rem; }
 .pair.note { background: transparent; border-left: 0; }
 .pair.definition_term { background: transparent; font-weight: 700; }
@@ -63,7 +64,7 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
   main { padding: 1.4rem 0 3rem; }.header-inner { padding: .6rem 1rem; }.site-header nav { gap: .7rem; }
 }
 @media (max-width: 650px) {
-  .pair > div { padding: .6rem 0; }.pair.list_item > div { padding-left: 1.5rem; }.list-marker { left: 0; width: 1rem; }.pair > .japanese { padding: .6rem 0 .8rem; }.pair.list_item > .japanese { padding-left: 1.5rem; }
+  .pair > div { padding: .6rem 0; }.pair > .japanese { padding: .6rem 0 .8rem; }
   .legend { display: none; }.site-header nav { font-size: .72rem; }.brand span { display: none; }
 }
 
@@ -82,3 +83,25 @@ section.pair > div { min-width: 0; overflow-x: auto; }
 /* Tables with many columns: keep words whole and let the column scroll sideways instead of breaking words letter by letter. */
 section.pair table { min-width: 34rem; }
 section.pair td, section.pair th { overflow-wrap: normal; word-break: normal; }
+
+/* 段落の左に表示する操作（リンクのコピー・原文 PDF） */
+section.pair[id], section.preserved-source[id] { position: relative; }
+.has-row-tools .source-ref { display: none; }
+.row > .row-tools, .row-tools { position: absolute; top: .4rem; right: 100%; margin-right: .3rem; display: flex; flex-direction: column; gap: 2px; z-index: 5;
+  width: auto; max-width: none; padding: 0; flex: none; }
+.row-tools a { display: block; min-width: 2.6rem; padding: 0 .3rem; font-size: 11px; line-height: 1.7; text-align: center; white-space: nowrap;
+  color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 4px; text-decoration: none; }
+.row-tools a:hover, .row-tools a:focus { color: var(--blue); background: #e9ecef; }
+.row-tools a[hidden] { display: none; }
+.pair:target, .preserved-source:target, .row-highlight { background-color: #fff8db; transition: background-color 2s ease-out; }
+.row-toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); padding: .4rem .9rem; border-radius: 6px;
+  background: rgba(33, 37, 41, .9); color: #fff; font-size: .85rem; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
+.row-toast.show { opacity: 1; }
+/* 左の余白が狭い画面では、段落の右上に横並びで表示する */
+@media (max-width: 1259.98px) {
+  .row > .row-tools, .row-tools { top: -.2rem; right: .5rem; margin-right: 0; flex-direction: row; }
+}
+/* 本文の幅をヘッダーにそろえ、左の余白に操作を表示できるようにする */
+@media (min-width: 1260px) {
+  .container#top { max-width: 1140px; }
+}
