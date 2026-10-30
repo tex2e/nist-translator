@@ -179,6 +179,20 @@ def release_date(spec):
     return value or ""
 
 
+def record_url(spec):
+    """The publication's CSRC page (e.g. https://csrc.nist.gov/pubs/sp/800/170/final), not the PDF."""
+    if spec.get("catalog_record_url"):
+        return spec["catalog_record_url"]
+    number = spec["number"].replace("SP ", "").replace(" (Update 1)", "")
+    catalog = read_json(ROOT / "data" / "sp800-final-catalog.json")
+    record = next((r for r in catalog["records"] if r.get("number") == number), None)
+    if record and record.get("record_url"):
+        return record["record_url"]
+    if spec.get("pdf_url", "").startswith("https://csrc.nist.gov/pubs/"):
+        return spec["pdf_url"]
+    return spec["source_url"] if spec.get("source_format", "html") != "pdf" else spec["pdf_url"]
+
+
 def build(document_key="63b"):
     spec = get_document(document_key)
     paths = document_paths(ROOT, document_key)
@@ -194,8 +208,7 @@ def build(document_key="63b"):
     document.setdefault("series", spec.get("series", "Digital Identity Guidelines · Revision 4"))
     document["home_url"] = spec.get("home_url", "index.html")
     document["release_date"] = release_date(spec)
-    # The original: the HTML page that was translated, or the official PDF (DOI)
-    document["orig_url"] = spec["source_url"] if spec.get("source_format", "html") != "pdf" else spec["pdf_url"]
+    document["orig_url"] = record_url(spec)
     summary_path = document_path.with_name(document_path.name.replace("-trans.json", "-summary.json"))
     document["summary"] = read_json(summary_path)["summary"] if summary_path.exists() else []
     audit_translations(document)

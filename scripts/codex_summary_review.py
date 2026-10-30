@@ -24,7 +24,10 @@ COMPANION = max(Path.home().glob(".claude/plugins/cache/openai-codex/codex/*/scr
 HIDDEN = ("page_furniture", "math_duplicate_of", "duplicate_artifact_of", "figure_text_of", "official_mark")
 
 RULES = """You check a short Japanese summary of a NIST publication for a bilingual reading site.
-Judge only from the document text given below (its opening part: abstract, purpose and scope, contents).
+Judge only from the document text given below: the full list of section headings and the opening text
+(abstract, purpose and scope). A statement about the topics the document covers is supported when the
+headings show those topics. Only flag a statement that contradicts the text or that nothing in it supports;
+do not rewrite a summary just to restate the opening paragraphs.
 Check: every statement is supported by the text (no invented facts, numbers, dates or claims);
 the first sentence names the document by its number; it is 3-4 sentences in polite です・ます style;
 terminology follows the Japanese translation excerpts shown; it does not present the site or the summary
@@ -34,19 +37,23 @@ Answer with ONLY a JSON object: {"verdict": "ok" or "issue", "note": "" or a sho
 """
 
 
-def opening_text(stem, limit=7000):
+def opening_text(stem, limit=9000):
+    """All section headings, then the opening body text (abstract, introduction, purpose and scope)."""
     document = json.loads((ROOT / "data" / (stem + "-trans.json")).read_text())
+    clean = lambda value: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html.unescape(value or ""))).strip()
+    visible = [b for b in document["contents"]
+               if not any(b.get(key) for key in HIDDEN) and b["kind"] not in ("figure", "code")]
+    headings = [clean(b["html"]) for b in visible if b["kind"] == "heading"][:400]
     english, japanese = [], []
-    for block in document["contents"]:
-        if any(block.get(key) for key in HIDDEN) or block["kind"] in ("figure", "code"):
-            continue
-        text = re.sub(r"<[^>]+>", " ", html.unescape(block["html"])).strip()
-        if text:
+    for block in visible:
+        text = clean(block["html"])
+        if text and block["kind"] != "heading":
             english.append(text)
-            japanese.append(re.sub(r"<[^>]+>", " ", html.unescape(block.get("html_ja") or "")).strip())
+            japanese.append(clean(block.get("html_ja")))
         if sum(len(t) for t in english) > limit:
             break
-    return "\n".join(english), "\n".join(japanese[:60])
+    return ("Section headings:\n" + "\n".join(headings) + "\n\nOpening text:\n" + "\n".join(english),
+            "\n".join(japanese[:60]))
 
 
 def review(path, out_dir, model):
