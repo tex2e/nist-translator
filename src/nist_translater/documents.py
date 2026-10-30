@@ -417,6 +417,7 @@ DOCUMENTS = {
         "source_url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-120.pdf",
         "pdf_url": "https://csrc.nist.gov/pubs/sp/800/120/final",
         "series": "NIST Special Publication · 2018年廃止・歴史資料",
+        "release_date": "2009-09",
     },
     "123": {
         "number": "SP 800-123",
@@ -2372,6 +2373,7 @@ DOCUMENTS = {
         "pdf_url": "https://doi.org/10.6028/NIST.SP.800-38A-Add",
         "catalog_record_url": "https://csrc.nist.gov/pubs/sp/800/38/a/sup/final",
         "series": "NIST Special Publication · PDF 原文抽出",
+        "release_date": "2010-10",
     },
     "83r1": {
         "number": "SP 800-83 Rev. 1",

@@ -218,6 +218,7 @@ def build_translation_index(root=ROOT):
     page_total = sum(progress["html_available"] for _, progress in progress_rows)
 
     html = PAGE.substitute(
+        site_header=(root / "templates" / "header.html").read_text(encoding="utf-8"),
         document_total=_format_number(len(records)),
         page_total=_format_number(page_total),
         created_total=_format_number(counts["created"] + counts["reviewed"]),

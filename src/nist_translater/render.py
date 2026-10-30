@@ -160,6 +160,9 @@ def build_site(document, meta, template_path, output_path):
         subtitle_ja=document.get("subtitle_ja", ""),
         description=document.get("description", "SP 800-63B の英文と日本語訳を段落ごとに並べた閲覧用ページです。"),
         source_url=document["source_url"], pdf_url=document.get("pdf_url", PDF_URL),
+        orig_url=document.get("orig_url") or document.get("pdf_url", PDF_URL),
+        release_date=document.get("release_date", ""),
+        summary=document.get("summary") or [],
         source_format=document.get("source_format", "html"),
         series=document.get("series", "Digital Identity Guidelines · Revision 4"),
         included_pages=document.get("included_pages", []),
@@ -180,7 +183,7 @@ def build_site(document, meta, template_path, output_path):
                          (block.get("extraction_status") == "needs_review" or
                           block.get("status") != "reviewed")
                          for block in document["contents"]),
-        fetched_at=fetched_at or "取得日不明", headings=headings,
+        fetched_at=fetched_at or "", headings=headings,
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
     output_path.write_text(page, encoding="utf-8")

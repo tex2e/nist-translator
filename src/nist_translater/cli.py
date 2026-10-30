@@ -162,6 +162,23 @@ def parse(document_key="63b", pages=None):
     print("%s translations requiring review: %d changed." % (spec["number"], changed))
 
 
+def release_date(spec):
+    """Publication date as YYYY-MM-DD (or YYYY-MM): the document entry, else the SP 800 catalog."""
+    from datetime import datetime
+    value = spec.get("release_date")
+    if not value:
+        number = spec["number"].replace("SP ", "").replace(" (Update 1)", "")
+        catalog = read_json(ROOT / "data" / "sp800-final-catalog.json")
+        record = next((r for r in catalog["records"] if r.get("number") == number), None)
+        value = record.get("release_date", "") if record else ""
+    for pattern in ("%m/%d/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(value, pattern).strftime("%Y-%m-%d")
+        except (TypeError, ValueError):
+            pass
+    return value or ""
+
+
 def build(document_key="63b"):
     spec = get_document(document_key)
     paths = document_paths(ROOT, document_key)
@@ -176,12 +193,18 @@ def build(document_key="63b"):
     document.setdefault("source_format", spec.get("source_format", "html"))
     document.setdefault("series", spec.get("series", "Digital Identity Guidelines · Revision 4"))
     document["home_url"] = spec.get("home_url", "index.html")
+    document["release_date"] = release_date(spec)
+    # The original: the HTML page that was translated, or the official PDF (DOI)
+    document["orig_url"] = spec["source_url"] if spec.get("source_format", "html") != "pdf" else spec["pdf_url"]
+    summary_path = document_path.with_name(document_path.name.replace("-trans.json", "-summary.json"))
+    document["summary"] = read_json(summary_path)["summary"] if summary_path.exists() else []
     audit_translations(document)
     output = output_path.parent
     output.mkdir(exist_ok=True)
     build_site(document, {"fetched_at": document.get("source_fetched_at")},
                ROOT / "templates" / "page.html", output_path)
     shutil.copyfile(ROOT / "static" / "style.css", output / "style.css")
+    shutil.copyfile(ROOT / "static" / "header.css", output / "header.css")
     if (ROOT / "static" / "vendor" / "katex").exists():
         shutil.copytree(ROOT / "static" / "vendor" / "katex", output / "vendor" / "katex", dirs_exist_ok=True)
     print("Built", output_path)

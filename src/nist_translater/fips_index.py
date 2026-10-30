@@ -83,6 +83,7 @@ def build_fips_index(root=ROOT):
     counts = Counter(progress["status"] for _, progress in rows)
     page = Template((root / "templates" / "fips-index.html").read_text(encoding="utf-8"))
     html = page.substitute(
+        site_header=(root / "templates" / "header.html").read_text(encoding="utf-8"),
         document_total=_format_number(len(records)),
         page_total=_format_number(sum(progress["html_available"] for _, progress in rows)),
         created_total=_format_number(counts["created"] + counts["reviewed"]),
