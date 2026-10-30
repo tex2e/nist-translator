@@ -39,16 +39,22 @@ def segments(html):
 def english_refs(html, numbers):
     found = []
     for start, end in segments(html):
-        for match in re.finditer(r"(?<=[a-z\)\]”’\"])([.,;:]?)(\d{1,3})(?=[\s.,;:)\]]|$)", html[start:end]):
-            punct, digits = match.group(1), match.group(2)
+        # after a lowercase letter or closing mark ("policies.7", "clients3"), or after punctuation
+        # that follows a word of two or more letters ending in a capital ("PII.38", "FISMA,1")
+        pattern = (r"(?<=[a-z\)\]”’\"])([.,;:]?)(\d{1,3})(?=[\s.,;:)\]]|$)"
+                   r"|(?<=[A-Za-z][A-Z])([.,;:])(\d{1,3})(?=[\s.,;:)\]]|$)")
+        for match in re.finditer(pattern, html[start:end]):
+            punct, digits = (match.group(1), match.group(2)) if match.group(2) else (match.group(3), match.group(4))
+            group = 2 if match.group(2) else 4
             before = html[start:end][:match.start()]
-            if punct and (not before or not re.search(r"[a-z\)\]”’\"]$", before)):
-                continue
+
             # "&#x27;" (a character reference) and version numbers ("IPv6", "IKEv2", "v1") are not references
-            if re.search(r"&#x?[0-9a-fA-F]*$", before) or re.search(r"(?:\b|[A-Z])v$", before):
+            # citation keys ("[Pon10]", "[Aye12]") are not references either
+            if (re.search(r"&#x?[0-9a-fA-F]*$", before) or re.search(r"(?:\b|[A-Z])v$", before)
+                    or re.search(r"\[[A-Za-z][\w\-.]*$", before)):
                 continue
             if int(digits) in numbers:
-                found.append((start + match.start(2), start + match.end(2), int(digits)))
+                found.append((start + match.start(group), start + match.end(group), int(digits)))
     return found
 
 
@@ -89,14 +95,24 @@ def footnotes(document):
     for block in document["contents"]:
         if any(block.get(k) for k in HIDDEN) or not block.get("source_page"):
             continue
-        if block["kind"] == "footnote":
-            match = re.match(r"\s*(?:<sup>)?(\d{1,3})\b", block["html"])
+        if block["kind"] == "footnote" or (block["kind"] == "math" and block["html"].lstrip().startswith("<sup>")):
+            match = re.match(r"\s*(?:<sup>)?(\d{1,3})(?=</sup>|\s|[A-Z(“\"\[]|https?:|<a\b)", block["html"])
         elif block["kind"] == "paragraph" and block.get("source_refs") and block["source_refs"][0]["bbox"][1] > 480:
-            match = re.match(r"\s*(\d{1,3})\s+(?=[A-Z(“\"]|https?:|<a\b)", block["html"])
+            match = re.match(r"\s*(\d{1,3})\s*(?=[A-Z(“\"]|https?:|<a\b)", block["html"])
         else:
             match = None
         if match:
-            numbers.setdefault(int(match.group(1)), {})[block["source_page"]] = block["id"]
+            n = int(match.group(1))
+            numbers.setdefault(n, {})[block["source_page"]] = block["id"]
+            # several footnotes extracted as one block: "137 Formerly ... test. 138 Additional ..."
+            text = block["html"][match.end():]
+            while True:
+                follow = re.search(r"[.)\]”\"]\s*(?:<sup>)?%d(?:</sup>)?\s*(?=[A-Z(“\"]|https?:|<a\b)" % (n + 1), text)
+                if not follow:
+                    break
+                n += 1
+                numbers.setdefault(n, {})[block["source_page"]] = block["id"]
+                text = text[follow.end():]
     return numbers
 
 
@@ -110,7 +126,10 @@ def process(path, apply, decisions, report, skip=frozenset()):
     numbers = footnotes(document)
     notes = {block_id for on in numbers.values() for block_id in on.values()}
     by_id = {block["id"]: block for block in document["contents"]}
-    already = {int(n) for b in document["contents"] for n in re.findall(r"<sup>(\d{1,3})</sup>", b["html"])}
+    # (number, page) pairs already marked; numbering can restart in a document, so this is per page
+    already = {(int(n), page) for b in document["contents"]
+               if b.get("source_page") and b["kind"] in KINDS and b["id"] not in notes
+               for n in re.findall(r"<sup>(\d{1,3})</sup>", b["html"]) for page in pages(b)}
     counts = {"auto": 0, "review": 0, "decided": 0}
     used = set()
     changed = False
@@ -120,11 +139,12 @@ def process(path, apply, decisions, report, skip=frozenset()):
             continue
         # the footnote is printed on the block's page, or on the next page when the text runs on
         near = pages(block) | {max(pages(block)) + 1}
-        here = {n for n, on in numbers.items() if set(on) & near and n not in already}
+        here = {n for n, on in numbers.items()
+                if set(on) & near and not any((n, page) in already for page in near)}
         refs = [r for r in english_refs(block["html"], here)
-                if r[2] not in used and (doc, block["id"], r[2]) not in skip]
+                if (r[2], min(set(numbers[r[2]]) & near)) not in used and (doc, block["id"], r[2]) not in skip]
         for start, end, n in sorted(refs, reverse=True):
-            used.add(n)
+            used.add((n, min(set(numbers[n]) & near)))
             english = block["html"][:start] + "<sup>%d</sup>" % n + block["html"][end:]
             without = block["html"][:start] + block["html"][end:]
             japanese = None
