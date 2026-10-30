@@ -124,6 +124,7 @@ def main():
     contents = document["contents"]
     blocks = {b["id"]: b for b in contents}
     archive, retired, touched, warnings = {}, [], {}, []
+    order_only = set()  # blocks only moved: keep their source references
     stamp = "原本画像と文字層で照合（%s）。" % spec.get("checked_by", "Claude Opus")
 
     def take(key):
@@ -232,6 +233,7 @@ def main():
             block["extraction_note"] = stamp + note
         elif kind == "order":
             moving = [take(key) for key in op["ids"]]
+            order_only.update(op["ids"])
             at = min(contents.index(b) for b in moving)
             for b in moving:
                 contents.remove(b)
@@ -272,8 +274,11 @@ def main():
         if block in contents:
             contents.remove(block)
     # Exact source references from the text layer where the text is found.
+    changed_ids = {op.get("id") or op.get("into") for op in spec["ops"] if op["op"] != "order"}
     for block in ([] if html_source else touched.values()):
         if block["kind"] in ("figure", "table") or block.get("page_furniture"):
+            continue
+        if block["id"] in order_only and block["id"] not in changed_ids:
             continue
         pages = sorted({r["page"] for r in block.get("source_refs", [])} | {block["source_page"]})
         pages = [p for p in range(min(pages), max(pages) + 2) if p <= len(locator.pdf.pages)]

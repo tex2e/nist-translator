@@ -80,6 +80,11 @@ def figure_region(source_sha256, page_number):
     return PROFILES.get(source_sha256, {}).get("figures", {}).get(page_number)
 
 
+def _warning_page(warning):
+    match = re.search(r"p\.(\d+)", warning)
+    return int(match.group(1)) if match else None
+
+
 def preserve_source_repairs(previous, current):
     """Retain recorded block/page repairs on reparse of the identical PDF.
 
@@ -136,8 +141,12 @@ def preserve_source_repairs(previous, current):
         current["extraction_partial"] = len(current["included_pages"]) != current["pdf_page_count"]
     from .source_quality import encoding_issues
     current["encoding_issues"] = encoding_issues(current)
+    # A page whose reading order was compared with the original no longer needs the
+    # "may be two-column" reminder.
+    order_checked = set(repair.get("reading_order_checked", []))
     current["extraction_warnings"] = [w for w in current.get("extraction_warnings", [])
-                                      if "置換文字" not in w]
+                                      if "置換文字" not in w
+                                      and not ("二段組" in w and _warning_page(w) in order_checked)]
     for issue in current["encoding_issues"]:
         current["extraction_warnings"].append(
             "PDF p.%s: %sに置換文字が%d箇所。原本照合と文字変換の修復が必要" %
