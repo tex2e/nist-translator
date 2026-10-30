@@ -84,6 +84,13 @@ def build_site(document, meta, template_path, output_path):
             continue
         item = dict(block)
         item["english_html"] = Markup(block["html"])
+        if block["kind"] == "list_item":
+            ordinal = str(block.get("ordinal") or "").strip()
+            if not block.get("ordered") or not ordinal:
+                item["list_marker"] = "•"
+            else:
+                # "2." or "(a)" already carry their punctuation; "2" and "ii" get a period
+                item["list_marker"] = ordinal if ordinal[-1] in ".)]" else ordinal + "."
         item["japanese_html"] = Markup(block["html_ja"])
         # An unverified table is shown as the image of the original; its
         # extracted text is offered below as an unchecked reference.
