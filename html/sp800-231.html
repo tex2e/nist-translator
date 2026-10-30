@@ -29,7 +29,7 @@
         <div class="doc-summary"><p>[要約] SP 800-231 は、ソフトウェアおよびハードウェアのセキュリティ弱点や脆弱性を明確に仕様化するための形式言語を特徴とする、セキュリティバグとフォールトの分類法「Bugs Framework（BF）」を示す文書です。BF の形式論、セキュリティ概念、バグモデル、分類法、脆弱性モデル、形式言語、セキュアコーディング原則、ツール、データセットとシステムを章立てで扱います。バグを実行フェーズの操作、フォールトを入力オペランド、エラーを出力結果によって整理し、セキュリティ上の弱点と脆弱性を曖昧さなく記述することを目的とします。</p></div>
         <p class="doc-disclaimer">有志による非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。要件の確認には<a href="https://doi.org/10.6028/NIST.SP.800-231">NIST の正式版 PDF</a>を参照してください。</p>
         <div class="metadata">
-<span>原文取得日: 2026-09-26</span>          <span>訳文: 556 / 559 ブロック</span>
+<span>原文取得日: 2026-09-26</span>          <span>訳文: 558 / 559 ブロック</span>
         </div>
         <div class="legend"><span>English / 原文</span><span>日本語 / 翻訳</span></div>
       </div>
@@ -2876,7 +2876,58 @@ ConvergingSymbol = ′⊕′;;</code></pre>
 <div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-231.pdf#page=47">原本 PDF p.47</a></div>          
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<span class="pending">原文のみ</span>        </div>
+<pre><code>Category = ′Weakness′ | ′Failure′;
+
+ClassType = ′_INP′ | ′_MEM′ | ′_DAT′ | ...;
+
+Class = ′DVL′ | ′DVR′ | ′MAD′ | ′MMN′ | ′MUS′ | ′DCL′ | ′NRS′ | ′TCV′ | ′TCM′ | ...;
+
+Operation = ′Validate′ | ′Sanitize′ | ′Verify′ | ′Correct′ | ′Initialize Pointer′ | ′Dereference′
+          | ′Reposition′ | ′Reassign′ | ′Allocate′ | ′Extend′ | ′Reallocate − Extend′
+          | ′Reallocate − Reduce′ | ′Reduce′ | ′Deallocate′ | ′Initialize Object′ | ′Read′
+          | ′Write′ | ′Clear′ | ′Declare′ | ′Define′ | ′Refer′ | ′Call′ | ′Cast′ | ′Coerce′
+          | ′Calculate′ | ′Evaluate′ | ...;
+
+BugType = ′Code Bug′ | ′Specification Bug′;
+
+Bug = ′Missing Code′ | ′Erroneous Code′ | ′Mismatched Operation′ | ...
+    | ′Under − Restrictive Policy′ | ′Over − Restrictive Policy′
+    | ′Missing Modifier′ | ′Wrong Modifier′
+    | ′AnonymousScope′ | ′WrongScope′
+    | ′Missing Qualifier′ | ′Wrong Qualifier′ | ...;
+
+FaultType = ′Name Fault′ | ′Data Fault′ | ′Type Fault′ | ′Address Fault′;
+
+Fault = ′Missing Overridden Function′ | ′Missing Overloaded Function′
+      | ′Wrong Object Resolved′ | ′Wrong Function Resolved′ | ...
+      | ′Corrupted Data′ | ′Tampered Data′ | ′Corrupted Policy Data′
+      | ′Tampered Policy Data′ | ′Invalid Data′ | ′NULL Pointer′
+      | ′Hardcoded Address′ | ′Single Owned Address′ | ′Wrong Index′ | ′Wrong Size′
+      | ′Flipped Sign′ | ′Wrong Argument′ | ′Reference vs. Dereference′ | ...
+      | ′Cast Pointer′ | ′Wrong Type′ | ′Wrong Index Type′ | ′Insufficient Size′
+      | ′Downcast Pointer′ | ′Wrong Argument Type′ | ′Wrong Object Type Resolved′ | ...
+      | ′Wild Pointer′ | ′Dangling Pointer′ | ′Untrusted Pointer′
+      | ′Overbound Pointer′ | ′Underbound Pointer′ | ′Wrong Position Pointer′ | ...;
+
+ErrorType = ′Name Error′ | ′Data Error′ | ′Type Error′ | ′Address Error′;
+
+FinalErrorType = ′Injection FinalError′ | ′Memory Corruption/Disclosure FinalError′ |
+                 ′Entity Access FinalError′;
+
+FinalError = ′Query Injection′ | ′Command Injection′ | ′Source Code Injection′ | ...
+           | ′NULL Pointer Dereference′ | ′Untrusted Pointer Dereference′
+           | ′Uninitialized Pointer Dereference′ | ′Memory Leak′ | ′Memory Overflow′
+           | ′Double Deallocate′ | ′Object Corruption′ | ′Not Cleared Object′
+           | ′Type Confusion′ | ′Use After Deallocate′ | ′Buffer Overflow′
+           | ′Buffer Underflow′ | ′Buffer Over − Read′ | ′Buffer Under − Read′
+           | ′Subtype Confusion′ | ′Undefined′ | ...;
+        ...
+
+CausationSymbol = ′→′;    SemicolonSymbol = ′;′;    LeftAngleSymbol = ′⟨′;
+ChainingSymbol = ′↷′;     CommaSymbol = ′,′;        RightAngleSymbol = ′⟩′;
+ConvergingSymbol = ′⊕′;
+
+(* 訳注: 原本の表記の誤りを直した。ClassType・FinalErrorType・Fault・RightAngleSymbol の終端の「;」を補い、Fault・FinalError の途中の「;」を除き、Operation の「′Evaluate′ ...」に「|」を補った。原本では SemicolonSymbol = ′:′、ConvergingSymbol = ′⊕′;; と印刷されている。 *)</code></pre>        </div>
       </section>
       <section class="row pair heading" id="pdf-p0048-b0007">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -2968,7 +3019,16 @@ SingleWeakness = ′⟨′, (Bug | Fault), ′,′, Operation, ′⟩′, ′→
 <div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-231.pdf#page=49">原本 PDF p.49</a></div>          
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<span class="pending">原文のみ</span>        </div>
+<pre><code>             S = Vulnerability, ′↷′, Failure;
+ Vulnerability = WeaknessChain, {′⊕′, WeaknessChain};
+ WeaknessChain = SingleWeakness
+               | FirstWeakness, {′↷′, Weakness}, ′↷′, LastWeakness;
+SingleWeakness = ′⟨′, (Bug | Fault), ′,′, Operation, ′⟩′, ′→′, FinalError;
+ FirstWeakness = ′⟨′, (Bug | Fault), ′,′, Operation, ′⟩′, ′→′, Error;
+      Weakness = ′⟨′, Fault, ′,′, Operation, ′⟩′, ′→′, Error;
+  LastWeakness = ′⟨′, Fault, ′,′, Operation, ′⟩′, ′→′, FinalError;
+
+(* 訳注: 原本では FirstWeakness の右辺の「(」が欠けている（Bug | Fault)）。 *)</code></pre>        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0049-r0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
