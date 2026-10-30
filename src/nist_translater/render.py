@@ -168,6 +168,8 @@ def build_site(document, meta, template_path, output_path):
         home_url=document.get("home_url", "index.html"),
         math_preservation=document.get("math_preservation"),
         math_pending=sum(block.get("kind") == "math" and
+                         not any(block.get(key) for key in ("math_duplicate_of", "duplicate_artifact_of",
+                                                            "page_furniture", "figure_text_of")) and
                          (block.get("extraction_status") == "needs_review" or
                           block.get("status") != "reviewed")
                          for block in document["contents"]),
