@@ -30,6 +30,15 @@
 - 「職員」は staff・employee・officials などの訳として残している（personnel の訳だけ「要員」）。
 - 60v2r1 の灰色の例外値は `<em>` で表している。
 
+### 残作業（10-31 追加・保留中）
+- **NIST IR の翻訳**: 依頼者は NIST IR（Interagency or Internal Reports）の資料も翻訳したい。ただし実作業は依頼者の指示があるまで保留する。着手するときに決めること:
+  - 対象の範囲（全件か、Final のみか、選んだ資料だけか）
+  - 一覧（`data/sp800-final-catalog.json`・`data/fips-final-catalog.json` と同じ形の IR 版）
+  - `documents.py` への登録
+  - 索引ページ（`fips-index.html` と同じく IR 用を作るか）
+  - 共通ヘッダーへのリンクの追加
+  - CSRC の紹介ページ URL の形（`https://csrc.nist.gov/pubs/ir/...`）の確認
+
 ## 2026-10-29 再開用チェックポイント（最新・全資料の一括作業）
 
 10-28 夜に、優先 7 資料以外の全資料を同じ体制（翻訳 Sonnet、レビュー codex、原本照合・数式・図・構造 Opus）で一括処理した。作業記録・指示書・修復指示はすべて [bulk-20261028](work-in-progress/bulk-20261028/) にある。
