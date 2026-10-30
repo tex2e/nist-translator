@@ -1019,7 +1019,7 @@ Python は `.venv/bin/python`。コマンドはリポジトリのルートで実
 
 ### 5.5 ページの再生成とテスト
 ```bash
-.venv/bin/python reports/work-in-progress/build_all.py [<key> ...]
+.venv/bin/python scripts/build_all.py [<key> ...]
 ```
 - 引数の key には `sp800-` を付けない（例：`22r1`）。
 

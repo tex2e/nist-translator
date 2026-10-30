@@ -78,6 +78,22 @@ def build_site(document, meta, template_path, output_path):
             if item["extraction_status"] == "needs_review":
                 item["extraction_pending"] = True
             continue
+        excerpt = block.get("third_party_excerpt")
+        if excerpt:
+            # Text another party owns, reprinted by NIST with permission: the data keeps
+            # no text, and the page shows a note that points to the original page.
+            item = dict(block)
+            item["english_html"] = Markup(
+                '<span class="withheld-mark">[Excerpt from %s, © %s — not reproduced on this unofficial site]</span>'
+                % (html.escape(excerpt["source"]), html.escape(excerpt["holder"])))
+            item["html_ja"] = "［%s からの引用。第三者（%s）の著作物のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % (
+                excerpt["source"], excerpt["holder"])
+            item["japanese_html"] = Markup(html.escape(item["html_ja"]))
+            item["status"] = "source_only"
+            if document.get("source_format") == "pdf" and block.get("source_page"):
+                item["source_page_url"] = document["source_url"] + "#page=%d" % block["source_page"]
+            visible.append(item)
+            continue
         # Empty extraction records have no source content to pair. Showing
         # "translation pending" for them creates misleading blank rows.
         if not block["html"].strip():

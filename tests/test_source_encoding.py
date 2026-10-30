@@ -232,7 +232,7 @@ class SourceEncodingTests(unittest.TestCase):
                 patch.object(cli, "build_translation_index", return_value="test index"), \
                 patch.object(sys, "argv", ["build_all.py", "47r1"]):
             with self.assertRaises(SystemExit) as error:
-                runpy.run_path(str(ROOT / "reports/work-in-progress/build_all.py"))
+                runpy.run_path(str(ROOT / "scripts/build_all.py"))
             self.assertEqual(error.exception.code, 1)
 
     def test_all_recorded_repaired_blocks_survive_a_raw_reparse(self):
