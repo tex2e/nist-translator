@@ -77,6 +77,11 @@ def _entries(root):
     return sorted(entries, key=lambda entry: entry["order"])
 
 
+def _asset_version():
+    from .render import asset_version
+    return asset_version()
+
+
 def build_translation_index(root=ROOT):
     root = Path(root).resolve()
     entries = _entries(root)
@@ -84,6 +89,8 @@ def build_translation_index(root=ROOT):
     fips_total = sum(entry["series"] == "fips" for entry in entries)
     html = PAGE.substitute(
         site_header=(Path(__file__).resolve().parents[2] / "templates" / "header.html").read_text(encoding="utf-8"),
+        asset_version=_asset_version(),
+        theme_init=(Path(__file__).resolve().parents[2] / "templates" / "theme-init.html").read_text(encoding="utf-8"),
         all_total=_format_number(len(entries)),
         sp_total=_format_number(sp_total),
         fips_total=_format_number(fips_total),

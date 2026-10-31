@@ -24,6 +24,17 @@ OFFICIAL_MARKS = {
 }
 
 
+def asset_version():
+    """Short hash of the site's CSS, added to its URL so browsers fetch a changed file."""
+    import hashlib
+    from pathlib import Path
+    static = Path(__file__).resolve().parents[2] / "static"
+    digest = hashlib.sha256()
+    for name in ("style.css", "header.css"):
+        digest.update((static / name).read_bytes())
+    return digest.hexdigest()[:10]
+
+
 def build_site(document, meta, template_path, output_path):
     assert_publishable_source(document)
     audit_translations(document)
@@ -199,7 +210,7 @@ def build_site(document, meta, template_path, output_path):
                          (block.get("extraction_status") == "needs_review" or
                           block.get("status") != "reviewed")
                          for block in document["contents"]),
-        fetched_at=fetched_at or "", headings=headings,
+        fetched_at=fetched_at or "", headings=headings, asset_version=asset_version(),
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
     output_path.write_text(page, encoding="utf-8")
