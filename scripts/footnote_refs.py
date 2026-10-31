@@ -95,10 +95,14 @@ def footnotes(document):
     for block in document["contents"]:
         if any(block.get(k) for k in HIDDEN) or not block.get("source_page"):
             continue
-        if block["kind"] == "footnote" or (block["kind"] == "math" and block["html"].lstrip().startswith("<sup>")):
-            match = re.match(r"\s*(?:<sup>)?(\d{1,3})(?=</sup>|\s|[A-Z(“\"\[]|https?:|<a\b)", block["html"])
-        elif block["kind"] == "paragraph" and block.get("source_refs") and block["source_refs"][0]["bbox"][1] > 480:
-            match = re.match(r"\s*(\d{1,3})\s*(?=[A-Z(“\"]|https?:|<a\b)", block["html"])
+        head = r"\s*(?:<p>)?\s*(?:<sup>)?(\d{1,3})(?:</sup>)?"
+        text_follows = r"(?=\s|[A-Z(“\"\[]|https?:|<a\b)"
+        if block["kind"] == "footnote":
+            match = re.match(head + text_follows, block["html"])
+        elif block["kind"] in ("math", "paragraph") and block.get("source_refs") and (
+                block["source_refs"][0]["bbox"][1] > 480 or block["html"].lstrip().startswith(("<sup>", "<p><sup>"))):
+            # a footnote extracted as math or body text: "56 The XOR operation ...", "<sup>2</sup>For ..."
+            match = re.match(head + r"\s*(?=[A-Z(“\"\[]|https?:|<a\b)", block["html"])
         else:
             match = None
         if match:
@@ -107,7 +111,7 @@ def footnotes(document):
             # several footnotes extracted as one block: "137 Formerly ... test. 138 Additional ..."
             text = block["html"][match.end():]
             while True:
-                follow = re.search(r"[.)\]”\"]\s*(?:<sup>)?%d(?:</sup>)?\s*(?=[A-Z(“\"]|https?:|<a\b)" % (n + 1), text)
+                follow = re.search(r"[.)\]”\"]\s*(?:<sup>)?%d(?:</sup>)?\s*(?=[A-Z(“\"\[]|https?:|<a\b)" % (n + 1), text)
                 if not follow:
                     break
                 n += 1
