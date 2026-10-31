@@ -171,7 +171,7 @@ def build_site(document, meta, template_path, output_path):
             item["english_html"] = Markup(
                 '<span class="withheld-mark">[Excerpt from %s, © %s — not reproduced on this unofficial site]</span>'
                 % (html.escape(excerpt["source"]), html.escape(excerpt["holder"])))
-            item["html_ja"] = "［%s からの引用。第三者（%s）の著作物のため、この非公式サイトには掲載していない。原本 PDF を参照。］" % (
+            item["html_ja"] = "［%s からの引用。第三者（%s）の著作物のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］" % (
                 excerpt["source"], excerpt["holder"])
             item["japanese_html"] = Markup(html.escape(item["html_ja"]))
             item["status"] = "source_only"
@@ -221,7 +221,7 @@ def build_site(document, meta, template_path, output_path):
                 item["figure_description"] = (
                     (described.get("alt", "") + " " if described and
                      block["official_mark"] not in {"nist_logo", "doc_seal"} else "") +
-                    "［%s。%s、この非公式サイトには掲載していない。原本 PDF を参照。］" % (name_ja, reason))
+                    "［%s。%s、この非公式サイトには掲載していません。原本 PDF を参照してください。］" % (name_ja, reason))
         elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""

@@ -27,7 +27,7 @@ HIDDEN = ("page_furniture", "duplicate_artifact_of", "math_duplicate_of", "figur
 TAGGER = fugashi.Tagger()
 
 # the ending after the predicate: requirement keywords, closing brackets, then "。"
-TAIL = re.compile(r"(\s*(?:\[[^\]\n。]{1,60}\])*\s*(?:[（(][A-Za-z][A-Za-z ]{1,14}[）)])?(?:\[[^\]\n。]{1,60}\])*[」』）)]*。)")
+TAIL = re.compile(r"(\s*(?:\[[^\]\n。]{1,60}\])*\s*(?:[（(][A-Za-z][A-Za-z ]{1,14}[）)])?(?:\s*（[^（）。]{1,80}）)?(?:\[[^\]\n。]{1,60}\])*[」』）)]*。)")
 # masu-stem of a godan verb from its dictionary-form ending
 GODAN = {"う": "い", "く": "き", "ぐ": "ぎ", "す": "し", "つ": "ち", "ぬ": "に", "ぶ": "び", "む": "み", "る": "り"}
 
@@ -198,6 +198,8 @@ def convert_text(text, stats):
 
 
 SKIP_TAGS = ("code", "pre", "script", "math", "style")
+# inline and display LaTeX in prose blocks (kind "math" holds whole paragraphs with formulas)
+LATEX = re.compile(r"\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$", re.S)
 
 
 def convert_html(markup, stats):
@@ -219,6 +221,7 @@ def convert_html(markup, stats):
                 depth += -1 if part.startswith("</") else 1
             continue
         text = part if depth <= 0 else " " * len(part)   # formulas/code: blank, so never edited
+        text = LATEX.sub(lambda m: "式" + " " * (len(m.group()) - 1), text)   # LaTeX: never edited
         texts.append(text)
         starts.append(position)
         owners.append(index)
@@ -257,7 +260,7 @@ def main():
         document = json.loads(path.read_text())
         stats = {"sentences": 0, "converted": 0, "left": 0}
         for block in document["contents"]:
-            if any(block.get(k) for k in HIDDEN) or block.get("kind") in ("heading", "code", "math") \
+            if any(block.get(k) for k in HIDDEN) or block.get("kind") in ("heading", "code") \
                     or block.get("status") not in ("draft", "reviewed") or not block.get("html_ja"):
                 continue
             new = convert_html(block["html_ja"], stats)

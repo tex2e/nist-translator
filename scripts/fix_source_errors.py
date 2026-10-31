@@ -12,9 +12,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-NOTE_GX = "［訳注: 原本では末尾の「3」が欠けた 134 桁で印刷されている。同じ項目の 16 進値から求めた 135 桁の値に直した。］"
+NOTE_GX = "［訳注: 原本では末尾の「3」が欠けた 134 桁で印刷されています。同じ項目の 16 進値から求めた 135 桁の値に直しました。］"
 NOTE_SEC = "［訳注: 原本では「Section 3.2.2.1」。W-25519 は第3.2.1.6節で規定されている（第3.2.2.1節は Curve25519）。］"
-NOTE_D19 = "［訳注: 原本では「D.1.9.4」。D.1.9 の唯一の小節のため D.1.9.1 とした。］"
+NOTE_D19 = "［訳注: 原本では「D.1.9.4」。D.1.9 の唯一の小節のため D.1.9.1 としました。］"
 
 EBNF_47_FIXES = [
     ("ClassType = ′_INP′ | ′_MEM′ | ′_DAT′ | ...\n", "ClassType = ′_INP′ | ′_MEM′ | ′_DAT′ | ...;\n"),
@@ -30,11 +30,11 @@ EBNF_47_FIXES = [
     ("RightAngleSymbol = ′⟩′\n", "RightAngleSymbol = ′⟩′;\n"),
     ("ConvergingSymbol = ′⊕′;;", "ConvergingSymbol = ′⊕′;"),
 ]
-NOTE_47 = ("\n\n(* 訳注: 原本の表記の誤りを直した。ClassType・FinalErrorType・Fault・RightAngleSymbol の終端の「;」を補い、"
-           "Fault・FinalError の途中の「;」を除き、Operation の「′Evaluate′ ...」に「|」を補った。"
-           "原本では SemicolonSymbol = ′:′、ConvergingSymbol = ′⊕′;; と印刷されている。 *)")
+NOTE_47 = ("\n\n(* 訳注: 原本の表記の誤りを直しました。ClassType・FinalErrorType・Fault・RightAngleSymbol の終端の「;」を補い、"
+           "Fault・FinalError の途中の「;」を除き、Operation の「′Evaluate′ ...」に「|」を補いました。"
+           "原本では SemicolonSymbol = ′:′、ConvergingSymbol = ′⊕′;; と印刷されています。 *)")
 EBNF_49_FIXES = [("FirstWeakness = ′⟨′, Bug | Fault), ", "FirstWeakness = ′⟨′, (Bug | Fault), ")]
-NOTE_49 = "\n\n(* 訳注: 原本では FirstWeakness の右辺の「(」が欠けている（Bug | Fault)）。 *)"
+NOTE_49 = "\n\n(* 訳注: 原本では FirstWeakness の右辺の「(」が欠けています（Bug | Fault)）。 *)"
 
 
 def replace(text, old, new):
