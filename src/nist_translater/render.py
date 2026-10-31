@@ -61,6 +61,43 @@ def table_break_points(markup):
     return str(soup) if changed else markup
 
 
+SECTION_NUMBER = __import__("re").compile(
+    r"^\s*(?:(?:Appendix|Annex|Chapter|Section|Part)\s+)?([A-Z]|\d{1,2})((?:\.\d{1,3})*)\.?(?=\s|$|[:.])")
+
+
+def heading_text(markup):
+    """Plain heading text for the table of contents (inline TeX shown without its delimiters)."""
+    import re
+    text = " ".join(BeautifulSoup(markup or "", "html.parser").stripped_strings)
+    return re.sub(r"\\[()\[\]]", "", text).strip()
+
+
+def toc_entries(headings):
+    """Table-of-contents entries with a depth taken from the printed section number.
+
+    Heading levels in the data differ between documents (FIPS 203 has "1." and "1.1" at the
+    same level), so "3" is depth 1, "3.1" depth 2 and "A.1" depth 2. A heading without a
+    number is depth 1 before the first numbered heading (front matter) and otherwise one
+    step below the numbered heading before it.
+    """
+    entries, last = [], None
+    for heading in headings:
+        if not heading["text"]:
+            continue
+        match = SECTION_NUMBER.match(heading["text"])
+        # a lone capital letter counts only as an appendix label ("A", "A.1", "Appendix B")
+        if match and match.group(1).isalpha() and not match.group(2) and not \
+                heading["text"].lstrip().lower().startswith(("appendix", "annex")):
+            match = None
+        if match:
+            depth = 1 + match.group(2).count(".")
+            last = depth
+        else:
+            depth = 1 if last is None else min(last + 1, 4)
+        entries.append(dict(heading, depth=min(depth, 4)))
+    return entries
+
+
 def asset_version():
     """Short hash of the site's CSS, added to its URL so browsers fetch a changed file."""
     import hashlib
@@ -204,9 +241,9 @@ def build_site(document, meta, template_path, output_path):
             item["status"] = "missing"
         visible.append(item)
         if block["kind"] == "heading":
-            headings.append({"id": block["id"], "text": " ".join(
-                BeautifulSoup(block["html"], "html.parser").stripped_strings),
-                "level": block["level"]})
+            headings.append({"id": block["id"], "text": heading_text(block["html"]),
+                             "text_ja": heading_text(item["html_ja"] or block["html"]),
+                             "level": block["level"]})
 
     env = Environment(
         loader=FileSystemLoader(str(template_path.parent)),
@@ -247,7 +284,7 @@ def build_site(document, meta, template_path, output_path):
                          (block.get("extraction_status") == "needs_review" or
                           block.get("status") != "reviewed")
                          for block in document["contents"]),
-        fetched_at=fetched_at or "", headings=headings, asset_version=asset_version(),
+        fetched_at=fetched_at or "", headings=headings, toc=toc_entries(headings), asset_version=asset_version(),
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
     output_path.write_text(page, encoding="utf-8")

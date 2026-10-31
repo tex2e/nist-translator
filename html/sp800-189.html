@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-189 は、ドメイン間ルーティング制御トラフィックの保護、IP アドレス偽装の防止、DoS/DDoS の検知と緩和の一部の側面について、初期指針を示します。BGP のプレフィックス乗っ取り、AS パスの改変、経路リークといった脆弱性と、送信元アドレスの偽装や反射・増幅攻撃を整理し、RPKI、BGP 起源検証、プレフィックスフィルタリング、送信元アドレス検証などの対策を推奨します。BGP の異常による DoS、通信の迂回、性能低下や、偽装アドレスを用いた大規模な DDoS 攻撃を背景とし、リモートトリガー型ブラックホール（RTBH）、Flowspec などの技術も補完策として挙げます。">
   <title>耐障害性のあるインタードメイン・トラフィック交換：BGPセキュリティとDDoS緩和 | NIST SP 800-189 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=78021e0423">
-  <link rel="stylesheet" href="header.css?v=78021e0423">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=7a1a7fcd3a">
+  <link rel="stylesheet" href="header.css?v=7a1a7fcd3a">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -57,7 +57,91 @@
       if (saved === null) set(event.matches);
     });
   })();
-</script>  <div class="container" id="top">
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Resilient Interdomain Traffic Exchange:" data-search="レジリエントなドメイン間トラフィック交換： resilient interdomain traffic exchange:">レジリエントなドメイン間トラフィック交換：</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="BGP Security and DDoS Mitigation" data-search="bgpセキュリティとddos緩和 bgp security and ddos mitigation">BGPセキュリティとDDoS緩和</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0006" title="C O M P U T E R S E C U R I T Y" data-search="コンピュータセキュリティ c o m p u t e r s e c u r i t y">コンピュータセキュリティ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="Resilient Interdomain Traffic Exchange:" data-search="レジリエントなドメイン間トラフィック交換： resilient interdomain traffic exchange:">レジリエントなドメイン間トラフィック交換：</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="BGP Security and DDoS Mitigation" data-search="bgpセキュリティとddos緩和 bgp security and ddos mitigation">BGPセキュリティとDDoS緩和</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-r0001" title="Authority" data-search="権限 authority">権限</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告 reports on computer systems technology">コンピュータシステム技術に関する報告</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0006" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-r0001" title="Executive Summary" data-search="エグゼクティブサマリー executive summary">エグゼクティブサマリー</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0002" title="1.1 What This Guide Covers" data-search="1.1 本ガイドの対象範囲 1.1 what this guide covers">1.1 本ガイドの対象範囲</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0006" title="1.2 What This Guide Does Not Cover" data-search="1.2 本ガイドで扱わない事項 1.2 what this guide does not cover">1.2 本ガイドで扱わない事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0001" title="1.3 Document Structure" data-search="1.3 文書の構成 1.3 document structure">1.3 文書の構成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0007" title="1.4 Conventions Used in this Guide" data-search="1.4 本ガイドで使用する表記規則 1.4 conventions used in this guide">1.4 本ガイドで使用する表記規則</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001" title="2 Control Plane/BGP Vulnerabilities" data-search="2 制御プレーン／bgpの脆弱性 2 control plane/bgp vulnerabilities">2 制御プレーン／BGPの脆弱性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0002" title="2.1 Prefix Hijacking and Announcement of Unallocated Address Space" data-search="2.1 プレフィックス乗っ取りと未割当アドレス空間の広告 2.1 prefix hijacking and announcement of unallocated address space">2.1 プレフィックス乗っ取りと未割当アドレス空間の広告</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0002" title="2.2 AS Path Modification" data-search="2.2 asパスの改変 2.2 as path modification">2.2 ASパスの改変</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0005" title="2.3 Route Leaks" data-search="2.3 経路リーク 2.3 route leaks">2.3 経路リーク</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="3 IP Address Spoofing &amp; Reflection Amplification Attacks" data-search="3 ipアドレス偽装と反射・増幅攻撃 3 ip address spoofing &amp; reflection amplification attacks">3 IPアドレス偽装と反射・増幅攻撃</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="3.1 Spoofed Source Addresses" data-search="3.1 送信元アドレスの偽装 3.1 spoofed source addresses">3.1 送信元アドレスの偽装</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0004" title="3.2 Reflection Amplification Attacks" data-search="3.2 反射・増幅攻撃 3.2 reflection amplification attacks">3.2 反射・増幅攻撃</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0020-b0001" title="4 Control Plane/BGP Security – Solutions and Recommendations" data-search="4 制御プレーン／bgpのセキュリティ対策と推奨事項 4 control plane/bgp security – solutions and recommendations">4 制御プレーン／BGPのセキュリティ対策と推奨事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0003" title="4.1 Registration of Route Objects in Internet Routing Registries" data-search="4.1 インターネットルーティングレジストリへの経路オブジェクト登録 4.1 registration of route objects in internet routing registries">4.1 インターネットルーティングレジストリへの経路オブジェクト登録</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0006" title="4.2 Certification of Resources in Resource Public Key Infrastructure" data-search="4.2 リソース公開鍵基盤におけるリソースの認証 4.2 certification of resources in resource public key infrastructure">4.2 リソース公開鍵基盤におけるリソースの認証</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0023-b0001" title="4.3 BGP Origin Validation (BGP-OV)" data-search="4.3 bgp起源検証（bgp-ov） 4.3 bgp origin validation (bgp-ov)">4.3 BGP起源検証（BGP-OV）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0027-b0006" title="4.3.1 Forged-Origin Hijacks – How to Minimize Them" data-search="4.3.1 偽装起源による乗っ取りを最小限に抑える方法 4.3.1 forged-origin hijacks – how to minimize them">4.3.1 偽装起源による乗っ取りを最小限に抑える方法</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0028-b0002" title="4.4 Categories of Prefix Filters" data-search="4.4 プレフィックスフィルターの分類 4.4 categories of prefix filters">4.4 プレフィックスフィルターの分類</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0028-b0005" title="4.4.1 Unallocated Prefixes" data-search="4.4.1 未割当プレフィックス 4.4.1 unallocated prefixes">4.4.1 未割当プレフィックス</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0029-b0002" title="4.4.2 Special Purpose Prefixes" data-search="4.4.2 特別用途プレフィックス 4.4.2 special purpose prefixes">4.4.2 特別用途プレフィックス</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0029-b0005" title="4.4.3 Prefixes Owned by an AS" data-search="4.4.3 asが所有するプレフィックス 4.4.3 prefixes owned by an as">4.4.3 ASが所有するプレフィックス</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0029-b0008" title="4.4.4 Prefixes that Exceed a Specificity Limit" data-search="4.4.4 具体性の上限を超えるプレフィックス 4.4.4 prefixes that exceed a specificity limit">4.4.4 具体性の上限を超えるプレフィックス</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0030-b0001" title="4.4.5 Default Route" data-search="4.4.5 デフォルト経路 4.4.5 default route">4.4.5 デフォルト経路</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0030-b0004" title="4.4.6 IXP LAN Prefixes" data-search="4.4.6 ixp lanプレフィックス 4.4.6 ixp lan prefixes">4.4.6 IXP LANプレフィックス</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0030-b0008" title="4.5 Prefix Filtering for Peers of Different Types" data-search="4.5 異なる種類のピアに対するプレフィックスフィルタリング 4.5 prefix filtering for peers of different types">4.5 異なる種類のピアに対するプレフィックスフィルタリング</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0030-b0011" title="4.5.1 Prefix Filtering with Lateral Peer" data-search="4.5.1 ラテラルピアとのプレフィックスフィルタリング 4.5.1 prefix filtering with lateral peer">4.5.1 ラテラルピアとのプレフィックスフィルタリング</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0031-b0015" title="4.5.2 Prefix Filtering with Transit Provider" data-search="4.5.2 トランジットプロバイダとのプレフィックスフィルタリング 4.5.2 prefix filtering with transit provider">4.5.2 トランジットプロバイダとのプレフィックスフィルタリング</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0032-b0004" title="4.5.3 Prefix Filtering with Customer" data-search="4.5.3 顧客とのプレフィックスフィルタリング 4.5.3 prefix filtering with customer">4.5.3 顧客とのプレフィックスフィルタリング</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0032-b0012" title="4.5.4 Prefix Filtering Performed in a Leaf Customer Network" data-search="4.5.4 リーフ顧客ネットワークで行うプレフィックスフィルタリング 4.5.4 prefix filtering performed in a leaf customer network">4.5.4 リーフ顧客ネットワークで行うプレフィックスフィルタリング</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0033-b0008" title="4.6 Role of RPKI in Prefix Filtering" data-search="4.6 プレフィックスフィルタリングにおけるrpkiの役割 4.6 role of rpki in prefix filtering">4.6 プレフィックスフィルタリングにおけるRPKIの役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0033-b0011" title="4.7 AS Path Validation (Emerging/Future)" data-search="4.7 asパス検証（新興技術／将来技術） 4.7 as path validation (emerging/future)">4.7 ASパス検証（新興技術／将来技術）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0035-b0006" title="4.8 Checking AS Path for Disallowed AS Numbers" data-search="4.8 使用を許可しないas番号のasパス検査 4.8 checking as path for disallowed as numbers">4.8 使用を許可しないAS番号のASパス検査</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0035-b0009" title="4.9 Route Leak Solution" data-search="4.9 経路リーク対策 4.9 route leak solution">4.9 経路リーク対策</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0036-b0007" title="4.10 Generalized TTL Security Mechanism (GTSM)" data-search="4.10 generalized ttl security mechanism（gtsm） 4.10 generalized ttl security mechanism (gtsm)">4.10 Generalized TTL Security Mechanism（GTSM）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0037-b0004" title="4.11 Default External BGP Route Propagation Behavior without Policies" data-search="4.11 ポリシー未設定時のデフォルトの外部bgp経路伝播動作 4.11 default external bgp route propagation behavior without policies">4.11 ポリシー未設定時のデフォルトの外部BGP経路伝播動作</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0038-b0001" title="5 Securing Against DDoS &amp; Reflection Amplification – Solutions and Recommendations 19" data-search="5 ddos&amp;リフレクション増幅攻撃への対策：解決策と推奨事項 19 5 securing against ddos &amp; reflection amplification – solutions and recommendations 19">5 DDoS&amp;リフレクション増幅攻撃への対策：解決策と推奨事項 19</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0038-b0003" title="5.1 Source Address Validation Techniques" data-search="5.1 送信元アドレス検証（sav）の技術 5.1 source address validation techniques">5.1 送信元アドレス検証（SAV）の技術</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0038-b0006" title="5.1.1 SAV Using Access Control Lists" data-search="5.1.1 アクセス制御リストを用いたsav 5.1.1 sav using access control lists">5.1.1 アクセス制御リストを用いたSAV</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0039-b0002" title="5.1.2 SAV Using Strict Unicast Reverse Path Forwarding" data-search="5.1.2 厳格なユニキャスト逆方向パス転送を用いたsav 5.1.2 sav using strict unicast reverse path forwarding">5.1.2 厳格なユニキャスト逆方向パス転送を用いたSAV</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0040-b0001" title="5.1.3 SAV Using Feasible-Path Unicast Reverse Path Forwarding" data-search="5.1.3 実行可能パス方式のユニキャスト逆方向パス転送を用いたsav 5.1.3 sav using feasible-path unicast reverse path forwarding">5.1.3 実行可能パス方式のユニキャスト逆方向パス転送を用いたSAV</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0041-b0002" title="5.1.4 SAV Using Loose Unicast Reverse Path Forwarding" data-search="5.1.4 緩やかなユニキャスト逆方向パス転送を用いたsav 5.1.4 sav using loose unicast reverse path forwarding">5.1.4 緩やかなユニキャスト逆方向パス転送を用いたSAV</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0041-b0004" title="5.1.5 SAV Using VRF Table" data-search="5.1.5 vrfテーブルを用いたsav 5.1.5 sav using vrf table">5.1.5 VRFテーブルを用いたSAV</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0041-b0006" title="5.1.6 SAV Using Enhanced Feasible-Path uRPF (Emerging/Future)" data-search="5.1.6 強化実行可能パスurpfを用いたsav（新興技術／将来技術） 5.1.6 sav using enhanced feasible-path urpf (emerging/future)">5.1.6 強化実行可能パスuRPFを用いたSAV（新興技術／将来技術）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0042-b0004" title="5.1.7 More Effective Mitigation with Combination of Origin Validation and SAV" data-search="5.1.7 起源検証とsavの組合せによる、より効果的な緩和 5.1.7 more effective mitigation with combination of origin validation and sav">5.1.7 起源検証とSAVの組合せによる、より効果的な緩和</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0043-b0004" title="5.2 SAV Recommendations for Various Types of Networks" data-search="5.2 各種ネットワークに対するsavの推奨事項 5.2 sav recommendations for various types of networks">5.2 各種ネットワークに対するSAVの推奨事項</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0043-r0002" title="5.2.1 Customer with Directly Connected Allocated Address Space: Broadband and Wireless Service Providers" data-search="5.2.1 直接接続された割当てアドレス空間を持つ顧客：ブロードバンドおよび無線サービスプロバイダ 5.2.1 customer with directly connected allocated address space: broadband and wireless service providers">5.2.1 直接接続された割当てアドレス空間を持つ顧客：ブロードバンドおよび無線サービスプロバイダ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0044-b0001" title="5.2.2 Enterprise Border Routers" data-search="5.2.2 企業のボーダールータ 5.2.2 enterprise border routers">5.2.2 企業のボーダールータ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0044-b0007" title="5.2.3 Internet Service Providers" data-search="5.2.3 インターネットサービスプロバイダ 5.2.3 internet service providers">5.2.3 インターネットサービスプロバイダ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0045-b0007" title="5.3 Role of RPKI in Source Address Validation" data-search="5.3 送信元アドレス検証におけるrpkiの役割 5.3 role of rpki in source address validation">5.3 送信元アドレス検証におけるRPKIの役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0046-r0002" title="5.4 Monitoring UDP/TCP Ports with Vulnerable Applications and Employing Traffic Filtering" data-search="5.4 脆弱なアプリケーションを持つudp/tcpポートの監視とトラフィックフィルタリングの適用 5.4 monitoring udp/tcp ports with vulnerable applications and employing traffic filtering">5.4 脆弱なアプリケーションを持つUDP/TCPポートの監視とトラフィックフィルタリングの適用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0049-b0006" title="5.5 BGP Flow Specification (Flowspec)" data-search="5.5 bgpフロー仕様（flowspec） 5.5 bgp flow specification (flowspec)">5.5 BGPフロー仕様（Flowspec）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0052-r0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0055-b0002" title="[DOCSIS]" data-search="[docsis] [docsis]">[DOCSIS]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0055-b0008" title="[ENISA]" data-search="[enisa] [enisa]">[ENISA]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0055-b0016" title="[FORT]" data-search="[fort] [fort]">[FORT]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0056-b0021" title="[IETF-IDR]" data-search="[ietf-idr] [ietf-idr]">[IETF-IDR]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0064-b0024" title="[SP800-53]" data-search="[sp800-53] [sp800-53]">[SP800-53]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0064-b0027" title="[SP800-54]" data-search="[sp800-54] [sp800-54]">[SP800-54]</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0067-r0001" title="Appendix A—Consolidated List of Security Recommendations" data-search="付録a—セキュリティ推奨事項の一覧 appendix a—consolidated list of security recommendations">付録A—セキュリティ推奨事項の一覧</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0079-r0001" title="Appendix B— Acronyms" data-search="付録b—略語 appendix b— acronyms">付録B—略語</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
     <main>
       <div class="intro">
         <div class="doc-panel" role="region" aria-label="資料の情報">
@@ -5484,6 +5568,85 @@ BGPセキュリティとDDoS緩和</h2>        </div>
         toastBox.textContent = message; toastBox.classList.add("show");
         clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
       }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
     })();
   </script>
 </body>
