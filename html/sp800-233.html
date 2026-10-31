@@ -3644,7 +3644,7 @@ NIST SP 800-233</h2>        </div>
     </main>
   </div>
   <script>
-    // 段落にマウスを乗せたとき、左側に「リンク」「原文」を表示する（rfc-translater と同じ操作）
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
     (function () {
       var main = document.querySelector("main");
       if (!main) return;
@@ -3652,7 +3652,12 @@ NIST SP 800-233</h2>        </div>
       var tools = document.createElement("div");
       tools.className = "row-tools";
       tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
-        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>';
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "SP 800-233";
       var current = null;
       main.addEventListener("mouseover", function (event) {
         var row = event.target.closest("section.pair[id], section.preserved-source[id]");
@@ -3663,6 +3668,7 @@ NIST SP 800-233</h2>        </div>
         orig.hidden = !source;
         if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
         tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
         row.appendChild(tools);
       });
       tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
@@ -3679,6 +3685,37 @@ NIST SP 800-233</h2>        </div>
           window.prompt("リンク", url);
         }
       });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
