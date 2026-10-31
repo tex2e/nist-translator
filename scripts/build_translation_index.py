@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate html/index.html from the SP 800 Final catalog and translation JSONs."""
+"""Generate the top page (html/index.html): the searchable list of SP 800 and FIPS pages."""
 
 import sys
 from pathlib import Path
