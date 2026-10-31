@@ -15,7 +15,9 @@ The requirement keywords after a predicate ("（SHALL）") are kept as they are.
 import argparse
 import glob
 import json
+import os
 import re
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import fugashi
@@ -190,14 +192,51 @@ def sentence_edits(text, stats):
     return edits
 
 
+CONTRAST = ("が", "けれども", "けれど")
+
+
+def clause_edits(text, stats):
+    """(start, end, replacement) for each contrast clause ("…だが、" → "…ですが、", "…するが、" →
+    "…しますが、"). Clauses with ので・から・ため and 連用中止 ("…であり、") stay plain, as is
+    usual in です・ます text."""
+    edits, cursor, sentence_start = [], 0, 0
+    previous = None
+    for word in TAGGER(text):
+        position = text.find(word.surface, cursor)
+        if position < 0:
+            continue
+        cursor = position + len(word.surface)
+        if "。" in word.surface:
+            sentence_start = cursor
+        # only "…が、": without the comma the clause often modifies a noun ("関連するが追加的な機能")
+        is_contrast = word.feature.pos2 == "接続助詞" and word.surface in CONTRAST \
+            and text[cursor:cursor + 1] in ("、", "，")
+        if is_contrast and previous is not None and (previous.feature.cForm or "").startswith("終止形"):
+            body = text[sentence_start:position]
+            if body.strip() and not re.search(r"(です|ます|でした|ました|ません|でしょう)$", body):
+                converted = convert_predicate(body)
+                if converted is None and previous.feature.pos1 == "形容詞":
+                    converted = body + "です"          # 高いが → 高いですが (natural mid-sentence)
+                stats["clauses"] = stats.get("clauses", 0) + 1
+                if converted is not None:
+                    common = 0
+                    while common < min(len(body), len(converted)) and body[common] == converted[common]:
+                        common += 1
+                    edits.append((sentence_start + common, position, converted[common:]))
+                    stats["clauses_converted"] = stats.get("clauses_converted", 0) + 1
+        previous = word
+    return edits
+
+
 def convert_text(text, stats):
     """Convert every sentence ending in a plain string (used for tests)."""
-    for start, end, replacement in reversed(sentence_edits(text, stats)):
+    for start, end, replacement in reversed(sorted(sentence_edits(text, stats) + clause_edits(text, stats))):
         text = text[:start] + replacement + text[end:]
     return text
 
 
 SKIP_TAGS = ("code", "pre", "script", "math", "style")
+FILLER = "\ue000"   # private-use character: not whitespace, not "。"
 # inline and display LaTeX in prose blocks (kind "math" holds whole paragraphs with formulas)
 LATEX = re.compile(r"\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$", re.S)
 
@@ -220,15 +259,17 @@ def convert_html(markup, stats):
             if name and name.group(1).lower() in SKIP_TAGS and not part.endswith("/>"):
                 depth += -1 if part.startswith("</") else 1
             continue
-        text = part if depth <= 0 else " " * len(part)   # formulas/code: blank, so never edited
-        text = LATEX.sub(lambda m: "式" + " " * (len(m.group()) - 1), text)   # LaTeX: never edited
+        # formulas/code: replaced by a filler of the same length, so never edited. The filler is
+        # not whitespace: a long run of spaces makes the sentence pattern backtrack for minutes.
+        text = part if depth <= 0 else FILLER * len(part)
+        text = LATEX.sub(lambda m: "式" + FILLER * (len(m.group()) - 1), text)
         texts.append(text)
         starts.append(position)
         owners.append(index)
         position += len(text)
     full = "".join(texts)
     per_part = {}
-    for start, end, replacement in sentence_edits(full, stats):
+    for start, end, replacement in sorted(sentence_edits(full, stats) + clause_edits(full, stats)):
         slot = max(i for i, s in enumerate(starts) if s <= start)
         if end > starts[slot] + len(texts[slot]):
             stats["converted"] -= 1   # the predicate spans a tag: leave it
@@ -246,34 +287,44 @@ def convert_html(markup, stats):
     return "".join(parts)
 
 
+def convert_document(path, apply):
+    """Convert one data file; returns (name, stats). Runs in a worker process."""
+    document = json.loads(path.read_text())
+    stats = {"sentences": 0, "converted": 0, "left": 0}
+    for block in document["contents"]:
+        if any(block.get(k) for k in HIDDEN) or block.get("kind") in ("heading", "code") \
+                or block.get("status") not in ("draft", "reviewed") or not block.get("html_ja"):
+            continue
+        new = convert_html(block["html_ja"], stats)
+        if apply and new != block["html_ja"]:
+            block["html_ja"] = new
+    if apply:
+        path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
+    return path.name[:-len("-trans.json")], stats
+
+
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("--apply", action="store_true")
     cli.add_argument("--report", type=Path)
+    cli.add_argument("--jobs", type=int, default=os.cpu_count(), help="worker processes (default: all cores)")
     cli.add_argument("docs", nargs="*")
     args = cli.parse_args()
     paths = [ROOT / "data" / (d + "-trans.json") for d in args.docs] or \
         [Path(p) for p in sorted(glob.glob(str(ROOT / "data" / "*-trans.json")))]
+    # Each document is independent. Processes, not threads: the work is pure Python under the GIL.
+    # Largest files first, so one big document does not run alone at the end.
+    paths.sort(key=lambda p: p.stat().st_size, reverse=True)
     total = {"sentences": 0, "converted": 0, "left": 0}
     report = {}
-    for path in paths:
-        document = json.loads(path.read_text())
-        stats = {"sentences": 0, "converted": 0, "left": 0}
-        for block in document["contents"]:
-            if any(block.get(k) for k in HIDDEN) or block.get("kind") in ("heading", "code") \
-                    or block.get("status") not in ("draft", "reviewed") or not block.get("html_ja"):
-                continue
-            new = convert_html(block["html_ja"], stats)
-            if args.apply and new != block["html_ja"]:
-                block["html_ja"] = new
-        if args.apply:
-            path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n")
-        for key in total:
-            total[key] += stats[key]
-        report[path.name[:-len("-trans.json")]] = stats
+    with ProcessPoolExecutor(max(1, args.jobs)) as pool:
+        for name, stats in pool.map(convert_document, paths, [args.apply] * len(paths)):
+            for key in total:
+                total[key] += stats[key]
+            report[name] = stats
     print(total, "converted %.1f%%" % (100 * total["converted"] / max(total["sentences"], 1)))
     if args.report:
-        args.report.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n")
+        args.report.write_text(json.dumps(dict(sorted(report.items())), ensure_ascii=False, indent=1) + "\n")
 
 
 if __name__ == "__main__":

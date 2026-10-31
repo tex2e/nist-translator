@@ -230,9 +230,9 @@ class SourceEncodingTests(unittest.TestCase):
         cli = importlib.import_module("nist_translater.cli")
         with patch.object(cli, "build", side_effect=ValueError("Replacement character")), \
                 patch.object(cli, "build_translation_index", return_value="test index"), \
-                patch.object(sys, "argv", ["build_all.py", "47r1"]):
+                patch.object(sys, "argv", ["build_all.py", "--jobs", "1", "47r1"]):
             with self.assertRaises(SystemExit) as error:
-                runpy.run_path(str(ROOT / "scripts/build_all.py"))
+                runpy.run_path(str(ROOT / "scripts/build_all.py"), run_name="__main__")
             self.assertEqual(error.exception.code, 1)
 
     def test_all_recorded_repaired_blocks_survive_a_raw_reparse(self):
