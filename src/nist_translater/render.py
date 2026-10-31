@@ -245,6 +245,22 @@ def build_site(document, meta, template_path, output_path):
                              "text_ja": heading_text(item["html_ja"] or block["html"]),
                              "level": block["level"]})
 
+    # The original's printed table of contents: each line links to its heading, indented by
+    # section depth, without the page number (display only; the data is unchanged).
+    from .printed_toc import printed_toc
+    printed_toc_lines = printed_toc(visible)
+    for item in visible:
+        line = printed_toc_lines.get(item["id"])
+        if not line:
+            continue
+        item["toc_depth"] = line["depth"]
+        for side, text in (("english_html", line["en"]), ("japanese_html", line["ja"] if item.get("html_ja") else "")):
+            if not text:
+                continue
+            body = html.escape(text)
+            item[side] = Markup('<a class="ptoc-link" href="#%s">%s</a>' % (html.escape(line["target"]), body)
+                                if line["target"] else '<span class="ptoc-text">%s</span>' % body)
+
     env = Environment(
         loader=FileSystemLoader(str(template_path.parent)),
         autoescape=select_autoescape(["html"]),
