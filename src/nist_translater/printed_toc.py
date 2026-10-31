@@ -13,12 +13,17 @@ from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
-TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples))\s*$", re.I)
-# a page number at the end of a line: "— 12", "......... iv", " A-3", " 12"
-PAGE = re.compile(r"\s*(?:\.{2,}|…+|[—–]|\s)\s*(?:[ivxlcdm]{1,7}|\d{1,4}|[A-Z]-\d{1,3})\s*$", re.I)
+TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples|appendices))\s*$", re.I)
+# a page number at the end of a line: "— 12", "......... iv", " A-3", chapter-page "....2-3" (also cut off as "1-")
+PAGE = re.compile(r"\s*(?:\.{2,}|…+|[—–]|\s)\s*(?:[ivxlcdm]{1,7}|\d{1,4}(?:-\d{0,3})?|[A-Z]-\d{1,3})\s*$", re.I)
 NUMBER = re.compile(r"^\s*(?:(?:Appendix|Annex|Chapter|Section)\s+)?([A-Z]|\d{1,2})((?:\.\d{1,3})*)\.?(?=\s|$|[:.]|(?<=\d)[A-Z][a-z])", re.I)
 WORD_NUMBERS = ("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN")
-LABEL = re.compile(r"^\s*(Table|Figure|Algorithm|Example)\s+([A-Z]?-?\d+(?:[.-]\d+)*)", re.I)
+LABEL = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*([A-Z]?-?\d+(?:[.-]\d+)*)", re.I)
+
+
+def label_name(name):
+    name = name.lower().rstrip(".")
+    return "figure" if name == "fig" else name
 
 
 def plain(markup):
@@ -43,7 +48,7 @@ def entry_key(text):
         return ("number", str(WORD_NUMBERS.index(chapter.group(1).upper()) + 1))
     label = LABEL.match(text)
     if label:
-        return ("label", "%s %s" % (label.group(1).lower(), label.group(2).lower()))
+        return ("label", "%s %s" % (label_name(label.group(1)), label.group(2).lower()))
     number = NUMBER.match(text)
     if number and (number.group(2) or number.group(1).isdigit()
                    or text.lstrip().lower().startswith(("appendix", "annex", "section"))):
@@ -81,7 +86,7 @@ def find_targets(blocks, start):
         keys = [entry_key(text), ("title", words(text)), ("title", words(NUMBER.sub("", text)))]
         label = LABEL.match(text)
         if label:
-            keys.append(("label", "%s %s" % (label.group(1).lower(), label.group(2).lower())))
+            keys.append(("label", "%s %s" % (label_name(label.group(1)), label.group(2).lower())))
         bucket = headings if block["kind"] == "heading" else others
         if block["kind"] != "heading" and len(text) > 150 and not label:
             continue
@@ -92,7 +97,7 @@ def find_targets(blocks, start):
     return headings
 
 
-CAPTION = re.compile(r"^\s*(Table|Figure|Algorithm|Example)\s+[A-Z]?-?\d+(?:[.-]\d+)*\s*(?:[.:–—-]|$)", re.I)
+CAPTION = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*[A-Z]?-?\d+(?:[.-]\d+)*\s*(?:[.:–—-]|$)", re.I)
 
 
 def choose(candidates, entry):
@@ -136,6 +141,23 @@ def is_toc_title(blocks, index):
     return False
 
 
+# where one entry ends and the next begins in a line that holds several entries:
+# a dot leader or dash with its page number, then a section number or label
+# the page number is taken whole (an atomic group), so "...... 31 Fig. 3-2" never starts an entry "31"
+SPLIT = re.compile(r"(?:(?:\s*\.){3,}|…+|\s[—–])\s*(?>(?:[ivxlcdm]{1,7}|\d{1,4}(?:-\d{0,3})?|[A-Z]-\d{1,3})?)\s+"
+                   r"(?=(?:\d{1,2}(?:\.\d{1,3})*\.?|[A-Z]\.\d{1,3}(?:\.\d{1,3})*|Appendix|Annex|Figure|Fig\.|Table)\s)", re.I)
+
+
+def split_entries(text):
+    """Several TOC entries extracted as one paragraph, split back into entries."""
+    parts, start = [], 0
+    for match in SPLIT.finditer(text):
+        parts.append(text[start:match.end()].strip())
+        start = match.end()
+    parts.append(text[start:].strip())
+    return [part for part in parts if part]
+
+
 def printed_toc(blocks):
     """{block id: {"depth", "target", "en", "ja"}} for the lines of the printed TOC.
 
@@ -154,20 +176,34 @@ def printed_toc(blocks):
             text = plain(candidate.get("html"))
             if is_toc_title(blocks, cursor):
                 break  # the next list ("List of Figures") starts here
-            if candidate["kind"] not in ("paragraph", "list_item", "heading") or not (PAGE.search(text) or LEADER.search(text)):
+            if candidate["kind"] not in ("paragraph", "list_item", "heading") or not (
+                    PAGE.search(text) or LEADER.search(text) or len(split_entries(text)) > 1):
                 break
             lines.append(candidate)
             cursor += 1
         toc_ids = {line["id"] for line in lines} | {block["id"]}
         rest = [b for b in blocks[cursor:] + blocks[:index] if b["id"] not in toc_ids]
         targets = find_targets(rest, 0)
-        for line in lines:
-            text = strip_page(plain(line["html"]))
+
+        def entry(text, japanese):
+            text = strip_page(text)
             key = entry_key(text)
             target = choose(targets.get(key, []), text)
             if target is None:
                 target = choose(targets.get(("title", words(NUMBER.sub("", LABEL.sub("", text)))), []), text)
-            result[line["id"]] = {"depth": min(depth_of(key), 4), "target": target, "en": text,
-                                  "ja": strip_page(plain(line.get("html_ja"))) or text}
+            return {"depth": min(depth_of(key), 4), "target": target, "en": text,
+                    "ja": strip_page(japanese) if japanese else text, "key": key}
+
+        for line in lines:
+            english = split_entries(plain(line["html"]))
+            japanese = split_entries(plain(line.get("html_ja"))) if line.get("html_ja") else []
+            if len(japanese) != len(english):
+                # pair by section number when the Japanese split differently; otherwise show the English
+                by_key = {entry_key(strip_page(part)): part for part in japanese}
+                japanese = [by_key.get(entry_key(strip_page(part)), "") for part in english] \
+                    if len(english) > 1 else [plain(line.get("html_ja"))]
+            entries = [entry(part, ja) for part, ja in zip(english, japanese or [""] * len(english))]
+            first = entries[0]
+            result[line["id"]] = dict(first, entries=entries)
         index = cursor
     return result

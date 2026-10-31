@@ -257,13 +257,19 @@ def build_site(document, meta, template_path, output_path):
         line = printed_toc_lines.get(item["id"])
         if not line:
             continue
-        item["toc_depth"] = line["depth"]
-        for side, text in (("english_html", line["en"]), ("japanese_html", line["ja"] if item.get("html_ja") else "")):
-            if not text:
+        entries = line.get("entries") or [line]
+        # one entry: the row is indented; several entries in one block: each line is indented
+        item["toc_depth"] = line["depth"] if len(entries) == 1 else "multi"
+        for side, field in (("english_html", "en"), ("japanese_html", "ja")):
+            if side == "japanese_html" and not item.get("html_ja"):
                 continue
-            body = html.escape(text)
-            item[side] = Markup('<a class="ptoc-link" href="#%s">%s</a>' % (html.escape(line["target"]), body)
-                                if line["target"] else '<span class="ptoc-text">%s</span>' % body)
+            parts = []
+            for entry in entries:
+                body = html.escape(entry[field] or entry["en"])
+                depth = "" if len(entries) == 1 else " ptoc-line ptoc-line-depth-%d" % entry["depth"]
+                parts.append('<a class="ptoc-link%s" href="#%s">%s</a>' % (depth, html.escape(entry["target"]), body)
+                             if entry["target"] else '<span class="ptoc-text%s">%s</span>' % (depth, body))
+            item[side] = Markup("".join(parts))
 
     env = Environment(
         loader=FileSystemLoader(str(template_path.parent)),

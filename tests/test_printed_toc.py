@@ -45,6 +45,21 @@ class PrintedTocTests(unittest.TestCase):
         toc = printed_toc(blocks)
         self.assertEqual({key: value["target"] for key, value in toc.items()}, {"l1": "h1", "l2": "c"})
 
+    def test_chapter_page_numbers_and_merged_lines(self):
+        self.assertEqual(strip_page("2.1 Frequency (Monobit) Test........ 2-2"), "2.1 Frequency (Monobit) Test")
+        blocks = [
+            block("t", "heading", "Table of Contents"),
+            block("m", "paragraph", "1. Introduction ......1-1 1.1 General Discussion ......1-1 Fig. 3-1 Overview ...... 31",
+                  "1. はじめに ......1-1 1.1 概論 ......1-1 Fig. 3-1 概要 ...... 31"),
+            block("h1", "heading", "1. Introduction"),
+            block("h2", "heading", "1.1 General Discussion"),
+            block("f", "figure", "<p>Figure 3-1 Overview</p>"),
+        ]
+        entries = printed_toc(blocks)["m"]["entries"]
+        self.assertEqual([(e["en"], e["ja"], e["depth"], e["target"]) for e in entries],
+                         [("1. Introduction", "1. はじめに", 1, "h1"), ("1.1 General Discussion", "1.1 概論", 2, "h2"),
+                          ("Fig. 3-1 Overview", "Fig. 3-1 概要", 1, "f")])
+
 
 if __name__ == "__main__":
     unittest.main()
