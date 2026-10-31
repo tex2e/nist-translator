@@ -117,6 +117,25 @@ def choose(candidates, entry):
     return None
 
 
+BARE_TITLE = re.compile(r"^\s*(figures|tables|algorithms|examples)\s*$", re.I)
+
+
+def is_toc_title(blocks, index):
+    """A title of the printed TOC or of a list of figures/tables. Some were extracted as
+    paragraphs, and some documents use a bare "Figures" or "Tables"; a bare title counts
+    only when the next line looks like a TOC line."""
+    block = blocks[index]
+    if block["kind"] not in ("heading", "paragraph", "list_item"):
+        return False
+    text = plain(block.get("html"))
+    if TOC_HEADING.match(text):
+        return True
+    if BARE_TITLE.match(text) and index + 1 < len(blocks):
+        following = plain(blocks[index + 1].get("html"))
+        return bool(PAGE.search(following) or LEADER.search(following))
+    return False
+
+
 def printed_toc(blocks):
     """{block id: {"depth", "target", "en", "ja"}} for the lines of the printed TOC.
 
@@ -125,16 +144,16 @@ def printed_toc(blocks):
     result = {}
     index = 0
     while index < len(blocks):
-        block = blocks[index]
-        if not (block["kind"] == "heading" and TOC_HEADING.match(plain(block["html"]))):
+        if not is_toc_title(blocks, index):
             index += 1
             continue
+        block = blocks[index]
         lines, cursor = [], index + 1
         while cursor < len(blocks):
             candidate = blocks[cursor]
             text = plain(candidate.get("html"))
-            if candidate["kind"] == "heading" and TOC_HEADING.match(text):
-                break
+            if is_toc_title(blocks, cursor):
+                break  # the next list ("List of Figures") starts here
             if candidate["kind"] not in ("paragraph", "list_item", "heading") or not (PAGE.search(text) or LEADER.search(text)):
                 break
             lines.append(candidate)

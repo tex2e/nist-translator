@@ -247,8 +247,12 @@ def build_site(document, meta, template_path, output_path):
 
     # The original's printed table of contents: each line links to its heading, indented by
     # section depth, without the page number (display only; the data is unchanged).
-    from .printed_toc import printed_toc
+    from .printed_toc import is_toc_title, printed_toc
     printed_toc_lines = printed_toc(visible)
+    for index, item in enumerate(visible):
+        # "Contents", "List of Figures" extracted as a paragraph: shown like a heading
+        if item["kind"] != "heading" and is_toc_title(visible, index):
+            item["toc_title"] = True
     for item in visible:
         line = printed_toc_lines.get(item["id"])
         if not line:

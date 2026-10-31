@@ -31,6 +31,20 @@ class PrintedTocTests(unittest.TestCase):
                          {"l1": (1, "h1"), "l2": (2, "h2"), "l3": (1, "c")})
         self.assertEqual(toc["l2"]["ja"], "1.1 目的")
 
+    def test_titles_extracted_as_paragraphs_and_bare_list_titles(self):
+        blocks = [
+            block("t", "paragraph", "Contents"),
+            block("l1", "paragraph", "1. Introduction — 1"),
+            block("f", "paragraph", "Figures"),
+            block("l2", "paragraph", "Figure 1: Overview — 8"),
+            block("x", "paragraph", "Figures"),   # a bare "Figures" in body text is not a list title
+            block("y", "paragraph", "These figures show the flow."),
+            block("h1", "heading", "1. Introduction"),
+            block("c", "figure", "<p>Figure 1: Overview</p>"),
+        ]
+        toc = printed_toc(blocks)
+        self.assertEqual({key: value["target"] for key, value in toc.items()}, {"l1": "h1", "l2": "c"})
+
 
 if __name__ == "__main__":
     unittest.main()
