@@ -16,7 +16,7 @@ class MailContinuationTests(unittest.TestCase):
         self.assertNotIn('pdf-p0025-b0001',bs)
         self.assertEqual([r['page'] for r in merged['source_refs']],[24,25])
         self.assertIn('by any number of parties.',merged['html'])
-        self.assertIn('任意の数の主体が署名できる。',merged['html_ja'])
+        self.assertIn('任意の数の主体が署名できます。',merged['html_ja'])
         archive={b['id']:b for b in d['source_repairs']['original_blocks']}
         self.assertIn('pdf-p0025-b0001',archive)
         self.assertIn('pdf-p0024-b0008',archive)
