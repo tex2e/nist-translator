@@ -60,6 +60,26 @@ class PrintedTocTests(unittest.TestCase):
                          [("1. Introduction", "1. はじめに", 1, "h1"), ("1.1 General Discussion", "1.1 概論", 2, "h2"),
                           ("Fig. 3-1 Overview", "Fig. 3-1 概要", 1, "f")])
 
+    def test_untitled_toc_title_lines_and_page_styles(self):
+        self.assertEqual(strip_page("Executive Summary ............ ES-1"), "Executive Summary")
+        self.assertEqual(strip_page("Appendix D— Acquisition .......... D–1"), "Appendix D— Acquisition")
+        self.assertEqual(strip_page("2.1 System Description………....………A.1-5"), "2.1 System Description")
+        blocks = [
+            block("cover", "paragraph", "Standard for Personal Identity Verification"),
+            block("a", "paragraph", "1. Introduction . . . . . . . . . . 1"),
+            block("b", "paragraph", "1.1 Purpose . . . . . . . . . . 1"),
+            block("c", "paragraph", "2.0 Basis . . . . . . . . . . 3"),
+            block("d", "paragraph", "2.1 Scope . . . . . . . . . . 4"),
+            block("t", "heading", "Table of Contents"),
+            block("x", "paragraph", "Federal Information Processing Standards Publication 204"),
+            block("y", "heading", "Specification for the Standard"),
+            block("e", "paragraph", "1 Introduction 1"),
+            block("f", "paragraph", "1.1 Purpose and Scope . . . . . . . . 1"),
+        ]
+        toc = printed_toc(blocks)
+        self.assertEqual({key: value["depth"] for key, value in toc.items()},
+                         {"a": 1, "b": 2, "c": 1, "d": 2, "e": 1, "f": 2})
+
 
 if __name__ == "__main__":
     unittest.main()

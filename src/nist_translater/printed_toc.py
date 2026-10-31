@@ -13,10 +13,10 @@ from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
-TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples|appendices))\s*$", re.I)
+TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples|appendices)(\s+and\s+(tables|figures|algorithms|examples))?)\s*$", re.I)
 # a page number at the end of a line: "— 12", "......... iv", " A-3", chapter-page "....2-3" (also cut off as "1-")
-PAGE = re.compile(r"\s*(?:\.{2,}|…+|[—–]|\s)\s*(?:[ivxlcdm]{1,7}|\d{1,4}(?:-\d{0,3})?|[A-Z]-\d{1,3})\s*$", re.I)
-NUMBER = re.compile(r"^\s*(?:(?:Appendix|Annex|Chapter|Section)\s+)?([A-Z]|\d{1,2})((?:\.\d{1,3})*)\.?(?=\s|$|[:.]|(?<=\d)[A-Z][a-z])", re.I)
+PAGE = re.compile(r"\s*(?:(?:\s*[.…]){2,}|\.|…+|[—–]|\s)\s*(?:[A-Z]{1,3}[-–]\d{1,3}|[A-Z]\.\d{1,2}-\d{1,3}|\d{1,4}(?:-\d{0,3})?|[ivxlcdm]{1,7}\b)\s*$", re.I)
+NUMBER = re.compile(r"^\s*(?:(?:Appendix|Annex|Chapter|Section)\s+)?([A-Z]|\d{1,2})((?:\.\s?\d{1,3})*)\.?(?=\s|$|[:.]|(?<=\d)[A-Z][a-z])", re.I)
 WORD_NUMBERS = ("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN")
 LABEL = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*([A-Z]?-?\d+(?:[.-]\d+)*)", re.I)
 
@@ -30,7 +30,7 @@ def plain(markup):
     return re.sub(r"\s+", " ", " ".join(BeautifulSoup(markup or "", "html.parser").stripped_strings)).strip()
 
 
-LEADER = re.compile(r"(?:\s*(?:\.\s*){2,}|\s*…+)\s*$")
+LEADER = re.compile(r"(?:\s*(?:[.…]\s*){2,}|\s*…+)\s*$")
 
 
 def strip_page(text):
@@ -52,13 +52,14 @@ def entry_key(text):
     number = NUMBER.match(text)
     if number and (number.group(2) or number.group(1).isdigit()
                    or text.lstrip().lower().startswith(("appendix", "annex", "section"))):
-        return ("number", (number.group(1) + number.group(2)).upper())
+        return ("number", (number.group(1) + number.group(2).replace(" ", "")).upper())
     return ("title", re.sub(r"[^a-z0-9]+", " ", text.lower()).strip())
 
 
 def depth_of(key):
     if key[0] == "number":
-        return 1 + key[1].count(".")
+        # "2.0" is how some documents number chapter 2
+        return 1 + re.sub(r"(\.0)+$", "", key[1]).count(".")
     return 1
 
 
@@ -81,6 +82,9 @@ def find_targets(blocks, start):
     headings, others = {}, {}
     for block in blocks[start:]:
         text = plain(block.get("html"))
+        if not text and block["kind"] == "figure":
+            image = BeautifulSoup(block.get("html") or "", "html.parser").find("img")
+            text = (image.get("alt") or "").strip() if image else ""
         if not text:
             continue
         keys = [entry_key(text), ("title", words(text)), ("title", words(NUMBER.sub("", text)))]
@@ -122,7 +126,7 @@ def choose(candidates, entry):
     return None
 
 
-BARE_TITLE = re.compile(r"^\s*(figures|tables|algorithms|examples)\s*$", re.I)
+BARE_TITLE = re.compile(r"^\s*(figures|tables|algorithms|examples|appendices|appendixes)\s*$", re.I)
 
 
 def is_toc_title(blocks, index):
@@ -144,8 +148,8 @@ def is_toc_title(blocks, index):
 # where one entry ends and the next begins in a line that holds several entries:
 # a dot leader or dash with its page number, then a section number or label
 # the page number is taken whole (an atomic group), so "...... 31 Fig. 3-2" never starts an entry "31"
-SPLIT = re.compile(r"(?:(?:\s*\.){3,}|…+|\s[—–])\s*(?>(?:[ivxlcdm]{1,7}|\d{1,4}(?:-\d{0,3})?|[A-Z]-\d{1,3})?)\s+"
-                   r"(?=(?:\d{1,2}(?:\.\d{1,3})*\.?|[A-Z]\.\d{1,3}(?:\.\d{1,3})*|Appendix|Annex|Figure|Fig\.|Table)\s)", re.I)
+SPLIT = re.compile(r"(?:(?:\s*[.…]){3,}|…+|\s[—–])\s*(?>(?:[A-Z]{1,3}[-–]\d{1,3}|[A-Z]\.\d{1,2}-\d{1,3}|\d{1,4}(?:-\d{0,3})?|[ivxlcdm]{1,7}\b)?)\s+"
+                   r"(?=(?:\d{1,2}(?:\.\d{1,3})*\.?|[A-Z]\.\d{1,3}(?:\.\d{1,3})*\.?|Appendix|Annex|Figure|Fig\.|Table)\s|付録|付属書|附属書|図|表|第)", re.I)
 
 
 def split_entries(text):
@@ -158,6 +162,40 @@ def split_entries(text):
     return [part for part in parts if part]
 
 
+DOTTED = re.compile(r"(?:[.…]\s*){3,}\s*(?:[A-Z]{1,3}[-–]\d{1,3}|[A-Z]\.\d{1,2}-\d{1,3}|\d{1,4}(?:-\d{0,3})?|[ivxlcdm]{1,7}\b)?\s*$", re.I)
+
+
+def toc_line(block):
+    text = plain(block.get("html"))
+    return block["kind"] in ("paragraph", "list_item", "heading", "math") and bool(PAGE.search(text) or DOTTED.search(text))
+
+
+def solid_line(blocks, index):
+    """A line that is surely a TOC entry: a dot leader or a dash before the page number, or a
+    page number with another TOC line right after it. The document title repeated under the
+    TOC title ("... Standards Publication 204") ends in a number but is followed by other text."""
+    text = plain(blocks[index].get("html"))
+    if DOTTED.search(text) or re.search(r"[—–]\s*\S+\s*$", text):
+        return toc_line(blocks[index])
+    return toc_line(blocks[index]) and index + 1 < len(blocks) and toc_line(blocks[index + 1])
+
+
+def untitled_run(blocks, index, length=4):
+    """A TOC whose title was lost or never printed (FIPS 201-3, FIPS 204): four lines in a row
+    that end with a page number, at least two of them with dot leaders, the first starting with
+    a section number or a table/figure label. It starts at the earliest such line."""
+    window = blocks[index:index + length]
+    if len(window) < length or (index and toc_line(blocks[index - 1])
+                                and (NUMBER.match(plain(blocks[index - 1].get("html")))
+                                     or LABEL.match(plain(blocks[index - 1].get("html"))))):
+        return False
+    first = plain(blocks[index].get("html"))
+    if not (NUMBER.match(first) or LABEL.match(first)):
+        return False
+    return all(toc_line(block) for block in window) and \
+        sum(bool(DOTTED.search(plain(block.get("html")))) for block in window) >= 2
+
+
 def printed_toc(blocks):
     """{block id: {"depth", "target", "en", "ja"}} for the lines of the printed TOC.
 
@@ -166,18 +204,30 @@ def printed_toc(blocks):
     result = {}
     index = 0
     while index < len(blocks):
-        if not is_toc_title(blocks, index):
+        titled = is_toc_title(blocks, index)
+        if not titled and not untitled_run(blocks, index):
             index += 1
             continue
         block = blocks[index]
-        lines, cursor = [], index + 1
+        # a TOC without a title block starts with its first line
+        lines, cursor = [], index + 1 if titled else index
+        # a short line between the title and the first entry (the document title repeated) is skipped
+        if titled and cursor < len(blocks) and not solid_line(blocks, cursor):
+            ahead = blocks[cursor:cursor + 4]
+            first = next((offset for offset in range(len(ahead)) if solid_line(blocks, cursor + offset)), None)
+            if first and all(len(plain(b.get("html"))) <= 100 for b in ahead[:first]):
+                cursor += first
         while cursor < len(blocks):
             candidate = blocks[cursor]
             text = plain(candidate.get("html"))
             if is_toc_title(blocks, cursor):
                 break  # the next list ("List of Figures") starts here
-            if candidate["kind"] not in ("paragraph", "list_item", "heading") or not (
+            if candidate["kind"] not in ("paragraph", "list_item", "heading", "math") or not (
                     PAGE.search(text) or LEADER.search(text) or len(split_entries(text)) > 1):
+                break
+            # a heading after the TOC can end in a number ("Acknowledgments for Revision 3"):
+            # a heading counts as a TOC line only with a dot leader or a dash before its page number
+            if candidate["kind"] == "heading" and not (DOTTED.search(text) or re.search(r"[—–]\s*\S+\s*$", text)):
                 break
             lines.append(candidate)
             cursor += 1
@@ -203,6 +253,8 @@ def printed_toc(blocks):
                 japanese = [by_key.get(entry_key(strip_page(part)), "") for part in english] \
                     if len(english) > 1 else [plain(line.get("html_ja"))]
             entries = [entry(part, ja) for part, ja in zip(english, japanese or [""] * len(english))]
+            # a line that is only a page number ("— 55") or a column header ("PAGE") shows nothing
+            entries = [e for e in entries if e["en"].strip(" —–.…") and e["en"].strip().lower() != "page"] or [dict(entries[0], en="", ja="", target=None)]
             first = entries[0]
             result[line["id"]] = dict(first, entries=entries)
         index = cursor
