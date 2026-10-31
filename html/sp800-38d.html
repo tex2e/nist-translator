@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-38D は、関連データ付き認証付き暗号化のアルゴリズムであるガロア／カウンターモード（GCM）と、暗号化されないデータに対して MAC を生成する特殊化である GMAC を規定する勧告です。GCM の構成要素と数学的構成要素、仕様、IV と鍵の一意性要件、実装を検証するための考慮事項、適合性を扱い、付録で IV 一意性の重要性や認証保証を説明します。GCM と GMAC は、ブロックサイズが128ビットの承認済み共通鍵ブロック暗号を基礎とし、ブロック暗号の運用モードに関する一連の勧告の一つです。">
   <title>ブロック暗号の運用モードに関する推奨事項：Galois/Counter Mode（GCM）とGMAC | NIST SP 800-38D | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=f649f4963b">
-  <link rel="stylesheet" href="header.css?v=f649f4963b">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=78021e0423">
+  <link rel="stylesheet" href="header.css?v=78021e0423">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -3128,6 +3128,19 @@ GHASH関数を以下の図1に示す。X<sub>1</sub>との排他的論理和を�
         var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
         return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
       }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";

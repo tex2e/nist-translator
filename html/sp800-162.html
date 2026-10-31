@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-162 は、連邦機関に属性ベースアクセス制御（ABAC）の定義を示し、その主要な概念と検討事項を説明するガイドです。ABAC は論理的アクセス制御の方法論で、主体、オブジェクト、要求された操作、場合によっては環境条件に関する属性を評価して認可を判断し、本書は ABAC の理解とエンタープライズにおける考慮事項を扱います。アクセス制御リストやロールベースアクセス制御と並ぶ論理アクセス制御の領域に位置づけられ、組織内外での情報共有に ABAC を使う際の判断を助けます。">
   <title>属性ベースアクセス制御（ABAC）の定義と検討事項に関するガイド | NIST SP 800-162 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css?v=f649f4963b">
-  <link rel="stylesheet" href="header.css?v=f649f4963b">
+  <link rel="stylesheet" href="style.css?v=78021e0423">
+  <link rel="stylesheet" href="header.css?v=78021e0423">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -3396,6 +3396,19 @@
         var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
         return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
       }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";

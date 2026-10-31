@@ -47,7 +47,7 @@ main { min-width: 0; padding: 1rem 0 4rem; }
 .source-only { padding: 1rem 0; overflow-x: auto; }
 .block-label { color: var(--muted); font-size: .75rem; font-weight: 700; margin-bottom: .4rem; }
 .source-only table, .pair table { border-collapse: collapse; font-size: .85rem; width: 100%; min-width: 0; }
-.source-only th, .source-only td, .pair th, .pair td { border: 1px solid var(--line); padding: .5rem .7rem; vertical-align: top; }
+.source-only th, .source-only td, .pair th, .pair td { border: 1px solid var(--line); padding: .45rem .55rem; vertical-align: top; }
 .source-only th, .pair th { background: transparent; }
 .source-only caption, .pair caption { text-align: left; font-weight: 700; margin-bottom: .5rem; }
 .source-only img { max-width: 100%; height: auto; }
@@ -79,8 +79,8 @@ div.algorithm .katex { font-size: 1.05em; }
 .math-content .katex-display > .katex > .katex-html > .katex-tag { position: static; display: inline-block; margin-left: 1em; }
 /* A long inline formula cannot wrap: let its column scroll instead of widening the page. */
 section.pair > div { min-width: 0; overflow-x: auto; }
-/* Tables with many columns: keep words whole and let the column scroll sideways instead of breaking words letter by letter. */
-section.pair table { min-width: 34rem; }
+/* 表は列の幅に収める。単語は途中で折らないので、列が多い表や長い語（URL など）で収まらないときだけ横にスクロールする。
+   （以前は min-width: 34rem を指定していたため、2 段組の列より広くなり、すべての表に横スクロールが出ていた） */
 section.pair td, section.pair th { overflow-wrap: normal; word-break: normal; }
 
 /* 段落の左に表示する操作（リンクのコピー・原文 PDF） */
@@ -139,3 +139,12 @@ html.dark-theme .row-toast { background: rgba(233, 236, 239, .95); color: #12121
 html.dark-theme .pair img, html.dark-theme .preserved-image img { background: #fff; }
 html.dark-theme .pair :is(table, thead, tbody, tfoot, tr), html.dark-theme .source-only :is(table, thead, tbody, tfoot, tr) { color: inherit; }
 html.dark-theme .pair th, html.dark-theme .pair td, html.dark-theme .source-only th, html.dark-theme .source-only td { color: inherit; background-color: transparent; }
+
+/* 2 段組の列に収まらない表（列が多い表など）は、英文と訳文を全幅で上下に並べる（page.html の判定で .pair-wide を付ける） */
+section.pair.pair-wide > .english, section.pair.pair-wide > .japanese { flex: 0 0 100%; max-width: 100%; width: 100%; }
+section.pair.pair-wide > .japanese { padding-top: 0; }
+/* スマートフォンでは表の文字と余白を少し詰め、わずかにはみ出す表を収める */
+@media (max-width: 575.98px) {
+  .source-only table, .pair table { font-size: .78rem; }
+  .source-only th, .source-only td, .pair th, .pair td { padding: .35rem .4rem; }
+}

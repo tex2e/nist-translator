@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-47 Rev. 1 は、組織間で情報を交換・共有する際に、交換の前・最中・後を通じて情報を保護するための管理について指針を示します。情報交換の識別と保護上の考慮事項、リスクを管理するための合意を扱い、交換の計画、確立、維持、終了の各段階の管理と、合意のテンプレートおよび指針を掲載します。特定の技術接続や交換方法の実装指針は示さず、組織が自らの固有のニーズや要件に合わせて指針を調整することを想定しています。">
   <title>情報交換のセキュリティ管理 | NIST SP 800-47 Rev. 1 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css?v=f649f4963b">
-  <link rel="stylesheet" href="header.css?v=f649f4963b">
+  <link rel="stylesheet" href="style.css?v=78021e0423">
+  <link rel="stylesheet" href="header.css?v=78021e0423">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -1752,7 +1752,7 @@
 <div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-47r1.pdf#page=27">原本 PDF p.27</a></div>          
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<table><tr><td></td><th scope="col">影響度が低い情報</th><th scope="col">影響度が中程度の情報</th><th scope="col">影響度が高い情報</th></tr><tr><th scope="row">電子メール、可搬型媒体またはファイル転送による交換</th><td>追跡システムに記録</td><td>追跡システムに記録；アクセス合意書；許容利用合意書；秘密保持合意書</td><td>IEA；MOU/MOA；アクセス合意書；許容利用合意書；秘密保持合意書</td></tr><tr><th scope="row">データベースまたはウェブベースのサービスによる交換</th><td>追跡システムに記録；契約</td><td>IEA；MOU/MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約</td><td>IEA；MOU/MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td></tr><tr><th scope="row">システム相互接続による交換</th><td>ISA/MOU/MOA；契約</td><td>ISA/MOU/MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td><td>ISA/MOU/MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td></tr></table>        </div>
+<table><tr><td></td><th scope="col">影響度が低い情報</th><th scope="col">影響度が中程度の情報</th><th scope="col">影響度が高い情報</th></tr><tr><th scope="row">電子メール、可搬型媒体またはファイル転送による交換</th><td>追跡システムに記録</td><td>追跡システムに記録；アクセス合意書；許容利用合意書；秘密保持合意書</td><td>IEA；MOU/<wbr/>MOA；アクセス合意書；許容利用合意書；秘密保持合意書</td></tr><tr><th scope="row">データベースまたはウェブベースのサービスによる交換</th><td>追跡システムに記録；契約</td><td>IEA；MOU/<wbr/>MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約</td><td>IEA；MOU/<wbr/>MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td></tr><tr><th scope="row">システム相互接続による交換</th><td>ISA/MOU/MOA；契約</td><td>ISA/<wbr/>MOU/<wbr/>MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td><td>ISA/<wbr/>MOU/<wbr/>MOA；アクセス合意書；許容利用合意書；秘密保持合意書；契約；サービスレベル合意書</td></tr></table>        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0027-b0003">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -4324,6 +4324,19 @@
         var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
         return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
       }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";

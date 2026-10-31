@@ -24,6 +24,43 @@ OFFICIAL_MARKS = {
 }
 
 
+LONG_TOKEN = __import__("re").compile(r"\S{25,}")
+
+
+def table_break_points(markup):
+    """Let long URL-like strings in table cells wrap after "/" and before ".", "_", "?", "&", "=".
+
+    Only <wbr> (an invisible line-break opportunity) is added, so the text is unchanged.
+    Without it a single URL makes its column as wide as the whole URL and the table scrolls.
+    """
+    import re
+    if "<table" not in markup:
+        return markup
+    soup = BeautifulSoup(markup, "html.parser")
+    changed = False
+    for cell in soup.find_all(["td", "th"]):
+        for text in list(cell.find_all(string=True)):
+            if text.find_parent(["code", "pre", "script", "math", "annotation"]) or "\\" in text:
+                continue
+            if not LONG_TOKEN.search(text) or not re.search(r"[/._]", text):
+                continue
+            parts = re.split(r"(\S{25,})", str(text))
+            pieces = []
+            for index, part in enumerate(parts):
+                if index % 2 and re.search(r"[/._]", part):
+                    for chunk in re.split(r"(?<=/)|(?=[._?&=])", part):
+                        if chunk:
+                            pieces.extend([chunk, soup.new_tag("wbr")])
+                    pieces.pop()
+                elif part:
+                    pieces.append(part)
+            for piece in pieces:
+                text.insert_before(piece)
+            text.extract()
+            changed = True
+    return str(soup) if changed else markup
+
+
 def asset_version():
     """Short hash of the site's CSS, added to its URL so browsers fetch a changed file."""
     import hashlib
@@ -110,7 +147,7 @@ def build_site(document, meta, template_path, output_path):
         if not block["html"].strip():
             continue
         item = dict(block)
-        item["english_html"] = Markup(block["html"])
+        item["english_html"] = Markup(table_break_points(block["html"]))
         if block["kind"] == "list_item":
             ordinal = str(block.get("ordinal") or "").strip()
             if not block.get("ordered") or not ordinal:
@@ -118,7 +155,7 @@ def build_site(document, meta, template_path, output_path):
             else:
                 # "2." or "(a)" already carry their punctuation; "2" and "ii" get a period
                 item["list_marker"] = ordinal if ordinal[-1] in ".)]" else ordinal + "."
-        item["japanese_html"] = Markup(block["html_ja"])
+        item["japanese_html"] = Markup(table_break_points(block["html_ja"]))
         # An unverified table is shown as the image of the original; its
         # extracted text is offered below as an unchecked reference.
         if (block["kind"] == "table" and block.get("source_image") and

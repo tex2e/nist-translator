@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-140B Rev. 1 は、暗号モジュールのセキュリティポリシーに必要な情報とその構成を示し、ISO/IEC 19790 附属書 B と ISO/IEC 24759 第6.14節と併せて使用する文書です。検証機関である CMVP が、ベンダー証拠（VE）や試験証拠（TE）を変更・追加・削除し、セキュリティポリシーの順序を指定できる点を踏まえ、モジュール仕様などの項目ごとに要件を示します。本書は特定した要件のみを変更し、附属書 B で求められる情報の内容も規定するため、ISO/IEC の該当規格と合わせて参照する必要があります。">
   <title>暗号モジュール検証プログラム（CMVP）のセキュリティポリシー要件：ISO/IEC 24759およびISO/IEC 19790附属書Bに対する検証機関の更新 | NIST SP 800-140B Rev. 1 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <link rel="stylesheet" href="style.css?v=f649f4963b">
-  <link rel="stylesheet" href="header.css?v=f649f4963b">
+  <link rel="stylesheet" href="style.css?v=78021e0423">
+  <link rel="stylesheet" href="header.css?v=78021e0423">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -3658,7 +3658,7 @@ SP800-140:VE09.28.03</h2>        </div>
 <div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-140Br1.pdf#page=30">原本 PDF p.30</a></div>          
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<table><thead><tr><th>版</th><th>日付</th><th>変更内容</th></tr></thead><tbody><tr><td>改訂1（r1）</td><td>2023年11月</td><td>本改訂では、NIST SP 800-140Bに次の主な変更を導入する：<br>1. セキュリティポリシー（SP）の構造と構成をより詳細に定義する<br>2. NIST SP 800-140で定義されたセキュリティポリシー要件を収録する<br>3. ISO要件、NIST SP 800-140要件、およびSPの新しい構造の間の直接的な対応付けを提供する<br>4. Web Cryptikが収集する表を複数追加する<br>5. SPの表データ間に必要な関係と制約を定義する<br>6. SP本文とWeb Cryptikに入力されJSON形式で保存された表を組み合わせてSP文書を構成する<br>7. 試験機関／ベンダーによるアルゴリズム試験の選択に基づき、承認済みアルゴリズム表を生成する</td></tr></tbody></table>        </div>
+<table><thead><tr><th>版</th><th>日付</th><th>変更内容</th></tr></thead><tbody><tr><td>改訂1（r1）</td><td>2023年11月</td><td>本改訂では、NIST SP 800-140Bに次の主な変更を導入する：<br/>1. セキュリティポリシー（SP）の構造と構成をより詳細に定義する<br/>2. NIST SP 800-140で定義されたセキュリティポリシー要件を収録する<br/>3. ISO要件、NIST SP 800-140要件、およびSPの新しい構造の間の直接的な対応付けを提供する<br/>4. Web Cryptikが収集する表を複数追加する<br/>5. SPの表データ間に必要な関係と制約を定義する<br/>6. SP本文とWeb Cryptikに入力されJSON形式で保存された表を組み合わせてSP文書を構成する<br/>7. 試験機関／ベンダーによるアルゴリズム試験の選択に基づき、承認済みアルゴリズム表を生成する</td></tr></tbody></table>        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0031-b0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -3822,6 +3822,19 @@ SP800-140:VE09.28.03</h2>        </div>
         var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
         return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
       }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";

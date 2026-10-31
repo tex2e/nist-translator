@@ -17,8 +17,8 @@
   </script>  <meta name="description" content="SP 800-108 Rev. 1 (Update 1) は、鍵確立方式などで共有された秘密鍵から、疑似ランダム関数を用いて追加の鍵素材を導出する技法を規定する勧告です。HMAC、CMAC、KMAC の疑似ランダム関数を用いる鍵導出を扱い、付録で CMAC における鍵制御のセキュリティ上の問題を取り上げるほか、改訂履歴と変更履歴を示します。2024年2月2日までの更新を含み、カウンターモード、フィードバックモード、ダブルパイプラインモードの反復モードによる鍵導出関数と、反復を用いない KMAC による鍵導出関数を規定します。">
   <title>疑似ランダム関数を用いた鍵導出に関する勧告 | NIST SP 800-108 Rev. 1 (Update 1) | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=f649f4963b">
-  <link rel="stylesheet" href="header.css?v=f649f4963b">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=78021e0423">
+  <link rel="stylesheet" href="header.css?v=78021e0423">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -2464,6 +2464,19 @@ KMACを用いるKDF</h3>        </div>
         var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
         return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
       }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
       var toastBox = null, timer = null;
       function toast(message) {
         if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
