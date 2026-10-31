@@ -2444,3 +2444,7 @@ def document_paths(root, key):
 from .fips_documents import FIPS_DOCUMENTS  # noqa: E402
 
 DOCUMENTS.update(FIPS_DOCUMENTS)
+
+from .ir_documents import IR_DOCUMENTS  # noqa: E402
+
+DOCUMENTS.update(IR_DOCUMENTS)

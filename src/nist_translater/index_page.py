@@ -61,9 +61,9 @@ def _entries(root):
         summary_path = paths["json"].with_name(paths["json"].name.replace("-trans.json", "-summary.json"))
         if summary_path.is_file():
             summary = " ".join(json.loads(summary_path.read_text(encoding="utf-8")).get("summary", []))
-        fips = key.startswith("fips-")
+        series = spec.get("family") or "sp800"
         entries.append({
-            "series": "fips" if fips else "sp800",
+            "series": series,
             "number": spec["number"],
             "title": spec["title"],
             "title_ja": title_ja,
@@ -71,10 +71,12 @@ def _entries(root):
             "withdrawn": "廃止" in spec.get("series", ""),
             "href": paths["html"].name,
             "summary": summary,
-            # SP 800 first, then FIPS; within a series by number
-            "order": ("2 " if fips else "1 ") + _natural(spec["number"]),
+            # tie-break for equal dates: SP 800, FIPS, IR, then by number
+            "order": {"sp800": "1 ", "fips": "2 ", "ir": "3 "}.get(series, "4 ") + _natural(spec["number"]),
         })
-    return sorted(entries, key=lambda entry: entry["order"])
+    # newest first; undated last
+    entries.sort(key=lambda entry: entry["order"])
+    return sorted(entries, key=lambda entry: entry["date"] or "", reverse=True)
 
 
 def _asset_version():
@@ -87,6 +89,8 @@ def build_translation_index(root=ROOT):
     entries = _entries(root)
     sp_total = sum(entry["series"] == "sp800" for entry in entries)
     fips_total = sum(entry["series"] == "fips" for entry in entries)
+    ir_total = sum(entry["series"] == "ir" for entry in entries)
+    names = "SP 800・FIPS・IR" if ir_total else "SP 800・FIPS"
     html = PAGE.substitute(
         site_header=(Path(__file__).resolve().parents[2] / "templates" / "header.html").read_text(encoding="utf-8"),
         asset_version=_asset_version(),
@@ -94,6 +98,13 @@ def build_translation_index(root=ROOT):
         all_total=_format_number(len(entries)),
         sp_total=_format_number(sp_total),
         fips_total=_format_number(fips_total),
+        series_names=names,
+        series_intro=("Special Publication 800 シリーズ、FIPS、NIST IR（Interagency or Internal Report）" if ir_total
+                      else "Special Publication 800 シリーズと FIPS"),
+        series_names_long=names.replace("SP 800", "NIST SP 800"),
+        ir_button=('<input type="radio" name="series" id="series-ir" value="ir"><label for="series-ir">IR '
+                   '<span class="n">%s</span></label>' % _format_number(ir_total)) if ir_total else "",
+        ir_footer='・<a href="https://csrc.nist.gov/publications/ir">CSRC NIST IR</a>' if ir_total else "",
         rows="\n".join(_render_row(entry) for entry in entries),
     )
     output_path = root / OUTPUT

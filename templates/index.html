@@ -7,8 +7,8 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 $theme_init
-  <meta name="description" content="NIST SP 800 と FIPS の英日対訳（非公式）を、資料番号・英語タイトル・日本語タイトルから探せる一覧です。">
-  <title>NIST SP 800・FIPS 英日対訳一覧（非公式） - NIST Trans</title>
+  <meta name="description" content="$series_names_long の英日対訳（非公式）を、資料番号・英語タイトル・日本語タイトルから探せる一覧です。">
+  <title>NIST $series_names 英日対訳一覧（非公式） - NIST Trans</title>
   <link rel="stylesheet" href="header.css?v=$asset_version">
   <style>
     :root {
@@ -135,9 +135,9 @@ $theme_init
 $site_header
 <main class="wrap">
   <section class="site-panel" aria-labelledby="site-title">
-    <h1 id="site-title">NIST SP 800・FIPS の英日対訳（非公式）</h1>
+    <h1 id="site-title">NIST $series_names の英日対訳（非公式）</h1>
     <ul>
-      <li>NIST の Special Publication 800 シリーズと FIPS を、段落ごとに英文と日本語訳を並べて読めるようにしたサイトです。</li>
+      <li>NIST の $series_intro を、段落ごとに英文と日本語訳を並べて読めるようにしたサイトです。</li>
       <li>有志による非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。</li>
       <li>翻訳の正確性は保証しません。要件の確認には、各ページの「原文URL」から NIST の正式版を参照してください。段落にマウスを乗せると、原本 PDF の該当ページへのリンクが出ます。</li>
       <li>NIST のロゴ・商務省の紋章・人物写真と、NIST が第三者の許諾を得て転載した部分は掲載していません。</li>
@@ -157,6 +157,7 @@ $site_header
         <input type="radio" name="series" id="series-all" value="all" checked><label for="series-all">すべて <span class="n">$all_total</span></label>
         <input type="radio" name="series" id="series-sp800" value="sp800"><label for="series-sp800">SP 800 <span class="n">$sp_total</span></label>
         <input type="radio" name="series" id="series-fips" value="fips"><label for="series-fips">FIPS <span class="n">$fips_total</span></label>
+        $ir_button
       </div>
       <label class="check"><input type="checkbox" id="hide-withdrawn" checked> 廃止された資料を隠す</label>
       <span class="count" id="count" aria-live="polite"></span>
@@ -167,9 +168,9 @@ $site_header
     <table id="docs">
       <thead>
         <tr>
-          <th class="col-number" aria-sort="ascending"><button type="button" class="sort" data-key="number">資料番号</button></th>
+          <th class="col-number" aria-sort="none"><button type="button" class="sort" data-key="number">資料番号</button></th>
           <th class="col-title">タイトル</th>
-          <th class="col-date" aria-sort="none"><button type="button" class="sort" data-key="date">刊行日</button></th>
+          <th class="col-date" aria-sort="descending"><button type="button" class="sort" data-key="date">刊行日</button></th>
         </tr>
       </thead>
       <tbody>
@@ -182,7 +183,7 @@ $rows
     </div>
   </div>
 </main>
-<footer class="wrap">原文の出典: National Institute of Standards and Technology（NIST）。原文の一覧は <a href="https://csrc.nist.gov/publications/sp800">CSRC SP 800</a>・<a href="https://csrc.nist.gov/publications/fips">CSRC FIPS</a>。</footer>
+<footer class="wrap">原文の出典: National Institute of Standards and Technology（NIST）。原文の一覧は <a href="https://csrc.nist.gov/publications/sp800">CSRC SP 800</a>・<a href="https://csrc.nist.gov/publications/fips">CSRC FIPS</a>$ir_footer。</footer>
 <script>
 (() => {
   const q = document.getElementById('q');
@@ -199,7 +200,7 @@ $rows
     row._num = norm(row.cells[0].textContent);
     row._title = norm(row.cells[1].textContent);
   });
-  let sortKey = 'number', sortDir = 1;
+  let sortKey = 'date', sortDir = -1;  // the page is served newest first
 
   const series = () => document.querySelector('input[name="series"]:checked').value;
 
@@ -207,7 +208,7 @@ $rows
     const terms = q.value.normalize('NFKC').toLowerCase().split(/\s+/).map(norm).filter(Boolean);
     const want = series();
     let shown = 0, hiddenWithdrawn = 0;
-    const per = { all: 0, sp800: 0, fips: 0 };  // results each series button would show
+    const per = { all: 0, sp800: 0, fips: 0, ir: 0 };  // results each series button would show
     for (const row of rows) {
       const matchSeries = want === 'all' || row.dataset.series === want;
       const matchText = terms.every((t) => row._text.includes(t));
@@ -223,7 +224,7 @@ $rows
         : terms.every((t) => (row._num + row._title).includes(t)) ? 1 : 2;
     }
     rows.slice().sort((a, b) => a._rank - b._rank).forEach((row) => tbody.appendChild(row));
-    for (const key in per) document.querySelector('#series-' + key + ' + label .n').textContent = per[key];
+    for (const key in per) { const n = document.querySelector('#series-' + key + ' + label .n'); if (n) n.textContent = per[key]; }
     count.textContent = shown + ' 件' + (shown === rows.length ? '' : '（全 ' + rows.length + ' 件中）');
     table.hidden = shown === 0;
     empty.hidden = shown !== 0;
