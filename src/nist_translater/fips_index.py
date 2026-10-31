@@ -16,6 +16,8 @@ PAGE = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FIPS 英日対訳一覧 - NIST Trans</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <meta http-equiv="refresh" content="0; url=%(target)s">
   <link rel="canonical" href="%(target)s">
   <script>location.replace(%(target)r);</script>

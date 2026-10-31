@@ -218,6 +218,8 @@ def build(document_key="63b"):
                ROOT / "templates" / "page.html", output_path)
     shutil.copyfile(ROOT / "static" / "style.css", output / "style.css")
     shutil.copyfile(ROOT / "static" / "header.css", output / "header.css")
+    for icon in ("favicon.svg", "favicon.ico", "apple-touch-icon.png"):
+        shutil.copyfile(ROOT / "static" / icon, output / icon)
     if (ROOT / "static" / "vendor" / "katex").exists():
         shutil.copytree(ROOT / "static" / "vendor" / "katex", output / "vendor" / "katex", dirs_exist_ok=True)
     print("Built", output_path)
