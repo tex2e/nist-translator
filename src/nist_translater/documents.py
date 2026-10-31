@@ -1826,6 +1826,7 @@ DOCUMENTS = {
     "63": {
         "number": "SP 800-63-4",
         "title": "Digital Identity Guidelines",
+        "subtitle_ja": "デジタルアイデンティティガイドライン",
         "slug": "63",
         "description": "デジタルIDに関する全体的なガイドラインを示します。",
         "source_url": "https://pages.nist.gov/800-63-4/sp800-63.html",
@@ -1834,6 +1835,7 @@ DOCUMENTS = {
     "63a": {
         "number": "SP 800-63A-4",
         "title": "Identity Proofing & Enrollment",
+        "subtitle_ja": "デジタルアイデンティティガイドライン：本人確認と登録",
         "slug": "63a",
         "description": "本人確認および登録の技術要件を示します。",
         "source_url": "https://pages.nist.gov/800-63-4/sp800-63a.html",
@@ -1842,6 +1844,7 @@ DOCUMENTS = {
     "63b": {
         "number": "SP 800-63B-4",
         "title": "Authentication & Authenticator Management",
+        "subtitle_ja": "デジタルアイデンティティガイドライン：認証と認証器の管理",
         "slug": "63b",
         "description": "認証および認証器管理の技術要件を示します。",
         "source_url": "https://pages.nist.gov/800-63-4/sp800-63b.html",
@@ -1850,6 +1853,7 @@ DOCUMENTS = {
     "63c": {
         "number": "SP 800-63C-4",
         "title": "Federation & Assertions",
+        "subtitle_ja": "デジタルアイデンティティガイドライン：フェデレーションとアサーション",
         "slug": "63c",
         "description": "フェデレーションおよびアサーションの技術要件を示します。",
         "source_url": "https://pages.nist.gov/800-63-4/sp800-63c.html",

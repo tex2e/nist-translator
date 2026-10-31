@@ -17,7 +17,7 @@ def _fips(number, title, title_ja, description, pdf_name, record_path, **extra):
         "subtitle_ja": title_ja,
         "slug": stem,
         "file_stem": stem,
-        "home_url": "fips-index.html",
+        "home_url": "index.html?series=fips",
         "description": description,
         "source_format": "pdf",
         "source_url": "https://nvlpubs.nist.gov/nistpubs/FIPS/" + pdf_name,

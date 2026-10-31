@@ -3,221 +3,271 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="NIST SP 800の資料番号・タイトルから英日対訳を探す">
-  <title>NIST SP 800 英日対訳一覧（非公式）</title>
-  <style>
-    :root { color-scheme: light; --ink: #182230; --muted: #586575; --line: #d8e0e8; --blue: #145da0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f6f8fa; color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    a { color: var(--blue); text-underline-offset: .18em; }
-    a:hover { color: #0d416f; text-decoration: underline; }
-    [hidden] { display: none !important; }
-    .site-header { background: #fff; border-bottom: 1px solid var(--line); }
-    .header-inner, main, footer { width: min(1240px, calc(100% - 2rem)); margin: 0 auto; }
-    .header-inner { min-height: 58px; display: flex; align-items: center; }
-    .brand { color: var(--ink); font-size: 1rem; font-weight: 750; text-decoration: none; }
-    main { padding: 2rem 0 3rem; }
-    .eyebrow { margin: 0 0 .35rem; color: var(--blue); font-size: .75rem; font-weight: 750; letter-spacing: .1em; }
-    h1 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.2; }
-    .lede { margin: .8rem 0 1.25rem; color: var(--muted); }
-    .search-panel { padding: 1.25rem; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
-    .field { display: grid; gap: .35rem; }
-    .field label { font-size: .82rem; font-weight: 700; }
-    input, select, button { min-height: 44px; border: 1px solid #9baaba; border-radius: 6px; background: #fff; color: var(--ink); font: inherit; }
-    input, select { padding: .5rem .7rem; min-width: 0; width: 100%; }
-    #search { font-size: 1.1rem; min-height: 52px; }
-    button { padding: .5rem .9rem; cursor: pointer; }
-    button:hover { background: #edf3f8; }
-    :focus-visible { outline: 3px solid #83b9e9; outline-offset: 3px; }
-    .search-hint { margin: .35rem 0 .9rem; color: var(--muted); font-size: .78rem; }
-    .filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: end; gap: .8rem; }
-    .notice { margin: 1rem 0; color: var(--muted); font-size: .85rem; }
-    .results-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .35rem 1rem; align-items: baseline; margin: 1.5rem 0 .65rem; }
-    .result-count { margin: 0; font-weight: 700; }
-    .catalog-count { margin: 0; color: var(--muted); font-size: .8rem; }
-    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: .85rem .8rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-    th { background: #edf3f8; color: #334255; font-size: .78rem; white-space: nowrap; }
-    tbody tr:last-child td { border-bottom: 0; }
-    tbody tr:hover { background: #f8fbfe; }
-    td.number { width: 140px; font-weight: 700; }
-    td.number a { text-decoration: none; }
-    td.title { min-width: 240px; font-weight: 600; }
-    .title-link { display: block; text-decoration: none; }
-    .title-ja { display: block; margin-top: .25rem; color: var(--muted); font-weight: 400; font-size: .86rem; }
-    td.date { white-space: nowrap; color: var(--muted); font-size: .82rem; }
-    td.state { min-width: 150px; }
-    .badge { display: inline-block; padding: .16rem .5rem; border-radius: 5px; background: #edf1f5; color: #394656; font-size: .75rem; font-weight: 700; white-space: nowrap; }
-    .badge.reviewed { background: #e5f4ec; color: #176b45; }
-    .badge.created { background: #e8f0fb; color: #145da0; }
-    .badge.progress { background: #fff2db; color: #8a5100; }
-    .badge.stale { background: #fdeaea; color: #9f2929; }
-    .state-note { display: block; margin-top: .25rem; color: var(--muted); font-size: .73rem; }
-    .progress-cell { min-width: 200px; }
-    .bar { height: 6px; overflow: hidden; margin: .2rem 0 .4rem; border-radius: 10px; background: #e7edf3; }
-    .bar span { display: block; height: 100%; border-radius: inherit; background: #357bb2; }
-    .progress-text { display: block; color: var(--muted); font-size: .73rem; }
-    td.links { min-width: 110px; }
-    td.links a { display: block; padding: .15rem 0; font-size: .82rem; font-weight: 600; }
-    .disabled-link { display: block; color: var(--muted); font-size: .78rem; }
-    .empty-state { text-align: center; padding: 2rem 1rem; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
-    .empty-state p { margin: 0 0 1rem; }
-    .help { margin-top: 1rem; padding: .9rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--muted); font-size: .82rem; }
-    summary { cursor: pointer; font-weight: 600; color: var(--ink); }
-    .help dl { display: grid; grid-template-columns: 10rem 1fr; gap: .5rem 1rem; }
-    .help dt { font-weight: 650; }.help dd { margin: 0; }
-    footer { padding: 1rem 0 2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
-    @media (max-width: 1000px) and (min-width: 761px) { .table-wrap table { min-width: 1000px; } }
-    @media (max-width: 760px) {
-      main { padding-top: 1.35rem; }
-      .search-panel { padding: 1rem; }
-      .filters { grid-template-columns: 1fr 1fr; }
-      .table-wrap { overflow: visible; border: 0; background: transparent; }
-      table, tbody { display: block; }
-      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-      tbody tr { display: block; margin-bottom: .8rem; padding: .9rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-      th, td { display: block; width: auto !important; min-width: 0 !important; padding: .25rem 0; border: 0; overflow-wrap: anywhere; }
-      td.number { font-size: .85rem; }
-      td.title { padding: .3rem 0 .65rem; }
-      td[data-label]::before { content: attr(data-label); display: block; color: var(--muted); font-size: .72rem; font-weight: 600; margin-bottom: .15rem; }
-      td.date { display: flex; gap: .6rem; align-items: baseline; }
-      td.links { display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; margin-top: .5rem; }
-      td.links a { padding: .5rem 0; }
-      .help dl { grid-template-columns: 1fr; gap: .25rem; }
-      .help dd { margin-bottom: .65rem; }
-    }
-    @media (max-width: 380px) { .filters { grid-template-columns: 1fr; } }
-  </style>
+  <meta name="description" content="NIST SP 800 と FIPS の英日対訳（非公式）を、資料番号・英語タイトル・日本語タイトルから探せる一覧です。">
+  <title>NIST SP 800・FIPS 英日対訳一覧（非公式） - NIST Trans</title>
   <link rel="stylesheet" href="header.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2733; --muted: #5b6878; --line: #dbe2ea; --bg: #f5f7fa; --card: #fff;
+      --accent: #0b6e99; --accent-ink: #fff; --accent-soft: #e6f3f9;
+      --info-bg: #cff4fc; --info-ink: #055160; --info-line: #b6effb;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    a { color: var(--accent); }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid #7cc4e4; outline-offset: 2px; }
+    .wrap { width: min(1140px, calc(100% - 2rem)); margin: 0 auto; }
+    main { padding: 1.5rem 0 3rem; }
+
+    /* サイトの概要と注意書き（rfc-translater の alert-info と同じ配色） */
+    .site-panel { padding: 1.1rem 1.25rem; border: 1px solid var(--info-line); border-radius: var(--radius);
+      background: var(--info-bg); color: var(--info-ink); }
+    .site-panel h1 { margin: 0 0 .5rem; font-size: clamp(1.25rem, 2.6vw, 1.55rem); line-height: 1.35; }
+    .site-panel ul { margin: 0; padding-left: 1.2rem; font-size: .92rem; }
+    .site-panel li + li { margin-top: .2rem; }
+    .site-panel a { color: #033d4a; font-weight: 600; }
+
+    /* 検索と絞り込み */
+    .search { margin: 1.25rem 0 .75rem; }
+    .search label.main { display: block; margin-bottom: .35rem; font-weight: 700; font-size: .95rem; }
+    .search-box { position: relative; }
+    .search-box svg { position: absolute; left: .85rem; top: 50%; width: 1.15rem; height: 1.15rem;
+      transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    #q { width: 100%; min-height: 52px; padding: .6rem 3rem .6rem 2.6rem; border: 1px solid #a9b6c4; border-radius: var(--radius);
+      background: var(--card); color: var(--ink); font: inherit; font-size: 1.05rem; }
+    #q:focus { border-color: var(--accent); outline: 3px solid #bfe3f3; outline-offset: 0; }
+    #q::-webkit-search-cancel-button { cursor: pointer; }
+    .kbd { position: absolute; right: .8rem; top: 50%; transform: translateY(-50%); padding: 0 .4rem; border: 1px solid var(--line);
+      border-radius: 4px; color: var(--muted); font-size: .75rem; background: var(--bg); }
+    #q:focus ~ .kbd, #q:not(:placeholder-shown) ~ .kbd { display: none; }
+    .hint { margin: .35rem 0 0; color: var(--muted); font-size: .8rem; }
+    .filters { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-top: .9rem; }
+    .segmented { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+    .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+    .segmented label { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: 0 1rem; border-radius: 999px;
+      color: var(--muted); font-size: .92rem; font-weight: 650; cursor: pointer; transition: background-color .15s, color .15s; user-select: none; }
+    .segmented label:hover { color: var(--ink); background: var(--bg); }
+    .segmented input:checked + label { background: var(--accent); color: var(--accent-ink); }
+    .segmented input:focus-visible + label { outline: 3px solid #7cc4e4; outline-offset: 1px; }
+    .segmented .n { font-weight: 500; font-size: .78rem; opacity: .85; }
+    .check { display: inline-flex; align-items: center; gap: .5rem; min-height: 40px; cursor: pointer; font-size: .92rem; }
+    .check input { width: 1.15rem; height: 1.15rem; accent-color: var(--accent); cursor: pointer; }
+    .count { margin-left: auto; color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; }
+
+    /* 一覧 */
+    .table-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .7rem 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    thead th { position: sticky; top: 0; z-index: 1; background: #eef3f7; color: #3a4757; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr { cursor: pointer; transition: background-color .12s; }
+    tbody tr:hover { background: #f4f9fc; }
+    th.col-number { width: 11.5rem; }
+    th.col-date { width: 8.5rem; }
+    .sort { display: inline-flex; align-items: center; gap: .3rem; padding: 0; border: 0; background: none; color: inherit;
+      font: inherit; cursor: pointer; }
+    .sort::after { content: "↕"; opacity: .35; font-size: .85em; }
+    th[aria-sort="ascending"] .sort::after { content: "↑"; opacity: 1; }
+    th[aria-sort="descending"] .sort::after { content: "↓"; opacity: 1; }
+    td.number { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.number a { color: var(--ink); text-decoration: none; }
+    td.title a { color: inherit; text-decoration: none; }
+    tbody tr:hover td.title .en { color: var(--accent); text-decoration: underline; text-underline-offset: .18em; }
+    .en { display: block; font-weight: 600; }
+    .ja { display: block; color: var(--muted); font-size: .88rem; }
+    .tag { display: inline-block; margin-left: .4rem; padding: 0 .45rem; border-radius: 4px; background: #f1e9df; color: #7a4b12;
+      font-size: .72rem; font-weight: 700; vertical-align: .1em; white-space: nowrap; }
+    td.date { color: var(--muted); font-size: .88rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
+    .empty p { margin: 0 0 1rem; }
+    .empty button { min-height: 44px; padding: 0 1.1rem; border: 1px solid var(--accent); border-radius: 999px; background: var(--card);
+      color: var(--accent); font: inherit; font-weight: 650; cursor: pointer; }
+    .empty button:hover { background: var(--accent-soft); }
+    footer { padding: 1.5rem 0 2.5rem; color: var(--muted); font-size: .8rem; }
+
+    @media (hover: none) { .kbd { display: none; } }
+    @media (max-width: 640px) {
+      main { padding-top: .75rem; }
+      .site-panel { padding: .8rem .9rem; }
+      .site-panel h1 { font-size: 1.1rem; margin-bottom: .35rem; }
+      .site-panel ul { font-size: .8rem; line-height: 1.55; padding-left: 1rem; }
+      .search { margin-top: .9rem; }
+      .search label.main { font-size: .88rem; }
+      .hint { font-size: .74rem; }
+      .filters { gap: .6rem .9rem; }
+      .segmented { width: 100%; }
+      .segmented label { flex: 1; justify-content: center; padding: 0 .5rem; }
+      .count { margin-left: 0; width: 100%; }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      table, tbody { display: block; }
+      tbody tr { display: grid; grid-template-columns: 1fr auto; gap: .15rem .75rem; padding: .8rem 1rem; border-bottom: 1px solid var(--line); }
+      tbody tr:last-child { border-bottom: 0; }
+      td { display: block; padding: 0; border: 0; }
+      td.title { grid-column: 1 / -1; grid-row: 2; }
+      td.date { text-align: right; }
+    }
+  </style>
 </head>
 <body>
-  $site_header
-  <main>
-    <p class="eyebrow">NIST Special Publication 800</p>
-    <h1>英日対訳資料一覧</h1>
-    <p class="lede">資料番号や英語・日本語のタイトルから、読みたい資料を探せます。</p>
-    <section class="search-panel" aria-label="資料の検索と絞り込み">
-      <div class="field">
-        <label for="search">資料番号・タイトルで検索</label>
-        <input id="search" type="search" autocomplete="off" placeholder="例: 800-53、Zero Trust、暗号" aria-describedby="search-hint">
-      </div>
-      <p id="search-hint" class="search-hint">SP800-53・８００－５３でも検索できます。空白で区切ると、すべての語を含む資料を表示します。</p>
-      <div class="filters">
-        <div class="field"><label for="availability-filter">対訳ページ</label><select id="availability-filter"><option value="all">すべて</option><option value="yes">対訳ページあり</option><option value="no">対訳ページなし</option></select></div>
-        <div class="field"><label for="status-filter">翻訳状態</label><select id="status-filter"><option value="all">すべて</option><option value="created">訳文作成済み</option><option value="reviewed">訳文レビュー済み</option><option value="in_progress">翻訳作業中</option><option value="not_started">日本語訳なし・未着手</option><option value="stale">要再確認</option></select></div>
-        <div class="field"><label for="sort-order">並び順</label><select id="sort-order"><option value="number">資料番号順</option><option value="newest">刊行日：新しい順</option><option value="oldest">刊行日：古い順</option></select></div>
-        <button id="reset" type="button">条件をクリア</button>
-      </div>
-    </section>
-    <p class="notice">非公式の対訳資料です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は掲載していません。訳文やPDFからの抽出に誤り・欠落があり得るため、要件の確認にはNIST原文を参照してください。</p>
-    <details class="help">
-      <summary>翻訳状態の見方・集計</summary>
-      <dl>
-        <dt>訳文作成済み</dt><dd>登録された翻訳対象ブロックに訳文があります。未レビューの訳を含みます。絞り込みではレビュー済み資料も表示します。「原文保持あり」の資料には、日本語化せず原文で掲載する図表や参考文献などが含まれます。</dd>
-        <dt>訳文レビュー済み</dt><dd>翻訳対象ブロックの訳文がすべてレビュー済みです。原文保持部分やPDF抽出の照合状態は別に表示します。</dd>
-        <dt>翻訳作業中・要再確認</dt><dd>未訳が残る資料、または原文の変更により訳文の再確認が必要な資料です。</dd>
-        <dt>原文抽出の照合待ち</dt><dd>PDFから抽出した内容を原本と照合する必要があります。訳文のレビューとは別の確認です。</dd>
-        <dt>一部収録</dt><dd>文書の一部のみを収録しています。訳文の状態と内訳は登録範囲についての表示です。</dd>
-      </dl>
-      <p>訳文作成済み $created_total 件（うち訳文レビュー済み $reviewed_total 件）、翻訳作業中 $in_progress_total 件。</p>
-      <p>登録ブロック $block_total 件：日本語訳 $translated_total 件、原文保持 $source_only_total 件、未訳・要再確認 $pending_total 件。バーは登録ブロック全体に占める日本語訳の割合です。</p>
-    </details>
-    <div class="results-header">
-      <p id="result-count" class="result-count" aria-live="polite" aria-atomic="true">$document_total 件を表示</p>
-      <p class="catalog-count">対象: 現行Final $document_total 件 ／ 対訳ページあり $page_total 件</p>
+$site_header
+<main class="wrap">
+  <section class="site-panel" aria-labelledby="site-title">
+    <h1 id="site-title">NIST SP 800・FIPS の英日対訳（非公式）</h1>
+    <ul>
+      <li>NIST の Special Publication 800 シリーズ（$sp_total 件）と FIPS（$fips_total 件）を、段落ごとに英文と日本語訳を並べて読めるようにしたサイトです。</li>
+      <li>有志による非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。</li>
+      <li>翻訳の正確性は保証しません。要件の確認には、各ページの「原文URL」から NIST の正式版を参照してください。段落にマウスを乗せると、原本 PDF の該当ページへのリンクが出ます。</li>
+      <li>NIST のロゴ・商務省の紋章・人物写真と、NIST が第三者の許諾を得て転載した部分は掲載していません。</li>
+    </ul>
+  </section>
+
+  <form class="search" role="search" onsubmit="return false">
+    <label class="main" for="q">資料を探す（資料番号・英語タイトル・日本語タイトル・要約）</label>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="q" name="q" placeholder="例: 800-53、FIPS 203、鍵管理、zero trust" autocomplete="off" spellcheck="false" aria-describedby="q-hint" autofocus>
+      <span class="kbd" aria-hidden="true">/</span>
     </div>
-    <noscript><p>検索・絞り込み・並べ替えにはJavaScriptが必要です。以下に全資料を表示しています。</p></noscript>
-    <div class="table-wrap" id="results">
-      <table aria-label="NIST SP 800 資料一覧">
-        <thead><tr><th scope="col">資料番号</th><th scope="col">タイトル</th><th scope="col">刊行日</th><th scope="col">翻訳状態</th><th scope="col">訳文の内訳</th><th scope="col">読む・原文を確認</th></tr></thead>
-        <tbody>$table_rows</tbody>
-      </table>
+    <p class="hint" id="q-hint">入力するとすぐに絞り込みます（資料番号の一致 → タイトル → 要約の順）。Enter で先頭の資料を開きます。</p>
+    <div class="filters">
+      <div class="segmented" role="radiogroup" aria-label="資料の種類">
+        <input type="radio" name="series" id="series-all" value="all" checked><label for="series-all">すべて <span class="n">$all_total</span></label>
+        <input type="radio" name="series" id="series-sp800" value="sp800"><label for="series-sp800">SP 800 <span class="n">$sp_total</span></label>
+        <input type="radio" name="series" id="series-fips" value="fips"><label for="series-fips">FIPS <span class="n">$fips_total</span></label>
+      </div>
+      <label class="check"><input type="checkbox" id="hide-withdrawn" checked> 廃止された資料を隠す</label>
+      <span class="count" id="count" aria-live="polite"></span>
     </div>
-$historical_section
-    <div id="empty-state" class="empty-state" hidden><p>条件に一致する資料がありません。検索語を短くするか、絞り込みを解除してください。</p><button id="empty-reset" type="button">条件をクリアして全資料を表示</button></div>
-  </main>
-  <footer>一覧の出典: <a href="https://csrc.nist.gov/publications/sp800">NIST SP 800 Publications</a>。「NIST原文」は資料の公式ページを新しいタブで開きます。</footer>
-  <script>
-    (() => {
-      const search = document.getElementById("search");
-      const statusFilter = document.getElementById("status-filter");
-      const availability = document.getElementById("availability-filter");
-      const sortOrder = document.getElementById("sort-order");
-      const tbody = document.querySelector("tbody");
-      const rows = Array.from(tbody.querySelectorAll("tr"));
-      const resultCount = document.getElementById("result-count");
-      const storageKey = "nist-translation-index-filters-v1";
-      const normalize = value => value.normalize("NFKC").toLocaleLowerCase("en")
-        .replace(/[‐‑‒–—−]/g, "-").replace(/\bsp\s*(?=800)/g, "");
-      const compact = value => normalize(value).replace(/\s+/g, "");
-      const searchable = new Map(rows.map(row => [row, compact(row.dataset.search)]));
-      const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
-      let lastSort = "";
-      const controls = { q: search, status: statusFilter, available: availability, sort: sortOrder };
-      const applyState = state => {
-        if (!state || typeof state !== "object") return;
-        for (const [key, control] of Object.entries(controls)) {
-          if (typeof state[key] !== "string") continue;
-          if (key === "q" || Array.from(control.options).some(option => option.value === state[key])) control.value = state[key];
-        }
-      };
-      const restore = () => {
-        const params = new URLSearchParams(location.search);
-        if (Array.from(Object.keys(controls)).some(key => params.has(key))) {
-          applyState(Object.fromEntries(params));
-        } else {
-          try { applyState(JSON.parse(sessionStorage.getItem(storageKey))); } catch (_) {}
-        }
-      };
-      const update = (persist = true) => {
-        const tokens = normalize(search.value).trim().split(/\s+/).filter(Boolean);
-        if (lastSort !== sortOrder.value) {
-          const sorted = [...rows].sort((a, b) => {
-            const byNumber = collator.compare(a.dataset.number, b.dataset.number);
-            if (sortOrder.value === "number") return byNumber;
-            if (!a.dataset.date || !b.dataset.date) return a.dataset.date ? -1 : b.dataset.date ? 1 : byNumber;
-            const byDate = a.dataset.date.localeCompare(b.dataset.date);
-            return (sortOrder.value === "newest" ? -byDate : byDate) || byNumber;
-          });
-          for (const row of sorted) tbody.appendChild(row);
-          lastSort = sortOrder.value;
-        }
-        let visible = 0;
-        for (const row of rows) {
-          const matchesText = tokens.every(token => searchable.get(row).includes(compact(token)));
-          const matchesStatus = statusFilter.value === "all" || row.dataset.status === statusFilter.value
-            || (statusFilter.value === "created" && row.dataset.status === "reviewed")
-            || (statusFilter.value === "not_started" && row.dataset.status === "source_ready");
-          const matchesAvailability = availability.value === "all" || row.dataset.available === availability.value;
-          row.hidden = !(matchesText && matchesStatus && matchesAvailability);
-          if (!row.hidden) visible += 1;
-        }
-        resultCount.textContent = visible.toLocaleString("ja-JP") + " / " + rows.length.toLocaleString("ja-JP") + " 件を表示";
-        document.getElementById("results").hidden = visible === 0;
-        document.getElementById("empty-state").hidden = visible !== 0;
-        if (persist) {
-          const state = Object.fromEntries(Object.entries(controls).map(([key, control]) => [key, control.value]));
-          try { sessionStorage.setItem(storageKey, JSON.stringify(state)); } catch (_) {}
-          const url = new URL(location.href);
-          for (const [key, value] of Object.entries(state)) {
-            if (value && value !== "all" && !(key === "sort" && value === "number")) url.searchParams.set(key, value);
-            else url.searchParams.delete(key);
-          }
-          try { history.replaceState(null, "", url); } catch (_) {}
-        }
-      };
-      const reset = () => {
-        search.value = ""; statusFilter.value = "all"; availability.value = "all"; sortOrder.value = "number";
-        update(); search.focus();
-      };
-      search.addEventListener("input", () => update());
-      for (const control of [statusFilter, availability, sortOrder]) control.addEventListener("change", () => update());
-      for (const id of ["reset", "empty-reset"]) document.getElementById(id).addEventListener("click", reset);
-      window.addEventListener("pageshow", () => update(false));
-      window.addEventListener("popstate", () => { restore(); update(false); });
-      restore(); update();
-    })();
-  </script>
+  </form>
+
+  <div class="table-card">
+    <table id="docs">
+      <thead>
+        <tr>
+          <th class="col-number" aria-sort="ascending"><button type="button" class="sort" data-key="number">資料番号</button></th>
+          <th class="col-title">タイトル</th>
+          <th class="col-date" aria-sort="none"><button type="button" class="sort" data-key="date">刊行日</button></th>
+        </tr>
+      </thead>
+      <tbody>
+$rows
+      </tbody>
+    </table>
+    <div class="empty" id="empty" hidden>
+      <p>条件に合う資料はありません。検索語を短くするか、種類を「すべて」にしてください。<span id="empty-withdrawn" hidden>廃止された資料を探す場合は「廃止された資料を隠す」を外してください。</span></p>
+      <button type="button" id="reset">条件をリセット</button>
+    </div>
+  </div>
+</main>
+<footer class="wrap">原文の出典: National Institute of Standards and Technology（NIST）。原文の一覧は <a href="https://csrc.nist.gov/publications/sp800">CSRC SP 800</a>・<a href="https://csrc.nist.gov/publications/fips">CSRC FIPS</a>。</footer>
+<script>
+(() => {
+  const q = document.getElementById('q');
+  const hide = document.getElementById('hide-withdrawn');
+  const tbody = document.querySelector('#docs tbody');
+  const rows = Array.from(tbody.rows);
+  const count = document.getElementById('count');
+  const empty = document.getElementById('empty');
+  const table = document.getElementById('docs');
+  // 全角・半角、大文字・小文字、空白・ハイフンの違いを無視して照合する（「80053」でも「800-53」に当たる）
+  const norm = (s) => s.normalize('NFKC').toLowerCase().replace(/[\s\-‐–—_.,:;()（）・]/g, '');
+  rows.forEach((row) => {
+    row._text = norm(row.dataset.search);
+    row._num = norm(row.cells[0].textContent);
+    row._title = norm(row.cells[1].textContent);
+  });
+  let sortKey = 'number', sortDir = 1;
+
+  const series = () => document.querySelector('input[name="series"]:checked').value;
+
+  function apply() {
+    const terms = q.value.normalize('NFKC').toLowerCase().split(/\s+/).map(norm).filter(Boolean);
+    const want = series();
+    let shown = 0, hiddenWithdrawn = 0;
+    const per = { all: 0, sp800: 0, fips: 0 };  // results each series button would show
+    for (const row of rows) {
+      const matchSeries = want === 'all' || row.dataset.series === want;
+      const matchText = terms.every((t) => row._text.includes(t));
+      const withdrawn = row.dataset.withdrawn === '1';
+      const kept = matchText && !(hide.checked && withdrawn);
+      if (kept) { per.all++; per[row.dataset.series]++; }
+      const visible = matchSeries && kept;
+      if (matchSeries && matchText && hide.checked && withdrawn) hiddenWithdrawn++;
+      row.hidden = !visible;
+      if (visible) shown++;
+      // 並べ順の優先度: 資料番号に一致 → タイトルに一致 → 要約だけに一致
+      row._rank = !terms.length ? 0 : terms.every((t) => row._num.includes(t)) ? 0
+        : terms.every((t) => (row._num + row._title).includes(t)) ? 1 : 2;
+    }
+    rows.slice().sort((a, b) => a._rank - b._rank).forEach((row) => tbody.appendChild(row));
+    for (const key in per) document.querySelector('#series-' + key + ' + label .n').textContent = per[key];
+    count.textContent = shown + ' 件' + (shown === rows.length ? '' : '（全 ' + rows.length + ' 件中）');
+    table.hidden = shown === 0;
+    empty.hidden = shown !== 0;
+    document.getElementById('empty-withdrawn').hidden = hiddenWithdrawn === 0;
+    const params = new URLSearchParams();
+    if (q.value.trim()) params.set('q', q.value.trim());
+    if (want !== 'all') params.set('series', want);
+    if (!hide.checked) params.set('withdrawn', 'show');
+    const query = params.toString();
+    history.replaceState(null, '', query ? '?' + query : location.pathname);
+  }
+
+  function sort(key) {
+    sortDir = key === sortKey ? -sortDir : (key === 'date' ? -1 : 1);
+    sortKey = key;
+    const value = (row) => key === 'date' ? row.dataset.date : row.dataset.order;
+    rows.sort((a, b) => {
+      const x = value(a), y = value(b);
+      if (x === y) return a.dataset.order.localeCompare(b.dataset.order);
+      if (!x) return 1;
+      if (!y) return -1;
+      return (x < y ? -1 : 1) * sortDir;
+    });
+    apply();
+    for (const th of table.tHead.rows[0].cells) {
+      const button = th.querySelector('.sort');
+      if (button) th.setAttribute('aria-sort', button.dataset.key === key ? (sortDir > 0 ? 'ascending' : 'descending') : 'none');
+    }
+  }
+
+  // URL の条件を復元する（?q=…&series=fips&withdrawn=show）
+  const params = new URLSearchParams(location.search);
+  if (params.get('q')) q.value = params.get('q');
+  const initial = document.getElementById('series-' + (params.get('series') || 'all'));
+  if (initial) initial.checked = true;
+  if (params.get('withdrawn') === 'show') hide.checked = false;
+
+  q.addEventListener('input', apply);
+  hide.addEventListener('change', apply);
+  document.querySelectorAll('input[name="series"]').forEach((r) => r.addEventListener('change', apply));
+  table.tHead.addEventListener('click', (e) => { const b = e.target.closest('.sort'); if (b) sort(b.dataset.key); });
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.isComposing) {
+      const first = rows.find((row) => !row.hidden);
+      if (first) location.href = first.querySelector('a').href;
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== q && !/^(input|textarea|select)$$/i.test(document.activeElement.tagName)) {
+      e.preventDefault(); q.focus(); q.select();
+    }
+  });
+  // 行のどこを押しても資料を開く（リンク・選択中の文字は通常どおり）
+  tbody.addEventListener('click', (e) => {
+    if (e.target.closest('a') || String(window.getSelection())) return;
+    const row = e.target.closest('tr');
+    if (row) row.querySelector('a').click();
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    q.value = ''; hide.checked = true; document.getElementById('series-all').checked = true; apply(); q.focus();
+  });
+  apply();
+})();
+</script>
 </body>
 </html>

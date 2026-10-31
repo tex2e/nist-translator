@@ -57,7 +57,7 @@ NISTのロゴと米国商務省の紋章は、商標・公的標章として使�
 
 ## FIPS（数式・擬似コード中心の資料）
 
-FIPSは`fips_documents.py`に登録し、ファイル名を`fips-<番号>`にする。一覧は`html/fips-index.html`で、SP 800の一覧とは分ける。
+FIPSは`fips_documents.py`に登録し、ファイル名を`fips-<番号>`にする。一覧はトップページ（`html/index.html`）で SP 800 と同じ表に並び、「FIPS」で絞り込める（`html/fips-index.html` は `index.html?series=fips` への転送）。
 
 LaTeXで組まれたPDFでは、テキスト層でfiの合字がfになることがある（specifed、frst、coeffcient）。抽出直後に`scripts/fix_lost_fi.py`で直す。ほかの資料での出現数を根拠にするので、直した語の一覧を目で確認する。
 

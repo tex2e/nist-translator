@@ -2,73 +2,66 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
-from src.nist_translater.index_page import _load_document, _render_row, build_translation_index
+from src.nist_translater import index_page
+from src.nist_translater.fips_index import build_fips_index
+from src.nist_translater.index_page import _natural, _render_row, build_translation_index
+
+
+ENTRY = {
+    "series": "sp800", "number": "SP 800-53 Rev. 5", "title": "Security <controls>",
+    "title_ja": "セキュリティ管理策", "date": "2020-12-10", "withdrawn": False,
+    "href": "sp800-53r5.html", "summary": "管理策のカタログ", "order": "1 " + _natural("SP 800-53 Rev. 5"),
+}
 
 
 class IndexPageTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        (self.root / "data").mkdir()
-        (self.root / "html").mkdir()
-        self.record = {
-            "number": "800-53 Rev. 5", "title": "Security <controls>",
-            "release_date": "9/10/2020", "record_url": "https://example.com/source",
-            "json_path": "data/doc.json", "html_path": "html/doc.html",
-        }
-
-    def load(self, blocks, **metadata):
-        (self.root / "data/doc.json").write_text(json.dumps({"contents": blocks, **metadata}))
-        return _load_document(self.root, self.record)
-
-    def test_created_reviewed_and_source_preservation_are_separate(self):
-        draft = {"status": "draft", "html_ja": "訳"}
-        reviewed = {"status": "reviewed", "html_ja": "訳"}
-        source_only = {"status": "source_only", "html_ja": ""}
-        self.assertEqual(self.load([draft, source_only])["status"], "created")
-        progress = self.load([reviewed, source_only])
-        self.assertEqual(progress["status"], "reviewed")
-        soup = BeautifulSoup(_render_row(self.record, progress), "html.parser")
-        self.assertIn("原文保持あり", soup.get_text())
-        self.assertEqual(float(soup.select_one('[role="progressbar"]')["aria-valuenow"]), 50)
-        self.assertEqual(self.load([source_only])["status"], "source_ready")
-        self.assertEqual(self.load([])["status"], "source_ready")
-
-    def test_stale_and_missing_translation_prevent_created_status(self):
-        reviewed = {"status": "reviewed", "html_ja": "訳"}
-        self.assertEqual(self.load([reviewed, {"status": "stale", "html_ja": "旧訳"}])["status"], "stale")
-        self.assertEqual(self.load([reviewed, {"status": "reviewed", "html_ja": " "}])["status"], "in_progress")
-        self.assertEqual(self.load([reviewed, {"status": "untranslated", "html_ja": ""}])["status"], "in_progress")
-
-    def test_links_dates_and_extraction_notes(self):
-        (self.root / "html/doc.html").write_text("page")
-        progress = self.load([{"status": "reviewed", "html_ja": "訳", "extraction_status": "needs_review"}],
-                             extraction_partial=True)
-        soup = BeautifulSoup(_render_row(self.record, progress), "html.parser")
-        self.assertEqual(soup.tr["data-date"], "2020-09-10")
-        self.assertEqual(soup.tr["data-available"], "yes")
-        self.assertEqual(soup.select_one(".title a")["href"], "doc.html")
-        self.assertEqual(soup.select_one(".number a")["href"], "doc.html")
+    def test_row_has_number_titles_and_date_only(self):
+        soup = BeautifulSoup(_render_row(ENTRY), "html.parser")
+        cells = soup.find_all("td")
+        self.assertEqual([cell["class"][0] for cell in cells], ["number", "title", "date"])
+        self.assertEqual(soup.select_one(".number a")["href"], "sp800-53r5.html")
         self.assertIn("Security <controls>", soup.get_text())
         self.assertIsNone(soup.find("controls"))
-        self.assertIn("一部収録", soup.get_text())
-        self.assertIn("原文抽出の照合待ち", soup.get_text())
-        (self.root / "html/doc.html").unlink()
-        soup = BeautifulSoup(_render_row(self.record, _load_document(self.root, self.record)), "html.parser")
-        self.assertIsNone(soup.select_one(".title a"))
-        self.assertEqual(soup.tr["data-available"], "no")
+        self.assertEqual(soup.time["datetime"], "2020-12-10")
+        self.assertEqual(soup.tr["data-series"], "sp800")
+        self.assertEqual(soup.tr["data-withdrawn"], "0")
+        # the summary is searchable but not shown
+        self.assertIn("管理策のカタログ", soup.tr["data-search"])
+        self.assertNotIn("管理策のカタログ", soup.get_text())
 
-    def test_build_recounts_json_and_renders_new_labels(self):
-        self.load([{"status": "draft", "html_ja": "訳"}])
-        (self.root / "data/sp800-final-catalog.json").write_text(json.dumps({"records": [self.record]}))
-        page = build_translation_index(self.root).read_text()
-        self.assertNotIn("翻訳完了", page)
-        self.assertIn("訳文作成済み 1 件", page)
-        self.assertNotIn("$table_rows", page)
+    def test_withdrawn_rows_are_marked(self):
+        soup = BeautifulSoup(_render_row(dict(ENTRY, withdrawn=True, date="")), "html.parser")
+        self.assertEqual(soup.tr["data-withdrawn"], "1")
+        self.assertIn("廃止", soup.select_one(".tag").get_text())
+        self.assertEqual(soup.select_one(".date").get_text(), "—")
+
+    def test_natural_order_compares_numbers_by_value(self):
+        numbers = ["SP 800-100", "SP 800-53A Rev. 5", "SP 800-53 Rev. 5", "SP 800-9"]
+        self.assertEqual(sorted(numbers, key=_natural),
+                         ["SP 800-9", "SP 800-53 Rev. 5", "SP 800-53A Rev. 5", "SP 800-100"])
+
+    def test_build_lists_both_series_with_filters(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            fips = dict(ENTRY, series="fips", number="FIPS 203", href="fips-203.html", order="2 " + _natural("FIPS 203"))
+            with patch.object(index_page, "_entries", return_value=[ENTRY, fips]):
+                page = build_translation_index(root).read_text()
+        soup = BeautifulSoup(page, "html.parser")
+        self.assertEqual([row["data-series"] for row in soup.select("tbody tr")], ["sp800", "fips"])
+        self.assertEqual([radio["value"] for radio in soup.select('input[name="series"]')], ["all", "sp800", "fips"])
+        self.assertTrue(soup.select_one("#hide-withdrawn").has_attr("checked"))
+        self.assertEqual([th.get_text(strip=True) for th in soup.select("thead th")], ["資料番号", "タイトル", "刊行日"])
+        self.assertIn("非公式", soup.select_one(".site-panel").get_text())
+        self.assertNotIn("$", soup.select_one("main").get_text())
+
+    def test_old_fips_index_forwards_to_the_filtered_list(self):
+        with tempfile.TemporaryDirectory() as temp:
+            page = build_fips_index(Path(temp)).read_text()
+        self.assertIn('url=index.html?series=fips', page)
 
 
 if __name__ == "__main__":
