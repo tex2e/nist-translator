@@ -23,12 +23,12 @@
           {% if subtitle_ja %}<span class="doc-panel-item">日本語タイトル : <strong>{{ subtitle_ja }}</strong></span><br>{% endif %}
           {% if release_date %}<span class="doc-panel-item">公開日 : {{ release_date }}</span><br>{% endif %}
           <span class="doc-panel-item">原文URL : <a href="{{ orig_url }}">{{ orig_url }}</a></span><br>
-          <span class="doc-panel-item">翻訳編集 : 自動生成</span>
+          <span class="doc-panel-item">翻訳編集 : 自動生成{% if fetched_at %}, 原文取得日 : {{ fetched_at }}{% endif %}, 訳文 : {{ translated }} / {{ total }} ブロック</span>
         </div>
         {% if summary %}
         <div class="doc-summary"><p>[要約] {{ summary | join('') }}</p></div>
         {% endif %}
-        <p class="doc-disclaimer">有志による非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。要件の確認には<a href="{{ pdf_url }}">NIST の正式版 PDF</a>を参照してください。</p>
+        <p class="doc-disclaimer">有志による非公式の日本語訳です。</p>
         {% if source_format == 'pdf' %}
         {% if extraction_pending or extraction_partial %}<p class="pdf-notice">{% if extraction_pending %}PDF から抽出した原文のうち {{ extraction_pending }} ブロックは原本との照合待ちです。{% endif %}{% if extraction_partial %}このプレビューに収録した PDF ページ: {{ included_pages | join(', ') }}。全文は収録していません。{% endif %}</p>{% endif %}
         {% if extraction_pending %}{% for warning in extraction_warnings %}<p class="pdf-notice">{{ warning }}</p>{% endfor %}{% endif %}
@@ -36,12 +36,12 @@
         {% if math_preservation %}
         {% if math_pending %}<p class="pdf-notice">原本との照合、または説明文の訳の確認が済んでいない数式が {{ math_pending }} 箇所あります。</p>{% endif %}
         {% endif %}
+        {% if stale or extraction_pending %}
         <div class="metadata">
-          {% if fetched_at %}<span>原文取得日: {{ fetched_at }}</span>{% endif %}
-          <span>訳文: {{ translated }} / {{ total }} ブロック</span>
           {% if stale %}<span>原文変更により要再確認: {{ stale }}</span>{% endif %}
           {% if extraction_pending %}<span>PDF 原文の照合待ち: {{ extraction_pending }} ブロック</span>{% endif %}
         </div>
+        {% endif %}
       </div>
 
       {% for block in blocks %}
