@@ -7,7 +7,7 @@ site is an unofficial translation and must not display them. LIST.json holds
 ``[document key, block id, mark]`` entries (mark: ``nist_logo``, ``doc_seal``
 ``contains_nist_logo`` for a larger figure that shows the logo, ``person_photo``
 for a photograph of people, ``other_logo`` for another organisation's logo,
-``decorative`` for banners, stock photos and other decoration) chosen by looking at the images. Each listed figure block gets
+``decorative`` for banners, stock photos and other decoration, ``third_party_image`` for an image credited to or taken from a third party) chosen by looking at the images. Each listed figure block gets
 ``official_mark``; the page builder then prints a short note in place of the
 image, and the image file is removed from ``html/assets``. The block and its
 provenance stay in the data.

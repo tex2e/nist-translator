@@ -46,7 +46,13 @@ def stem_of(record_url):
 
 def record_details(record):
     soup = BeautifulSoup(fetch(record["record_url"]), "html.parser")
-    pdf = doi = None
+    # the record's own links first: related publications and translations are listed on the same page
+    own_pdf = soup.find("a", id="pub-local-download-link", href=True)
+    own_doi = soup.find("a", id="pub-doi-link", href=True)
+    pdf = urljoin(record["record_url"], own_pdf["href"]) if own_pdf else None
+    if pdf and not (pdf.lower().endswith(".pdf") or "get_pdf.cfm" in pdf):
+        pdf = None   # e.g. a link to a search page instead of the report
+    doi = own_doi["href"].strip() if own_doi else None
     for link in soup.find_all("a", href=True):
         href = link["href"]
         if not doi and href.startswith("https://doi.org/10.6028/"):
