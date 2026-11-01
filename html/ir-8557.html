@@ -1,0 +1,1691 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8557 は、Symposium in Usable Privacy and Security（SOUPS）が主催した、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップについて報告する文書です。ワークショップは、2024 年 8 月 11 日と 12 日にペンシルベニア州フィラデルフィアで開催された対面形式のシンポジウムに先立ち、2024 年 8 月 7 日に開催され、基調講演 1 件、研究報告の発表 2 件、パネルディスカッションで構成されました。報告書は、そこで得られた考えや知見をより広いコミュニティと共有するために、ワークショップについて報告するものです。知見は、イマーシブ技術の動向、サイバーセキュリティとプライバシー、標準、追加の知見に整理されています。">
+  <title>イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書 | NIST IR 8557 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="NIST IR 8557" data-search="nist ir 8557 nist ir 8557">NIST IR 8557</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies" data-search="イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書 report of the virtual workshop on usable cybersecurity and privacy for immersive technologies">イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="NIST IR 8557" data-search="nist ir 8557 nist ir 8557">NIST IR 8557</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies" data-search="イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書 report of the virtual workshop on usable cybersecurity and privacy for immersive technologies">イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="2. Background" data-search="2. 背景 2. background">2. 背景</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="3. Event Report" data-search="3. イベント報告 3. event report">3. イベント報告</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="4. Insights" data-search="4. 知見 4. insights">4. 知見</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0003" title="4.1. Insights Related to Immersive Technology Trends: New Frontiers, but Potential Pitfalls" data-search="4.1. イマーシブ技術の動向に関する知見: 新たなフロンティアと潜在的な落とし穴 4.1. insights related to immersive technology trends: new frontiers, but potential pitfalls">4.1. イマーシブ技術の動向に関する知見: 新たなフロンティアと潜在的な落とし穴</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0006" title="4.2. Insights Related to Cybersecurity and Privacy: Immense Scale and Personal Impact" data-search="4.2. サイバーセキュリティとプライバシーに関する知見: 巨大な規模と個人への影響 4.2. insights related to cybersecurity and privacy: immense scale and personal impact">4.2. サイバーセキュリティとプライバシーに関する知見: 巨大な規模と個人への影響</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0005" title="4.3. Insights Related to Standards: Pre-Standardization Research Needed" data-search="4.3. 標準に関する知見: 標準化以前の研究の必要性 4.3. insights related to standards: pre-standardization research needed">4.3. 標準に関する知見: 標準化以前の研究の必要性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0001" title="4.4. Additional Insights: Challenging the Landscape with Unique Use Cases and Considerations" data-search="4.4. 追加の知見: 独自のユースケースと考慮事項が突きつける課題 4.4. additional insights: challenging the landscape with unique use cases and considerations">4.4. 追加の知見: 独自のユースケースと考慮事項が突きつける課題</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0001" title="5. Conclusion" data-search="5. 結論 5. conclusion">5. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="Appendix A. List of Symbols, Abbreviations, and Acronyms" data-search="付録a 記号、略語、頭字語の一覧 appendix a. list of symbols, abbreviations, and acronyms">付録A 記号、略語、頭字語の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0016-b0001" title="Appendix B. Topics for Feedback Distributed Before the Workshop" data-search="付録b ワークショップ前に配布したフィードバックのトピック appendix b. topics for feedback distributed before the workshop">付録B ワークショップ前に配布したフィードバックのトピック</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0002" title="Immersive Technologies Cybersecurity and Privacy Topics for Feedback" data-search="イマーシブ技術のサイバーセキュリティとプライバシーに関するフィードバックのトピック immersive technologies cybersecurity and privacy topics for feedback">イマーシブ技術のサイバーセキュリティとプライバシーに関するフィードバックのトピック</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0003" title="I. Background" data-search="i. 背景 i. background">I. 背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0008" title="II. Topics for Feedback" data-search="ii. フィードバックのトピック ii. topics for feedback">II. フィードバックのトピック</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001" title="A. Immersive Technology Ecosystem and Use Cases" data-search="a. イマーシブ技術のエコシステムとユースケース a. immersive technology ecosystem and use cases">A. イマーシブ技術のエコシステムとユースケース</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0003" title="B. Privacy and Cybersecurity Risk Considerations" data-search="b. プライバシーとサイバーセキュリティのリスクに関する考慮事項 b. privacy and cybersecurity risk considerations">B. プライバシーとサイバーセキュリティのリスクに関する考慮事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0007" title="C. Immersive Technology Standards and Risk Management Resources" data-search="c. イマーシブ技術の標準とリスクマネジメントのリソース c. immersive technology standards and risk management resources">C. イマーシブ技術の標準とリスクマネジメントのリソース</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0011" title="D. Other Topics and Considerations" data-search="d. その他のトピックと考慮事項 d. other topics and considerations">D. その他のトピックと考慮事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0020-b0001" title="Appendix C. Virtual Workshop’s Call for Papers" data-search="付録c 仮想ワークショップの論文募集 appendix c. virtual workshop’s call for papers">付録C 仮想ワークショップの論文募集</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0002" title="Call for Papers: Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies" data-search="論文募集: イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップ call for papers: virtual workshop on usable cybersecurity and privacy for immersive technologies">論文募集: イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップ</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8557 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書</strong></span><br><span class="doc-panel-item">公開日 : 2025-05-23</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8557/final">https://csrc.nist.gov/pubs/ir/8557/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 183 / 184 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8557 は、Symposium in Usable Privacy and Security（SOUPS）が主催した、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップについて報告する文書です。ワークショップは、2024 年 8 月 11 日と 12 日にペンシルベニア州フィラデルフィアで開催された対面形式のシンポジウムに先立ち、2024 年 8 月 7 日に開催され、基調講演 1 件、研究報告の発表 2 件、パネルディスカッションで構成されました。報告書は、そこで得られた考えや知見をより広いコミュニティと共有するために、ワークショップについて報告するものです。知見は、イマーシブ技術の動向、サイバーセキュリティとプライバシー、標準、追加の知見に整理されています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST内部報告書</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8557</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8557</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael Fagan Dylan Gilbert</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael Fagan Dylan Gilbert</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8557</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。https://doi.org/10.6028/NIST.IR.8557</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST内部報告書</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8557</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8557</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップの報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael Fagan Dylan Gilbert*</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael Fagan Dylan Gilbert*</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Applied Cybersecurity Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Applied Cybersecurity Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>*Former NIST employee; all work for this publication was done while at NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>*元NIST職員。この刊行物に関する作業はすべてNIST在職中に行われました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8557</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。https://doi.org/10.6028/NIST.IR.8557</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>May 2025</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2025年5月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Craig Burkhardt, Acting Under Secretary of Commerce for Standards and Technology and Acting NIST Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Craig Burkhardt, Acting Under Secretary of Commerce for Standards and Technology and Acting NIST Director</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実験手順を適切に特定するため、この論文では特定の装置、機器、ソフトウェア、材料(商用・非商用を問わない)を示しています。このように示すことは、NISTがいかなる製品やサービスも推奨または支持していることを意味せず、示された材料や装置がその目的に最適であるとも限りません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は、法令で定められた責務に従ってNISTが現在策定中の他の刊行物に言及している場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関が利用してかまいません。したがって、それぞれの刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画と移行のため、連邦機関はNISTによるこれらの新しい刊行物の策定状況を注意深く見守るとよいでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NISTにフィードバックを提供することが推奨されます。上記以外にも、NISTの多くのサイバーセキュリティ関連刊行物が https://csrc.nist.gov/publications で公開されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2025-05-15</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>刊行履歴 2025-05-15にNIST編集審査委員会が承認</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to Cite this NIST Technical Series Publication Fagan M, Gilbert D (2025) Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8557. https://doi.org/10.6028/NIST.IR.8557</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このNISTテクニカルシリーズ刊行物の引用方法 Fagan M, Gilbert D (2025) Report of the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8557. https://doi.org/10.6028/NIST.IR.8557</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iDs Michael Fagan: 0000-0002-1861-2609 Dylan Gilbert: 0009-0003-6061-3757</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者のORCID iD Michael Fagan: 0000-0002-1861-2609 Dylan Gilbert: 0009-0003-6061-3757</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information immersivetech@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連絡先 immersivetech@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8557/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 この刊行物に関する追加情報(関連コンテンツ、更新の可能性、変更履歴を含む)は https://csrc.nist.gov/pubs/ir/8557/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報公開法(FOIA)に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Abstract</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document reports on the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies (the Workshop) hosted by the Symposium in Usable Privacy and Security (SOUPS). The Workshop was held on August 7<sup>th</sup>, 2024 before the in-person symposium held August 11<sup>th</sup> and 12<sup>th</sup>, 2024 in Philadelphia, Pennsylvania. The Workshop consisted of a keynote presentation, two research report presentations, and a panel discussion. This document reports on the Workshop to share the ideas and insights with the broader community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この文書は、Symposium in Usable Privacy and Security(SOUPS)が主催した、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップ（以下「ワークショップ」）について報告するものです。ワークショップは、2024年8月11日と12日にペンシルベニア州フィラデルフィアで開催された対面形式のシンポジウムに先立ち、2024年8月7日に開催されました。ワークショップは、基調講演1件、研究報告の発表2件、パネルディスカッションで構成されていました。この文書は、ワークショップで共有された考えや知見をより広いコミュニティと共有するために、ワークショップについて報告します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Keywords</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+キーワード</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>augmented reality; cybersecurity; human factors; immersive technologies; mixed reality; privacy; virtual reality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>拡張現実、サイバーセキュリティ、ヒューマンファクター、イマーシブ技術、複合現実、プライバシー、仮想現実。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Reports on Computer Systems Technology</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータシステム技術に関する報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所(NIST)の情報技術研究所(ITL)は、国の測定・標準インフラに技術的なリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITLは、情報技術の発展と生産的な活用を進めるため、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITLの責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーのための管理、行政、技術、物理の各標準とガイドラインを策定することが含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Table of Contents</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+目次</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. Background</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. 背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. Event Report</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. イベント報告</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">4. Insights</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">4. 知見</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-toc-01">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">4.1. Insights Related to Immersive Technology Trends: New Frontiers, but Potential Pitfalls</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">4.1. イマーシブ技術の動向に関する知見: 新たなフロンティアと潜在的な落とし穴</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-toc-02">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">4.2. Insights Related to Cybersecurity and Privacy: Immense Scale and Personal Impact</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">4.2. サイバーセキュリティとプライバシーに関する知見: 巨大な規模と個人への影響</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-toc-03">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0005">4.3. Insights Related to Standards: Pre-Standardization Research Needed</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0005">4.3. 標準に関する知見: 標準化以前の研究の必要性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-toc-04">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">4.4. Additional Insights: Challenging the Landscape with Unique Use Cases and Considerations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">4.4. 追加の知見: 独自のユースケースと考慮事項が突きつける課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">5. Conclusion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">5. 結論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">Appendix A. List of Symbols, Abbreviations, and Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">付録A 記号、略語、頭字語の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">Appendix B. Topics for Feedback Distributed Before the Workshop</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">付録B ワークショップ前に配布したフィードバックのトピック</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">Appendix C. Virtual Workshop’s Call for Papers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">付録C 仮想ワークショップの論文募集</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Advances in computer vision, data processing, and other technologies has laid the foundation for novel virtual reality (VR), augmented reality (AR), and mixed reality (MR) solutions, collectively called immersive technologies. Immersive technologies are hardware and software systems that create interactive digital visual/spatial environments. These technologies hold promise to drive innovation and economic growth in numerous areas such as workforce [1], accessibility<sup>1</sup> [2], and healthcare [3], but they challenge existing assumptions and practices for digital technologies [4][5]. Immersive technologies may create cybersecurity and privacy risks, some perhaps novel and unique that will need to be managed, but they may also have potential for cybersecurity and privacy protections and other risk mitigations [5]. All the while, users are at the center of these technologies, making usability considerations for immersive technologies critical for cybersecurity and privacy. For example, certain communication modalities may have different effectiveness for cybersecurity and privacy information delivered via immersive technologies than on traditional display and input modalities. Not considering usability in this context risks users not using or misusing cybersecurity features, privacy features, or the technologies themselves.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータビジョン、データ処理、その他の技術の進歩が、総称してイマーシブ技術と呼ばれる、新しい仮想現実(VR)、拡張現実(AR)、複合現実(MR)のソリューションの基盤を築きました。イマーシブ技術とは、インタラクティブなデジタルの視覚的・空間的環境を作り出すハードウェアとソフトウェアのシステムです。これらの技術は、労働力[1]、アクセシビリティ<sup>1</sup> [2]、医療[3]など多くの分野でイノベーションと経済成長を促進する可能性を秘めていますが、デジタル技術に関する既存の前提や慣行に課題を突きつけます[4][5]。イマーシブ技術は、サイバーセキュリティとプライバシーのリスクを生み出す可能性があり、その中には管理が必要な新規で固有のものもあるかもしれませんが、サイバーセキュリティとプライバシーの保護やその他のリスク低減に役立つ可能性もあります[5]。ユーザーは常にこれらの技術の中心にいるため、イマーシブ技術のユーザビリティへの配慮は、サイバーセキュリティとプライバシーにとって極めて重要です。たとえば、イマーシブ技術を通じて提供されるサイバーセキュリティやプライバシーの情報は、従来のディスプレイや入力方式の場合と比べて、伝達方式によって有効性が異なる場合があります。この文脈でユーザビリティを考慮しないと、ユーザーがサイバーセキュリティ機能、プライバシー機能、あるいは技術そのものを使わなくなったり、誤用したりするおそれがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>With this background, the National Institute of Standards and Technology (NIST) organized the Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies (the Workshop) hosted by the Symposium in Usable Privacy and Security (SOUPS). The Workshop was held on August 7<sup>th</sup>, 2024 before the in-person symposium held August 11<sup>th</sup> and 12<sup>th</sup>, 2024 in Philadelphia, Pennsylvania. The Workshop attracted over two dozen registrants and consisted of a keynote presentation by Dr. Louis Rosenberg titled “Our Next Reality: the Emerging Dangers of our AI-powered Immersive Future,” two research report presentations, and a panel discussion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このような背景から、米国国立標準技術研究所(NIST)は、Symposium in Usable Privacy and Security(SOUPS)が主催する、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップ（以下「ワークショップ」）を企画しました。ワークショップは、2024年8月11日と12日にペンシルベニア州フィラデルフィアで開催された対面形式のシンポジウムに先立ち、2024年8月7日に開催されました。ワークショップには24名を超える登録者が参加し、Louis Rosenberg博士による「Our Next Reality: the Emerging Dangers of our AI-powered Immersive Future」と題した基調講演、2件の研究報告の発表、パネルディスカッションで構成されていました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document reports on the virtual workshop to share the ideas and insights with the broader community. The rest of this report documents the event and outlines observations about immersive technologies’ cybersecurity and privacy considerations from the discussions and presentations:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この文書は、考えや知見をより広いコミュニティと共有するために、この仮想ワークショップについて報告するものです。本報告書の以降の部分では、イベントを記録し、議論や発表から得られた、イマーシブ技術のサイバーセキュリティとプライバシーに関する考慮事項についての所見を概説します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Next, background is provided on the origins of this virtual workshop.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">次に、この仮想ワークショップの成り立ちに関する背景を示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Then, the details of the event are documented.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">続いて、イベントの詳細を記録します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Then, insights from the virtual workshop are reported.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">続いて、仮想ワークショップから得られた知見を報告します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Finally, the report is concluded.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">最後に、報告書をまとめます。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0006-b0009" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">1 In this report the term “accessibility” is used in the context of limiting or removing barriers for individuals with disabilities to use technology, access information and services, and participate in society generally.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+1 この報告書では、「アクセシビリティ」という用語を、障害のある人が技術を使い、情報やサービスにアクセスし、社会全般に参加するうえでの障壁を減らす、または取り除くという文脈で用いています。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Background</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 背景</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies was held to explore cybersecurity and privacy related to immersive technologies (i.e., Virtual Reality, Augmented Reality, and Mixed Reality). The Workshop was aimed to help NIST gain insights related to the following research questions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イマーシブ技術(すなわち、仮想現実、拡張現実、複合現実)に関するサイバーセキュリティとプライバシーを探るため、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップが開催されました。ワークショップは、NISTが次の研究課題に関する知見を得る助けとなることを目的としていました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">What are the new technologies, use cases, applications, implementations, solutions, etc. related to AR/VR/MR?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">AR/VR/MRに関連する新しい技術、ユースケース、アプリケーション、実装、ソリューションなどにはどのようなものがありますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">What privacy and cybersecurity considerations and implications are there for development and adoption of these technologies?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">これらの技術の開発と導入において、どのようなプライバシーとサイバーセキュリティの考慮事項や影響がありますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">What standards and other resources exist for immersive technology cybersecurity and privacy? Are there gaps that can/should be filled?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">イマーシブ技術のサイバーセキュリティとプライバシーに関して、どのような標準やその他のリソースが存在しますか。埋められる、あるいは埋めるべきギャップはありますか。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Before the Workshop, two public-facing deliverables were published to support the project. A NIST blog post announced the project and helped spur engagements with the community. In addition, a “Topics for Feedback” document was posted on the NIST website for easy sharing with the community. The topics highlighted in the document were:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップに先立ち、プロジェクトを支援するために、一般向けの成果物が2件公開されました。NISTのブログ記事でプロジェクトを発表し、コミュニティとの交流を促しました。加えて、コミュニティと容易に共有できるよう、「Topics for Feedback」文書をNISTのウェブサイトに掲載しました。この文書で取り上げたトピックは次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Immersive Technology Ecosystem and Use Cases - “[T]he ecosystem of entities that support immersive technologies. This ecosystem encompasses a range of entities and roles that may have complex, multi-directional relationships. Complexity can increase when entities are supported by a chain of sub-entities (e.g., manufacturers supported by multiple component suppliers).”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">イマーシブ技術のエコシステムとユースケース - 「イマーシブ技術を支える主体のエコシステム。このエコシステムには、複雑で多方向の関係を持ちうるさまざまな主体と役割が含まれます。主体が下位の主体の連鎖に支えられている場合(たとえば、複数の部品サプライヤーに支えられた製造業者)には、複雑さが増す可能性があります。」</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Immersive Technology Ecosystem and Use Cases - “[C]urrent and potential future uses and misuses of immersive technologies across all applicable sectors and user bases, including any barriers to adoption.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">イマーシブ技術のエコシステムとユースケース - 「導入に対する障壁を含め、該当するすべての分野とユーザー層における、イマーシブ技術の現在および将来の可能性のある利用と誤用。」</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Privacy and Cybersecurity Risk Considerations - “Immersive technologies may generate cybersecurity and privacy risks, some of which can be novel or mix in complex ways.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">プライバシーとサイバーセキュリティのリスクに関する考慮事項 - 「イマーシブ技術は、サイバーセキュリティとプライバシーのリスクを生み出す可能性があり、その一部は新規であったり、複雑な形で混ざり合ったりすることがあります。」</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Immersive Technology Standards and Risk Management Resources - “Immersive technologies may break existing cybersecurity and privacy assumptions, requiring adaptation or update to tools and techniques documented in standards and guidelines. Additionally, immersive technologies may warrant new standards and guidelines efforts to complement existing resources.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">イマーシブ技術の標準とリスクマネジメントのリソース - 「イマーシブ技術は、既存のサイバーセキュリティとプライバシーの前提を崩し、標準やガイドラインに記載されたツールや技法の適応または更新を必要とする場合があります。さらに、イマーシブ技術には、既存のリソースを補完する新しい標準やガイドラインの取り組みが必要となる場合があります。」</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Under each of these topics a series of specific questions were listed to guide feedback. The full “Topics for Feedback” document is included in Appendix B of this report.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのトピックごとに、フィードバックを導くための具体的な質問が列挙されました。「Topics for Feedback」文書の全文は、この報告書の付録Bに収録しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Event Report</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. イベント報告</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SOUPS hosted the Workshop on the afternoon of August 7<sup>th</sup>, 2024. NIST posted an external event website to promote the Workshop to immersive technology community members, while the organizers of the SOUPS conference also promoted the Workshop in their outreach. Leading up to the Workshop, the community was given the opportunity to submit research or position papers related to one or more of the following topics:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SOUPSは、2024年8月7<sup>th</sup>日の午後にワークショップを主催しました。NISTは、イマーシブ技術のコミュニティの構成員にワークショップを周知するため外部のイベントウェブサイトを公開し、SOUPSカンファレンスの主催者も、自らの広報活動でワークショップを周知しました。ワークショップに先立ち、コミュニティには、次のトピックの1つ以上に関する研究論文またはポジションペーパーを提出する機会が与えられました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Usable cybersecurity and privacy considerations for immersive technologies, with particular interest in novel considerations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する考慮事項(特に新規の考慮事項への関心が高い)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential approaches for usable cybersecurity and privacy (e.g., risk mitigations) for immersive technology solutions and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のソリューションとユースケースにおける、使いやすいサイバーセキュリティとプライバシーのための潜在的なアプローチ(たとえば、リスクの低減策)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential usable cybersecurity and privacy mitigations that may utilize immersive technologies to deliver protections.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術を利用して保護を提供しうる、使いやすいサイバーセキュリティとプライバシーの低減策の可能性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">How usable cybersecurity and privacy impact, or are impacted by, other trust factors (i.e., safety, resiliency, reliability) for immersive technology solutions and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のソリューションとユースケースにおいて、使いやすいサイバーセキュリティとプライバシーが他の信頼要因(すなわち、安全性、レジリエンス、信頼性)にどのように影響を与え、またその影響を受けますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Insights for standards and standards development for immersive technologies and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術とそのユースケースの標準および標準策定に関する知見。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These topics were listed and expanded upon in a Call for Papers. The Call for Papers is provided in Appendix C of this report for reference. Two research papers were received and reviewed by the Workshop’s Technical Program Committee. Both papers were accepted to be presented at the workshop:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのトピックは、論文募集(Call for Papers)に列挙され、詳しく説明されました。参考として、論文募集をこの報告書の付録Cに示します。2本の研究論文が寄せられ、ワークショップの技術プログラム委員会が審査しました。両論文とも、ワークショップで発表するために採択されました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Trusted Inter-Reality Infrastructure: Building Trust within Entities (Digest)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Trusted Inter-Reality Infrastructure: Building Trust within Entities (Digest)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Akira Kanaoka, Toho University and Takuro Yonezawa, Nagoya University</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Akira Kanaoka, Toho University and Takuro Yonezawa, Nagoya University</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Understanding the Interdependence of Trust Factors and Usability in Cybersecurity and Privacy for Immersive Technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Understanding the Interdependence of Trust Factors and Usability in Cybersecurity and Privacy for Immersive Technologies</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Bhanujeet Choudhary, David Tulacz, Kavya Pearlman, and Nandita Rao Narla, X Reality Safety Intelligence (XRSI)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Bhanujeet Choudhary, David Tulacz, Kavya Pearlman, and Nandita Rao Narla, X Reality Safety Intelligence (XRSI)</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Both papers are available as Supplemental Content on this document’s CSRC page.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>両論文は、この文書のCSRCページの補足コンテンツ(Supplemental Content)として入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop agenda included an opening keynote presentation from Dr. Louis Rosenberg from the Unanimous AI and the Responsible Metaverse Alliance titled, “Our Next Reality: the Emerging Dangers of our AI-powered Immersive Future.” Dr. Rosenberg’s talk highlighted potential privacy risks of immersive technologies supported by data-fueled artificial intelligence technologies and discussed the way these risks could be amplified by user interface designs (e.g., so-called “dark patterns”) and other manipulative algorithm designs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップのプログラムは、Unanimous AIおよびResponsible Metaverse AllianceのLouis Rosenberg博士による、「Our Next Reality: the Emerging Dangers of our AI-powered Immersive Future」と題した冒頭の基調講演で始まりました。Rosenberg博士の講演は、データを燃料とする人工知能技術に支えられたイマーシブ技術に潜むプライバシーリスクを取り上げ、こうしたリスクが、ユーザーインターフェースの設計(たとえば、いわゆる「ダークパターン」)やその他の操作的なアルゴリズムの設計によって増幅されうることを論じました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The keynote was followed by a presentation from an author of each research paper where the authors had an opportunity to gather feedback on and promote their work. The last component of the Workshop was a panel discussion moderated by Dylan Gilbert from NIST and featuring the following panelists:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基調講演に続いて、各研究論文の著者の1人が発表を行い、自らの研究についてフィードバックを集め、広める機会を得ました。ワークショップの最後は、NISTのDylan Gilbertが司会を務めるパネルディスカッションで、次のパネリストが登壇しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Elizabeth Hyman, President and CEO, XR Association</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Elizabeth Hyman, President and CEO, XR Association</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Christopher Lafayette, Emergent Technologist, Gatherverse</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Christopher Lafayette, Emergent Technologist, Gatherverse</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Jameson Spivack, Senior Policy Analyst for Immersive Technologies, Future of Privacy Forum</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Jameson Spivack, Senior Policy Analyst for Immersive Technologies, Future of Privacy Forum</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The panel provided a lively discussion of current and upcoming trends pertinent to usable cybersecurity and privacy for immersive technologies and gave the audience an opportunity to engage with experts in the immersive technology community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パネルでは、イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関連する現在および今後の動向について活発な議論が行われ、聴衆がイマーシブ技術コミュニティの専門家と交流する機会となりました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Insights</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 知見</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Workshop yielded numerous insights organized below around the project’s core research areas of immersive technology trends, cybersecurity, privacy, and standards. Additional insights relevant to the immersive tech ecosystem and standards and risk management which did not fit cleanly under the project’s core research questions are included as well. Please note that these insights are not formal recommendations from the authors or NIST or represent the consensus of the participants. They are provided to report the various points of view heard at the Workshop.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップからは多くの知見が得られました。以下では、プロジェクトの中核的な研究領域であるイマーシブ技術の動向、サイバーセキュリティ、プライバシー、標準に沿って整理します。プロジェクトの中核的な研究課題には収まりきらなかった、イマーシブ技術のエコシステムや、標準とリスクマネジメントに関する追加の知見も含めています。なお、これらの知見は、著者やNISTによる正式な勧告ではなく、また、参加者の総意を表すものでもありません。ワークショップで聞かれたさまざまな見解を報告するために示すものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Insights Related to Immersive Technology Trends: New Frontiers, but Potential Pitfalls</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. イマーシブ技術の動向に関する知見: 新たなフロンティアと潜在的な落とし穴</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The community shared many unique aspects of immersive technologies. For example, the types and number of sensors used to power immersive technologies are unique, and research is ongoing into ways to integrate emerging technologies (e.g., incorporating quantum sensors to improve Lidar for 3D modelling). Beneficial current and future use cases were shared as well. In this context, the term <em>use</em> case was used quite broadly by the audience and was used to refer to applications of immersive technologies or spaces where there are potential immersive technology applications. Dangerous, impossible, or expensive use cases were identified as being well-suited for immersive technologies. In addition, use cases for immersive technology application are emerging across myriad sectors, including professional training (e.g., surgeons operating on digital cadavers), personalized therapeutic experiences, architecture and construction, and immersive entertainment experiences.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コミュニティは、イマーシブ技術の多くの固有の側面を共有しました。たとえば、イマーシブ技術を支えるセンサーの種類と数は独特であり、新興技術を統合する方法（たとえば、3Dモデリングのために量子センサーを組み込んでLidarを改善するなど）の研究が進められています。現在および将来の有益なユースケースも共有されました。この文脈で、<em>ユース</em>ケースという用語は聴衆によってかなり広い意味で使われ、イマーシブ技術の応用、またはイマーシブ技術の応用が見込まれる領域を指していました。危険である、不可能である、または費用がかかるユースケースが、イマーシブ技術に適しているものとして特定されました。加えて、イマーシブ技術を応用するユースケースは、専門職の訓練（たとえば、外科医がデジタルの献体で手術を行う）、個人に合わせた治療体験、建築・建設、没入型のエンターテインメント体験など、数多くの分野で生まれつつあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>But some points of caution were noted. Participants raised potential safety and behavioral concerns, including some that are novel (e.g., time dilation, immersive cyberbullying and harassment, and VR “hangovers” (i.e., disassociation/derealization)). Discussions highlighted that the scope, scale, and persistence of data processing as well as the scope and scale of inferences and potential for behavioral manipulation associated with immersive technologies (especially when powered by artificial intelligence (AI)) sets it apart from other technologies. Throughout the workshop, consistent connections to AI were drawn by participants, highlighting that AI has a close relationship to immersive technologies. It was argued by some that multi-modal AI is immersive technology. AI agents communicating through audio interface is a likely future use case.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一方で、いくつかの注意点も指摘されました。参加者は、安全面や行動面の懸念の可能性を挙げ、その中には新しいもの(たとえば、時間感覚の変容、没入型のサイバーいじめや嫌がらせ、VRの「二日酔い」(すなわち、解離や現実感喪失))も含まれていました。議論では、イマーシブ技術に伴うデータ処理の範囲、規模、永続性、さらに推論の範囲と規模、行動操作の可能性(特に人工知能(AI)に支えられている場合)が、イマーシブ技術を他の技術から際立たせていることが強調されました。ワークショップを通じて、参加者は一貫してAIとの関連を指摘し、AIがイマーシブ技術と密接な関係にあることを浮き彫りにしました。マルチモーダルAIはイマーシブ技術だという主張もありました。音声インターフェースを通じて通信するAIエージェントは、将来のユースケースとなる可能性が高いとされました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Insights Related to Cybersecurity and Privacy: Immense Scale and Personal Impact</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. サイバーセキュリティとプライバシーに関する知見: 巨大な規模と個人への影響</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many individual considerations for cybersecurity and privacy were discussed. One consistent point of discussion was the scope and scale of data needed to make immersive technologies function. Specifically, the community highlighted that the context in which data processing takes place and privacy and cybersecurity risks arise (i.e., immersive worlds powered by granular biometric, spatial, and behavioral/emotional data) is unique to immersive technologies. Privacy and cybersecurity impacts may be amplified by immersive technologies due to the nature and scale of data processing. Novel types of data processing activities include biometrics for uses other than identity management, real-time spatial mapping, and the combination of user behavioral and physical data. Also, virtual environments require significant amounts of data and similarly significant technological protections for data (e.g., encryption, local or on-device processing). This can present costs and trade-offs (e.g., privacy and security vs. safety).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サイバーセキュリティとプライバシーに関する多くの個別の考慮事項が議論されました。一貫した論点の1つは、イマーシブ技術が機能するために必要なデータの範囲と規模でした。特にコミュニティは、データ処理が行われ、プライバシーとサイバーセキュリティのリスクが生じる文脈(すなわち、きめ細かな生体情報、空間情報、行動・感情のデータに支えられたイマーシブな世界)が、イマーシブ技術に固有のものであることを強調しました。データ処理の性質と規模のために、プライバシーとサイバーセキュリティへの影響がイマーシブ技術によって増幅される可能性があります。新しい種類のデータ処理活動には、身元管理以外の目的での生体情報の利用、リアルタイムの空間マッピング、ユーザーの行動データと身体データの組み合わせがあります。また、仮想環境には大量のデータが必要であり、同様に、データに対する相応の技術的保護(たとえば、暗号化、ローカルまたはデバイス上での処理)も必要です。これにはコストやトレードオフ(たとえば、プライバシーおよびセキュリティと安全性との間のトレードオフ)が伴う場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another common point was the personal nature of immersive technologies. Immersive technologies can have more precise tailoring of experiences based on emotional states or inferences from behavioral and biometric data. Highly personalized environments can facilitate benefits to privacy and cybersecurity (e.g., “gamifying” privacy and cybersecurity to make it more interesting, understandable, and manageable; use of intelligent, edge-based virtual agents to help users improve their privacy and security outcomes). These tailored experiences can, however, also increase risks of individuals being manipulated in ways which could adversely impact their privacy and the security of their data. Though behavioral norms are important, they are challenging to establish for experiences that may not be currently possible or are in a nascent state (i.e., many experiences and behaviors for immersive technologies are currently speculative). Individuals noted that there is a lack of clarity around consumer expectations of privacy and cybersecurity in immersive environments due to their relative novelty and a current lack of normative and ethical frameworks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>もう1つの共通の論点は、イマーシブ技術の個人的な性質でした。イマーシブ技術では、感情状態や、行動データおよび生体データからの推論に基づいて、体験をより正確に調整できます。高度にパーソナライズされた環境は、プライバシーとサイバーセキュリティに利点をもたらしえます(たとえば、プライバシーとサイバーセキュリティを「ゲーム化」して、より興味を引き、理解しやすく、管理しやすくする、エッジベースの知的な仮想エージェントを使って、ユーザーがプライバシーとセキュリティの成果を高められるよう支援するなど)。しかし、こうした調整された体験は、個人が操作され、プライバシーやデータのセキュリティに悪影響が及ぶリスクを高める可能性もあります。行動規範は重要ですが、現時点では不可能であったり、発展の初期段階にあったりする体験(すなわち、イマーシブ技術の多くの体験や行動は現時点では推測の域にあります)について確立することは困難です。参加者からは、イマーシブ環境は比較的新しく、規範的・倫理的な枠組みも現時点では存在しないため、イマーシブ環境におけるプライバシーとサイバーセキュリティについて消費者が何を期待するかが明確でない、との指摘がありました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The increasing integration of AI into immersive technologies underscores the importance of managing privacy and cybersecurity risks throughout the data and system development life cycle, but developers may lack incentive or requirements to do so.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イマーシブ技術へのAIの統合が進んでいることは、データとシステムの開発ライフサイクル全体を通じてプライバシーとサイバーセキュリティのリスクを管理することの重要性を示していますが、開発者にはそうする動機や要件がない場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Specific to privacy, the following key considerations for immersive technologies were highlighted through discussions. Participants noted that there could be tensions between data minimization requirements and the amount and variety of data needed to power immersive technologies. Also, principles such as consent, user control, and autonomy may be difficult to uphold for involuntary and unconscious or subconscious behaviors or physical acts.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プライバシーに特有のものとして、議論を通じてイマーシブ技術に関する次の主な考慮事項が強調されました。参加者は、データ最小化の要件と、イマーシブ技術を動かすために必要なデータの量や種類との間に緊張関係が生じうると指摘しました。また、同意、ユーザーによる制御、自律性といった原則は、不随意で無意識または潜在意識下の行動や身体的な行為については守ることが難しい場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3. Insights Related to Standards: Pre-Standardization Research Needed</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3. 標準に関する知見: 標準化以前の研究の必要性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The community recommended several areas related to immersive technologies that could benefit from additional standardization efforts. Usability is a hurdle for hardware and software standards (e.g., ways to manage multiple accounts within the same device). Identity standards for immersive tech could be helpful to address this. Standards for trustworthy AI (e.g., watermarking and other content authentication) would be welcomed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コミュニティは、イマーシブ技術に関連して、追加の標準化の取り組みが有益となりうる領域をいくつか挙げました。ユーザビリティの確保は、ハードウェアとソフトウェアの標準における課題です(たとえば、同じデバイス内で複数のアカウントを管理する方法)。これに対処するには、イマーシブ技術のための識別(アイデンティティ)の標準が役立つ可能性があります。信頼できるAIのための標準(たとえば、電子透かしやその他のコンテンツ認証)も歓迎されるでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In discussions, a number of specific areas for pre-standardization research that NIST could support were brought to the fore, such as taxonomies (i.e., terms/definitions) that are tied to specific use cases. Participants noted that a shared taxonomy of data types and accompanying risks could also be useful. Additional topics related to standards that were noted were measurement of accuracy/efficacy of immersive tech and associated impacts and the development of a typology of risk.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>議論では、NISTが支援しうる標準化以前の研究の具体的な領域が数多く挙がりました。たとえば、特定のユースケースに結び付けたタクソノミー(すなわち、用語と定義)があります。参加者は、データ種別とそれに伴うリスクについての共通のタクソノミーも有用でありうると指摘しました。標準に関連して指摘された追加のトピックには、イマーシブ技術の正確性・有効性とそれに伴う影響の測定、およびリスクの類型の策定がありました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.4. Additional Insights: Challenging the Landscape with Unique Use Cases and Considerations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.4. 追加の知見: 独自のユースケースと考慮事項が突きつける課題</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some insights did not fit cleanly into the areas above. It was highlighted that sectors have specific considerations. The education sector is a rapidly growing part of the immersive technologies ecosystem, but gaps in teacher and learner knowledge and understanding about the technologies (e.g., their educational value, how they can be used, and potential risks) is a barrier to adoption. There is noted growth in healthcare applications as well. For example, large hospitals are training physicians on immersive technologies for pain mitigation, stroke rehab, and stress treatment. Wearable sensors are capturing biological signals related to attention and behavior. This can help with psychiatry and psychology and to assist with treating physical impairments such as vision, hearing, or speech.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上記の領域にうまく収まらない知見もありました。分野ごとに固有の考慮事項があることが強調されました。教育分野はイマーシブ技術のエコシステムの中で急速に成長している部分ですが、教師と学習者の双方における技術に関する知識や理解(たとえば、教育上の価値、利用方法、潜在的なリスク)の不足が、導入の障壁となっています。医療分野の応用も成長しているとされています。たとえば、大規模病院では、痛みの緩和、脳卒中のリハビリ、ストレスの治療のために、医師にイマーシブ技術の訓練を行っています。ウェアラブルセンサーは、注意や行動に関連する生体信号を捕捉しています。こうした信号の捕捉は精神医学や心理学に役立つほか、視覚、聴覚、発話などの身体的な障害の治療を支援するのにも役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Human-focused considerations were also discussed. Legal and regulatory requirements related to accessibility may not translate well to immersive technologies, potentially creating barriers to federal government procurement. Ownership or control over the technologies was noted to have implications for impact on individuals. For example, the subscription model has different effects (potentially more adverse for individuals) than ownership models.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>人間を中心とした考慮事項も議論されました。アクセシビリティに関する法的・規制上の要件は、イマーシブ技術にうまく当てはまらない可能性があり、連邦政府の調達の障壁になりうるとされました。技術の所有または制御が、個人への影響に関わることも指摘されました。たとえば、サブスクリプションモデルは、所有モデルとは異なる影響(個人にとってより不利になる可能性があります)をもたらします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It was also noted that some aspects of the immersive technology ecosystem may be centralized (i.e., the same organizations making hardware, software, and applications). This has the possibility to create benefits to privacy and cybersecurity but may raise concerns around market diversity, competition, and potential limitations and drawbacks for consumers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イマーシブ技術のエコシステムの一部の側面は、集中化されている場合がある(すなわち、同じ組織がハードウェア、ソフトウェア、アプリケーションを作っている)ことも指摘されました。これはプライバシーとサイバーセキュリティに利点をもたらす可能性がありますが、市場の多様性、競争、消費者にとっての潜在的な制約や欠点についての懸念を生む可能性もあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While immersive technologies raise some unique cybersecurity and privacy considerations, existing NIST risk management guidelines, tools, and resources can support risk-based and ethical decision-making in the development and use of immersive systems, products, and services. A current lack of ethical and normative frameworks specifically for immersive technologies may introduce challenges to understanding individuals’ expectations of privacy and the security of their data in immersive environments, but development of such frameworks falls outside of NIST’s purview. Incentives are a key driver in cybersecurity and privacy best practices. This underscores the importance of lowering technical barriers to adoption of technologies that may be useful for managing risks in immersive environments (e.g., privacy-enhancing technologies), while also acknowledging non-technical considerations that may disincentivize effective risk management, such as legal uncertainty, knowledge gaps, market consolidation, etc.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イマーシブ技術はサイバーセキュリティとプライバシーに関する固有の考慮事項をいくつか提起しますが、NISTの既存のリスクマネジメントのガイドライン、ツール、リソースは、イマーシブなシステム、製品、サービスの開発と利用におけるリスクベースで倫理的な意思決定を支援できます。イマーシブ技術に特化した倫理的・規範的な枠組みが現時点で存在しないことは、イマーシブ環境における個人のプライバシーへの期待やデータのセキュリティを理解するうえでの課題となる可能性がありますが、そうした枠組みの策定はNISTの権限の範囲外です。インセンティブは、サイバーセキュリティとプライバシーのベストプラクティスの重要な推進力です。このことは、イマーシブ環境でのリスク管理に役立つ可能性のある技術(たとえば、プライバシー強化技術)の導入に対する技術的な障壁を下げることの重要性を示すとともに、効果的なリスクマネジメントの動機を損ないうる非技術的な考慮事項(法的な不確実性、知識の不足、市場の寡占化など)を認識することの重要性も示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Immersive technologies pose great benefits for the nation and may be critical to several sectors in the future such as education, industrial maintenance, and entertainment. That said, many aspects of the technology space and standards are nascent, hindering specific discussion of cybersecurity and privacy. Though there are questions that need consideration related to cybersecurity and privacy of immersive technologies, as noted in the Section 4, existing NIST risk management guidelines, tools, and resources can support risk-based and ethical decision-making in the development and use of immersive systems, products, and services. Thus, participants in immersive technology ecosystems (e.g., product manufacturers and providers, supporting service providers, institutional and individual users) can leverage the existing NIST cybersecurity and privacy portfolio, either directly or through tailoring and profiling. Through this mechanism, as NIST has done before, practical application of cybersecurity and privacy risk management can be supported in the near term with new projects and research directions potentially identified through continued community engagement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イマーシブ技術は国に大きな利益をもたらし、将来、教育、産業保守、エンターテインメントなどの複数の分野で不可欠になる可能性があります。とはいえ、技術分野と標準の多くの側面は発展の初期段階にあり、サイバーセキュリティとプライバシーに関する具体的な議論を妨げています。第4節で述べたとおり、イマーシブ技術のサイバーセキュリティとプライバシーに関して検討が必要な疑問はあるものの、NISTの既存のリスクマネジメントのガイドライン、ツール、リソースは、イマーシブなシステム、製品、サービスの開発と利用におけるリスクベースで倫理的な意思決定を支援できます。したがって、イマーシブ技術のエコシステムの参加者(たとえば、製品の製造業者・提供者、支援サービスの提供者、組織および個人のユーザー)は、NISTの既存のサイバーセキュリティとプライバシーのポートフォリオを、そのまま、あるいはテーラリングやプロファイリングを通じて活用できます。この仕組みを通じて、NISTがこれまでもそうしてきたように、サイバーセキュリティとプライバシーのリスクマネジメントの実践的な適用を短期的に支援できるほか、コミュニティとの継続的な関与を通じて、新たなプロジェクトや研究の方向性が見いだされる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] XR Association (2025) Education in XR. (XR Association, Washington, D.C.). Available at https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Education_V1.pdf-1.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] XR Association (2025) Education in XR. (XR Association, Washington, D.C.). 次を参照: https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Education_V1.pdf-1.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] XR Association (2025) Inclusive XR. (XR Association, Washington, D.C.). Available at https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Accessibility_V3.pdf-1.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] XR Association (2025) Inclusive XR. (XR Association, Washington, D.C.). 次を参照: https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Accessibility_V3.pdf-1.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] XR Association (2025) XR Technology and Healthcare. (XR Association, Washington, D.C.). Available at https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Healthcare_V2.pdf-1.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] XR Association (2025) XR Technology and Healthcare. (XR Association, Washington, D.C.). 次を参照: https://xra.org/wp-content/uploads/2023/05/XRA_Slicks_Healthcare_V2.pdf-1.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Santos, N. M., &amp; Peslak, A. (2022). Immersive technologies: Benefits, timeframes, and obstacles. Issues in Information Systems, 23(2). https://iacis.org/iis/2022/2_iis_2022_170-184.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Santos, N. M., &amp; Peslak, A. (2022). Immersive technologies: Benefits, timeframes, and obstacles. Issues in Information Systems, 23(2). https://iacis.org/iis/2022/2_iis_2022_170-184.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Giaretta, A. (2024). Security and privacy in virtual reality: a literature survey. Virtual Reality, 29(1), 10. https://link.springer.com/content/pdf/10.1007/s10055-024-01079-9.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Giaretta, A. (2024). Security and privacy in virtual reality: a literature survey. Virtual Reality, 29(1), 10. https://link.springer.com/content/pdf/10.1007/s10055-024-01079-9.pdf</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. List of Symbols, Abbreviations, and Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録A 記号、略語、頭字語の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>AI Artificial Intelligence</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AI Artificial Intelligence(人工知能)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>AR Augmented Reality</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AR Augmented Reality(拡張現実)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>MR Mixed Reality</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MR Mixed Reality(複合現実)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SOUPS Symposium on Usable Privacy and Security</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SOUPS Symposium on Usable Privacy and Security</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>VR Virtual Reality</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>VR Virtual Reality(仮想現実)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>XRSI X Reality Safety Intelligence</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>XRSI X Reality Safety Intelligence(X Reality Safety Intelligence)</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B. Topics for Feedback Distributed Before the Workshop</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録B ワークショップ前に配布したフィードバックのトピック</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Immersive Technologies Cybersecurity and Privacy Topics for Feedback</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+イマーシブ技術のサイバーセキュリティとプライバシーに関するフィードバックのトピック</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>I. Background</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+I. 背景</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Advances in computer vision, data processing, and other technologies have enabled novel Virtual Reality (VR), Augmented Reality (AR), and Mixed Reality (MR) solutions, collectively called immersive technologies. In general, immersive technologies are hardware and software systems that create interactive digital visual and spatial environments that users can inhabit. These immersive environments can vary in the extent to which they incorporate virtual components. For example, AR layers digital objects over the user’s “real-world” environment, while VR can transport users to an entirely virtual alternate environment. These technologies hold promise to drive innovation and economic growth in numerous areas such as workforce, accessibility, and healthcare. Their creation and use can, however, generate cybersecurity and privacy risks, some of which may be novel.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータビジョン、データ処理などの技術の進歩により、仮想現実(VR)、拡張現実(AR)、複合現実(MR)という新しいソリューション(総称してイマーシブ技術)が可能になりました。一般に、イマーシブ技術とは、ユーザーが入り込めるインタラクティブなデジタルの視覚的・空間的環境を作り出すハードウェアとソフトウェアのシステムです。こうしたイマーシブ環境は、仮想的な要素をどの程度取り入れるかによって異なります。たとえば、ARはユーザーの「現実世界」の環境にデジタルオブジェクトを重ねますが、VRはユーザーを完全に仮想的な別の環境へ移すことができます。これらの技術は、労働力、アクセシビリティ、医療など多くの分野でイノベーションと経済成長を促進する可能性を秘めています。しかし、その作成と利用はサイバーセキュリティとプライバシーのリスクを生み出す可能性があり、その一部は新規のものかもしれません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These new technologies have interdisciplinary and integrative implications as well. They mix knowledge and approaches from myriad fields, such as neuroscience, psychology, behavioral studies, and statistics. Further, their integration with other emergent technologies like Artificial Intelligence (AI) and Internet of Things (IoT) adds complexity to the unique context in which cybersecurity and privacy risks can arise and will need to be managed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの新しい技術には、学際的で統合的な含意もあります。神経科学、心理学、行動研究、統計学など、数多くの分野の知識とアプローチが混在しています。さらに、人工知能(AI)やモノのインターネット(IoT)といった他の新興技術との統合は、サイバーセキュリティとプライバシーのリスクが生じ、管理が必要となる固有の文脈に複雑さを加えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>With these motivations, NIST aims to learn more about potential cybersecurity and privacy considerations associated with immersive technologies. We seek comment or feedback on a variety of topics (described below) to help inform future research and development of guidelines, tools, and other resources to support effective privacy and cybersecurity risk management for immersive technologies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>こうした動機から、NISTは、イマーシブ技術に関連して考えられるサイバーセキュリティとプライバシーの考慮事項について、より深く知ることを目指しています。イマーシブ技術に対する効果的なプライバシーおよびサイバーセキュリティのリスクマネジメントを支援するガイドライン、ツール、その他のリソースについて、今後の研究開発の方向性を定める参考とするため、(以下に述べる)さまざまなトピックについてコメントまたはフィードバックを求めます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST will gather feedback on these topics at a variety of roundtables, meetings, workshops, and other engagements, but we also welcome direct feedback via our email: immersivetech@nist.gov. Updated information on this workstream is available at https://www.nist.gov/securing-emerging-technologies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTは、さまざまな円卓会議、会合、ワークショップ、その他の機会を通じて、これらのトピックに関するフィードバックを集めますが、メール(immersivetech@nist.gov)で直接フィードバックをお寄せいただくことも歓迎します。この取り組みの最新情報は https://www.nist.gov/securing-emerging-technologies で入手できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>II. Topics for Feedback</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+II. フィードバックのトピック</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Respondents can address one or more of the following topics and need not respond to all topics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>回答者は、次のトピックの1つまたは複数について回答できます。すべてのトピックに回答する必要はありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>A. Immersive Technology Ecosystem and Use Cases</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+A. イマーシブ技術のエコシステムとユースケース</h6>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0017-b0002" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8557/p0017-figure-01.png" alt="Diagram of the immersive technology ecosystem. &quot;Immersive Technologies&quot; (a headset icon) is at the center, connected by dotted lines to six surrounding entities, each shown with an icon: Developers, Manufacturers, Individual Users, Third-Party Supporting Entities, Suppliers, and Enterprise Users."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>没入型技術のエコシステムの図です。中央に「Immersive Technologies（没入型技術）」（ヘッドセットのアイコン）があり、周囲の6つの主体と点線で結ばれています。主体はアイコン付きで、Developers（開発者）、Manufacturers（製造者）、Individual Users（個人ユーザー）、Third-Party Supporting Entities（第三者の支援主体）、Suppliers（供給者）、Enterprise Users（企業ユーザー）です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST seeks comment on the ecosystem of entities that support immersive technologies. This ecosystem encompasses a range of entities and roles that may have complex, multi-directional relationships. Complexity can increase when entities are supported by a chain of sub-entities (e.g., manufacturers supported by multiple component suppliers). In particular, NIST seeks stakeholder feedback on the following topics:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTは、イマーシブ技術を支える主体のエコシステムについてコメントを求めます。このエコシステムには、複雑で多方向の関係を持ちうるさまざまな主体と役割が含まれます。主体が下位の主体の連鎖に支えられている場合(たとえば、複数の部品サプライヤーに支えられた製造業者)には、複雑さが増す可能性があります。特にNISTは、次のトピックについて関係者のフィードバックを求めます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Types of entities and roles (e.g., manufacturer, developer, customer, user, and business partners) that characterize the immersive technologies ecosystem</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">イマーシブ技術のエコシステムを特徴づける主体と役割の種類(たとえば、製造業者、開発者、顧客、ユーザー、ビジネスパートナー)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Ways in which the immersive technologies ecosystem is unique from other data processing ecosystems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">イマーシブ技術のエコシステムが他のデータ処理エコシステムと比べて独特である点</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST also seeks comments on current and potential future uses and misuses of immersive technologies across all applicable sectors and user bases, including any barriers to adoption. In particular, NIST seeks stakeholder feedback on the following topics:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTはまた、導入に対する障壁を含め、該当するすべての分野とユーザー層における、イマーシブ技術の現在および将来の可能性のある利用と誤用についてもコメントを求めます。特にNISTは、次のトピックについて関係者のフィードバックを求めます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Current and potential future use cases for immersive technologies, including benefits to innovation and to the public interest</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">イマーシブ技術の現在および将来の可能性のあるユースケース(イノベーションや公益にとっての利点を含む)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">The role(s) of emergent technologies (e.g., AI, IoT, blockchain, etc.) in current or potential future immersive technology use cases</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">イマーシブ技術の現在または将来の可能性のあるユースケースにおける、新興技術(AI、IoT、ブロックチェーンなど)の役割</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">The role(s) that emerging, but nascent, technologies (e.g., quantum computing, brain-computer interfaces) could play in potential future immersive technology use cases</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">イマーシブ技術の将来の可能性のあるユースケースにおいて、新興ではあるが発展の初期段階にある技術(量子コンピューティング、ブレイン・コンピュータ・インターフェースなど)が果たしうる役割</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">Ways in which immersive technologies could be misused, including potential harms such misuse could create for individuals or groups</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">イマーシブ技術が誤用されうる方法(そうした誤用が個人や集団にもたらしうる害を含む)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">Barriers (e.g., technical limitations, costs, usability, etc.) that hinder the development or deployment of current and future immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">現在および将来のイマーシブ技術の開発や展開を妨げる障壁(技術的な制約、コスト、ユーザビリティなど)</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>B. Privacy and Cybersecurity Risk Considerations</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+B. プライバシーとサイバーセキュリティのリスクに関する考慮事項</h6>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0018-b0004" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8557/p0018-figure-01.png" alt="Venn diagram of two overlapping circles. Left circle: &quot;Cybersecurity Risks associated with cybersecurity incidents arising from loss of confidentiality, integrity, or availability&quot;. Right circle: &quot;Privacy Risks associated with privacy events arising from data processing&quot;. The circles overlap in the middle."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2つの円が重なるベン図です。左の円は「Cybersecurity Risks associated with cybersecurity incidents arising from loss of confidentiality, integrity, or availability（機密性・完全性・可用性の喪失から生じるサイバーセキュリティインシデントに関連するサイバーセキュリティリスク）」、右の円は「Privacy Risks associated with privacy events arising from data processing（データ処理から生じるプライバシー事象に関連するプライバシーリスク）」です。2つの円は中央で重なっています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cybersecurity and privacy risks are distinct but can overlap, as illustrated in the Venn diagram above.<sup>2</sup> For example, data confidentiality may be both a cybersecurity and privacy consideration for a system. But system availability considerations may not involve privacy, while secondary use of information derived from user engagement may not involve system cybersecurity. Immersive technologies may generate cybersecurity and privacy risks, some of which can be novel or mix in complex ways. NIST seeks comment on this topic, including the following:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サイバーセキュリティのリスクとプライバシーのリスクは別個のものですが、上のベン図に示すように重なることがあります。<sup>2</sup>たとえば、データの機密性は、システムにとってサイバーセキュリティとプライバシーの両方の考慮事項となりえます。しかし、システムの可用性に関する考慮事項はプライバシーに関わらない場合があり、ユーザーの関与から得られた情報の二次利用はシステムのサイバーセキュリティに関わらない場合があります。イマーシブ技術は、サイバーセキュリティとプライバシーのリスクを生み出す可能性があり、その一部は新規であったり、複雑な形で混ざり合ったりすることがあります。NISTは、このトピックについて次の点を含めてコメントを求めます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Examples of cybersecurity or privacy risks associated with immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">イマーシブ技術に関連するサイバーセキュリティまたはプライバシーのリスクの例</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Cybersecurity or privacy risks that are unique or novel to immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">イマーシブ技術に固有または新規のサイバーセキュリティまたはプライバシーのリスク</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0018-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">If such risks exist, factors that make them unique or novel (e.g., the type(s) or characteristics of data processed, the context in which the data is processed, etc.)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">そうしたリスクが存在する場合、それらを固有または新規にしている要因(たとえば、処理されるデータの種類や特性、データが処理される文脈など)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Ways in which immersive technologies can improve cybersecurity or privacy outcomes</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">イマーシブ技術がサイバーセキュリティまたはプライバシーの成果を向上させうる方法</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">New technological, organizational, or societal approaches to cybersecurity and privacy that are available or needed for immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">イマーシブ技術に対して利用可能な、または必要とされる、サイバーセキュリティとプライバシーに対する新しい技術的、組織的、社会的なアプローチ</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">Ways in which the use of machine learning and other AI techniques or systems impact cybersecurity and privacy risks for immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">機械学習やその他のAI技術またはAIシステムの利用が、イマーシブ技術のサイバーセキュリティとプライバシーのリスクに与える影響</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">Ways in which delivery of other trust factors or engineering objectives (i.e., privacy, safety, resiliency, reliability) rely on, or are hindered by, cybersecurity in the context of immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">イマーシブ技術の文脈において、他の信頼要因や工学上の目的(すなわち、プライバシー、安全性、レジリエンス、信頼性)の実現が、サイバーセキュリティに依存している、またはサイバーセキュリティによって妨げられている方法</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0018-b0011-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Ways, if any, that cybersecurity enables immersive technologies to be privacy-, and safety-preserving, resilient, and reliable for users</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">サイバーセキュリティが、イマーシブ技術をユーザーにとってプライバシーと安全性を保護し、レジリエントで信頼できるものにする方法(あれば)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0018-b0011-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Ways, if any, that cybersecurity when applied to immersive technologies may be detrimental to privacy, safety, resiliency, or reliability</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">イマーシブ技術に適用されたサイバーセキュリティが、プライバシー、安全性、レジリエンス、信頼性を損ないうる方法(あれば)</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0018-b0012" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">2 For more information on the relationship between cybersecurity and privacy risk, see, e.g., <em>NIST Privacy Framework: A Tool for Improving Privacy Through Enterprise Risk Management, Version 1.0</em> (2020), at p. 2. Available at https://doi.org/10.6028/NIST.CSWP.01162020.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+2 サイバーセキュリティリスクとプライバシーリスクの関係の詳細については、たとえば <em>NIST Privacy Framework: A Tool for Improving Privacy Through Enterprise Risk Management, Version 1.0</em> (2020) の2ページを参照してください。https://doi.org/10.6028/NIST.CSWP.01162020 で入手できます。        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">How traditional privacy principles (e.g., data minimization) are applied in the context of immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">従来のプライバシー原則(データ最小化など)がイマーシブ技術の文脈でどのように適用されるか</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0019-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Ways in which these technologies support privacy principles or pose challenges to upholding privacy principles</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">これらの技術がプライバシー原則を支える、またはプライバシー原則の維持に課題をもたらす方法</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">How security and privacy engineering objectives are applied in the context of immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">セキュリティおよびプライバシーの工学上の目的がイマーシブ技術の文脈でどのように適用されるか</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">Risk mitigations for privacy and cybersecurity for immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">イマーシブ技術のためのプライバシーとサイバーセキュリティのリスク低減策</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0019-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">The role(s) of privacy enhancing technologies (e.g., differential privacy, secure multi-party computation, privacy-preserving federated learning, etc.) in managing risks associated with immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">イマーシブ技術に関連するリスクの管理における、プライバシー強化技術(差分プライバシー、秘密計算(セキュアマルチパーティ計算)、プライバシーを保護する連合学習など)の役割</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">The extent to which immersive technologies impact the cybersecurity and privacy workforce, including examples of potential benefits and problems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">イマーシブ技術がサイバーセキュリティとプライバシーの人材に与える影響の程度(起こりうる利点と問題の例を含む)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body">The regulatory landscape and the relationship (whether positive or deficient) to managing privacy and cybersecurity risk</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body">規制の状況と、それがプライバシーとサイバーセキュリティのリスク管理に対してもつ関係(肯定的なものか不十分なものかを問わない)</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>C. Immersive Technology Standards and Risk Management Resources</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+C. イマーシブ技術の標準とリスクマネジメントのリソース</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Standards and guidelines play a critical role in cybersecurity and privacy. Immersive technologies may break existing cybersecurity and privacy assumptions, requiring adaptation or update to tools and techniques documented in standards and guidelines. Additionally, immersive technologies may warrant new standards and guidelines efforts to complement existing resources. To inform NIST’s understanding of these considerations, NIST seeks comment on the following:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>標準とガイドラインは、サイバーセキュリティとプライバシーにおいて重要な役割を果たします。イマーシブ技術は、既存のサイバーセキュリティとプライバシーの前提を崩し、標準やガイドラインに記載されたツールや技法の適応または更新を必要とする場合があります。さらに、イマーシブ技術には、既存のリソースを補完する新しい標準やガイドラインの取り組みが必要となる場合があります。NISTがこれらの考慮事項を理解する参考とするため、NISTは次の点についてコメントを求めます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The current state of standards and standards development for immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">イマーシブ技術の標準と標準策定の現状</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">NIST’s role in supporting development of standards for immersive technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">イマーシブ技術の標準策定を支援するうえでのNISTの役割</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">NIST’s role in supporting effective risk management for immersive technologies through guidelines, resources, and tools</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">ガイドライン、リソース、ツールを通じて、イマーシブ技術に対する効果的なリスクマネジメントを支援するうえでのNISTの役割</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>D. Other Topics and Considerations</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+D. その他のトピックと考慮事項</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0011-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST welcomes stakeholder feedback on any other topics and considerations related to immersive technologies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTは、イマーシブ技術に関連するその他のトピックや考慮事項についても、関係者のフィードバックを歓迎します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix C. Virtual Workshop’s Call for Papers</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録C 仮想ワークショップの論文募集</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Call for Papers: Virtual Workshop on Usable Cybersecurity and Privacy for Immersive Technologies</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+論文募集: イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する仮想ワークショップ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Advances in computer vision, data processing, and other technologies has laid the foundation for novel virtual reality (VR), augmented reality (AR), and mixed reality (MR) solutions, collectively called immersive technologies. Immersive technologies are hardware and software systems that create interactive digital visual/spatial environments. These technologies hold promise to drive innovation and economic growth in numerous areas such as workforce, accessibility, and healthcare, but they challenge existing assumptions and practices for digital technologies. For example, large amounts of data may be collected from or about people to create digital worlds or augment the real world, and users can interact with immersive technologies in different ways than other technologies. Cybersecurity and privacy related to immersive technologies must be considered carefully. Immersive technologies may create cybersecurity and privacy risks, some perhaps novel and unique that will need to be managed, but they may also have potential for cybersecurity and privacy protections and other risk mitigations. All the while, users are at the center of these technologies, making usability considerations for immersive technologies critical for cybersecurity and privacy. For example, certain communication modalities may be more (e.g., audio/visual) or less (e.g., menus, text) effective for cybersecurity and privacy information delivered via immersive technologies. Not considering usability in this context risks users not using or misusing cybersecurity features, privacy features, or the technologies themselves. This virtual workshop will explore these technologies and the cybersecurity and privacy considerations they introduce. We invite submissions on the following topics:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータビジョン、データ処理などの技術の進歩により、仮想現実(VR)、拡張現実(AR)、複合現実(MR)という新しいソリューション(総称してイマーシブ技術)の基盤が築かれました。イマーシブ技術とは、インタラクティブなデジタルの視覚的・空間的環境を作り出すハードウェアとソフトウェアのシステムです。これらの技術は、労働力、アクセシビリティ、医療など多くの分野でイノベーションと経済成長を促進する可能性を秘めていますが、デジタル技術に関する既存の前提や慣行に課題を突きつけます。たとえば、デジタルの世界を作り出したり現実世界を拡張したりするために、人から、あるいは人について大量のデータが収集されることがあり、ユーザーは他の技術とは異なる方法でイマーシブ技術とやり取りできます。イマーシブ技術に関連するサイバーセキュリティとプライバシーは、慎重に検討しなければなりません。イマーシブ技術は、サイバーセキュリティとプライバシーのリスク(おそらく新規で固有のものも含みます)を生み出す可能性があり、それらを管理する必要があります。一方で、サイバーセキュリティとプライバシーの保護やその他のリスク低減に役立つ可能性もあります。ユーザーは常にこれらの技術の中心にいるため、イマーシブ技術におけるユーザビリティへの配慮は、サイバーセキュリティとプライバシーにとって極めて重要です。たとえば、イマーシブ技術を通じて提供されるサイバーセキュリティやプライバシーの情報は、伝達方式によって、有効性が高い場合(音声・映像など)もあれば、低い場合(メニュー、テキストなど)もあります。この文脈でユーザビリティを考慮しないと、ユーザーがサイバーセキュリティ機能、プライバシー機能、あるいは技術そのものを使わなくなったり、誤用したりするおそれがあります。この仮想ワークショップでは、これらの技術と、それらがもたらすサイバーセキュリティとプライバシーの考慮事項を探ります。次のトピックに関する投稿を募集します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Usable cybersecurity and privacy considerations for immersive technologies, with particular interest in novel considerations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のための使いやすいサイバーセキュリティとプライバシーに関する考慮事項(特に新規の考慮事項への関心が高い)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential approaches for usable cybersecurity and privacy (e.g., risk mitigations) for immersive technology solutions and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のソリューションとユースケースにおける、使いやすいサイバーセキュリティとプライバシーのための潜在的なアプローチ(たとえば、リスクの低減策)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential usable cybersecurity and privacy mitigations that may utilize immersive technologies to deliver protections.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術を利用して保護を提供しうる、使いやすいサイバーセキュリティとプライバシーの低減策の可能性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">How usable cybersecurity and privacy impact, or are impacted by, other trust factors (i.e., safety, resiliency, reliability) for immersive technology solutions and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術のソリューションとユースケースにおいて、使いやすいサイバーセキュリティとプライバシーが他の信頼要因(すなわち、安全性、レジリエンス、信頼性)にどのように影響し、またその影響を受けますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Insights for standards and standards development for immersive technologies and use cases.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">イマーシブ技術とそのユースケースの標準および標準策定に関する知見。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Submissions will be judged based on their applicability to one or more of the topics above, the novelty of the work, quality of the submission, and relevance of the contribution to the field. We solicit papers describing new research contributions in this area as well as case studies, work in progress, preliminary results, novel ideas, and position papers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投稿は、上記のトピックの1つ以上への適合性、研究の新規性、投稿の質、分野への貢献の関連性に基づいて審査されます。この分野における新しい研究成果のほか、事例研究、進行中の研究、予備的な結果、新しいアイデア、ポジションペーパーを記述した論文を募集します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Papers should be at most six pages (excluding references) using the SOUPS template format (MS Word or LaTeX). Submissions should be emailed to immersivetech@nist.gov.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>論文は、SOUPSのテンプレート形式(MS WordまたはLaTeX)を用いて、参考文献を除き最大6ページとすべきです。投稿は immersivetech@nist.gov 宛てにメールで送付すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A word about paper length. Papers should be succinct, but thorough in presenting the work. Typical papers will be 5-6 pages long (plus references), but papers can be shorter (e.g. 2-3 pages) if, for example, they present a novel idea with limited preliminary results or a position likely to drive a lively discussion. Shorter, more focused papers are encouraged and will be reviewed like any other paper. If you only need 2 or 4 pages (plus references) to clearly explain your work or idea, please submit a paper of that length. Reviewers will be instructed to assess the value of the talk to the workshop audience irrespective of the paper length; however, we stress again that the presentation should be sufficiently thorough for reviewers to make this evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>論文の長さについて。論文は簡潔でありながら、研究内容を十分に示すべきです。典型的な論文は5〜6ページ（参考文献を除く）ですが、たとえば、予備的な結果が限られた新しいアイデアや、活発な議論を呼びそうな見解を示す場合は、それより短く（たとえば2〜3ページ）てもかまいません。より短く焦点を絞った論文を歓迎し、他の論文と同様に審査します。研究やアイデアを明確に説明するのに2ページまたは4ページ（参考文献を除く）で足りる場合は、その長さで投稿してください。査読者は、論文の長さにかかわらず、ワークショップの聴衆にとっての発表の価値を評価するよう指示されますが、査読者がこの評価を行えるよう、発表内容は十分に詳しいものとすべきであることを改めて強調します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop papers will be made available to attendees prior to the workshop. However, they will not appear in the official SOUPS proceedings. Paper presentations will be approximately 10-12 minutes in length followed by 5 minutes of questions and answers. Presentations must be made remotely as this will be a virtual workshop.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの論文は、ワークショップの前に参加者に公開されます。ただし、SOUPSの公式なプロシーディングには掲載されません。論文の発表は約10〜12分とし、その後に5分の質疑応答を行います。このワークショップは仮想形式のため、発表はリモートで行わなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The deadline for submissions is May 23 23:59 AoE (Anywhere on Earth).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投稿の締め切りは、5月23日23:59 AoE(Anywhere on Earth)です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Notification of acceptance will be sent to authors by June 6.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>採択の通知は、6月6日までに著者へ送付されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The deadline for camera-ready versions of accepted submissions is June 20 23:59 AoE (Anywhere on Earth).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>採択された投稿のカメラレディ版の締め切りは、6月20日23:59 AoE(Anywhere on Earth)です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop will be held virtually on August 7 from 13:00 to 17:00 EST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップは、8月7日の13:00から17:00(EST)まで、仮想形式で開催されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>You can find out more at our event page or by emailing immersivetech@nist.gov.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>詳細は、イベントページをご覧いただくか、immersivetech@nist.gov 宛てのメールでお問い合わせください。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8557.pdf">National Institute of Standards and Technology, IR 8557</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8557";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

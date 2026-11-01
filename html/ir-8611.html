@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8611 は、従来のデータベースアクセス制御の実践の限界を検討し、m-NGAC（embedded Next Generation Access Control、組み込み型次世代アクセス制御）を紹介する報告書です。m-NGAC は、ANSI/INCITS NGAC 標準をデータベース内に直接組み込む新しいシステムで、個々の列データのレベルでアクセス制御を強制し、SQL エディタを含め、問い合わせに使うツールにかかわらずデータのセキュリティを確保します。従来の GRANT/REVOKE によるアクセス制御の限界を述べたうえで、m-NGAC のアーキテクチャ、トランザクションフロー、ポリシーの構築、強制のメカニズムを詳述します。さらに、m-NGAC を従来のデータベースアクセス制御や、NDAC などのきめ細かなデータベースアクセス制御メカニズムと比較します。">
+  <title>m-NGAC：従来のデータベースセキュリティモデルを超えて | NIST IR 8611 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+<label class="toc-show-all"><input type="checkbox" id="toc-show-all"> 深い階層も表示（3 件）</label>    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NIST Internal Report" data-search="nist 内部報告書 nist internal report">NIST 内部報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="NIST IR 8611" data-search="nist ir 8611 nist ir 8611">NIST IR 8611</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="m-NGAC" data-search="m-ngac m-ngac">m-NGAC</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NIST Internal Report" data-search="nist 内部報告書 nist internal report">NIST 内部報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="NIST IR 8611" data-search="nist ir 8611 nist ir 8611">NIST IR 8611</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="m-NGAC" data-search="m-ngac m-ngac">m-NGAC</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Note to Readers" data-search="読者への注記 note to readers">読者への注記</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0013" title="List of Figures" data-search="図の一覧 list of figures">図の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="2. Traditional Database Access Control" data-search="2. 従来のデータベースアクセス制御 2. traditional database access control">2. 従来のデータベースアクセス制御</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0002" title="2.1. Access Control with GRANT/REVOKE" data-search="2.1. grant/revoke によるアクセス制御 2.1. access control with grant/revoke">2.1. GRANT/REVOKE によるアクセス制御</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0009" title="2.2. Limitations of Traditional Database Access Control" data-search="2.2. 従来のデータベースアクセス制御の限界 2.2. limitations of traditional database access control">2.2. 従来のデータベースアクセス制御の限界</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="3. m-NGAC: Embedded Fine-Grained Access Control" data-search="3. m-ngac: 組み込み型のきめ細かなアクセス制御 3. m-ngac: embedded fine-grained access control">3. m-NGAC: 組み込み型のきめ細かなアクセス制御</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0005" title="3.1. Next Generation Access Control (NGAC)" data-search="3.1. 次世代アクセス制御（ngac） 3.1. next generation access control (ngac)">3.1. 次世代アクセス制御（NGAC）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0004" title="3.2. m-NGAC Architecture" data-search="3.2. m-ngac のアーキテクチャ 3.2. m-ngac architecture">3.2. m-NGAC のアーキテクチャ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0004" title="3.3. Transaction Flow" data-search="3.3. トランザクションフロー 3.3. transaction flow">3.3. トランザクションフロー</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0003" title="3.4. Building Policy" data-search="3.4. ポリシーの構築 3.4. building policy">3.4. ポリシーの構築</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0009" title="3.5. Enforcement Mechanisms" data-search="3.5. 強制のメカニズム 3.5. enforcement mechanisms">3.5. 強制のメカニズム</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="4. Comparison of m-NGAC with other Access Control mechanisms" data-search="4. m-ngac と他のアクセス制御メカニズムとの比較 4. comparison of m-ngac with other access control mechanisms">4. m-NGAC と他のアクセス制御メカニズムとの比較</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="4.1. Comparison of General Features of m-NGAC With Traditional Database Access Control" data-search="4.1. m-ngac と従来のデータベースアクセス制御との一般的な機能の比較 4.1. comparison of general features of m-ngac with traditional database access control">4.1. m-NGAC と従来のデータベースアクセス制御との一般的な機能の比較</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0006" title="4.2. Fine-Grained Database Access Control Mechanisms" data-search="4.2. きめ細かなデータベースアクセス制御メカニズム 4.2. fine-grained database access control mechanisms">4.2. きめ細かなデータベースアクセス制御メカニズム</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0019-b0002" title="4.2.1. Database-Integrated Fine-Grained Security" data-search="4.2.1. データベース統合型のきめ細かなセキュリティ 4.2.1. database-integrated fine-grained security">4.2.1. データベース統合型のきめ細かなセキュリティ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0019-b0005" title="4.2.2. NDAC" data-search="4.2.2. ndac 4.2.2. ndac">4.2.2. NDAC</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0020-b0001" title="4.2.2.1. Issues with WHERE Clause Augmentation" data-search="4.2.2.1. where 句の拡張に関する問題 4.2.2.1. issues with where clause augmentation">4.2.2.1. WHERE 句の拡張に関する問題</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0021-b0002" title="4.2.2.2. Commonalities Between NDAC and m-NGAC" data-search="4.2.2.2. ndac と m-ngac の共通点 4.2.2.2. commonalities between ndac and m-ngac">4.2.2.2. NDAC と m-NGAC の共通点</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0021-b0005" title="4.2.2.3. Key Differences" data-search="4.2.2.3. 主な相違点 4.2.2.3. key differences">4.2.2.3. 主な相違点</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0023-b0001" title="5. Conclusion" data-search="5. 結論 5. conclusion">5. 結論</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0024-b0001" title="Appendix A. Bibliography" data-search="附属書 a. 参考文献 appendix a. bibliography">附属書 A. 参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8611 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">m-NGAC: Transcending Traditional Database Security Models</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>m-NGAC：従来のデータベースセキュリティモデルを超えて</strong></span><br><span class="doc-panel-item">公開日 : 2026-08-27</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8611/final">https://csrc.nist.gov/pubs/ir/8611/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 181 / 185 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8611 は、従来のデータベースアクセス制御の実践の限界を検討し、m-NGAC（embedded Next Generation Access Control、組み込み型次世代アクセス制御）を紹介する報告書です。m-NGAC は、ANSI/INCITS NGAC 標準をデータベース内に直接組み込む新しいシステムで、個々の列データのレベルでアクセス制御を強制し、SQL エディタを含め、問い合わせに使うツールにかかわらずデータのセキュリティを確保します。従来の GRANT/REVOKE によるアクセス制御の限界を述べたうえで、m-NGAC のアーキテクチャ、トランザクションフロー、ポリシーの構築、強制のメカニズムを詳述します。さらに、m-NGAC を従来のデータベースアクセス制御や、NDAC などのきめ細かなデータベースアクセス制御メカニズムと比較します。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Internal Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 内部報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8611</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8611</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>m-NGAC</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+m-NGAC</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Transcending Traditional Database Security Models</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>従来のデータベースセキュリティモデルを超えて</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Gopi Katwala</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Gopi Katwala</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8611</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の URL から無償で入手できます: https://doi.org/10.6028/NIST.IR.8611</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Internal Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 内部報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8611</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8611</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>m-NGAC</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+m-NGAC</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Transcending Traditional Database Security Models</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>従来のデータベースセキュリティモデルを超えて</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Gopi Katwala Computer Security Division</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Gopi Katwala コンピュータセキュリティ部門</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8611</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の URL から無償で入手できます: https://doi.org/10.6028/NIST.IR.8611</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>August 2026</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026 年 8 月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0009" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 Howard Lutnick 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Arvind Raman, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Arvind Raman、NIST 所長兼標準・技術担当商務次官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文では、実験手順を適切に特定するために、商用・非商用を問わず、特定の機器、器具、ソフトウェア、材料を挙げています。こうした特定は、NIST がいずれかの製品やサービスを推奨または支持していることを意味せず、特定された材料や機器がその目的に最適であるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令で定められた責務に従って現在策定中の他の刊行物への参照が含まれている場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関が利用してかまいません。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合、それらが引き続き有効です。計画と移行のため、連邦機関は NIST によるこれらの新しい刊行物の策定を注意深く追跡すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外の多くの NIST サイバーセキュリティ刊行物は https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 技術シリーズのポリシー 著作権、使用、ライセンスに関する声明 NIST 技術シリーズ刊行物の識別子の構文</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2026-08-18</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>刊行履歴 2026-08-18 に NIST 編集審査委員会により承認されました</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to Cite this NIST Technical Series Publication Katwala G (2026) m-NGAC: Transcending Traditional Database Security Models. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 8611. https://doi.org/10.6028/NIST.IR.8611</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この NIST 技術シリーズ刊行物の引用方法 Katwala G (2026) m-NGAC: Transcending Traditional Database Security Models. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 8611. https://doi.org/10.6028/NIST.IR.8611</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iD Gopi Katwala: 0009-0008-1886-5113</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者の ORCID iD Gopi Katwala: 0009-0008-1886-5113</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information ir8611-comments@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連絡先 ir8611-comments@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Computer Security Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Computer Security Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8611/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 関連内容、更新の可能性、文書履歴を含む本刊行物の追加情報は、https://csrc.nist.gov/pubs/ir/8611/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づき公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Abstract</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Securing sensitive data within databases is a paramount concern for modern applications. Traditional database access control mechanisms often fall short in providing the fine-grained control and centralized management required to mitigate evolving security threats. This paper examines the limitations of conventional database access control practices and introduces m-NGAC (embedded Next Generation Access Control), a novel system that embeds the ANSI/INCITS NGAC standard directly within the database. By enforcing access control at the level of individual column data right in the database, m-NGAC offers a significant advancement over traditional methods and ensures data security, regardless of the querying tool, including SQL editors. This paper details the architecture and functionality of m-NGAC and highlights its key advantages in achieving robust and generic solutions with fine-grained access control.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>データベース内の機微データを保護することは、現代のアプリケーションにとって最重要の関心事です。従来のデータベースアクセス制御メカニズムは、進化し続けるセキュリティ上の脅威を緩和するために必要な、きめ細かな制御と一元的な管理を提供するには不十分なことが多くあります。本論文は、従来のデータベースアクセス制御の実践の限界を検討し、m-NGAC（embedded Next Generation Access Control、組み込み型次世代アクセス制御）を紹介します。m-NGAC は、ANSI/INCITS NGAC 標準をデータベース内に直接組み込む新しいシステムです。m-NGAC は、データベース内で個々の列データのレベルでアクセス制御を強制することで、従来の方法に対して大きな前進をもたらし、SQL エディタを含め、問い合わせに使うツールにかかわらずデータのセキュリティを確保します。本論文では、m-NGAC のアーキテクチャと機能を詳述し、きめ細かなアクセス制御による堅牢で汎用的な解決策を実現するうえでの主な利点を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Keywords</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+キーワード</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ABAC; fine-grained access control; NDAC; NGAC; database security; RDBMS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ABAC、きめ細かなアクセス制御、NDAC、NGAC、データベースセキュリティ、RDBMS。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Reports on Computer Systems Technology</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータシステム技術に関する報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準基盤に対する技術的な指導力を発揮することにより、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるため、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーのための管理上、運用上、技術上、物理上の標準およびガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Note to Readers</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+読者への注記</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The patent for this invention has been approved by the United States Patent and Trademark Office (USPTO). Proof-of-concept implementations have been developed for a couple of database vendors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この発明の特許は、米国特許商標庁（USPTO）によって承認されています。いくつかのデータベースベンダー向けに、概念実証の実装が開発されています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Table of Contents</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+目次</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2. Traditional Database Access Control</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2. 従来のデータベースアクセス制御</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0003-toc1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">2.1. Access Control with GRANT/REVOKE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">2.1. GRANT/REVOKE によるアクセス制御</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0003-toc2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0009">2.2. Limitations of Traditional Database Access Control</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0009">2.2. 従来のデータベースアクセス制御の限界</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. m-NGAC: Embedded Fine-Grained Access Control</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. m-NGAC: 組み込み型のきめ細かなアクセス制御</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004-toc1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">3.1. Next Generation Access Control (NGAC)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">3.1. 次世代アクセス制御（NGAC）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004-toc2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0004">3.2. m-NGAC Architecture</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0004">3.2. m-NGAC のアーキテクチャ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004-toc3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0004">3.3. Transaction Flow</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0004">3.3. トランザクションフロー</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004-toc4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">3.4. Building Policy</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">3.4. ポリシーの構築</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004-toc5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0009">3.5. Enforcement Mechanisms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0009">3.5. 強制のメカニズム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">4. Comparison of m-NGAC with other Access Control mechanisms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">4. m-NGAC と他のアクセス制御メカニズムとの比較</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0005-toc1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">4.1. Comparison of General Features of m-NGAC With Traditional Database Access Control</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">4.1. m-NGAC と従来のデータベースアクセス制御との一般的な機能の比較</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0005-toc2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0006">4.2. Fine-Grained Database Access Control Mechanisms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0006">4.2. きめ細かなデータベースアクセス制御メカニズム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0002">4.2.1. Database-Integrated Fine-Grained Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0002">4.2.1. データベース統合型のきめ細かなセキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0005">4.2.2. NDAC</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0005">4.2.2. NDAC</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">4.2.2.1. Issues with WHERE Clause Augmentation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">4.2.2.1. WHERE 句の拡張に関する問題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0002">4.2.2.2. Commonalities Between NDAC and m-NGAC</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0002">4.2.2.2. NDAC と m-NGAC の共通点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0005">4.2.2.3. Key Differences</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0005">4.2.2.3. 主な相違点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">5. Conclusion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">5. 結論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0024-b0001">Appendix A. Bibliography</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0024-b0001">附属書 A. 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>List of Figures</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+図の一覧</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">Fig. 1. NGAC policy in directed acyclic graph</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">図 1. 有向非巡回グラフによる NGAC ポリシー</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">Fig. 2. m-NGAC architecture</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">図 2. m-NGAC のアーキテクチャ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">Fig. 3. m-NGAC with multiple databases</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">図 3. 複数のデータベースを持つ m-NGAC</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0005">Fig. 4. Comparison of databases&#x27; native access control with m-NGAC</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0005">図 4. データベース固有のアクセス制御と m-NGAC の比較</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0022-b0002">Fig. 5. Comparison between NDAC and m-NGAC</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0022-b0002">図 5. NDAC と m-NGAC の比較</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Databases store vast amounts of critical data and are the foundation of many applications. Ensuring the confidentiality and integrity of this data necessitates robust access control mechanisms. Native database access control systems that typically rely on GRANT statements provide basic control over tables and columns. However, these systems often lack the granularity to control access at the row and field (i.e., individual column data) levels. Consequently, finer-grained access control is often implemented outside the database at the application level, leading to inconsistencies and vulnerabilities. This report argues that embedded Next Generation Access Control (m-NGAC) offers a superior paradigm by embedding fine-grained access control directly within the database, thereby addressing the shortcomings of traditional approaches.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>データベースは膨大な量の重要なデータを保管しており、多くのアプリケーションの基盤です。このデータの機密性と完全性を確保するには、堅牢なアクセス制御メカニズムが必要です。通常 GRANT 文に依存するデータベース固有のアクセス制御システムは、テーブルと列に対する基本的な制御を提供します。しかし、これらのシステムは、行とフィールド（すなわち個々の列データ）のレベルでアクセスを制御するための粒度を欠いていることが多くあります。その結果、よりきめ細かなアクセス制御は、データベースの外部、すなわちアプリケーションレベルで実装されることが多く、不整合や脆弱性につながっています。本報告書は、組み込み型次世代アクセス制御（m-NGAC）が、きめ細かなアクセス制御をデータベース内に直接組み込むことで、従来のアプローチの欠点に対処する優れたパラダイムを提供すると論じます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Traditional database access control models are primarily based on discretionary access control (DAC) and role-based access control (RBAC). While these mechanisms allow administrators to grant or revoke privileges on database objects, they are typically limited to coarse-grained control. In environments where data sensitivity varies across records or attributes, such coarse-grained mechanisms are insufficient. Although database systems may provide finer-grained enforcement mechanisms via schema-integrated constructs such as views and triggers, developers often implement additional access checks in application code, stored procedures, or middleware layers to meet application-specific security requirements. This decentralized approach can introduce inconsistencies across applications accessing the same database and increase the risk of security bypass through direct database queries or misconfigured application logic. Fine-grained access control mechanisms, such as those provided by the Next Generation Access Control (NGAC) model, offer a more flexible and policy-driven approach. By associating users, objects, and operations with attributes and enforcing centrally defined policies, NGAC enables precise control over access at multiple levels of granularity. The m-NGAC approach embeds these policy constructs directly within the database environment, ensuring that access decisions are consistently enforced regardless of how the data is accessed. This integration eliminates reliance on external application logic for security enforcement and provides a unified framework for managing complex access requirements in modern data-intensive systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>従来のデータベースアクセス制御モデルは、主に任意アクセス制御（DAC）とロールベースアクセス制御（RBAC）に基づいています。これらのメカニズムでは、管理者がデータベースオブジェクトに対する権限を付与または取り消せますが、通常、粗い粒度の制御に限られます。データの機微性がレコードや属性によって異なる環境では、このような粗い粒度のメカニズムでは不十分です。データベースシステムは、ビューやトリガーなどのスキーマ統合型の構成要素を通じて、よりきめ細かな強制メカニズムを提供する場合がありますが、開発者は、アプリケーション固有のセキュリティ要件を満たすために、アプリケーションコード、ストアドプロシージャ、ミドルウェア層に追加のアクセス検査を実装することが多くあります。この分散型のアプローチは、同じデータベースにアクセスするアプリケーション間で不整合を生じさせるおそれがあり、データベースへの直接の問い合わせや誤って構成されたアプリケーションロジックを通じたセキュリティ回避のリスクを高めます。次世代アクセス制御（NGAC）モデルが提供するような、きめ細かなアクセス制御メカニズムは、より柔軟でポリシー主導のアプローチを提供します。NGAC は、ユーザー、オブジェクト、操作を属性に関連づけ、一元的に定義されたポリシーを強制することで、複数の粒度レベルでアクセスを精密に制御できます。m-NGAC のアプローチは、これらのポリシーの構成要素をデータベース環境内に直接組み込み、データへのアクセス方法にかかわらず、アクセス判定が一貫して強制されるようにします。この統合により、セキュリティの強制を外部のアプリケーションロジックに依存することがなくなり、現代のデータ集約型システムにおける複雑なアクセス要件を管理するための統一的な枠組みが提供されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Traditional Database Access Control</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 従来のデータベースアクセス制御</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Access Control with GRANT/REVOKE</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. GRANT/REVOKE によるアクセス制御</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Traditional relational databases enforce security mainly through Role-Based Access Control (RBAC) and Discretionary Access Control (DAC). RBAC manages permissions through roles that represent job functions, allowing administrators to assign privileges to roles and then assign users to those roles. This simplifies administration because privileges do not need to be managed for each user individually. DAC, on the other hand, allows the owner of a database object (such as a table) to grant or revoke permissions to other users. These permissions are typically controlled through SQL commands such as GRANT and REVOKE. For example:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>従来のリレーショナルデータベースは、主にロールベースアクセス制御（RBAC）と任意アクセス制御（DAC）を通じてセキュリティを強制します。RBAC は、職務を表すロールを通じて権限を管理し、管理者がロールに特権を割り当ててから、ユーザーをそれらのロールに割り当てられるようにします。これにより、ユーザーごとに個別に特権を管理する必要がなくなるため、管理が簡素化されます。一方、DAC では、データベースオブジェクト（テーブルなど）の所有者が、他のユーザーに権限を付与または取り消せます。これらの権限は、通常、GRANT や REVOKE などの SQL コマンドで制御されます。例:</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>CREATE ROLE analyst;
+GRANT SELECT ON Employees TO analyst;</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>CREATE USER john IDENTIFIED BY &#x27;password&#x27;;
+GRANT analyst TO john;</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In addition to role and privilege management, some modern database systems implement row-level security (RLS) and column-level security (CLS) to provide more fine-grained control. RLS restricts which rows a user can access based on defined policies, while CLS limits access to specific columns that may contain sensitive data. For instance, a role might be allowed to view only selected columns in a table:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールと特権の管理に加えて、一部の現代のデータベースシステムは、よりきめ細かな制御を提供するために、行レベルセキュリティ（RLS）と列レベルセキュリティ（CLS）を実装しています。RLS は、定義されたポリシーに基づいて、ユーザーがアクセスできる行を制限し、CLS は、機微データを含む可能性のある特定の列へのアクセスを制限します。たとえば、あるロールがテーブル内の選択された列のみを表示できるようにすることができます。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>GRANT SELECT (EmpID, Name, Department)
+ON Employees
+TO analyst;</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>By combining roles, privilege management, and fine-grained policies, database systems implement comprehensive access control mechanisms that protect sensitive data while still enabling authorized users to perform their tasks. However, despite these capabilities, existing approaches still present several limitations in terms of flexibility, scalability, and policy management in complex data environments. These challenges motivate the need for improved access control mechanisms, which this research aims to address.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロール、特権管理、きめ細かなポリシーを組み合わせることで、データベースシステムは、機微データを保護しつつ、認可されたユーザーがタスクを実行できるようにする、包括的なアクセス制御メカニズムを実装します。しかし、これらの機能があるにもかかわらず、既存のアプローチには、複雑なデータ環境における柔軟性、スケーラビリティ、ポリシー管理の面で、なお複数の限界があります。これらの課題が、改良されたアクセス制御メカニズムの必要性を動機づけており、本研究はそれに取り組むことを目指しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Limitations of Traditional Database Access Control</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. 従来のデータベースアクセス制御の限界</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Current database practices for access control face several significant limitations, as highlighted in the context of the problem m-NGAC aims to solve:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現在のデータベースにおけるアクセス制御の実践は、m-NGAC が解決を目指す問題の文脈で強調されているとおり、いくつかの重大な限界に直面しています。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lack of fine-grained control: In most cases, traditional GRANT statements operate at the table and column levels and fail to provide control over individual rows or specific data fields within a column. This necessitates workarounds for sensitive data, often implemented at the application level.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">きめ細かな制御の欠如: ほとんどの場合、従来の GRANT 文はテーブルと列のレベルで動作し、個々の行や列内の特定のデータフィールドに対する制御を提供できません。このため、機微データには回避策が必要となり、多くの場合アプリケーションレベルで実装されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Decentralized control: When access control is implemented at the application level, each application that accesses the same data needs to build and maintain its own separate access control logic. This means that there is no centralized point of control, which increases complexity and the potential for inconsistencies and security gaps.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">分散した制御: アクセス制御がアプリケーションレベルで実装される場合、同じデータにアクセスする各アプリケーションが、それぞれ個別のアクセス制御ロジックを構築・維持する必要があります。これは、一元的な制御点がないことを意味し、複雑さと、不整合やセキュリティ上の隙間が生じる可能性を高めます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Bypass through direct database connections: Users can often bypass application-level access controls by directly querying the database using direct database connections (like SQL editors, vendor’s SQL CLI), thereby exposing unprotected data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">直接のデータベース接続による回避: ユーザーは、直接のデータベース接続（SQL エディタやベンダーの SQL CLI など）を使ってデータベースに直接問い合わせることで、アプリケーションレベルのアクセス制御を回避できることが多く、保護されていないデータが露出します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Limited granularity in vendor solutions: While some database vendors have introduced features like row-level security, they often lack field-level access control.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ベンダーの解決策における限られた粒度: 一部のデータベースベンダーは行レベルセキュリティなどの機能を導入していますが、フィールドレベルのアクセス制御を欠いていることが多くあります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Limited proprietary solutions: Although proprietary solutions to this problem exist and improve with each release, there is no generic solution.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">限られた独自の解決策: この問題に対する独自の解決策は存在し、リリースごとに改善されていますが、汎用的な解決策はありません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These limitations underscore the need for a more comprehensive and integrated approach to database access control, which m-NGAC aims to provide.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの限界は、より包括的で統合されたデータベースアクセス制御のアプローチの必要性を示しており、m-NGAC はそれを提供することを目指しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. m-NGAC: Embedded Fine-Grained Access Control</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. m-NGAC: 組み込み型のきめ細かなアクセス制御</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>m-NGAC addresses these limitations by embedding the ANSI/INCITS Next Generation Access Control (NGAC) standard directly within the database environment. Instead of relying solely on external applications to enforce security policies, m-NGAC integrates the NGAC policy framework into the database layer itself. This integration allows the database to natively understand and enforce complex authorization relationships among users, objects, and policies. As a result, access control decisions are no longer dependent on the behavior or correctness of individual client applications; they are consistently applied at the data source where the information resides.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC は、ANSI/INCITS の次世代アクセス制御（NGAC）標準をデータベース環境内に直接組み込むことで、これらの限界に対処します。セキュリティポリシーの強制を外部のアプリケーションだけに依存する代わりに、m-NGAC は NGAC のポリシーフレームワークをデータベース層自体に統合します。この統合により、データベースは、ユーザー、オブジェクト、ポリシーの間の複雑な認可関係をネイティブに理解し、強制できます。その結果、アクセス制御の判定は、個々のクライアントアプリケーションの動作や正しさに依存しなくなり、情報が存在するデータソースで一貫して適用されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This is achieved by implementing NGAC algorithms (APIs) in SQL, enabling the database to evaluate authorization rules dynamically during query processing. Before a query is executed, these SQL-based APIs are invoked to determine whether the requesting user has the appropriate permissions for the specific data being accessed. Queries submitted through any interface, including command-line clients, applications, reporting tools, and administrative utilities—are intercepted through database-resident enforcement mechanisms such as views, triggers, or policy functions that invoke the SQL APIs during query execution. Because these checks are performed inside the database engine, the enforcement mechanism applies uniformly across all access paths, including web applications, reporting tools, administrative utilities, and direct database connections. This design significantly reduces the risk of bypassing access control through alternate access methods.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これは、NGAC アルゴリズム（API）を SQL で実装することで実現され、データベースは問い合わせの処理中に認可ルールを動的に評価できます。問い合わせが実行される前に、これらの SQL ベースの API が呼び出され、要求元のユーザーが、アクセス対象の特定のデータに対する適切な権限を持っているかどうかが判定されます。コマンドラインクライアント、アプリケーション、レポートツール、管理用ユーティリティなど、あらゆるインタフェースから送信された問い合わせは、問い合わせの実行中に SQL API を呼び出す、ビュー、トリガー、ポリシー関数などのデータベース内の強制メカニズムによって捕捉されます。これらの検査はデータベースエンジン内で行われるため、強制メカニズムは、ウェブアプリケーション、レポートツール、管理用ユーティリティ、直接のデータベース接続を含むすべてのアクセス経路に一様に適用されます。この設計により、別のアクセス方法を通じてアクセス制御が回避されるリスクが大幅に低減します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Furthermore, embedding NGAC logic within the database enables much finer levels of control than traditional privilege systems. Policies can be applied at granular levels such as rows, individual columns, or even specific fields, allowing organizations to precisely define who can access which pieces of information. This fine-grained enforcement improves data confidentiality and supports complex policy requirements often found in enterprise, regulatory, or multi-tenant environments. By centralizing access control within the database itself, m-NGAC ensures consistent policy enforcement, simplifies security management, and strengthens the overall protection of sensitive data.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、NGAC のロジックをデータベース内に組み込むことで、従来の特権システムよりもはるかにきめ細かな制御が可能になります。ポリシーは、行、個々の列、さらには特定のフィールドといった細かなレベルで適用でき、組織はどの情報にだれがアクセスできるかを精密に定義できます。このきめ細かな強制は、データの機密性を向上させ、企業、規制、マルチテナント環境でよく見られる複雑なポリシー要件を支えます。m-NGAC は、アクセス制御をデータベース自体の中で一元化することにより、一貫したポリシーの強制を確保し、セキュリティ管理を簡素化して、機微データの全体的な保護を強化します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Next Generation Access Control (NGAC)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. 次世代アクセス制御（NGAC）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NGAC is an ANSI/INCITS standard that was developed by NIST. It uses attribute-based, policy-driven access control that models users, operations, and resources as a graph to provide flexible and dynamic security. It offers scalable and fine-grained control over data and systems by decoupling policy enforcement from the application layer.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NGAC は、NIST が開発した ANSI/INCITS 標準です。属性ベースでポリシー主導のアクセス制御を用い、ユーザー、操作、リソースをグラフとしてモデル化することで、柔軟で動的なセキュリティを提供します。ポリシーの強制をアプリケーション層から切り離すことで、データとシステムに対するスケーラブルできめ細かな制御を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NGAC is an advanced Attribute-Based Access Control (ABAC) framework that distinguishes itself through its embedded, graph-based architecture. NGAC models access decision data as a directed acyclic graph, representing users, resources, attributes, and policies as interconnected nodes and relationships.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NGAC は、組み込み型のグラフベースのアーキテクチャによって特徴づけられる、高度な属性ベースアクセス制御（ABAC）の枠組みです。NGAC は、アクセス判定データを有向非巡回グラフとしてモデル化し、ユーザー、リソース、属性、ポリシーを、相互に接続されたノードと関係として表します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Key aspects of NIST NGAC include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST NGAC の主な特徴には、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Attribute-based approach: NGAC allows access-control policies to be defined based on the attributes of users, operations, and resources, thus enabling more granular control than traditional roles.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">属性ベースのアプローチ: NGAC では、ユーザー、操作、リソースの属性に基づいてアクセス制御ポリシーを定義でき、従来のロールよりきめ細かな制御が可能になります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Graph-based model: Access-control decisions are based on data modeled as a graph, which allows for flexible and dynamic policies.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">グラフベースのモデル: アクセス制御の判定は、グラフとしてモデル化されたデータに基づいて行われ、柔軟で動的なポリシーが可能になります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Dynamic and context-aware: NGAC supports real-time policy changes based on context (e.g., time, location, user behavior), which allows for fine-grained, policy-driven access control.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">動的でコンテキストを認識: NGAC は、コンテキスト（時刻、場所、ユーザーの行動など）に基づくリアルタイムのポリシー変更に対応し、きめ細かでポリシー主導のアクセス制御を可能にします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Performance: The graph-based approach provides linear scalability, enabling efficient policy evaluation and execution as the environment grows.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">性能: グラフベースのアプローチは線形のスケーラビリティを提供し、環境が拡大しても効率的なポリシーの評価と実行を可能にします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Management flexibility: The graph-based model supports flexible policy management by simplifying policy definition, modification, and extension.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">管理の柔軟性: グラフベースのモデルは、ポリシーの定義、変更、拡張を簡素化することで、柔軟なポリシー管理を支えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Applications: In addition to controlling access to databases, NGAC can also enforce policy-based access control across cloud applications and other systems.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">アプリケーション: データベースへのアクセス制御に加えて、NGAC は、クラウドアプリケーションやその他のシステムにわたるポリシーベースのアクセス制御も強制できます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional benefits of NGAC include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NGAC のその他の利点には、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Centralized policy enforcement with distributed enforcement: NGAC centralizes policy administration while supporting distributed enforcement, enabling consistent policy application across diverse systems and environments.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">一元的なポリシー管理と分散した強制: NGAC は、ポリシー管理を一元化しつつ分散した強制に対応し、多様なシステムや環境にわたって一貫したポリシーの適用を可能にします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Reduced development efforts: Developers can avoid implementing access control at the application level, saving time and resources.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">開発労力の削減: 開発者は、アプリケーションレベルでのアクセス制御の実装を避けられ、時間と資源を節約できます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Enhanced data security: Fine-grained access control is applied at the database level, thus securing data where it resides.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">データセキュリティの強化: きめ細かなアクセス制御がデータベースレベルで適用されるため、データが存在する場所でデータを保護します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NGAC graph shown in Figure 1 represents a sample policy graph corresponding to a Role-Based Access Control (RBAC) policy class. In this graph, users are associated with roles, and permissions are assigned to those roles, thereby reflecting the traditional RBAC authorization model within the NGAC framework. A key advantage of NGAC is that it is not limited to a single policy model. In this sample policy, RBAC is a policy class. Multiple policy classes can coexist within the same NGAC graph, each represented by its own policy subgraph while sharing the same underlying users, attributes, and protected resources. For example, alongside the RBAC policy subgraph, additional subgraphs may implement attribute-based, relationship-based, or organization-specific access control policies. During authorization evaluation, NGAC considers the relevant policy classes collectively, enabling flexible and unified enforcement of diverse access control requirements without duplicating resource attributes or restructuring the underlying data model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 に示す NGAC グラフは、ロールベースアクセス制御（RBAC）のポリシークラスに対応するポリシーグラフの例を表しています。このグラフでは、ユーザーがロールに関連づけられ、権限がそれらのロールに割り当てられており、NGAC の枠組み内で従来の RBAC 認可モデルを反映しています。NGAC の重要な利点は、単一のポリシーモデルに限定されないことです。このサンプルポリシーでは、RBAC が 1 つのポリシークラスです。複数のポリシークラスを同じ NGAC グラフ内に共存させることができ、それぞれが同じ基盤のユーザー、属性、保護対象リソースを共有しつつ、独自のポリシーサブグラフで表されます。たとえば、RBAC ポリシーサブグラフと並んで、属性ベース、関係ベース、または組織固有のアクセス制御ポリシーを実装する追加のサブグラフを置くことができます。認可の評価時には、NGAC は関連するポリシークラスをまとめて考慮し、リソース属性を重複させたり基盤のデータモデルを再構成したりすることなく、多様なアクセス制御要件を柔軟かつ統一的に強制できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1 demonstrates an example of a simple policy in the NGAC graph.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 に、NGAC グラフにおける単純なポリシーの例を示します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0012-b0002" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8611/p0012-figure-01.png" alt="Directed acyclic graph of a sample NGAC policy. User attributes Patient and Doctor are assigned to Roles; object attributes Patient Resources and Doctor Resources are assigned to Resources; Roles and Resources are assigned to the policy class RBAC. Association edges: Patient to Patient Resources labeled &quot;read&quot;; Doctor to Doctor Resources labeled &quot;read, write, insert&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NGAC ポリシーの例を表す有向非巡回グラフです。ユーザー属性 Patient と Doctor は Roles に、オブジェクト属性 Patient Resources と Doctor Resources は Resources に割り当てられています。Roles と Resources はポリシークラス RBAC に割り当てられています。関連付けの辺は、Patient から Patient Resources へ「read」、Doctor から Doctor Resources へ「read, write, insert」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 1. NGAC policy in directed acyclic graph</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. 有向非巡回グラフによる NGAC ポリシー</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. m-NGAC Architecture</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. m-NGAC のアーキテクチャ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The m-NGAC architecture comprises three interacting components that collectively enforce fine-grained access control within the database environment. These components work together to intercept database operations, evaluate access policies, and enforce decisions before data is returned to the requesting user or application. Figure 2 illustrates the basic architecture with these components.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC のアーキテクチャは、相互に作用する 3 つの構成要素から成り、これらが連携してデータベース環境内できめ細かなアクセス制御を強制します。これらの構成要素は連携して、データベース操作を捕捉し、アクセスポリシーを評価し、データが要求元のユーザーまたはアプリケーションに返される前に判定を強制します。図 2 に、これらの構成要素による基本的なアーキテクチャを示します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0013-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8611/p0013-figure-01.png" alt="m-NGAC architecture. A Source box sends &quot;SQL queries&quot; (1) down to a database cylinder containing &quot;Mediator&quot; and &quot;Data&quot;, which returns results (4). The Mediator performs a &quot;Policy check&quot; (2) against a second cylinder containing &quot;Adjudicator&quot; and &quot;Access Control Policy Data&quot;, which responds (3). An Administrator is connected to the Adjudicator by a two-way arrow labeled &quot;Build / Maintain Policy&quot;. A &quot;Flow Summary&quot; panel lists: 1 User issues SQL query to Mediator; 2 Mediator calls Adjudicator with the access request; 3 Adjudicator evaluates policy and returns the access decision; 4 Mediator modifies query if required; query executes if not denied; user receives the response."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC のアーキテクチャです。Source（要求元）の箱から「SQL queries」（1）が Mediator と Data を含むデータベースの円筒へ送られ、その円筒から Source に結果が返されます（4）。Mediator は Adjudicator と Access Control Policy Data を含む別の円筒に「Policy check」（2）を行い、応答を受けます（3）。Administrator（管理者）は「Build / Maintain Policy」と書かれた双方向の矢印で Adjudicator とつながっています。「Flow Summary」の欄には、1 ユーザーが Mediator へ SQL query を発行する、2 Mediator がアクセス要求を添えて Adjudicator を呼び出す、3 Adjudicator がポリシーを評価してアクセス判定を返す、4 Mediator が必要に応じてクエリーを修正し、拒否されなければクエリーが実行され、ユーザーが応答を受け取る、の4段階が並んでいます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 2. m-NGAC architecture</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2. m-NGAC のアーキテクチャ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Source:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ソース:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Source represents the user, application, or external system that issues database queries. These queries may originate from client applications, analytics tools, administrative interfaces, or automated services. From the database&#x27;s perspective, the Source behaves like any standard client issuing SQL statements such as SELECT, INSERT, UPDATE, or DELETE. However, unlike traditional database architectures where queries are executed directly against the data tables, in the m-NGAC architecture all requests are mediated before reaching the protected data.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ソースは、データベースへの問い合わせを発行するユーザー、アプリケーション、外部システムを表します。これらの問い合わせは、クライアントアプリケーション、分析ツール、管理インタフェース、自動化されたサービスから発せられる場合があります。データベースの観点では、ソースは、SELECT、INSERT、UPDATE、DELETE などの SQL 文を発行する通常のクライアントと同様に振る舞います。ただし、問い合わせがデータテーブルに対して直接実行される従来のデータベースアーキテクチャとは異なり、m-NGAC のアーキテクチャでは、すべての要求が、保護対象データに到達する前に仲介されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mediator:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>メディエーター:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Mediator acts as an intermediary layer that intercepts and processes all data access requests originating from the Source. It is implemented within the resource schema, which is the database schema containing the protected data. Rather than being an integral component of the DBMS engine itself, the Mediator is realized using database-resident objects and logic within the schema, allowing it to leverage native DBMS functionality without requiring modifications to the underlying database engine. The Mediator is responsible for intercepting incoming queries, identifying the user issuing the request, and determining which database objects and fields are being accessed. By operating within the resource schema, the Mediator ensures that all interactions with the protected data are routed through a controlled enforcement point. This enables the system to enforce fine-grained access policies without requiring modifications to external applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>メディエーターは、ソースから発せられるすべてのデータアクセス要求を捕捉して処理する中間層として機能します。メディエーターは、保護対象データを含むデータベーススキーマであるリソーススキーマ内に実装されます。メディエーターは、DBMS エンジン自体の不可欠な構成要素ではなく、スキーマ内のデータベース常駐のオブジェクトとロジックを用いて実現されるため、基盤となるデータベースエンジンの変更を必要とせずに、DBMS のネイティブな機能を活用できます。メディエーターは、受信した問い合わせを捕捉し、要求を発行しているユーザーを識別し、どのデータベースオブジェクトとフィールドにアクセスしているかを判定する責任を負います。リソーススキーマ内で動作することで、メディエーターは、保護対象データとのすべてのやり取りが、制御された強制点を経由するようにします。これにより、外部のアプリケーションを変更することなく、きめ細かなアクセスポリシーを強制できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Adjudicator:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アジュディケーター:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Adjudicator is the component responsible for storing access control policies and evaluating them to determine whether a particular operation should be permitted. It resides in a separate NGAC policy schema, which may exist within the same database instance as the protected data or be deployed externally, such as on a local service or a cloud-based policy store. The Adjudicator evaluates requests based on the NGAC policy model, which associates users, objects, and operations through attributes and policy relationships. To make efficient authorization decisions, the Adjudicator maintains Access Control Lists (ACLs) derived from the NGAC policy graph and optimized for high-performance access checks. Rather than traversing the policy graph for every request, authorization decisions can be obtained through direct ACL lookups, significantly reducing evaluation overhead. Because ACLs represent a materialized view of the current policy state, they must be regenerated or updated periodically, or whenever policy changes occur, to ensure that authorization decisions accurately reflect the latest user, object, and attribute assignments. Based on the evaluated policies and ACL information, the Adjudicator computes and returns an access decision indicating whether the requested action is allowed or denied.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アジュディケーターは、アクセス制御ポリシーを保存し、特定の操作を許可すべきかどうかを判定するために評価する構成要素です。アジュディケーターは、別の NGAC ポリシースキーマ内に置かれ、そのスキーマは、保護対象データと同じデータベースインスタンス内にあっても、ローカルサービスやクラウドベースのポリシーストアなどの外部に展開されていてもかまいません。アジュディケーターは、属性とポリシー関係を通じてユーザー、オブジェクト、操作を関連づける NGAC ポリシーモデルに基づいて、要求を評価します。効率的な認可判定を行うため、アジュディケーターは、NGAC ポリシーグラフから導出され、高性能なアクセス検査に最適化されたアクセス制御リスト（ACL）を保持します。要求ごとにポリシーグラフをたどる代わりに、ACL の直接の検索によって認可判定を得られるため、評価のオーバーヘッドが大幅に減ります。ACL は現在のポリシー状態のマテリアライズドビューを表すため、認可判定が最新のユーザー、オブジェクト、属性の割り当てを正確に反映するよう、定期的に、またはポリシーが変更されるたびに、再生成または更新する必要があります。評価したポリシーと ACL の情報に基づいて、アジュディケーターは、要求された動作を許可するか拒否するかを示すアクセス判定を計算して返します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3. Transaction Flow</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3. トランザクションフロー</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The interaction among these components during a database transaction proceeds as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>データベーストランザクション中のこれらの構成要素間のやり取りは、次のように進みます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">1. Query Submission The Source submits a query to the database. Instead of executing directly against the data tables, the request is first intercepted by the Mediator.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">1. 問い合わせの送信 ソースがデータベースに問い合わせを送信します。要求は、データテーブルに対して直接実行される代わりに、まずメディエーターに捕捉されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">2. Request Analysis and Policy Inquiry The Mediator analyzes the incoming query to determine the requesting user&#x27;s identity, the tables involved, and the specific fields being accessed. It extracts this information and forwards it to the Adjudicator for evaluation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">2. 要求の分析とポリシー照会 メディエーターは、受信した問い合わせを分析して、要求元ユーザーの識別情報、関与するテーブル、アクセスされる特定のフィールドを判定します。この情報を抽出し、評価のためにアジュディケーターに転送します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">3. Policy Evaluation The Adjudicator evaluates the request using the NGAC policy stored in the schema using NGAC access functions. These policies determine whether the requesting user has permission to perform the requested operation on the specified data elements. The Adjudicator then returns an access decision to the Mediator.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">3. ポリシー評価 アジュディケーターは、NGAC アクセス関数を用いて、スキーマに保存された NGAC ポリシーで要求を評価します。これらのポリシーにより、要求元ユーザーが、指定されたデータ要素に対して要求された操作を行う権限を持つかどうかが判定されます。アジュディケーターは、その後、アクセス判定をメディエーターに返します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Query Modification and Result Filtering (SELECT operations) For SELECT queries, the Mediator enforces the access decision by modifying the query. Only the fields permitted by policy are retrieved for the user. For fields where access is denied, the Mediator returns a configurable placeholder value (e.g., “Protected”) rather than the actual data. Importantly, the original WHERE clause of the query remains unchanged, ensuring that the query’s filtering logic remains intact while still enforcing column-level protections.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">問い合わせの変更と結果のフィルタリング（SELECT 操作） SELECT 問い合わせでは、メディエーターは問い合わせを変更することでアクセス判定を強制します。ポリシーで許可されたフィールドのみがユーザーのために取得されます。アクセスが拒否されたフィールドについては、メディエーターは実際のデータではなく、設定可能なプレースホルダー値（例: 「Protected」）を返します。重要な点として、問い合わせの元の WHERE 句は変更されないため、列レベルの保護を強制しつつ、問い合わせのフィルタリングロジックはそのまま保たれます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">Controlled Execution of Data Modification Operations For INSERT, UPDATE, and DELETE operations, the Mediator uses database triggers or enforcement mechanisms to verify permissions with the Adjudicator before allowing the operation to proceed. If the Adjudicator confirms that the user has the necessary privileges, the transaction is executed normally. Otherwise, the Mediator denies the request and prevents the modification, thereby preserving the integrity and confidentiality of the protected data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">データ変更操作の制御された実行 INSERT、UPDATE、DELETE 操作では、メディエーターは、データベースのトリガーまたは強制メカニズムを使い、操作の続行を許可する前にアジュディケーターで権限を確認します。アジュディケーターが、ユーザーが必要な特権を持つことを確認した場合、トランザクションは通常どおり実行されます。そうでない場合、メディエーターは要求を拒否して変更を阻止し、保護対象データの完全性と機密性を維持します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3 illustrates a more scalable and robust architectural design in which the Adjudicator and the associated access control policies are maintained centrally within a dedicated database. In this architecture, the centralized Adjudicator serves as the authoritative decision engine, evaluating access requests in accordance with the defined policy rules. Instead of distributing policy logic across multiple databases or applications, all access control policies are stored, managed, and enforced from this central point. This approach simplifies policy administration, ensures uniform enforcement of security rules, and reduces the risk of inconsistencies that might arise when policies are implemented separately across systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3 に、よりスケーラブルで堅牢なアーキテクチャ設計を示します。この設計では、アジュディケーターと関連するアクセス制御ポリシーを、専用のデータベース内で一元的に維持します。このアーキテクチャでは、一元化されたアジュディケーターが権威ある判定エンジンとして機能し、定義されたポリシールールに従ってアクセス要求を評価します。ポリシーロジックを複数のデータベースやアプリケーションに分散させる代わりに、すべてのアクセス制御ポリシーがこの中心点で保存、管理され、施行されます。このアプローチは、ポリシー管理を簡素化し、セキュリティルールを一様に施行し、システムごとに別々にポリシーを実装した場合に生じかねない不整合のリスクを低減します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this model, multiple resource databases—each storing application or organizational data—can connect to the central Adjudicator to obtain access control decisions. When a user or application submits a query to a resource database, the database consults the Adjudicator before executing the query. The Adjudicator evaluates the request against the centrally stored policies and returns a decision indicating whether the requested access should be permitted or denied. Because all participating databases rely on the same decision authority, organizations can maintain consistent access control policies across diverse data sources, even when the databases are distributed across different systems, environments, or organizational units.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このモデルでは、それぞれがアプリケーションデータや組織のデータを保管する複数のリソースデータベースが、中央のアジュディケーターに接続して、アクセス制御の判定を得ることができます。ユーザーまたはアプリケーションがリソースデータベースに問い合わせを送信すると、データベースは問い合わせを実行する前にアジュディケーターに照会します。アジュディケーターは、一元的に保存されたポリシーに照らして要求を評価し、要求されたアクセスを許可すべきか拒否すべきかを示す判定を返します。参加するすべてのデータベースが同じ判定主体に依存するため、組織は、データベースが異なるシステム、環境、組織単位に分散している場合であっても、多様なデータソースにわたって一貫したアクセス制御ポリシーを維持できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This centralized architecture also improves scalability and maintainability. New databases can be integrated into the system simply by connecting them to the central Adjudicator, without requiring each database to maintain its own independent policy implementation. Similarly, policy updates can be made in one place and immediately apply to all connected databases. Such a design is particularly beneficial in large enterprise environments where multiple databases store related or sensitive information and where consistent enforcement of fine-grained access control policies is critical for security, compliance, and governance. Figure 3 illustrates the extended architecture of securing multiple databases with central policy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この一元化されたアーキテクチャは、スケーラビリティと保守性も向上させます。新しいデータベースは、中央のアジュディケーターに接続するだけでシステムに統合でき、各データベースが独自のポリシー実装を維持する必要がありません。同様に、ポリシーの更新は 1 か所で行うことができ、接続されているすべてのデータベースに直ちに適用されます。このような設計は、複数のデータベースに関連する情報や機微な情報が保管されており、きめ細かなアクセス制御ポリシーの一貫した強制がセキュリティ、コンプライアンス、ガバナンスにとって極めて重要な、大規模な企業環境で特に有益です。図 3 に、一元的なポリシーで複数のデータベースを保護する拡張アーキテクチャを示します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0016-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8611/p0016-figure-01.png" alt="m-NGAC with multiple databases. Three panels, Database 1, Database 2 and Database 3, each contain a Source (Source 1, Source 2, Source 3) exchanging steps 1 and 4 with a cylinder holding &quot;Mediator&quot; and &quot;Data&quot;. Each Mediator sends step 2 to, and receives step 3 from, a single central cylinder holding &quot;Adjudicator&quot; and &quot;Access Control Data&quot;. An Administrator is linked to the Adjudicator by a two-way arrow labeled &quot;Build / Maintain Policy&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>複数のデータベースでの m-NGAC です。Database 1、Database 2、Database 3 の3つの区画に、それぞれ Source（Source 1〜3）と、Mediator と Data を含む円筒があり、手順1と4をやり取りします。各 Mediator は、Adjudicator と Access Control Data を含む中央の1つの円筒へ手順2を送り、手順3を受け取ります。Administrator（管理者）は「Build / Maintain Policy」と書かれた双方向の矢印で Adjudicator とつながっています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 3. m-NGAC with multiple databases</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3. 複数のデータベースを持つ m-NGAC</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4. Building Policy</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4. ポリシーの構築</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Constructing an access control policy with m-NGAC involves four key steps:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC によるアクセス制御ポリシーの構築には、4 つの主要な手順があります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Importing the resource schema tables and data into the NGAC schema as object attributes that are organized according to the policy hierarchy. Primary keys are also imported as objects. Only data that requires protection is imported.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">リソーススキーマのテーブルとデータを、ポリシー階層に従って整理されたオブジェクト属性として、NGAC スキーマにインポートします。主キーもオブジェクトとしてインポートします。保護が必要なデータのみをインポートします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Creating database users that correspond to application users and granting them basic access using the database’s native GRANT statements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">アプリケーションのユーザーに対応するデータベースユーザーを作成し、データベース固有の GRANT 文で基本的なアクセスを付与します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Creating users and attributes within the NGAC policy based on the user attribute hierarchy.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">ユーザー属性階層に基づいて、NGAC ポリシー内にユーザーと属性を作成します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Building the final policy by defining permissions and denials in the NGAC policy using associations and prohibitions.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">関連付けと禁止を用いて、NGAC ポリシー内の許可と拒否を定義し、最終的なポリシーを構築します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5. Enforcement Mechanisms</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5. 強制のメカニズム</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>m-NGAC employs different mechanisms for enforcing access control depending on the type of Data Manipulation Language (DML) operation being performed. Because read and data-modifying operations have different security implications, the architecture employs specialized enforcement techniques to ensure confidentiality and data integrity. These mechanisms are implemented directly within the database using structured SQL constructs, enabling consistent application of access control decisions regardless of how the database is accessed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC は、実行されるデータ操作言語（DML）操作の種類に応じて、アクセス制御を強制するために異なるメカニズムを用います。読み取り操作とデータ変更操作ではセキュリティ上の意味が異なるため、アーキテクチャは、機密性とデータの完全性を確保するために、専用の強制技術を用います。これらのメカニズムは、構造化された SQL の構成要素を用いてデータベース内に直接実装されるため、データベースへのアクセス方法にかかわらず、アクセス制御の判定を一貫して適用できます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SELECT: Access control for SELECT queries is enforced through database views that function as the Mediator layer between users and the protected data tables. Instead of allowing users to query the base tables directly, queries are routed through these mediator views. The views incorporate logic that invokes the Adjudicator to determine whether the requesting user is authorized to view specific data elements. Based on the Adjudicator&#x27;s access decision, the view dynamically determines which information to return to the user. If the user has permission to access a particular column or field, the actual data value is returned. If access is denied, the system substitutes a configurable masked value (e.g., “Protected”) for the actual data. This approach allows the database to enforce fine-grained visibility controls at the row and column level while preserving the structure and semantics of the original query. Importantly, the filtering conditions specified in the query—such as those in the WHERE clause—remain unchanged, ensuring that the query logic continues to function correctly while sensitive data remains protected.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SELECT: SELECT 問い合わせのアクセス制御は、ユーザーと保護対象データテーブルの間のメディエーター層として機能するデータベースビューによって強制されます。ユーザーが基底テーブルに直接問い合わせることを許可する代わりに、問い合わせはこれらのメディエータービューを経由します。ビューは、アジュディケーターを呼び出して、要求元ユーザーが特定のデータ要素の閲覧を許可されているかどうかを判定するロジックを組み込んでいます。ビューは、アジュディケーターのアクセス判定に基づいて、ユーザーに返す情報を動的に決定します。ユーザーが特定の列やフィールドにアクセスする権限を持つ場合は、実際のデータ値が返されます。アクセスが拒否された場合、システムは実際のデータの代わりに、設定可能なマスク値（例: 「Protected」）を代入します。このアプローチにより、データベースは、元の問い合わせの構造と意味を保ちつつ、行と列のレベルできめ細かな可視性の制御を強制できます。重要な点として、WHERE 句など、問い合わせで指定されたフィルタリング条件は変更されないため、機微データが保護されたまま、問い合わせのロジックが正しく機能し続けます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UPDATE, INSERT, DELETE: For data modification operations such as UPDATE, INSERT, and DELETE, m-NGAC employs database triggers that act as the Mediator, enforcing access control before the operation is executed. When a user attempts to modify data, the trigger intercepts the request. It communicates with the Adjudicator to verify whether the requested operation is permitted according to the defined NGAC policies. Only if the Adjudicator confirms that the user has the necessary privileges does the database proceed with the operation. Unlike read operations, partial authorization is not permitted for these commands to maintain data consistency and integrity. If the user does not have full authorization for the requested modification, the entire transaction is denied.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UPDATE、INSERT、DELETE: UPDATE、INSERT、DELETE などのデータ変更操作では、m-NGAC は、メディエーターとして機能するデータベーストリガーを用いて、操作が実行される前にアクセス制御を強制します。ユーザーがデータを変更しようとすると、トリガーが要求を捕捉します。トリガーはアジュディケーターと通信し、要求された操作が定義済みの NGAC ポリシーに従って許可されているかどうかを確認します。アジュディケーターが、ユーザーが必要な特権を持つことを確認した場合にのみ、データベースは操作を進めます。読み取り操作とは異なり、これらのコマンドでは、データの一貫性と完全性を維持するため、部分的な認可は認められません。ユーザーが、要求された変更に対する完全な認可を持たない場合、トランザクション全体が拒否されます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additionally, when an INSERT or DELETE operation is successfully authorized and executed, m-NGAC automatically updates the corresponding policy relationships within the NGAC policy store. Specifically, the system may create or remove associated NGAC object attributes and policy relationships to reflect the addition or removal of protected data objects. This ensures that the access control model remains synchronized with the database&#x27;s current state and that newly inserted or deleted records are properly incorporated into the policy structure. By tightly integrating policy updates with data modification operations, m-NGAC maintains a consistent and accurate mapping between protected resources and the policies governing their access.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、INSERT または DELETE 操作が正常に認可されて実行されると、m-NGAC は NGAC ポリシーストア内の対応するポリシー関係を自動的に更新します。具体的には、システムは、保護対象のデータオブジェクトの追加または削除を反映するために、関連する NGAC オブジェクト属性とポリシー関係を作成または削除する場合があります。これにより、アクセス制御モデルがデータベースの現在の状態と同期した状態に保たれ、新しく挿入または削除されたレコードが、ポリシーの構造に適切に組み込まれます。ポリシーの更新をデータ変更操作と緊密に統合することで、m-NGAC は、保護対象リソースと、そのアクセスを統制するポリシーとの間の、一貫した正確な対応関係を維持します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Comparison of m-NGAC with other Access Control mechanisms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. m-NGAC と他のアクセス制御メカニズムとの比較</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Comparison of General Features of m-NGAC With Traditional Database Access Control</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. m-NGAC と従来のデータベースアクセス制御との一般的な機能の比較</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4 summarizes the key differences between traditional database access control (as generally described in the source) and m-NGAC.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4 に、従来のデータベースアクセス制御（出典で一般的に説明されているもの）と m-NGAC の主な違いをまとめます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0018-b0004" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8611/p0018-figure-01.png" alt="Comparison table with an icon beside each feature and three columns: Features | Traditional Databases | m-NGAC. Rows: Authentication: Some databases support multiple authentication mechanisms such as user-based authentication or integration with external identity systems. | Supports user-based authentication integrated with policy-driven access control. Role-Based Access Control (RBAC): Most databases support RBAC through roles and privilege assignments. | Supports RBAC as part of the NGAC policy framework. Discretionary Access Control (DAC): Commonly supported through GRANT and REVOKE privileges controlled by object owners. | Supported within NGAC policies along with other access control models. Mandatory Access Control (MAC): Some databases do not support MAC or provide only limited implementations. | Fully supports MAC through attribute-based policy rules. Row-Level Security (RLS): Some databases support row-level security, while others lack native support or require custom implementation. | Provides row-level access control through policy-based enforcement. Column-Level Security (CLS): Some databases support column-level restrictions, but support varies and may require additional configuration. | Supports column-level control through policy attributes. Field-Level Security (FLS): Many databases do not provide true field-level security or require complex workarounds. | Supports fine-grained control down to the individual field level. Fine-Grained Access Control (FGAC): Some databases provide limited or complex implementations of fine-grained access control. | Built-in fine-grained access control using attribute-based policies. Granularity of Control: Access control is typically limited to tables, views, or columns; fine-grained control may be unavailable or complex to implement. | Provides fine-grained control at row, column, and field levels through policy attributes. Centralized Policy Management: Access policies are often decentralized, with enforcement partly implemented in applications. | Policies are centrally defined and enforced within the database through the NGAC framework. Policy Enforcement Point: Enforcement may occur partly in the database and partly in application logic. | Enforcement is embedded directly within the database schema and policy engine. Policy Management Mechanism: Policies are usually managed through privilege statements such as GRANT and REVOKE or through database-specific features. | Policies are managed through NGAC constructs such as objects, attributes, and associations. Decentralized Access Logic: Access control logic is often implemented across multiple applications, leading to inconsistent enforcement. | Centralized policy logic ensures consistent enforcement regardless of application or access method. Protection Against Direct SQL Access: Users with direct database access or SQL editors may bypass application-level controls if database policies are incomplete. | Access policies are enforced inside the database, preventing bypass even when using SQL editors or direct queries. SQL Injection Protection: Protection varies; some databases offer limited or moderate built-in protections and rely on application safeguards. | Stronger protection due to integrated policy enforcement within the database environment. Complexity of Policy Management: Advanced access control mechanisms may be complex to configure and maintain. | Policy management is structured and manageable through standardized NGAC constructs. Vendor Feature Limitations: Some databases offer limited or inflexible fine-prained security features that depend on proprietary implementations. | Provides flexible and configurable fine-grained security based on attribute-driven policies. Portability and Standardization: Security implementations are often proprietary and differ across database systems. | Based on the ANSI/INCITS NGAC standard, enabling portability and extensibility access platfcoms."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各特徴の横にアイコンを配した比較表で、列は Features（特徴）、Traditional Databases（従来のデータベース）、m-NGAC です。行の内容は次のとおりです。Authentication（認証）：従来のデータベースの一部は、ユーザーベース認証や外部IDシステムとの統合など、複数の認証方式をサポートします。m-NGAC は、ポリシー主導のアクセス制御と統合されたユーザーベース認証をサポートします。Role-Based Access Control (RBAC)：ほとんどのデータベースは、ロールと権限の割り当てを通じて RBAC をサポートします。m-NGAC は NGAC ポリシーフレームワークの一部として RBAC をサポートします。Discretionary Access Control (DAC)：一般に、オブジェクト所有者が制御する GRANT および REVOKE 権限を通じてサポートされます。m-NGAC は、他のアクセス制御モデルとともに NGAC ポリシー内で DAC をサポートします。Mandatory Access Control (MAC)：一部のデータベースは MAC をサポートしないか、限定的な実装のみを提供します。m-NGAC は属性ベースのポリシールールを通じて MAC を全面的にサポートします。Row-Level Security (RLS)：一部のデータベースは行レベルセキュリティをサポートしますが、ネイティブサポートがないか、カスタム実装が必要なものもあります。m-NGAC はポリシーベースの施行を通じて行レベルのアクセス制御を提供します。Column-Level Security (CLS)：一部のデータベースは列レベルの制限をサポートしますが、対応状況は異なり、追加設定が必要な場合があります。m-NGAC はポリシー属性を通じて列レベルの制御をサポートします。Field-Level Security (FLS)：多くのデータベースは真のフィールドレベルセキュリティを提供せず、複雑な回避策を必要とします。m-NGAC は個々のフィールドのレベルまで細かな制御をサポートします。Fine-Grained Access Control (FGAC)：一部のデータベースは、きめ細かなアクセス制御の限定的または複雑な実装を提供します。m-NGAC は属性ベースのポリシーを使用したきめ細かなアクセス制御を組み込みで提供します。Granularity of Control（制御の粒度）：アクセス制御は通常、テーブル、ビュー、または列に限定され、きめ細かな制御は利用できないか、実装が複雑な場合があります。m-NGAC はポリシー属性を通じて、行、列、フィールドの各レベルできめ細かな制御を提供します。Centralized Policy Management（ポリシーの一元管理）：アクセス制御ポリシーは分散していることが多く、施行の一部はアプリケーション内で実装されます。m-NGAC では、NGAC フレームワークを通じてポリシーをデータベース内で一元的に定義し、施行します。Policy Enforcement Point（ポリシー施行点）：施行はデータベース内とアプリケーションロジック内の両方で行われる場合があります。m-NGAC では、施行がデータベーススキーマとポリシーエンジン内に直接組み込まれています。Policy Management Mechanism（ポリシー管理の仕組み）：通常、ポリシーは GRANT や REVOKE などの権限文、またはデータベース固有の機能を通じて管理されます。m-NGAC では、オブジェクト、属性、関連付けなどの NGAC 構成要素を通じてポリシーを管理します。Decentralized Access Logic（分散したアクセスロジック）：アクセス制御ロジックは複数のアプリケーションに実装されることが多く、施行に不整合が生じます。m-NGAC では、ポリシーロジックが一元化されており、アプリケーションやアクセス方法にかかわらず一貫して施行されます。Protection Against Direct SQL Access（SQL の直接アクセスへの防御）：データベースポリシーが不完全な場合、データベースへ直接アクセスするユーザーや SQL エディタを使うユーザーは、アプリケーションレベルの制御を回避できることがあります。m-NGAC ではデータベース内でアクセス制御ポリシーを施行するため、SQL エディタや直接クエリーを使用する場合でも回避できません。SQL Injection Protection（SQL インジェクションへの防御）：保護の程度は異なり、一部のデータベースは限定的または中程度の組み込み保護を提供し、アプリケーション側の保護策に依存します。m-NGAC では、データベース環境内にポリシー施行が統合されているため、より強力な保護が得られます。Complexity of Policy Management（ポリシー管理の複雑さ）：高度なアクセス制御メカニズムは、設定や保守が複雑な場合があります。m-NGAC では、標準化された NGAC 構成要素を通じて、ポリシー管理が体系化され、管理しやすくなっています。Vendor Feature Limitations（ベンダー機能の制約）：一部のデータベースは、独自実装に依存する、限定的または柔軟性に欠けるきめ細かなセキュリティ機能を提供します。m-NGAC は属性主導のポリシーに基づく柔軟で設定可能なきめ細かなセキュリティを提供します。Portability and Standardization（可搬性と標準化）：セキュリティ実装は独自仕様であることが多く、データベースシステムごとに異なります。m-NGAC は ANSI/INCITS NGAC 標準に基づき、プラットフォーム間の可搬性と拡張性を可能にします。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 4. Comparison of databases&#x27; native access control with m-NGAC</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4. データベース固有のアクセス制御と m-NGAC の比較</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Fine-Grained Database Access Control Mechanisms</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. きめ細かなデータベースアクセス制御メカニズム</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Over the years, several companies have attempted to implement fine-grained access control in databases. Most of these efforts have relied on third-party tools that intercept SQL queries outside the database. These tools typically modify SQL statements before execution to enforce policy-based access control.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>長年にわたり、いくつかの企業がデータベースできめ細かなアクセス制御を実装しようと試みてきました。これらの取り組みのほとんどは、データベースの外部で SQL 問い合わせを捕捉するサードパーティのツールに依存してきました。これらのツールは、通常、ポリシーベースのアクセス制御を強制するために、実行前に SQL 文を変更します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.2.1. Database-Integrated Fine-Grained Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.2.1. データベース統合型のきめ細かなセキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some database systems provide fine-grained access control mechanisms tightly integrated with the database engine. These mechanisms enforce security by dynamically modifying user queries before execution. When a user issues a SQL statement against a table, view, or synonym, the database automatically appends security predicates (additional filtering conditions) to the query. As a result, access control policies are enforced directly within the database, allowing administrators to restrict data visibility and modification at the row and column levels based on factors such as user identity, application context, or session attributes.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一部のデータベースシステムは、データベースエンジンと緊密に統合されたきめ細かなアクセス制御メカニズムを提供しています。これらのメカニズムは、実行前にユーザーの問い合わせを動的に変更することでセキュリティを強制します。ユーザーがテーブル、ビュー、シノニムに対して SQL 文を発行すると、データベースは自動的にセキュリティ述語（追加のフィルタリング条件）を問い合わせに付加します。その結果、アクセス制御ポリシーがデータベース内で直接強制され、管理者は、ユーザーの識別情報、アプリケーションのコンテキスト、セッション属性などの要因に基づいて、行と列のレベルでデータの可視性と変更を制限できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This approach is typically implemented by associating security policies with database objects through stored procedures or database functions that return predicate conditions. When a query is executed, the database transparently attaches the returned predicate to the SQL statement, ensuring that only authorized data is accessible. Because enforcement occurs within the database engine, it provides a centralized security mechanism that reduces reliance on application-level access control logic and lowers the risk of policy bypass via direct database connections. These systems often support both row-level and field-level security and may include additional capabilities such as dynamic data masking or redaction. However, such implementations are often vendor-specific and proprietary, limiting their portability across different database platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このアプローチは、通常、述語条件を返すストアドプロシージャやデータベース関数を通じて、セキュリティポリシーをデータベースオブジェクトに関連づけることで実装されます。問い合わせが実行されると、データベースは返された述語を SQL 文に透過的に付加し、認可されたデータのみがアクセス可能になるようにします。強制がデータベースエンジン内で行われるため、アプリケーションレベルのアクセス制御ロジックへの依存を減らし、直接のデータベース接続によるポリシー回避のリスクを下げる、一元的なセキュリティメカニズムを提供します。これらのシステムは、行レベルとフィールドレベルのセキュリティの両方をサポートすることが多く、動的データマスキングや秘匿化などの追加機能を含む場合があります。しかし、こうした実装はベンダー固有で独自のものであることが多く、異なるデータベースプラットフォーム間での移植性が限られます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.2.2. NDAC</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.2.2. NDAC</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The closest prior art to a universal solution is Next Generation Database Access Control (NDAC).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>汎用的な解決策に最も近い先行技術は、次世代データベースアクセス制御（NDAC）です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NDAC’s method begins by automatically generating composite objects in the form of object attributes from a database schema. It uses NGAC as its authorization engine to manage policies Administration Point (PAP) and compute authorization responses via the Policy Decision Point (PDP). While NDAC aims to be a universal solution, excerpts indicate that it operates between the application and the database, parsing SQL queries to modify them based on the defined policies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NDAC の方法は、データベーススキーマから、オブジェクト属性の形で複合オブジェクトを自動生成することから始まります。NDAC は NGAC を認可エンジンとして用いて、ポリシー管理点（PAP）でポリシーを管理し、ポリシー決定点（PDP）を通じて認可応答を計算します。NDAC は汎用的な解決策を目指していますが、抜粋によれば、アプリケーションとデータベースの間で動作し、定義されたポリシーに基づいて SQL 問い合わせを解析して変更します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>However, a newer approach called m-NGAC (modular NGAC) introduces a breakthrough in fine-grained, policy-enforced, database-independent access control. A significant difference highlighted when comparing it to m-NGAC is that NDAC does not generate access control lists (ACLs) and can be bypassed by direct database connections.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>しかし、m-NGAC（モジュラー NGAC）と呼ばれる新しいアプローチは、きめ細かでポリシーが強制され、データベースに依存しないアクセス制御において、画期的な進歩をもたらします。m-NGAC と比較した際に強調される大きな違いは、NDAC がアクセス制御リスト（ACL）を生成せず、直接のデータベース接続によって回避されうることです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Furthermore, NDAC enforces access control by modifying the WHERE clause of the original SQL query. This approach can be fragile because it alters application-generated query logic and may introduce unintended interactions with existing query conditions. The following section discusses the limitations and potential drawbacks of modifying the original WHERE clause for policy enforcement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、NDAC は、元の SQL 問い合わせの WHERE 句を変更することでアクセス制御を強制します。このアプローチは、アプリケーションが生成した問い合わせのロジックを改変し、既存の問い合わせ条件と意図しない相互作用を生じさせる可能性があるため、脆弱になりえます。次の節では、ポリシーの強制のために元の WHERE 句を変更することの限界と潜在的な欠点を論じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>4.2.2.1. Issues with WHERE Clause Augmentation</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+4.2.2.1. WHERE 句の拡張に関する問題</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NDAC enforces access control by modifying the WHERE clause of application-generated SQL queries. While this approach enables policy enforcement without requiring changes to the underlying database, it introduces several technical challenges and limitations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NDAC は、アプリケーションが生成した SQL 問い合わせの WHERE 句を変更することでアクセス制御を強制します。このアプローチは、基盤となるデータベースを変更することなくポリシーを強制できる一方で、いくつかの技術的な課題と限界をもたらします。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SQL Parsing Complexity and Fragility. SQL is not a single standardized language in practice; major database platforms such as MySQL, PostgreSQL, Oracle, and SQL Server each support dialect-specific syntax and features. A policy enforcement mechanism that parses and rewrites SQL statements must correctly handle a wide range of constructs, including nested subqueries, common table expressions (CTEs), window functions, and vendor-specific extensions. Incomplete or incorrect parsing can result in malformed queries, enforcement failures, or unintended security gaps.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SQL 解析の複雑さと脆弱性。 SQL は、実際には単一の標準化された言語ではありません。MySQL、PostgreSQL、Oracle、SQL Server などの主要なデータベースプラットフォームは、それぞれ方言固有の構文と機能をサポートしています。SQL 文を解析して書き換えるポリシー強制メカニズムは、入れ子のサブクエリ、共通テーブル式（CTE）、ウィンドウ関数、ベンダー固有の拡張を含む、幅広い構成要素を正しく扱う必要があります。不完全または不正確な解析は、不正な形式の問い合わせ、強制の失敗、意図しないセキュリティ上の隙間につながる可能性があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Operator Precedence and Semantic Correctness. Modifying an existing WHERE clause requires careful preservation of the query&#x27;s original logical semantics. For example, appending an access-control predicate to a query containing complex combinations of AND and OR operators can change the evaluation order if the original conditions are not properly parenthesized. Ensuring semantic correctness across all query forms increases implementation complexity and introduces opportunities for errors that may affect either security or application functionality.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">演算子の優先順位と意味的な正しさ。 既存の WHERE 句を変更するには、問い合わせの元の論理的な意味を慎重に保持する必要があります。たとえば、AND と OR の複雑な組み合わせを含む問い合わせにアクセス制御の述語を追加すると、元の条件が適切に括弧で括られていない場合、評価順序が変わる可能性があります。あらゆる形式の問い合わせにわたって意味的な正しさを確保することは、実装の複雑さを増し、セキュリティまたはアプリケーションの機能のいずれかに影響しうる誤りの余地を生みます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Impact on Application Behavior. Applications are often designed with assumptions about the structure and size of query result sets. Injecting additional filtering conditions can alter row counts, affect pagination behavior, and change the results returned to application logic. Such changes may introduce unexpected behavior, requiring developers to understand and account for policy-driven modifications that occur outside the application&#x27;s control.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">アプリケーションの動作への影響。 アプリケーションは、問い合わせ結果セットの構造や大きさについて前提を置いて設計されていることがよくあります。追加のフィルタリング条件を挿入すると、行数が変わり、ページネーションの動作に影響し、アプリケーションロジックに返される結果が変わる可能性があります。こうした変更は予期しない動作をもたらす可能性があり、開発者は、アプリケーションの制御外で生じるポリシー主導の変更を理解し、考慮する必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential Effects on Query Optimization. Database query optimizers generate execution plans based on the predicates present in a query. Additional access-control predicates may alter these execution plans, potentially affecting index selection and query performance. In some cases, the injected conditions can prevent the optimizer from using otherwise effective indexes, resulting in less efficient execution strategies such as full table scans. As policy complexity grows, the resulting queries may become more difficult for the optimizer to process efficiently, leading to increased execution costs and reduced scalability.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">問い合わせ最適化への潜在的な影響。 データベースの問い合わせオプティマイザーは、問い合わせに存在する述語に基づいて実行計画を生成します。追加のアクセス制御の述語は、これらの実行計画を変え、インデックスの選択と問い合わせ性能に影響する可能性があります。場合によっては、挿入された条件により、オプティマイザーが本来有効なインデックスを使えなくなり、全表走査のような効率の低い実行戦略になることがあります。ポリシーの複雑さが増すにつれて、結果として得られる問い合わせはオプティマイザーが効率的に処理するのがより難しくなり、実行コストの増加とスケーラビリティの低下につながる可能性があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Auditability and Traceability Challenges. When SQL statements are modified between the application and the database, the query executed by the database differs from the query originally issued by the application. This separation can complicate auditing, troubleshooting, and forensic analysis because application logs may not accurately reflect the statements ultimately executed by the database engine.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">監査可能性と追跡可能性の課題。 アプリケーションとデータベースの間で SQL 文が変更されると、データベースが実行する問い合わせは、アプリケーションが最初に発行した問い合わせと異なります。この分離は、アプリケーションのログがデータベースエンジンが最終的に実行した文を正確に反映していない可能性があるため、監査、トラブルシューティング、フォレンジック分析を複雑にしかねません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In summary, WHERE clause modification enforces security by rewriting application-generated queries rather than by controlling the data exposed by the database itself. While functional, this approach introduces complexity in query processing, increases the risk of semantic errors, and may affect performance, maintainability, and auditability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要約すると、WHERE 句の変更は、データベース自体が公開するデータを制御するのではなく、アプリケーションが生成した問い合わせを書き換えることでセキュリティを強制します。機能はしますが、このアプローチは、問い合わせ処理の複雑さをもたらし、意味的な誤りのリスクを高め、性能、保守性、監査可能性に影響する可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>4.2.2.2. Commonalities Between NDAC and m-NGAC</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+4.2.2.2. NDAC と m-NGAC の共通点</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Both are based on ANSI/INCITS NGAC, a standardized ABAC model.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">どちらも、標準化された ABAC モデルである ANSI/INCITS NGAC に基づいています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Both approaches use automatically generated object attributes to represent schema and row data. These attributes are then used to express access control rules and enforce policies accordingly.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">どちらのアプローチも、自動生成されたオブジェクト属性を使ってスキーマと行データを表現します。これらの属性は、アクセス制御ルールを表現し、それに従ってポリシーを強制するために使われます。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>4.2.2.3. Key Differences</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+4.2.2.3. 主な相違点</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Implementation: m-NGAC is embedded directly in the database schema, while NDAC operates between the application and the database.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">実装: m-NGAC はデータベーススキーマに直接組み込まれているのに対し、NDAC はアプリケーションとデータベースの間で動作します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SQL Parsing: NDAC parses SQL to modify it based on policies, which can become complex due to the diversity in SQL syntax. In contrast, m-NGAC uses database views to transparently enforce policies without altering the original WHERE clause.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SQL の解析: NDAC は、ポリシーに基づいて SQL を変更するために解析しますが、SQL 構文が多様であるため、複雑になりえます。これに対し、m-NGAC は、データベースビューを用いて、元の WHERE 句を変更せずに透過的にポリシーを強制します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACLs: NDAC does not generate ACLs. m-NGAC builds ACLs to facilitate policy decisions and enforces access using SQL functions, ACLs, views, and triggers.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACL: NDAC は ACL を生成しません。m-NGAC は、ポリシー判定を容易にするために ACL を構築し、SQL 関数、ACL、ビュー、トリガーを用いてアクセスを強制します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Bypass Risk: Direct database connections (e.g., MySQL Workbench, SQL Developer) can bypass NDAC policies. m-NGAC, however, enforces policies within the database, making it resistant even to system-level access, including that of root users.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">回避のリスク: 直接のデータベース接続（MySQL Workbench、SQL Developer など）は、NDAC のポリシーを回避できます。一方、m-NGAC は、ポリシーをデータベース内で強制するため、root ユーザーによるものを含め、システムレベルのアクセスに対しても耐性があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Query Modification: NDAC (and similar systems) modifies the WHERE clause of the SQL query to enforce policies. m-NGAC preserves the WHERE clause, modifies only the selected columns, and returns ‘PROTECTED’ in place of restricted data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">問い合わせの変更: NDAC（および同様のシステム）は、ポリシーを強制するために SQL 問い合わせの WHERE 句を変更します。m-NGAC は WHERE 句を保持し、選択された列のみを変更して、制限されたデータの代わりに ‘PROTECTED’ を返します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 5 shows a side-by-side comparison between the two.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5 に、両者を並べた比較を示します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0022-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8611/p0022-figure-01.png" alt="Comparison table with columns Feature | NDAC | m-NGAC. Rows: Access Control Model: NGAC (ABAC-based) | NGAC (ABAC-based). Location of Enforcement: Between client and database | Within the database schema. SQL Query Handling: Parses and rewrites SQL queries | Uses views and triggers, no parsing needed. WHERE Clause Modification: Indirectly modified to enforce policy | Unchanged, preserved as is. Restricted Column Access handling: Modifies query, retrieves data and masks the values | Doesn’t retrieve protected data, returns ‘PROTECTED’ for restricted columns. Use of ACLs: Does not produce ACLs | Builds and uses ACLs. Protection Against direct database connections: No, SQL editors can bypass it | Yes, enforced inside the DB. Portability Across Databases: No, custom per database | Yes, database-independent (with minimal customization effort). Vendor Lock-In: Not applicable | No, open and flexible. Protection from Root/System Users: No, can be bypassed | Yes, via policy."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=22">原本 PDF p.22</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Feature（特徴）、NDAC、m-NGAC の3列の比較表です。Access Control Model（アクセス制御モデル）はどちらも NGAC（ABAC ベース）です。Location of Enforcement（施行の場所）は、NDAC がクライアントとデータベースの間、m-NGAC がデータベーススキーマ内です。SQL Query Handling（SQL クエリーの扱い）は、NDAC が SQL クエリーを解析して書き換え、m-NGAC はビューとトリガーを使い解析が不要です。WHERE Clause Modification（WHERE 句の修正）は、NDAC がポリシー施行のため間接的に修正し、m-NGAC は変更せずそのまま保ちます。Restricted Column Access handling（制限された列へのアクセスの扱い）は、NDAC がクエリーを修正してデータを取得し値をマスクし、m-NGAC は保護されたデータを取得せず、制限された列に「PROTECTED」を返します。Use of ACLs（ACL の使用）は、NDAC が ACL を生成せず、m-NGAC は ACL を構築して使います。Protection Against direct database connections（データベースへの直接接続に対する保護）は、NDAC が「いいえ、SQL エディターで迂回できる」、m-NGAC が「はい、DB 内で施行される」です。Portability Across Databases（データベース間の可搬性）は、NDAC が「いいえ、データベースごとに個別対応」、m-NGAC が「はい、データベース非依存（最小限のカスタマイズで済む）」です。Vendor Lock-In（ベンダーロックイン）は、NDAC が「該当なし」、m-NGAC が「なし、オープンで柔軟」です。Protection from Root/System Users（root・システムユーザーからの保護）は、NDAC が「いいえ、迂回され得る」、m-NGAC が「はい、ポリシーによる」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 5. Comparison between NDAC and m-NGAC</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5. NDAC と m-NGAC の比較</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Overall, m-NGAC is the first generic, non-proprietary solution that enforces fine-grained policies within the database itself, is compatible with any database engine (with minimal adjustments), and can protect data, even from privileged users and direct database access.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>総じて、m-NGAC は、きめ細かなポリシーをデータベース自体の中で強制する、初の汎用的で非独自の解決策であり、（最小限の調整で）あらゆるデータベースエンジンと互換性があり、特権ユーザーや直接のデータベースアクセスに対しても、データを保護できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>m-NGAC represents a significant evolution in database access control by embedding the NGAC standard&#x27;s power and flexibility directly within the database environment. This approach overcomes the inherent limitations of traditional access control methods by offering fine-grained control down to the field level, a centralized policy management point, and robust protection against circumvention via SQL editors. By not requiring SQL parsing or modification of the WHERE clause, m-NGAC offers a unique and efficient solution for securing sensitive data across various SQL database systems. As organizations grapple with increasingly complex data security requirements, m-NGAC provides a compelling, generic framework for achieving comprehensive, reliable database access control.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>m-NGAC は、NGAC 標準の力と柔軟性をデータベース環境内に直接組み込むことで、データベースアクセス制御における大きな進化を示しています。このアプローチは、フィールドレベルまでのきめ細かな制御、一元的なポリシー管理点、SQL エディタによる回避に対する堅牢な保護を提供することで、従来のアクセス制御手法に内在する限界を克服します。m-NGAC は、SQL の解析や WHERE 句の変更を必要としないことで、さまざまな SQL データベースシステムにわたって機微データを保護する、独自の効率的な解決策を提供します。組織がますます複雑化するデータセキュリティ要件に取り組む中、m-NGAC は、包括的で信頼できるデータベースアクセス制御を実現するための、説得力のある汎用的な枠組みを提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. Bibliography</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+附属書 A. 参考文献</h3>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo D, Chandramouli R, Kuhn DR (2016) Next Generation Access Control (NGAC): Policy Machine-Based Authorization Framework. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 7987. https://doi.org/10.6028/NIST.IR.7987</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo D, Chandramouli R, Kuhn DR (2016) Next Generation Access Control (NGAC): Policy Machine-Based Authorization Framework. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 7987. https://doi.org/10.6028/NIST.IR.7987</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC 10181-3:1996. Information Technology – Open Systems Interconnection – Security Frameworks for Open Systems: Access Control Framework. International Organization for Standardization</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC 10181-3:1996. Information Technology – Open Systems Interconnection – Security Frameworks for Open Systems: Access Control Framework. International Organization for Standardization</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ANSI/INCITS 499-2018. Information technology - Next Generation Access Control - Functional Architecture (NGAC). International Committee for Information Technology Standards (INCITS)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ANSI/INCITS 499-2018. Information technology - Next Generation Access Control - Functional Architecture (NGAC). International Committee for Information Technology Standards (INCITS)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oracle Corporation (2022) Oracle Database Security Guide, 19c. Available at https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/index.html</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oracle Corporation (2022) Oracle Database Security Guide, 19c. 入手先: https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/index.html</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Microsoft Corporation (2023) SQL Server Security Documentation. Available at https://learn.microsoft.com/en-us/sql/relational-databases/security</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Microsoft Corporation (2023) SQL Server Security Documentation. 入手先: https://learn.microsoft.com/en-us/sql/relational-databases/security</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">MySQL AB/Oracle (2023) MySQL 8.0 Reference Manual: Access Control and Account Management. Available at https://dev.mysql.com/doc/refman/8.0/en/access-control.html</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">MySQL AB/Oracle (2023) MySQL 8.0 Reference Manual: Access Control and Account Management. 入手先: https://dev.mysql.com/doc/refman/8.0/en/access-control.html</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PostgreSQL Global Development Group (2023) PostgreSQL Documentation: Row-Level Security. Available at https://www.postgresql.org/docs/current/ddl-rowsecurity.html</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PostgreSQL Global Development Group (2023) PostgreSQL Documentation: Row-Level Security. 入手先: https://www.postgresql.org/docs/current/ddl-rowsecurity.html</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0024-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo D, Gavrila S, Katwala G, Roberts J (2017). Next generation access control system and process for controlling database access (U.S. Patent Application No. US20170024572A1). United States Patent and Trademark Office. Available at https://patentimages.storage.googleapis.com/f8/36/75/4a9f62bec49834/US20170024572A1.pdf</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo D, Gavrila S, Katwala G, Roberts J (2017). Next generation access control system and process for controlling database access (U.S. Patent Application No. US20170024572A1). United States Patent and Trademark Office. 入手先: https://patentimages.storage.googleapis.com/f8/36/75/4a9f62bec49834/US20170024572A1.pdf</span></p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8611.pdf">National Institute of Standards and Technology, IR 8611</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8611";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

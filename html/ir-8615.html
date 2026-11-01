@@ -1,0 +1,1995 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8615 は、2026 年 1 月 26 日に開催された Sustainable Hardware Security（SUSHI@NIST）ワークショップの成果を要約した報告書です。このワークショップには産業界、学術界、政府の利害関係者が集まり、半導体エコシステム全体でハードウェアセキュリティを前進させるための優先事項を特定し、実行可能な提言をまとめました。報告書は、講演者の見解や政府パネルを整理し、ハードウェアセキュリティを統制するための、統一され、相互運用可能で、エビデンスに基づく信頼モデル、語彙、ガイダンスを策定する提案を含みます。官民パートナーシップ、パイロットプログラム、適切な調達要件によるインセンティブの整合は、経済的な障壁を下げ、安全で出所を追跡できる半導体エコシステムを示すことができるとしています。">
+  <title>次世代セキュアハードウェアの標準への組み込みに関するワークショップ | NIST IR 8615 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+<label class="toc-show-all"><input type="checkbox" id="toc-show-all"> 深い階層も表示（9 件）</label>    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Workshop on Rolling Next-Generation Secure Hardware into Standards" data-search="次世代セキュアハードウェアの標準への組み込みに関するワークショップ workshop on rolling next-generation secure hardware into standards">次世代セキュアハードウェアの標準への組み込みに関するワークショップ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Workshop on Rolling Next-Generation Secure Hardware into Standards" data-search="次世代セキュアハードウェアの標準への組み込みに関するワークショップ workshop on rolling next-generation secure hardware into standards">次世代セキュアハードウェアの標準への組み込みに関するワークショップ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0002" title="1.1. SUSHI@NIST Workshop Details" data-search="1.1. sushi@nist ワークショップの詳細 1.1. sushi@nist workshop details">1.1. SUSHI@NIST ワークショップの詳細</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2. Workshop Details" data-search="2. ワークショップの詳細 2. workshop details">2. ワークショップの詳細</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0004" title="2.1. Speaker Viewpoints" data-search="2.1. 講演者の見解 2.1. speaker viewpoints">2.1. 講演者の見解</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0005" title="2.1.1. A Roadmap Toward Scalable Security Assurance" data-search="2.1.1. スケーラブルなセキュリティ保証に向けたロードマップ 2.1.1. a roadmap toward scalable security assurance">2.1.1. スケーラブルなセキュリティ保証に向けたロードマップ</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0009-b0010" title="2.1.1.1. Call to Action/Next Steps" data-search="2.1.1.1. 行動の呼びかけ/次のステップ 2.1.1.1. call to action/next steps">2.1.1.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0008" title="2.1.2. Security in Memory and Storage" data-search="2.1.2. メモリとストレージのセキュリティ 2.1.2. security in memory and storage">2.1.2. メモリとストレージのセキュリティ</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0011-b0002" title="2.1.2.1. Call to Action/Next Steps" data-search="2.1.2.1. 行動の呼びかけ/次のステップ 2.1.2.1. call to action/next steps">2.1.2.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0011-b0007" title="2.1.3. Hardware Attacks on AI Inference Chips" data-search="2.1.3. ai 推論チップに対するハードウェア攻撃 2.1.3. hardware attacks on ai inference chips">2.1.3. AI 推論チップに対するハードウェア攻撃</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0012-b0002" title="2.1.3.1. Call to Action/Next Steps" data-search="2.1.3.1. 行動の呼びかけ/次のステップ 2.1.3.1. call to action/next steps">2.1.3.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0011" title="2.1.4. NIST Semiconductor Standards Activities" data-search="2.1.4. nist の半導体標準に関する活動 2.1.4. nist semiconductor standards activities">2.1.4. NIST の半導体標準に関する活動</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0013-b0002" title="2.1.4.1. Call to Action/Next Steps" data-search="2.1.4.1. 行動の呼びかけ/次のステップ 2.1.4.1. call to action/next steps">2.1.4.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0013-b0011" title="2.1.5. NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)" data-search="2.1.5. nsf/cise security, privacy, and trust in cyberspace (satc 2.0) 2.1.5. nsf/cise security, privacy, and trust in cyberspace (satc 2.0)">2.1.5. NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0014-b0003" title="2.1.5.1. Call to Action/Next Steps" data-search="2.1.5.1. 行動の呼びかけ/次のステップ 2.1.5.1. call to action/next steps">2.1.5.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0014-b0012" title="2.1.6. Standards-Based Assurance for Trusted Electronics" data-search="2.1.6. 信頼できる電子機器のための標準ベースの保証 2.1.6. standards-based assurance for trusted electronics">2.1.6. 信頼できる電子機器のための標準ベースの保証</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0015-b0004" title="2.1.6.1. Call to Action/Next Steps" data-search="2.1.6.1. 行動の呼びかけ/次のステップ 2.1.6.1. call to action/next steps">2.1.6.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0015-b0013" title="2.1.7. AI Provenance and Traceability" data-search="2.1.7. ai の出所とトレーサビリティ 2.1.7. ai provenance and traceability">2.1.7. AI の出所とトレーサビリティ</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0016-b0004" title="2.1.7.1. Call to Action/Next Steps" data-search="2.1.7.1. 行動の呼びかけ/次のステップ 2.1.7.1. call to action/next steps">2.1.7.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0017-b0002" title="2.1.8. Fundamentals of Semiconductor and Hardware Security for an AI World" data-search="2.1.8. ai 時代のための半導体とハードウェアセキュリティの基礎 2.1.8. fundamentals of semiconductor and hardware security for an ai world">2.1.8. AI 時代のための半導体とハードウェアセキュリティの基礎</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0017-b0006" title="2.1.8.1. Call to Action/Next Steps" data-search="2.1.8.1. 行動の呼びかけ/次のステップ 2.1.8.1. call to action/next steps">2.1.8.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0004" title="2.1.9. Siemens Tessent" data-search="2.1.9. siemens tessent 2.1.9. siemens tessent">2.1.9. Siemens Tessent</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0018-b0008" title="2.1.9.1. Call to Action/Next Steps" data-search="2.1.9.1. 行動の呼びかけ/次のステップ 2.1.9.1. call to action/next steps">2.1.9.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0006" title="2.2. Government Panel" data-search="2.2. 政府パネル 2.2. government panel">2.2. 政府パネル</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0020-b0001" title="2.2.1. Call to Action/Next Steps" data-search="2.2.1. 行動の呼びかけ/次のステップ 2.2.1. call to action/next steps">2.2.1. 行動の呼びかけ/次のステップ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0001" title="3. Summary and Road Ahead" data-search="3. まとめと今後の展望 3. summary and road ahead">3. まとめと今後の展望</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0002" title="3.1. Establish Unified Standards and Governance for Hardware Security and Assurance" data-search="3.1. ハードウェアセキュリティと保証のための統一された標準とガバナンスの確立 3.1. establish unified standards and governance for hardware security and assurance">3.1. ハードウェアセキュリティと保証のための統一された標準とガバナンスの確立</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0004" title="3.2. Embed Security, Provenance, and Traceability Across the Full Semiconductor Life Cycle" data-search="3.2. 半導体のライフサイクル全体へのセキュリティ、出所、トレーサビリティの組み込み 3.2. embed security, provenance, and traceability across the full semiconductor life cycle">3.2. 半導体のライフサイクル全体へのセキュリティ、出所、トレーサビリティの組み込み</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0006" title="3.3. Strengthen Supply Chain Security and Economic Incentives" data-search="3.3. サプライチェーンセキュリティと経済的インセンティブの強化 3.3. strengthen supply chain security and economic incentives">3.3. サプライチェーンセキュリティと経済的インセンティブの強化</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0008" title="3.4. Advance Scalable Tools, Automation, and Validation Methods" data-search="3.4. スケーラブルなツール、自動化、検証手法の推進 3.4. advance scalable tools, automation, and validation methods">3.4. スケーラブルなツール、自動化、検証手法の推進</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0002" title="3.5. Build Workforce Capacity and Collaborative Ecosystems" data-search="3.5. 人材の能力と協調的なエコシステムの構築 3.5. build workforce capacity and collaborative ecosystems">3.5. 人材の能力と協調的なエコシステムの構築</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0023-b0001" title="Appendix A. Workshop Agenda" data-search="付録 a. ワークショップの議事次第 appendix a. workshop agenda">付録 A. ワークショップの議事次第</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8615 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Workshop on Rolling Next-Generation Secure Hardware into Standards</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>次世代セキュアハードウェアの標準への組み込みに関するワークショップ</strong></span><br><span class="doc-panel-item">公開日 : 2026-09-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8615/final">https://csrc.nist.gov/pubs/ir/8615/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 223 / 224 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8615 は、2026 年 1 月 26 日に開催された Sustainable Hardware Security（SUSHI@NIST）ワークショップの成果を要約した報告書です。このワークショップには産業界、学術界、政府の利害関係者が集まり、半導体エコシステム全体でハードウェアセキュリティを前進させるための優先事項を特定し、実行可能な提言をまとめました。報告書は、講演者の見解や政府パネルを整理し、ハードウェアセキュリティを統制するための、統一され、相互運用可能で、エビデンスに基づく信頼モデル、語彙、ガイダンスを策定する提案を含みます。官民パートナーシップ、パイロットプログラム、適切な調達要件によるインセンティブの整合は、経済的な障壁を下げ、安全で出所を追跡できる半導体エコシステムを示すことができるとしています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8615</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8615</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop on Rolling Next-Generation Secure Hardware into Standards</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+次世代セキュアハードウェアの標準への組み込みに関するワークショップ</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sanjay (Jay) Rekhi Nedim Goren Yang Guo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Sanjay (Jay) Rekhi Nedim Goren Yang Guo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8615</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8615</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8615</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8615</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop on Rolling Next-Generation Secure Hardware into Standards</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+次世代セキュアハードウェアの標準への組み込みに関するワークショップ</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sanjay (Jay) Rekhi Nedim Goren Yang Guo Computer Security Division</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Sanjay (Jay) Rekhi Nedim Goren Yang Guo Computer Security Division</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8615</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8615</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>September 2026</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026 年 9 月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0009" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary of Commerce</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 Howard Lutnick、商務長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Arvind Raman, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Arvind Raman、NIST 所長兼商務省標準技術担当次官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿では、実験手順を適切に特定するために、商用・非商用を問わず、一部の機器、計器、ソフトウェア、または資料を明示しています。このような明示は、NIST がいかなる製品やサービスも推奨または保証していることを意味せず、明示した資料や機器がその目的に最適であるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令で定められた責務に基づいて現在策定中の他の刊行物への言及が含まれる場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦政府機関が利用できます。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順がある場合は、それらが引き続き有効です。計画および移行のため、連邦政府機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されています。上記以外にも、NIST のサイバーセキュリティ関連刊行物の多くが https://csrc.nist.gov/publications で公開されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 技術シリーズの方針、著作権・使用・ライセンスに関する声明、NIST 技術シリーズ刊行物識別子の構文</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2026-07-20</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>刊行履歴 NIST 編集審査委員会による承認日：2026-07-20</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to Cite this NIST Technical Series Publication Rekhi S, Goren N, Guo Y (2026) Workshop on Rolling Next-Generation Secure Hardware into Standards. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 8615. https://doi.org/10.6028/NIST.IR.8615</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本 NIST Technical Series 刊行物の引用方法 Rekhi S, Goren N, Guo Y (2026) Workshop on Rolling Next-Generation Secure Hardware into Standards. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) NIST IR 8615. https://doi.org/10.6028/NIST.IR.8615</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iDs Sanjay (Jay) Rekhi: 0009-0008-8711-4030 Ned Goren: 0009-0009-3578-2958 Yang Guo: 0000-0002-3245-3069</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者の ORCID iD Sanjay (Jay) Rekhi: 0009-0008-8711-4030 Ned Goren: 0009-0009-3578-2958 Yang Guo: 0000-0002-3245-3069</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information hwsec@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連絡先 hwsec@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Computer Security Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Computer Security Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8615/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 本刊行物に関する追加情報（関連コンテンツ、更新の可能性、文書の履歴を含む）は、https://csrc.nist.gov/pubs/ir/8615/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づいて公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Abstract</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Sustainable Hardware Security (SUSHI@NIST) Workshop on January 26, 2026, convened stakeholders from industry, academia, and government to identify priorities and develop actionable recommendations for advancing hardware security across the semiconductor ecosystem. This report summarizes the workshop’s outcomes, including a call to develop unified, interoperable, and evidence-based trust models, vocabularies, and guidance on governing hardware security. Public-private partnerships, pilot programs, and aligning incentives through appropriate procurement requirements can reduce economic barriers and demonstrate secure, provenance-enabled semiconductor ecosystems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026 年 1 月 26 日に開催された Sustainable Hardware Security（SUSHI@NIST）ワークショップには、産業界、学術界、政府の利害関係者が集まり、半導体エコシステム全体でハードウェアセキュリティを前進させるための優先事項を特定し、実行可能な提言をまとめました。本報告書は、ワークショップの成果を要約したものであり、ハードウェアセキュリティを統制するための、統一され、相互運用可能で、エビデンスに基づく信頼モデル、語彙、ガイダンスを策定する提案を含みます。官民パートナーシップ、パイロットプログラム、適切な調達要件によるインセンティブの整合は、経済的な障壁を下げ、安全で出所を追跡できる半導体エコシステムを示すことができます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Keywords</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+キーワード</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>AI hardware security; embedded systems security; firmware security; hardware security; life cycle security; memory security; microelectronics security; scalable security assurance; semiconductor assurance; semiconductor security standards; side-channel analysis.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AI ハードウェアセキュリティ、組込みシステムセキュリティ、ファームウェアセキュリティ、ハードウェアセキュリティ、ライフサイクルセキュリティ、メモリセキュリティ、マイクロエレクトロニクスセキュリティ、スケーラブルなセキュリティ保証、半導体保証、半導体セキュリティ標準、サイドチャネル解析。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Reports on Computer Systems Technology</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータシステム技術に関する報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof-of-concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラに技術的なリーダーシップを提供することで、米国経済と公共の福祉の向上に貢献しています。ITL は、情報技術の開発と生産的な活用を進めるため、テスト、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーを確保するための管理、運用、技術、物理に関する標準およびガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Table of Contents</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+目次</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">1.1. SUSHI@NIST Workshop Details</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">1.1. SUSHI@NIST ワークショップの詳細</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. Workshop Details</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. ワークショップの詳細</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2.1. Speaker Viewpoints</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2.1. 講演者の見解</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">2.1.1. A Roadmap Toward Scalable Security Assurance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">2.1.1. スケーラブルなセキュリティ保証に向けたロードマップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0010">2.1.1.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0010">2.1.1.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0008">2.1.2. Security in Memory and Storage</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0008">2.1.2. メモリとストレージのセキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.1.2.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.1.2.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0007">2.1.3. Hardware Attacks on AI Inference Chips</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0007">2.1.3. AI 推論チップに対するハードウェア攻撃</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">2.1.3.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">2.1.3.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">2.1.4. NIST Semiconductor Standards Activities</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">2.1.4. NIST の半導体標準に関する活動</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.1.4.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.1.4.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0011">2.1.5. NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0011">2.1.5. NSF/CISE サイバー空間におけるセキュリティ、プライバシー、信頼（SaTC 2.0）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">2.1.5.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">2.1.5.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0012">2.1.6. Standards-Based Assurance for Trusted Electronics</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0012">2.1.6. 信頼できる電子機器のための標準ベースの保証</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0004">2.1.6.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0004">2.1.6.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0013">2.1.7. AI Provenance and Traceability</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0013">2.1.7. AI の出所とトレーサビリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0004">2.1.7.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0004">2.1.7.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">2.1.8. Fundamentals of Semiconductor and Hardware Security for an AI World</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">2.1.8. AI 時代のための半導体とハードウェアセキュリティの基礎</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">2.1.8.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">2.1.8.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0004">2.1.9. Siemens Tessent</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0004">2.1.9. Siemens Tessent</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0008">2.1.9.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0008">2.1.9.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0021-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0006">2.2. Government Panel</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0006">2.2. 政府パネル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">2.2.1. Call to Action/Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">2.2.1. 行動の呼びかけ/次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">3. Summary and Road Ahead</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">3. まとめと今後の展望</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0002">3.1. Establish Unified Standards and Governance for Hardware Security and Assurance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0002">3.1. ハードウェアセキュリティと保証のための統一された標準とガバナンスの確立</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">3.2. Embed Security, Provenance, and Traceability Across the Full Semiconductor Life Cycle</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">3.2. 半導体のライフサイクル全体へのセキュリティ、出所、トレーサビリティの組み込み</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0006">3.3. Strengthen Supply Chain Security and Economic Incentives</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0006">3.3. サプライチェーンセキュリティと経済的インセンティブの強化</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0008">3.4. Advance Scalable Tools, Automation, and Validation Methods</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0008">3.4. スケーラブルなツール、自動化、検証手法の推進</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0022-b0002">3.5. Build Workforce Capacity and Collaborative Ecosystems</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0022-b0002">3.5. 人材の能力と協調的なエコシステムの構築</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">Appendix A. Workshop Agenda</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">付録 A. ワークショップの議事次第</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Acknowledgments</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+謝辞</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors would like to thank the workshop organizing committee, presenters, panel members, and participants who provided valuable input via questions, answers, and the breakout discussions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者らは、質問、回答、分科会での議論を通じて貴重な意見を寄せてくださった、ワークショップの組織委員会、発表者、パネリスト、参加者に感謝します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Semiconductors are a fundamental part of the modern global economy and a key enabler of national security, consumer technology, and advanced infrastructure. Chips are the digital backbone of nearly all essential systems, including artificial intelligence (AI), transportation, telecommunications, healthcare, and defense platforms. The rapid increase in semiconductor demand — driven in part by AI and data-intensive workloads — has heightened the strategic importance of secure, resilient, and trusted microelectronics across commercial and government sectors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>半導体は、現代のグローバル経済の基盤であり、国家安全保障、消費者向け技術、先進的なインフラストラクチャを支える重要な要素です。チップは、人工知能（AI）、運輸、通信、医療、防衛プラットフォームなど、ほぼすべての重要なシステムのデジタルな基盤です。AI やデータ集約型のワークロードに一部起因する半導体需要の急速な増加により、商業部門と政府部門の双方で、安全で、レジリエントで、信頼できるマイクロエレクトロニクスの戦略的重要性が高まっています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Recognizing its importance, the United States has launched a comprehensive national strategy to strengthen the semiconductor ecosystem and maintain technological leadership. Federal investments are fast-tracking domestic manufacturing, boosting research and development, and building a skilled workforce. U.S.-based companies still lead globally in revenue and innovation. Furthermore, manufacturing capacity is being reshored and expanded domestically. These efforts are supported by trade requirements, incentives, and international partnerships that are designed to enhance supply chain resilience and reduce reliance on geographically concentrated production.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>その重要性を認識して、米国は、半導体エコシステムを強化し、技術面でのリーダーシップを維持するための包括的な国家戦略を打ち出しました。連邦政府の投資は、国内製造を加速し、研究開発を促進し、熟練した人材を育成しています。米国に拠点を置く企業は、収益と革新の両面で依然として世界をリードしています。さらに、製造能力は国内に回帰し、拡大されつつあります。これらの取り組みは、サプライチェーンのレジリエンスを高め、地理的に集中した生産への依存を減らすことを目的とした、貿易上の要件、インセンティブ、国際的なパートナーシップによって支えられています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Within this broader approach, cybersecurity has become a key pillar of semiconductor security. Modern threats go beyond traditional software vulnerabilities to include risks embedded in hardware and the supply chain, such as intellectual property theft, counterfeit components, malicious logic inserted during design or manufacturing, and disruptions to fabrication facilities. Since semiconductors are essential to critical infrastructure and defense systems, a compromise at any stage of the life cycle can have cascading effects on national security, economic stability, and operational continuity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このより広い取り組みの中で、サイバーセキュリティは半導体セキュリティの主要な柱になっています。現代の脅威は、従来のソフトウェアの脆弱性にとどまらず、知的財産の窃取、偽造部品、設計や製造の過程で挿入される悪意のあるロジック、製造施設の中断など、ハードウェアやサプライチェーンに埋め込まれたリスクを含みます。半導体は重要インフラや防衛システムに不可欠であるため、ライフサイクルのどの段階での危殆化も、国家安全保障、経済の安定、業務の継続性に連鎖的な影響を及ぼしうるものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) plays a key role in advancing semiconductor cybersecurity through guidelines development, metrology, and collaborative research. Securing semiconductors requires a comprehensive view across three interconnected areas: (1) design security; (2) manufacturing security, including fabrication facilities and outsourced assembly and test (OSAT) environments; and (3) supply chain security to ensure the origin and traceability of components. Specific initiatives (e.g., semiconductor-specific cybersecurity profiles, hardware assurance programs, traceability research, CHIPS Program safeguards) help create a complete framework for trusted microelectronics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）は、ガイドラインの策定、計量学、共同研究を通じて、半導体のサイバーセキュリティの推進に重要な役割を果たしています。半導体を保護するには、相互に関連する 3 つの領域を包括的に捉える必要があります。(1) 設計のセキュリティ、(2) 製造施設や外部委託の組立・テスト（OSAT）環境を含む製造のセキュリティ、(3) 部品の出所とトレーサビリティを確保するサプライチェーンのセキュリティです。具体的な取り組み（半導体固有のサイバーセキュリティプロファイル、ハードウェア保証プログラム、トレーサビリティ研究、CHIPS Program の保護措置など）は、信頼できるマイクロエレクトロニクスのための完全な枠組みの構築に役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Beyond NIST, various coordinated efforts across government and industry are strengthening semiconductor security. The U.S. Department of Defense supports initiatives like the Microelectronics Commons to accelerate secure prototyping and move technologies from research to production. The Defense Advanced Research Projects Agency (DARPA) is advancing next-generation hardware security and manufacturing methods, including heterogeneous integration approaches that boost performance while making it harder for adversaries to access. Industry groups like the SEMI Manufacturing Cybersecurity Consortium are working to align global standards and improve supply chain practices. Overall, these efforts show a common understanding that semiconductor security is vital for safeguarding intellectual property and manufacturing capabilities as well as maintaining trust, resilience, and strategic advantage in an increasingly digital and interconnected world.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 以外でも、政府と産業界にわたるさまざまな協調的な取り組みが、半導体セキュリティを強化しています。米国国防総省は、セキュアなプロトタイピングを加速し、技術を研究から生産へ移すため、Microelectronics Commons などの取り組みを支援しています。国防高等研究計画局（DARPA）は、性能を高めつつ敵対者がアクセスしにくくする異種集積の手法を含め、次世代のハードウェアセキュリティと製造方法を進めています。SEMI Manufacturing Cybersecurity Consortium などの業界団体は、グローバルな標準を整合させ、サプライチェーンの実践を改善するために取り組んでいます。全体として、これらの取り組みは、ますますデジタル化し相互接続される世界で、知的財産と製造能力を守り、信頼、レジリエンス、戦略的優位性を維持するために、半導体セキュリティが不可欠であるという共通の認識を示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. SUSHI@NIST Workshop Details</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. SUSHI@NIST ワークショップの詳細</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As part of NIST’s broader efforts to enhance semiconductor security, the Sustainable Hardware Security (SUSHI@NIST) workshop was held virtually on January 26, 2026. The workshop brought together stakeholders from government, industry, and academia to address security challenges across the semiconductor development life cycle. The workshop focused on threat analysis, mitigation strategies, and aligning emerging standards with practical operational needs with goals to promote cross-sector collaboration, help identify gaps in current practices, build consensus on best practices, and shape future standards and guidance to support trusted hardware ecosystems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>半導体セキュリティを強化する NIST のより広い取り組みの一環として、Sustainable Hardware Security（SUSHI@NIST）ワークショップが 2026 年 1 月 26 日にオンラインで開催されました。このワークショップには、政府、産業界、学術界の利害関係者が集まり、半導体開発ライフサイクル全体にわたるセキュリティ上の課題に取り組みました。ワークショップは、脅威分析、緩和戦略、新たな標準と実際の運用上のニーズとの整合に焦点を当て、分野横断的な協力の促進、現行の実践のギャップの特定、ベストプラクティスに関する合意形成、信頼できるハードウェアエコシステムを支える将来の標準とガイダンスの形成を目標としました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SUSHI platform was envisioned and managed by:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SUSHI プラットフォームは、次の方々によって構想され、運営されました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gang Qu, University of Maryland</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gang Qu, University of Maryland</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Jeyavijayan Rajendran, Texas A&amp;M</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Jeyavijayan Rajendran, Texas A&amp;M</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ahmad-Reza Sadeghi, TU Darmstadt</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ahmad-Reza Sadeghi, TU Darmstadt</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Workshop Details</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. ワークショップの詳細</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SUSHI@NIST workshop was held virtually with a total of 116 participants. Of those, 65% represented industry, 20% represented government, and 15% represented academia. The workshop agenda is included in Appendix A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SUSHI@NIST ワークショップはオンラインで開催され、参加者は合計 116 名でした。そのうち 65% が産業界、20% が政府、15% が学術界を代表していました。ワークショップの議事次第は付録 A に含まれています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The agenda and the presentations that were allowed to be made publicly available can also be found at: https://www.nist.gov/news-events/events/2026/01/sushinist-rolling-next-generation-secure-hardware-standards.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>議事次第と、一般公開が許可された発表資料は、次の場所でも入手できます。https://www.nist.gov/news-events/events/2026/01/sushinist-rolling-next-generation-secure-hardware-standards.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Speaker Viewpoints</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. 講演者の見解</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.1. A Roadmap Toward Scalable Security Assurance</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.1. スケーラブルなセキュリティ保証に向けたロードマップ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Jason Fung</strong> outlined the growing challenge of achieving scalable security assurance in modern hardware systems and emphasized that increasing system complexity — especially in semiconductors and systems-on-a-chip (SoCs) , has made traditional, manual approaches insufficient. Today’s chips contain thousands of components, diverse IP blocks, and intricate hardware-software interactions, all of which introduce significant verification burdens. Security assurance is not simply the absence of vulnerabilities but the result of proactive investment in prevention, detection, and remediation across the product life cycle.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Jason Fung</strong> は、現代のハードウェアシステムでスケーラブルなセキュリティ保証を達成することの課題が拡大していると概説し、システムの複雑さの増大、特に半導体やシステムオンチップ（SoC）における複雑さの増大により、従来の手作業によるアプローチでは不十分になっていると強調しました。今日のチップには数千のコンポーネント、多様な IP ブロック、複雑なハードウェアとソフトウェアの相互作用が含まれており、そのすべてが重大な検証負荷をもたらします。セキュリティ保証は、単に脆弱性がないことではなく、製品ライフサイクル全体にわたる予防、検知、修復への積極的な投資の結果です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fung argued that security assurance must scale across architectures, teams, and toolchains, despite fragmentation in design environments and expertise. There is no one-size-fits-all method; instead, assurance requires layered, complementary techniques that span pre-silicon verification, post-silicon testing, supply chain security, and long-term deployment monitoring.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Fung は、設計環境と専門知識の断片化にもかかわらず、セキュリティ保証はアーキテクチャ、チーム、ツールチェーンにわたってスケールしなければならないと主張しました。万能の方法はなく、保証には、シリコン前の検証、シリコン後のテスト、サプライチェーンセキュリティ、長期的な展開後の監視にわたる、階層的で補完的な技術が必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fung proposed a structured, scalable framework analogous to how compilers transformed software development. By formalizing principles (e.g., secure by design/default), processes (e.g., end-to-end life cycle integration), and guidance (e.g., standards, compliance, AI guardrails), security assurance can be increasingly automated and embedded into development workflows. However, much of today’s expertise relies on institutional knowledge, creating barriers to scale and workforce development.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Fung は、コンパイラがソフトウェア開発を変革した方法になぞらえた、構造化されスケーラブルな枠組みを提案しました。原則（セキュアバイデザイン/デフォルトなど）、プロセス（エンドツーエンドのライフサイクル統合など）、ガイダンス（標準、コンプライアンス、AI ガードレールなど）を形式化することで、セキュリティ保証は次第に自動化され、開発ワークフローに組み込まれるようになります。しかし、今日の専門知識の多くは組織内の知識に依存しており、スケールや人材育成の障壁となっています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fung also highlighted the need for industry-wide collaboration, including leveraging existing software security frameworks, developing reusable reference designs, and investing in tools, taxonomies, and training programs. Initiatives like hardware vulnerability databases, academic partnerships, and workforce training (e.g., CTFs, certification programs) demonstrate progress but require broader adoption. Ultimately, scalable assurance depends on aligning people, processes, and technology with the support of community-driven standards and sustained research and development (R&amp;D).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Fung はまた、既存のソフトウェアセキュリティの枠組みの活用、再利用可能なリファレンス設計の開発、ツール、分類体系、トレーニングプログラムへの投資など、業界全体での協力の必要性を強調しました。ハードウェア脆弱性データベース、学術界との連携、人材トレーニング（CTF、認定プログラムなど）といった取り組みは進展を示していますが、より広い採用が必要です。結局のところ、スケーラブルな保証は、コミュニティ主導の標準と持続的な研究開発（R&amp;D）の支援のもとで、人、プロセス、技術を整合させることにかかっています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.1.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.1.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Define a shared roadmap and governance model</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">共有のロードマップとガバナンスモデルを定義する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Establish a multi-year vision for scalable hardware security assurance, including clear stakeholder roles across industry, academia, and government. Align on mission, priorities, and measurable outcomes to guide coordinated progress.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業界、学術界、政府にわたる明確な利害関係者の役割を含め、スケーラブルなハードウェアセキュリティ保証のための複数年のビジョンを確立します。使命、優先事項、測定可能な成果について合意し、協調した前進を導きます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Standardize frameworks and best practices</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">フレームワークとベストプラクティスを標準化する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Formalize secure-by-design principles, extend proven software frameworks (e.g., threat modeling, attack taxonomies) to hardware, and develop common guidance to reduce fragmentation and improve consistency across organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュアバイデザインの原則を形式化し、実績のあるソフトウェアのフレームワーク（脅威モデリング、攻撃の分類体系など）をハードウェアに拡張し、断片化を減らして組織間の一貫性を高めるための共通のガイダンスを策定します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Invest in automation, tools, and R&amp;D</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">自動化、ツール、R&amp;D に投資する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Accelerate the development of scalable verification techniques (e.g., AI-assisted analysis, static analysis, fuzzing) and fund research to close gaps. Incentivize innovation through grants, challenges, and ecosystem partnerships.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スケーラブルな検証技術（AI 支援の解析、静的解析、ファジングなど）の開発を加速し、ギャップを埋める研究に資金を提供します。助成金、チャレンジ、エコシステムのパートナーシップを通じてイノベーションを促します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Build workforce capacity and knowledge sharing</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">人材の能力を高め、知識共有を促進する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Bridge the gap between academia and industry by integrating practical security training, expanding collaborative programs, and codifying institutional knowledge into accessible resources to lower barriers for new practitioners.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実践的なセキュリティトレーニングの統合、協調プログラムの拡大、組織内の知識の利用しやすいリソースへの体系化によって、学術界と産業界のギャップを埋め、新しい実務者への障壁を下げます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.2. Security in Memory and Storage</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.2. メモリとストレージのセキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Tamara Schmitz</strong> highlighted that memory, once viewed as a commodity, is now a vital and increasingly targeted attack surface because of its central role in AI and modern computing. Memory (e.g., DRAM, HBM) temporarily stores data in use, while storage (e.g., SSDs, NAND) keeps data at rest, resulting in distinct but related security issues. Attackers are exploiting both through hardware-level techniques like row hammer, cold boot, direct memory access, and advanced side-channel and fault injection attacks. Worryingly, the cost and availability of these attacks are dropping rapidly, and various tools (e.g., low-cost laser fault injection setups, AI-driven fuzzing) make sophisticated exploits widely accessible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Tamara Schmitz</strong> は、かつては汎用品と見なされていたメモリが、AI と現代のコンピューティングで中心的な役割を担うため、今や重要で、ますます標的にされる攻撃対象領域になっていると指摘しました。メモリ（DRAM、HBM など）は使用中のデータを一時的に保存し、ストレージ（SSD、NAND など）は保存中のデータを保持するため、異なるが関連するセキュリティ上の問題が生じます。攻撃者は、行ハンマー攻撃、コールドブート、ダイレクトメモリアクセス、高度なサイドチャネル攻撃やフォールトインジェクション攻撃といったハードウェアレベルの技術で、その両方を悪用しています。憂慮すべきことに、これらの攻撃のコストと入手性は急速に下がっており、さまざまなツール（低コストのレーザーフォールトインジェクション装置、AI 駆動のファジングなど）によって、高度なエクスプロイトが広く利用可能になっています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Schmitz discussed how storage introduces additional risks due to firmware, including software vulnerabilities (e.g., buffer overflows) and supply chain threats. Across both memory and storage, attackers exploit debug interfaces, metadata leakage, and weaknesses in life cycle handling. While mitigations exist (e.g., encryption, hardware roots of trust, firmware signing, error correction), their implementations have been inconsistent and often driven by market demands rather than standardized baselines. Current standards are lagging behind evolving threats and are often ambiguous when applied to hardware, which can lead to inconsistent risk assessments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Schmitz は、ストレージがファームウェアに起因する追加のリスクをもたらすこと、すなわちソフトウェアの脆弱性（バッファオーバーフローなど）とサプライチェーンの脅威を論じました。メモリとストレージの両方で、攻撃者はデバッグインターフェース、メタデータの漏えい、ライフサイクル管理の弱点を悪用します。緩和策（暗号化、ハードウェアルートオブトラスト、ファームウェア署名、誤り訂正など）はありますが、その実装は一貫しておらず、標準化されたベースラインではなく市場の需要に左右されることが多くあります。現行の標準は進化する脅威に後れを取っており、ハードウェアに適用する際には曖昧であることが多く、一貫性のないリスク評価につながる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A major concern is the industry’s reactive stance: vulnerabilities are often addressed only after they have been exploited. Schmitz advocates for a proactive, life cycle-based security approach from design to end of life, along with stronger coordination among hardware and firmware teams. She also highlights the importance of third-party assurance, secure development life cycles, and supply chain transparency, including SBOMs and contractual security requirements. Ultimately, she urges clearer and more uniform standards, better threat modeling, and ongoing adaptation to new attack methods. Security must be integrated early in the design process and maintained throughout the product life cycle with collaboration among vendors, partners, and customers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>大きな懸念は、業界の受け身の姿勢です。脆弱性は、悪用された後になって初めて対処されることが多くあります。Schmitz は、設計から廃棄までのライフサイクルに基づく積極的なセキュリティアプローチと、ハードウェアチームとファームウェアチームの間のより強力な連携を提唱しています。また、第三者による保証、セキュア開発ライフサイクル、SBOM や契約上のセキュリティ要件を含むサプライチェーンの透明性の重要性も強調しています。最終的に、より明確で統一された標準、より優れた脅威モデリング、新しい攻撃手法への継続的な適応を求めています。セキュリティは設計プロセスの早い段階で組み込み、ベンダー、パートナー、顧客の協力のもと、製品ライフサイクル全体を通じて維持しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.2.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.2.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Establish baseline security standards for memory and storage, including essential features (e.g., attestation, rollback protection, consistent encryption practices). This clarifies expectations and guarantees a basic level of security, regardless of vendor or market.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">メモリとストレージの基本的なセキュリティ標準を、アテステーション、ロールバック保護、一貫した暗号化の実践などの必須機能を含めて確立します。これにより、期待が明確になり、ベンダーや市場にかかわらず基本的なセキュリティ水準が保証されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Shift from reactive to proactive security by integrating protections early in design and maintaining them throughout the product life cycle. Regularly review threat models, test against new attacks, and plan for long-term support and patching.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">設計の早い段階で保護を組み込み、製品ライフサイクル全体を通じて維持することで、受け身のセキュリティから積極的なセキュリティへ転換します。脅威モデルを定期的に見直し、新しい攻撃に対してテストし、長期的なサポートとパッチ適用を計画します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Improve supply chain and third-party security by implementing secure development life cycle practices, requiring SBOMs, and including security requirements in contracts. Ensure consistency across all partners and components.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュア開発ライフサイクルの実践を導入し、SBOM を要求し、契約にセキュリティ要件を含めることで、サプライチェーンと第三者のセキュリティを改善します。すべてのパートナーとコンポーネントにわたる一貫性を確保します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Improve cross-domain coordination and incident response by integrating hardware and firmware teams, expanding threat intelligence capabilities, and enabling faster and more unified responses to complex, multi-layer attacks.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ハードウェアチームとファームウェアチームを統合し、脅威インテリジェンスの能力を拡大し、複雑な多層攻撃へのより迅速で統一された対応を可能にすることで、領域をまたぐ連携とインシデント対応を改善します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.3. Hardware Attacks on AI Inference Chips</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.3. AI 推論チップに対するハードウェア攻撃</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Marc Witteman</strong> from Keysight Technologies presented early research on hardware attacks that target AI inference chips, which differ from traditional cryptographic targets and introduce new security risks. He explained the difference between AI training (i.e., resource-intensive and centralized) and inference (i.e., lightweight deployment on edge devices), emphasizing that trained model weights are valuable intellectual property and that inference integrity is vital for safety-critical decisions (e.g., autonomous vehicles). Using a YOLO-based (“You Only Look Once”) object detection model on an AI-enabled chip, Witteman showed how side-channel analysis (e.g., electromagnetic emanations) uncovers subtle processing differences, depending on input data. These signals help identify when and where inference computations occur, enabling targeted attacks. He also demonstrated a brief voltage fault injection to disrupt power and manipulate the chip’s behavior.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Keysight Technologies の <strong>Marc Witteman</strong> は、AI 推論チップを標的とするハードウェア攻撃に関する初期の研究を発表しました。これは従来の暗号の標的とは異なり、新たなセキュリティリスクをもたらします。彼は、AI の学習（リソースを大量に消費し集中型）と推論（エッジデバイスへの軽量な展開）の違いを説明し、学習済みモデルの重みは貴重な知的財産であること、そして推論の完全性は安全が重要な判断（自動運転車など）に不可欠であることを強調しました。Witteman は、AI 対応チップ上の YOLO ベース（「You Only Look Once」）の物体検出モデルを使い、サイドチャネル解析（電磁放射など）によって、入力データに応じた処理のわずかな違いが明らかになることを示しました。これらの信号は、推論の計算がいつどこで行われるかを特定するのに役立ち、標的を絞った攻撃を可能にします。彼はまた、電力を乱してチップの動作を操作する短時間の電圧フォールトインジェクションも実演しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Witteman’s results showed that hardware glitches can meaningfully alter AI outputs. About 77% of experiments caused shifts in confidence scores, which could lead to missed detections (e.g., failing to recognize a pedestrian). More importantly, around 22% produced “hallucinations,” where the system detected objects that do not exist, sometimes with high confidence. These effects could cause unsafe actions in real-world systems (e.g., autonomous vehicles or robotics). Witteman concluded that AI inference chips need strong hardware security protections to ensure both model confidentiality and decision accuracy. Although current results are somewhat random, future research aims to produce precise, attacker-controlled outcomes. He also warned about supply chain risks, where malicious hardware modifications could embed attack capabilities directly into deployed systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Witteman の結果は、ハードウェアのグリッチが AI の出力を有意に変えうることを示しました。実験の約 77% で信頼度スコアに変化が生じ、これは検出漏れ（歩行者を認識できないなど）につながる可能性があります。さらに重要なことに、約 22% では「ハルシネーション」が生じ、システムが存在しない物体を、ときには高い信頼度で検出しました。こうした影響は、実世界のシステム（自動運転車やロボティクスなど）で安全でない動作を引き起こす可能性があります。Witteman は、モデルの機密性と判断の正確性の両方を確保するため、AI 推論チップには強力なハードウェアセキュリティ保護が必要だと結論づけました。現在の結果はやや無作為ですが、将来の研究は、攻撃者が制御した精密な結果を生み出すことを目指しています。彼はまた、悪意のあるハードウェア改変が、展開済みのシステムに直接攻撃能力を埋め込みうるサプライチェーンのリスクについても警告しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.3.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.3.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Advance hardware security for AI chips</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI チップのハードウェアセキュリティを推進する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Develop and integrate hardware-level protections (e.g., fault detection, shielding, secure power design) that are specifically tailored for AI inference workloads to protect both model weights and decision integrity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>モデルの重みと判断の完全性の両方を保護するため、AI 推論ワークロード向けに特化した、ハードウェアレベルの保護（フォールト検知、シールド、セキュアな電源設計など）を開発し、統合します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Expand research on controlled attacks</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">制御された攻撃に関する研究を拡大する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Move from probabilistic glitching to deterministic manipulation, enabling a deeper understanding of attacker capabilities and informing realistic threat models and defenses.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>確率的なグリッチから決定論的な操作へ移行し、攻撃者の能力についてのより深い理解を可能にし、現実的な脅威モデルと防御に役立てます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Establish testing and validation standards</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">テストと検証の標準を確立する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Develop standardized methods for assessing AI hardware resilience to side-channel and fault injection attacks, similar to established standards in cryptographic hardware security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>暗号ハードウェアセキュリティの確立した標準と同様に、サイドチャネル攻撃とフォールトインジェクション攻撃に対する AI ハードウェアのレジリエンスを評価する標準化された方法を開発します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Address supply chain threats</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サプライチェーンの脅威に対処する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Investigate the risks of malicious hardware insertion (e.g., mod chips) and develop provenance, inspection, and verification mechanisms to ensure the trusted deployment of AI-enabled systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>悪意のあるハードウェアの挿入（モッドチップなど）のリスクを調査し、AI 対応システムの信頼できる展開を確保するための、出所、検査、検証の仕組みを開発します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.4. NIST Semiconductor Standards Activities</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.4. NIST の半導体標準に関する活動</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Mary Bedner</strong> outlined NIST’s semiconductor standards activities within the CHIPS for America Program, emphasizing that her overview reflects key efforts led by the CHIPS R&amp;D office rather than a complete inventory.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Mary Bedner</strong> は、CHIPS for America Program における NIST の半導体標準に関する活動を概説し、その概要は完全な一覧ではなく、CHIPS R&amp;D オフィスが主導する主要な取り組みを反映したものであると強調しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST’s strategy centers on creating a smarter, faster, and more agile semiconductor standards ecosystem aligned with global principles. Key priorities include enhancing private-sector leadership, speeding up standards development, increasing awareness and ease of navigation for standards, and facilitating global market access. A significant milestone was the 2023 standards summit, which brought together over 600 stakeholders to pinpoint ecosystem-wide priorities, such as chiplets, supply chain security, advanced packaging, and faster standards innovation. This was followed by targeted workshops that focused on chiplet interfaces, digital twins, and data standards, highlighting ongoing challenges in data sharing and interoperability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の戦略は、グローバルな原則に沿った、よりスマートで、より迅速で、より機敏な半導体標準エコシステムの構築を中心としています。主な優先事項には、民間部門のリーダーシップの強化、標準策定の迅速化、標準の認知度と利用のしやすさの向上、グローバルな市場アクセスの促進があります。重要な節目は 2023 年の標準サミットで、600 以上の利害関係者が集まり、チップレット、サプライチェーンセキュリティ、先進パッケージング、より迅速な標準イノベーションなど、エコシステム全体の優先事項を明確にしました。これに続いて、チップレットインターフェース、デジタルツイン、データ標準に焦点を当てた個別のワークショップが開かれ、データ共有と相互運用性における継続的な課題が浮き彫りになりました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Internally, NIST coordinates through interagency working groups and the CHIPS metrology program, which promotes pre-standards R&amp;D in areas like measurement science, traceability, and hardware security. Current projects include advanced packaging metrology, hardware vulnerability management, and secure data sanitization.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は内部で、省庁間のワーキンググループと CHIPS 計量プログラムを通じて調整しています。このプログラムは、計測科学、トレーサビリティ、ハードウェアセキュリティなどの分野における標準化前の R&amp;D を推進しています。現在のプロジェクトには、先進パッケージングの計量学、ハードウェア脆弱性管理、セキュアなデータサニタイズが含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To drive progress, NIST launched a Broad Agency Announcement (BAA) to fund R&amp;D, commercialization, and standards development in emerging technologies like AI, quantum computing, and biotechnology. Additionally, a new public-private partnership with ASTM International created the ASCET (Advancing Standardization for Critical and Emerging Technologies). The Center of Excellence enhances U.S. leadership in global standardization, focusing on workforce development, collaboration, and data-sharing infrastructure. Bednar emphasized that stakeholder engagement is essential for turning identified priorities into widely adopted standards.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>進展を促すため、NIST は、AI、量子コンピューティング、バイオテクノロジーなどの新興技術における R&amp;D、商業化、標準策定に資金を提供する Broad Agency Announcement（BAA）を開始しました。さらに、ASTM International との新たな官民パートナーシップにより、ASCET（Advancing Standardization for Critical and Emerging Technologies）が創設されました。この Center of Excellence は、人材育成、協力、データ共有基盤に焦点を当て、グローバルな標準化における米国のリーダーシップを強化します。Bednar は、特定された優先事項を広く採用される標準に変えるには、利害関係者の関与が不可欠であると強調しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.4.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.4.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Advance identified priorities into standards</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">特定された優先事項を標準へと前進させる</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Review published workshop and summit outputs and collaborate with standards development organizations to convert priority areas (e.g., chiplets, supply chain security, data standards) into formal standards or industry consortia outputs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>公開されたワークショップとサミットの成果を確認し、標準策定組織と協力して、優先分野（チップレット、サプライチェーンセキュリティ、データ標準など）を正式な標準または業界コンソーシアムの成果物に変えます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Engage with CHIPS R&amp;D funding opportunities</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">CHIPS R&amp;D の資金提供の機会に参加する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Submit proposals to the BAA program, particularly in standards development and emerging technology domains, while addressing ROI considerations and aligning with national priorities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投資収益率（ROI）の観点に対応し、国家の優先事項と整合させながら、特に標準策定と新興技術分野で、BAA プログラムに提案を提出します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Participate in ecosystem coordination efforts</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">エコシステムの調整の取り組みに参加する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contribute to interagency reports, workshops, and public-private initiatives (e.g., ASCET Center) to reduce silos, improve standards visibility, and strengthen cross-sector collaboration.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>縦割りを減らし、標準の可視性を高め、分野横断的な協力を強化するため、省庁間の報告書、ワークショップ、官民の取り組み（ASCET センターなど）に貢献します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Invest in workforce and data infrastructure</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">人材とデータ基盤に投資する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Support the development of a skilled standards workforce and engage in initiatives that enhance data sharing, interoperability, and traceability across the semiconductor ecosystem.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>熟練した標準人材の育成を支援し、半導体エコシステム全体でデータ共有、相互運用性、トレーサビリティを高める取り組みに参加します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.5. NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.5. NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Selcuk Uluagac</strong> provided an overview of National Science Foundation (NSF) activities. The NSF’s SaTC 2.0 program is a flagship initiative that supports interdisciplinary, foundational research in cybersecurity, privacy, and trust worldwide. Since it started in 2011, the program has invested over $1 billion in nearly 4,000 awards, promoting advancements in resilience, privacy-preserving technologies, and societal impacts of cyber systems. It highlights collaboration across fields like computer science, social sciences, economics, and policy, working closely with other federal agencies and international partners.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Selcuk Uluagac</strong> は、米国国立科学財団（NSF）の活動の概要を説明しました。NSF の SaTC 2.0 プログラムは、世界のサイバーセキュリティ、プライバシー、信頼に関する学際的で基礎的な研究を支援する主力の取り組みです。2011 年の開始以来、このプログラムは約 4,000 件の採択に 10 億ドル以上を投資し、レジリエンス、プライバシー保護技術、サイバーシステムの社会的影響の進歩を促進してきました。コンピュータ科学、社会科学、経済学、政策といった分野をまたぐ協力を重視し、他の連邦機関や国際的なパートナーと緊密に連携しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SaTC 2.0 reflects the changing cyber landscape and incorporates emerging technologies like AI, quantum computing, and large-scale distributed systems. The program emphasizes “trustworthy by design” approaches and encourages researchers to rethink security from first principles instead of retrofitting existing systems. It also highlights AI’s dual role as both a tool to improve security and a possible attack vector. Key research areas include hardware security, adversarial machine learning, information integrity, human-centered security, and privacy-preserving data systems. Recent updates to the solicitation simplify proposal categories and introduce new funding structures, such as “Research” and “Seed” designations. The program promotes proposals that are aligned with national strategies and focuses on broader impacts, including workforce development and increasing participation in computing. Engagement with the research community through regular workshops, PI meetings, and outreach activities remains essential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SaTC 2.0 は変化するサイバー環境を反映し、AI、量子コンピューティング、大規模分散システムなどの新興技術を取り入れています。このプログラムは「設計段階から信頼できる（trustworthy by design）」アプローチを重視し、研究者に対し、既存のシステムを後付けで改修するのではなく、第一原理からセキュリティを考え直すよう促しています。また、AI がセキュリティを向上させるツールであると同時に、攻撃経路にもなりうるという二重の役割も強調しています。主な研究分野には、ハードウェアセキュリティ、敵対的機械学習、情報の完全性、人間中心のセキュリティ、プライバシー保護データシステムがあります。公募の最近の更新では、提案区分が簡素化され、「Research」や「Seed」の区分など、新しい資金提供の構造が導入されました。このプログラムは、国家戦略に沿った提案を促進し、人材育成やコンピューティングへの参加拡大を含む、より広い影響に重点を置いています。定期的なワークショップ、PI 会合、アウトリーチ活動を通じた研究コミュニティとの関わりは、引き続き不可欠です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Overall, SaTC 2.0 positions NSF as a foundational funding body at low technology readiness levels (TRLs), enabling early-stage, high-impact research that feeds into applied efforts across government and industry.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>全体として、SaTC 2.0 は NSF を、低い技術成熟度レベル（TRL）における基盤的な資金提供機関として位置づけ、政府と産業界の応用的な取り組みに結び付く、初期段階で影響の大きい研究を可能にしています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.5.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.5.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Align proposals with SaTC 2.0 priorities</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">提案を SaTC 2.0 の優先事項に整合させる</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Focus on interdisciplinary, “trustworthy by design” research that addresses emerging challenges, such as AI security, hardware trust, and information integrity. Ensure alignment with national cybersecurity and AI strategies to improve competitiveness.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AI セキュリティ、ハードウェアの信頼、情報の完全性といった新たな課題に取り組む、学際的で「設計段階から信頼できる」研究に注力します。競争力を高めるため、国のサイバーセキュリティ戦略および AI 戦略との整合を確保します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Leverage collaboration opportunities</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">協力の機会を活用する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Engage with academic, industry, and international partners. Consider cross-disciplinary teams and utilize NSF-supported research infrastructure (e.g., cloud labs, AI resources) to strengthen proposals.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>学術界、産業界、国際的なパートナーと関わります。提案を強化するため、分野横断的なチームを検討し、NSF が支援する研究基盤（クラウドラボ、AI リソースなど）を活用します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Prepare for updated proposal requirements</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">更新された提案要件に備える</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Understand new designations (i.e., Research, Seed), funding limits, and requirements, such as Broadening Participation in Computing (BPC) plans for larger projects. Monitor target dates (January and September) while noting that rolling submissions are allowed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">新しい区分（Research、Seed）、資金の上限、大規模プロジェクト向けの Broadening Participation in Computing（BPC）計画などの要件を理解します。随時の提出が認められていることに留意しつつ、目標日（1 月と 9 月）を把握します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Engage with NSF and its community early</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">NSF とそのコミュニティに早期に関与する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participate in webinars, PI meetings, and outreach events. Reach out to program directors for guidance, explore reviewer roles, and stay informed on Dear Colleague Letters for emerging “Seed” topics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウェビナー、PI 会合、アウトリーチイベントに参加します。ガイダンスを得るためにプログラムディレクターに連絡し、レビュアーとしての役割を検討し、新興の「Seed」トピックに関する Dear Colleague Letters の情報を常に把握します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.6. Standards-Based Assurance for Trusted Electronics</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.6. 信頼できる電子機器のための標準ベースの保証</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Jim Will</strong> emphasized the vital need for standards-based assurance to establish trust in global electronics supply chains, especially for defense and critical infrastructure. He pointed out that while hardware assurance challenges have existed for a long time, they are growing more serious due to complex, worldwide supply chains and heavy dependence on offshore manufacturing, particularly in Asia. Current visibility into supply chains is limited, often only extending to top-tier suppliers, which leaves hidden risks (e.g., foreign dependencies, potential adversarial exposure).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Jim Will</strong> は、特に防衛や重要インフラにおいて、世界の電子機器サプライチェーンへの信頼を確立するために、標準ベースの保証が不可欠であると強調しました。彼は、ハードウェア保証の課題は以前から存在していましたが、複雑で世界規模のサプライチェーンと、特にアジアなどの海外製造への強い依存により、深刻さを増していると指摘しました。サプライチェーンの現在の可視性は限られており、多くの場合、最上位のサプライヤーまでにとどまるため、隠れたリスク（外国への依存、敵対者に露出する可能性など）が残ります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Through case studies (e.g., military-use tablets and naval systems), he illustrated how widely used commercial-off-the-shelf (COTS) components — although cost-effective and scalable — often lack sufficient assurance. These systems can unknowingly incorporate parts from untrusted or restricted sources. In contrast, custom or high-assurance microelectronics (e.g., secure FPGAs, trusted foundry flows) offer stronger security but are less scalable and more costly. Will argued that standards and domestic or allied manufacturing capabilities must develop together. Fragmented and overlapping standards lead to inefficiencies and high compliance costs, which reduce adoption and effectiveness. A unified or harmonized standards framework, possibly tiered by application criticality, could enable scalable assurance while adopting commercial best practices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>彼は、事例研究（軍用タブレットや海軍のシステムなど）を通じて、広く使用されている市販品（COTS）のコンポーネントが、費用対効果が高くスケーラブルであるものの、十分な保証を欠いていることが多いことを示しました。これらのシステムは、信頼できない、または制限された出所の部品を、知らないうちに組み込んでいる可能性があります。対照的に、カスタムまたは高保証のマイクロエレクトロニクス（セキュア FPGA、信頼できるファウンドリのフローなど）は、より強力なセキュリティを提供しますが、スケーラビリティが低く、コストもかかります。Will は、標準と、国内または同盟国の製造能力は、並行して発展させなければならないと主張しました。断片化し重複する標準は、非効率と高いコンプライアンスコストを招き、採用と有効性を低下させます。統一または調和された標準の枠組み（用途の重要度に応じて階層化される可能性があります）は、商業的なベストプラクティスを採用しつつ、スケーラブルな保証を可能にするでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Will emphasized that market dynamics are a major obstacle. Without clear demand signals, the industry lacks motivation to invest in reliable domestic capabilities. Therefore, assurance must be made economically feasible through standards, shared costs, and aligned incentives. Ultimately, a coordinated, industry-led, and government-supported approach is necessary to build resilient, trusted, and scalable electronics ecosystems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Will は、市場の力学が大きな障害であると強調しました。明確な需要のシグナルがなければ、業界には信頼できる国内の能力に投資する動機がありません。したがって、標準、コストの分担、整合したインセンティブを通じて、保証を経済的に実現可能にしなければなりません。最終的に、レジリエントで信頼でき、スケーラブルな電子機器エコシステムを構築するには、業界主導で政府が支援する、調整されたアプローチが必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.6.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.6.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Develop a unified or tiered standards framework</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">統一または階層化された標準の枠組みを策定する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Consolidate fragmented standards into a coherent, interoperable framework aligned with allies. Reduce duplication and compliance burdens while enabling scalability across commercial and defense applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>断片化した標準を、同盟国と整合した、一貫して相互運用可能な枠組みに統合します。重複とコンプライアンスの負担を減らしつつ、商業用途と防衛用途にまたがるスケーラビリティを可能にします。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Create strong demand signals for trusted electronics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">信頼できる電子機器に対する強い需要のシグナルを作り出す</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Government and industry must incentivize the adoption of assured components through procurement requirements, funding, and requirements to justify private-sector investment in domestic and allied supply chains.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>政府と産業界は、国内および同盟国のサプライチェーンへの民間部門の投資を正当化するための要件と、調達要件および資金提供を通じて、保証されたコンポーネントの採用を促さなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Prioritize high-risk components for assurance</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">保証の対象として高リスクのコンポーネントを優先する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Focus efforts on critical, high-leverage components (e.g., processors, power management, memory, transceivers) for which supply chain risks and security impacts are greatest.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サプライチェーンのリスクとセキュリティへの影響が最も大きい、重要で影響力の大きいコンポーネント（プロセッサ、電源管理、メモリ、トランシーバーなど）に取り組みを集中します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Leverage commercial best practices and dual-use models</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">商業的なベストプラクティスとデュアルユースのモデルを活用する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Integrate proven industry practices into assurance frameworks and promote dual-use solutions to share costs, improve scalability, and accelerate adoption across sectors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実績のある業界の慣行を保証の枠組みに統合し、コストを分担し、スケーラビリティを高め、分野を超えた採用を加速するために、デュアルユースのソリューションを促進します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.7. AI Provenance and Traceability</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.7. AI の出所とトレーサビリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Jeremy Muldavin</strong> discussed how AI-driven design and semiconductor innovation are rapidly transforming the ability to build secure, traceable, and trustworthy systems. He highlighted the convergence of “AI for design” and “design for AI,” where advanced chips enable AI systems while AI simultaneously accelerates chip development, verification, and system modeling. This evolution is critical as semiconductors underpin massive global markets, especially AI infrastructure, communications, automotive systems, and increasingly complex “physical AI” applications (e.g., robotics, autonomous vehicles systems).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Jeremy Muldavin</strong> は、AI 駆動の設計と半導体のイノベーションが、安全性が確保され、追跡可能で、信頼できるシステムを構築する能力をどのように急速に変えつつあるかを論じました。彼は「AI のための設計（AI for design）」と「設計のための AI（design for AI）」の収束を強調しました。そこでは、先進的なチップが AI システムを可能にする一方で、AI がチップの開発、検証、システムモデリングを同時に加速します。この進化は、半導体が、特に AI インフラ、通信、自動車システム、そしてロボティクスや自動運転車システムなどますます複雑化する「フィジカル AI」アプリケーションといった巨大な世界市場を支えているため、重要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A key challenge is building trust within the semiconductor and AI supply chains. Muldavin stressed that trust must start at the hardware level by ensuring IP integrity, validated firmware/software, and the secure management of AI models and data. He advocated for end-to-end traceability and provenance that track how chips are designed, manufactured, and deployed with verifiable inputs/outputs and non-repudiation. Without this, the large-scale adoption of AI, especially in critical infrastructure, will continue to be hindered by security concerns.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>重要な課題は、半導体と AI のサプライチェーン内に信頼を築くことです。Muldavin は、IP の完全性、検証済みのファームウェア/ソフトウェア、AI モデルとデータのセキュアな管理を確保することで、信頼はハードウェアレベルから始めなければならないと強調しました。彼は、検証可能な入力/出力と否認防止を備え、チップがどのように設計、製造、展開されるかを追跡する、エンドツーエンドのトレーサビリティと出所を提唱しました。これがなければ、特に重要インフラにおける AI の大規模な採用は、セキュリティ上の懸念によって妨げられ続けます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Muldavin suggested using AI-powered EDA tools and multi-agent systems to automate design, verification, and compliance processes, greatly increasing speed and coverage while integrating security requirements into workflows. These tools could facilitate IP validation, life cycle traceability, and automated security assurance at scale. Complementary innovations (e.g., chiplet architectures, digital twins, root-of-trust technologies) further support secure, modular, and scalable systems. However, challenges persist, including rising design costs, dominance by a few major players, fragmented supply chains, and a lack of economic incentives for secure, traceable systems. Muldavin emphasized the need for a global traceability framework that combines provenance, certification, analytics, and governance to enable both the physical and digital validation of chips throughout their life cycle. Ultimately, he argued that security and traceability must become measurable, valued, and integrated into the ecosystem to ensure trustworthy AI and resilient infrastructure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Muldavin は、AI を活用した EDA ツールとマルチエージェントシステムを使って設計、検証、コンプライアンスのプロセスを自動化し、セキュリティ要件をワークフローに統合しながら、速度とカバレッジを大幅に高めることを提案しました。これらのツールは、IP の検証、ライフサイクルのトレーサビリティ、大規模な自動化されたセキュリティ保証を促進しうるものです。補完的なイノベーション（チップレットアーキテクチャ、デジタルツイン、ルートオブトラスト技術など）は、安全でモジュール化されたスケーラブルなシステムをさらに支えます。しかし、設計コストの上昇、少数の大手による支配、断片化したサプライチェーン、安全で追跡可能なシステムに対する経済的インセンティブの欠如といった課題は残っています。Muldavin は、チップのライフサイクル全体にわたる物理的な検証とデジタルな検証の両方を可能にするため、出所、認証、分析、ガバナンスを組み合わせたグローバルなトレーサビリティの枠組みが必要であると強調しました。最終的に彼は、信頼できる AI とレジリエントなインフラを確保するには、セキュリティとトレーサビリティを測定可能で価値あるものとし、エコシステムに統合しなければならないと主張しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.7.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.7.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Establish global traceability and provenance standards</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">グローバルなトレーサビリティと出所の標準を確立する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Develop interoperable frameworks for tracking semiconductor IP, design processes, manufacturing, and deployment. Include physical and digital identifiers, certification mechanisms, and non-repudiation to enable verifiable trust across the life cycle.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>半導体の IP、設計プロセス、製造、展開を追跡する、相互運用可能な枠組みを策定します。ライフサイクル全体で検証可能な信頼を実現するため、物理的およびデジタルな識別子、認証の仕組み、否認防止を含めます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Embed security and compliance into AI-driven design flows</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティとコンプライアンスを AI 駆動の設計フローに組み込む</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Integrate security assertions, IP validation, and traceability directly into AI-enabled EDA tools and automated workflows to ensure “secure-by-design” outcomes at scale.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>大規模な「セキュアバイデザイン」の成果を確保するため、セキュリティのアサーション、IP の検証、トレーサビリティを、AI 対応の EDA ツールと自動化されたワークフローに直接統合します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Create economic incentives for secure supply chains</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュアなサプライチェーンのための経済的インセンティブを作り出す</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Build market mechanisms and procurement preferences that reward traceability, provenance, and security, shifting from cost-driven decisions to value-driven trust in critical infrastructure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トレーサビリティ、出所、セキュリティに報いる市場メカニズムと調達上の優遇措置を構築し、重要インフラにおけるコスト主導の判断から価値主導の信頼へと転換します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Drive public-private collaboration and pilot programs</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">官民の協力とパイロットプログラムを推進する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Align industry, government, and academia to fund pilots, develop dual-use (e.g., commercial and defense) solutions, and accelerate the adoption of traceability frameworks, especially for critical infrastructure and national security systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業界、政府、学術界が足並みをそろえて、パイロットに資金を提供し、デュアルユース（商業用途と防衛用途など）のソリューションを開発し、特に重要インフラと国家安全保障システムにおいて、トレーサビリティの枠組みの採用を加速します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.8. Fundamentals of Semiconductor and Hardware Security for an AI World</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.8. AI 時代のための半導体とハードウェアセキュリティの基礎</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Reed Hinkel</strong> emphasized that semiconductor and hardware security are vital for building trustworthy AI systems. He explained Synopsys’ expanded capabilities after acquiring Ansys, highlighting a move toward integrated silicon-to-system design, simulation, and life cycle management. This integration enables more advanced AI-driven products, accelerates development timelines, and ensures that security is embedded throughout the design process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Reed Hinkel</strong> は、信頼できる AI システムを構築するには、半導体とハードウェアのセキュリティが不可欠であると強調しました。彼は、Ansys の買収後の Synopsys の拡大した能力を説明し、シリコンからシステムまでの統合された設計、シミュレーション、ライフサイクル管理への動きを強調しました。この統合により、より高度な AI 駆動の製品が可能になり、開発期間が短縮され、設計プロセス全体にセキュリティが確実に組み込まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A key theme was the need for widespread security across chips, systems, and data throughout their life cycles. As AI adoption increases, so do attack surfaces, including supply chain vulnerabilities and insider threats. Hinkel emphasized that security must be integrated from design to deployment, using technologies like cryptography, side-channel protections, and physically unclonable functions to ensure trust, provenance, and traceability. He highlighted the urgency of adopting post-quantum cryptography (PQC) and warned that current encryption methods may soon become obsolete. With regulatory deadlines approaching (e.g., 2030–2035 deprecation windows), organizations must act now, especially considering the long hardware life cycles in sectors like automotive and industrial systems. He also pointed out the risk of “harvest now, decrypt later” attacks, making immediate transition planning essential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>主要なテーマは、ライフサイクル全体にわたり、チップ、システム、データの全域にセキュリティを行き渡らせる必要性でした。AI の採用が増えるにつれ、サプライチェーンの脆弱性や内部脅威を含む攻撃対象領域も増えています。Hinkel は、信頼、出所、トレーサビリティを確保するため、暗号、サイドチャネル保護、物理複製困難関数などの技術を用いて、設計から展開までセキュリティを統合しなければならないと強調しました。彼は耐量子暗号（PQC）の採用の緊急性を強調し、現在の暗号化方式がまもなく時代遅れになる可能性があると警告しました。規制上の期限（2030〜2035 年の非推奨期間など）が迫る中、特に自動車や産業システムなどの分野ではハードウェアのライフサイクルが長いことを考えると、組織は今すぐ行動しなければなりません。彼はまた、「今収集して後で解読する」攻撃のリスクを指摘し、直ちに移行計画を立てることが不可欠だとしました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hinkel also explored evolving standards and industry collaboration, particularly in cloud AI and chiplet-based architectures. Initiatives like the Open Compute Project and emerging interconnect standards increasingly incorporate security and attestation mechanisms. Finally, Hinkel discussed physical AI systems (e.g., robotics, autonomous systems), noting their complexity and the necessity of “secure-by-design” and high-assurance, fail-safe architectures to ensure safety and reliability in real-world environments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hinkel はまた、特にクラウド AI やチップレットベースのアーキテクチャにおける、進化する標準と業界の協力についても掘り下げました。Open Compute Project や新たなインターコネクト標準などの取り組みは、セキュリティとアテステーションの仕組みをますます取り入れています。最後に Hinkel は、フィジカル AI システム（ロボティクス、自律システムなど）について論じ、その複雑さと、実環境での安全性と信頼性を確保するための「セキュアバイデザイン」で高保証のフェイルセーフなアーキテクチャの必要性を指摘しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.8.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.8.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Accelerate post-quantum readiness</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">耐量子への備えを加速する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations must begin the immediate planning and deployment of PQC across systems and supply chains. Long life cycle devices should be prioritized to avoid future incompatibility, especially with impending regulatory deadlines and early industry shifts toward 2027 readiness.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、システムとサプライチェーン全体で PQC の計画と展開を直ちに開始しなければなりません。特に、迫り来る規制上の期限と、2027 年への対応に向けた業界の早期の動きを踏まえ、将来の非互換性を避けるために、ライフサイクルの長いデバイスを優先すべきです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Embed security across the life cycle</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ライフサイクル全体にセキュリティを組み込む</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Adopt a “secure-by-design” approach that integrates security from initial chip design through deployment and operation. This includes implementing strong identity, provenance tracking, and continuous monitoring to mitigate risks across the supply chain.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>当初のチップ設計から展開、運用まで、セキュリティを統合する「セキュアバイデザイン」アプローチを採用します。これには、サプライチェーン全体のリスクを軽減するための、強力なアイデンティティ、出所の追跡、継続的な監視の実装が含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Strengthen supply chain trust and traceability</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サプライチェーンの信頼とトレーサビリティを強化する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Develop mechanisms to verify component authenticity and track life cycle interactions. Techniques like hardware-based identities and the cryptographic validation of IP can help ensure integrity and reduce risks from tampering or counterfeit components.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンポーネントの真正性を検証し、ライフサイクルにおける相互作用を追跡する仕組みを開発します。ハードウェアベースのアイデンティティや IP の暗号による検証といった技術は、完全性を確保し、改ざんや偽造部品によるリスクを減らすのに役立ちます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Engage in standards and industry collaboration</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">標準化と業界の協力に参加する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Actively participate in emerging standards bodies and initiatives (e.g., chiplet security, Open Compute Project) to align with evolving best practices, influence secure architectures, and ensure interoperability in next-generation AI systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>進化するベストプラクティスに合わせ、セキュアなアーキテクチャに影響を与え、次世代 AI システムの相互運用性を確保するため、新たな標準化団体や取り組み（チップレットのセキュリティ、Open Compute Project など）に積極的に参加します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.9. Siemens Tessent</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.9. Siemens Tessent</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Lee Harrison</strong> discussed how Siemens Tessent is evolving design-for-test (DFT) into a security-focused, life cycle-wide capability for modern semiconductors. He traced the evolution of DFT from early automatic test pattern generation and compression in the 2000s to more complex hierarchical designs and, more recently, Siemens’ Streaming Scan Network (SSN), which enhances scalability and efficiency in testing large, modular chips.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Lee Harrison</strong> は、Siemens Tessent が、テスト容易化設計（DFT）を、現代の半導体向けのセキュリティ重視でライフサイクル全体に対応する機能へと進化させている状況を論じました。彼は、2000 年代の初期の自動テストパターン生成と圧縮から、より複雑な階層設計、そして最近の Siemens の Streaming Scan Network（SSN）までの DFT の進化をたどりました。SSN は、大規模でモジュール化されたチップのテストにおけるスケーラビリティと効率を高めます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As semiconductor designs become more complex, especially with AI-driven workloads, 3D ICs, and chiplet architectures, DFT infrastructure now offers deep internal access to nearly all nodes in a chip. While this allows for high-quality testing, it also introduces significant security risks. Harrison highlighted that traditional DFT, once limited to manufacturing, is now expanding into Silicon Lifecycle Management (SLM), where chips are continuously monitored in the field for performance, aging, failures, and potential cyber threats. SLM introduces new capabilities (e.g., in-field testing, functional monitoring, parametric telemetry) that generate vast amounts of sensitive data. This data enables predictive maintenance, failure diagnosis, and operational optimization, resulting in significant cost savings demonstrated through fewer automotive recalls and longer data center hardware lifespans. However, it also necessitates robust security for data access, transmission, and storage.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>半導体設計が、特に AI 駆動のワークロード、3D IC、チップレットアーキテクチャによって複雑になるにつれ、DFT インフラストラクチャは現在、チップ内のほぼすべてのノードへの深い内部アクセスを提供しています。これは高品質のテストを可能にする一方で、重大なセキュリティリスクももたらします。Harrison は、かつては製造に限られていた従来の DFT が、現在はシリコンライフサイクル管理（SLM）へと拡大しており、そこでは、性能、経年劣化、故障、潜在的なサイバー脅威についてチップが現場で継続的に監視されると指摘しました。SLM は、膨大な量の機微なデータを生成する新しい機能（フィールドでのテスト、機能監視、パラメトリックなテレメトリなど）をもたらします。このデータにより、予知保全、故障診断、運用の最適化が可能になり、自動車のリコール削減やデータセンターのハードウェア寿命の延長によって実証されているように、大幅なコスト削減につながります。しかし同時に、データのアクセス、伝送、保存に対する堅牢なセキュリティも必要になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To address these risks, Harrison emphasized the importance of integrating root-of-trust architectures into DFT systems to secure interfaces, encrypt test data, and enable controlled, multi-level access for users and throughout the life cycle. The challenge becomes even more complex in multi-die and chiplet systems, where inconsistent security standards and diverse supply chains require interoperable and area-efficient solutions. Ultimately, security must be built into DFT and SLM as a fundamental element to ensure trust, scalability, and value.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのリスクに対処するため、Harrison は、インターフェースを保護し、テストデータを暗号化し、ユーザーに対しても、ライフサイクル全体を通じても、制御された多段階のアクセスを可能にするために、ルートオブトラストのアーキテクチャを DFT システムに統合することの重要性を強調しました。マルチダイやチップレットのシステムでは、一貫しないセキュリティ標準と多様なサプライチェーンのために、相互運用可能で面積効率の良いソリューションが求められ、課題はさらに複雑になります。最終的に、信頼、スケーラビリティ、価値を確保するため、セキュリティを基本的な要素として DFT と SLM に組み込まなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.1.9.1. Call to Action/Next Steps</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.1.9.1. 行動の呼びかけ/次のステップ</h6>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Embed security into DFT and SLM architectures by design</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティを設計段階から DFT と SLM のアーキテクチャに組み込む</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Integrate root-of-trust, encryption, and authentication mechanisms directly into the test infrastructure to secure access to internal chip nodes and sensitive life cycle data from manufacturing through in-field operations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製造からフィールドでの運用まで、内部のチップノードと機微なライフサイクルデータへのアクセスを保護するため、ルートオブトラスト、暗号化、認証の仕組みをテストインフラストラクチャに直接統合します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Develop standards for chiplet and multi-die security interoperability</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">チップレットとマルチダイのセキュリティ相互運用性のための標準を策定する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Address cross-vendor security gaps by establishing common frameworks and standards to ensure consistent protection across heterogeneous supply chains and modular semiconductor designs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>異種のサプライチェーンとモジュール化された半導体設計全体で一貫した保護を確保するため、共通の枠組みと標準を確立することで、ベンダー間のセキュリティギャップに対処します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Leverage SLM data for predictive and economic value</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">予測と経済の価値のために SLM データを活用する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Invest in analytics pipelines that transform telemetry into actionable insights and enable predictive maintenance, targeted recalls, and extended hardware life cycles to reduce operational costs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>テレメトリを実行可能な洞察に変える分析パイプラインに投資し、運用コストを下げるための予知保全、的を絞ったリコール、ハードウェアライフサイクルの延長を可能にします。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Adopt multi-level access control and life cycle-aware security guidance</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">多段階のアクセス制御とライフサイクルを考慮したセキュリティガイダンスを採用する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Implement granular authentication schemes that adjust access privileges by user role and life cycle stage to ensure that only necessary features and data are exposed at each phase.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各段階で必要な機能とデータだけが公開されるよう、ユーザーの役割とライフサイクルの段階に応じてアクセス権限を調整する、きめ細かな認証方式を実装します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Government Panel</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. 政府パネル</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Christine Rink</strong> moderated a panel from a government/defense perspective that featured introductions from experts, such as Qiaoyan Yu (hardware security researcher focused on channels, embedded systems, and semiconductor life cycles), Jim Will (Partnership for Secure Electronics, with industry experience at SkyWater and DoD/NSA), Rob Aitken (Chips R&amp;D, interested in chiplet security and infrastructure), Eric Eilertson (Microsoft Azure security architect, creator of OCP SAFE third-party audit framework, focused on hardware/firmware privacy against insiders and nation-states), and Robert Watson (University of Cambridge professor leading CHERI project for hardware-software co-design and memory safety, plus CHERI Alliance director).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Christine Rink</strong> は、政府/防衛の観点からのパネルの司会を務め、専門家による自己紹介が行われました。登壇者は、Qiaoyan Yu（チャネル、組込みシステム、半導体ライフサイクルに焦点を当てたハードウェアセキュリティ研究者）、Jim Will（Partnership for Secure Electronics。SkyWater や DoD/NSA での業界経験あり）、Rob Aitken（Chips R&amp;D。チップレットのセキュリティとインフラに関心）、Eric Eilertson（Microsoft Azure のセキュリティアーキテクト。OCP SAFE 第三者監査フレームワークの考案者で、内部者や国家に対するハードウェア/ファームウェアのプライバシーに焦点）、Robert Watson（ハードウェアとソフトウェアの協調設計とメモリ安全性のための CHERI プロジェクトを率いる University of Cambridge の教授で、CHERI Alliance のディレクター）です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The panel centered on <strong>defining microelectronics assurance</strong> as evidence-based confidence in function and provenance across the semiconductor life cycle while acknowledging evolving threats in a “cat-and-mouse” game. Panelists emphasized that hardware security problems often intersect with software, requiring bidirectional information flow (e.g., secure-by-design principles, requirements from applications back to design). Key themes included realistic threat models (e.g., physical attacks like “break once, run anywhere” on encrypted memory, despite being declared out-of-scope by vendors), the composition problem in chiplets/SoCs, raising the security floor for ubiquitous low-end devices (e.g., IoT, Raspberry Pi-like platforms that end up in critical infrastructure), memory safety via technologies, the incentives and economics of adoption, and leveraging existing tools (e.g., static analysis, linting, audits) without boiling the ocean.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パネルは、進化する脅威が「いたちごっこ」で続くことを認めつつ、<strong>マイクロエレクトロニクス保証の定義</strong>を、半導体ライフサイクル全体にわたる機能と出所へのエビデンスに基づく確信として中心に据えました。パネリストは、ハードウェアセキュリティの問題はしばしばソフトウェアと交差するため、双方向の情報の流れ（セキュアバイデザインの原則や、アプリケーションから設計へ戻る要件など）が必要だと強調しました。主なテーマには、現実的な脅威モデル（暗号化されたメモリに対する「一度破れば、どこでも動く（break once, run anywhere）」のような物理攻撃。ベンダーが対象外と宣言しているにもかかわらず）、チップレットや SoC で構成要素を組み合わせる際の問題、遍在する低価格帯デバイス（最終的に重要インフラに組み込まれる IoT や Raspberry Pi のようなプラットフォームなど）のセキュリティの下限の引き上げ、技術によるメモリ安全性、採用のインセンティブと経済性、そして既存のツール（静的解析、リンティング、監査など）を、過大な取り組みにせず活用することがありました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Panelists also stressed practical gaps, such as deploying known capabilities (e.g., linting for legacy code, supply chain verification), addressing low-cost physical attacks that democratize threats, standardizing definitions and practices (e.g., for memory safety to enable procurement and regulation), creating checklists and tiers of trust, and building consensus for incentives like third-party audits (e.g., OCP SAFE) that allow credit-claiming and reduce first-mover risk. They highlighted the need for living standards, industry-led best practices, shared reference designs, and metrics that demonstrate value to overcome commercial resistance to costs or regulation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パネリストはまた、実践的なギャップも強調しました。既知の機能の展開（レガシーコードのリンティング、サプライチェーンの検証など）、脅威を誰もが使えるものにする低コストの物理攻撃への対処、定義と実践の標準化（調達や規制を可能にするためのメモリ安全性など）、チェックリストと信頼の階層の作成、そして成果を主張でき先行者のリスクを減らす第三者監査（OCP SAFE など）のようなインセンティブに関する合意形成です。彼らは、コストや規制に対する商業的な抵抗を克服するために、進化し続ける標準、業界主導のベストプラクティス、共有のリファレンス設計、価値を示す指標が必要であると強調しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1. Call to Action/Next Steps</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1. 行動の呼びかけ/次のステップ</h5>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Refine and standardize definitions of assurance, threat models, and memory safety practices</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">保証、脅威モデル、メモリ安全性の実践の定義を洗練し、標準化する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Collaborate via organizations to create clear, evidence-based terms as well as checklists or tiers of trust to enable consistent frameworks, procurement signals, and adoption without ambiguity while accounting for application-specific risks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織を通じて協力し、アプリケーション固有のリスクを考慮しながら、一貫した枠組み、調達のシグナル、曖昧さのない採用を可能にするため、明確でエビデンスに基づく用語とチェックリストまたは信頼の階層を作成します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Prioritize raising the security floor for low-end and ubiquitous devices</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">低価格帯のデバイスや広く普及しているデバイスのセキュリティの下限の引き上げを優先する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Focus research and standards on embedded, IoT, and microcontroller security (e.g., Raspberry Pi-like platforms); physical attack resistance; and debug infrastructure repurposing. Influence high-impact designs early, as they permeate critical infrastructure and data centers beyond high-end targets.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組込み、IoT、マイクロコントローラのセキュリティ（Raspberry Pi のようなプラットフォームなど）、物理攻撃への耐性、デバッグインフラの転用に、研究と標準を集中させます。ハイエンドの標的にとどまらず重要インフラやデータセンターにも浸透するため、影響の大きい設計に早期に働きかけます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Develop practical incentives and shared tools for broader adoption</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">より広い採用のための実践的なインセンティブと共有ツールを開発する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Promote simple and rewarding frameworks with third-party audits (e.g., expand OCP SAFE), industry-shared datasets for ML/research, reference designs, and metrics that demonstrate value. Combine these with demand signals from government and large buyers as well as living best practices to overcome economic barriers and first-mover risks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第三者監査を伴う簡便で報われやすい枠組み（OCP SAFE の拡張など）、ML/研究のための業界共有データセット、リファレンス設計、価値を示す指標を推進します。経済的障壁と先行者のリスクを克服するため、これらを政府や大口購入者からの需要のシグナル、進化し続けるベストプラクティスと組み合わせます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Bridge hardware-software gaps through co-design and deployment interventions</strong></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>協調設計と展開時の介入によって、ハードウェアとソフトウェアのギャップを埋める</strong></span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Advance memory-safe interactions, static analysis, and linting for new and legacy code and secure-by-design principles with bidirectional requirements. Target vertical stacks (e.g., roots of trust, enclaves) for quicker wins while addressing composition in chiplets and SoCs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>双方向の要件を伴う、メモリ安全な相互作用、新規コードとレガシーコードに対する静的解析とリンティング、セキュアバイデザインの原則を推進します。チップレットと SoC における構成に対処しつつ、より早い成果を得るために、垂直スタック（ルートオブトラスト、エンクレーブなど）を対象とします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Summary and Road Ahead</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. まとめと今後の展望</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Establish Unified Standards and Governance for Hardware Security and Assurance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. ハードウェアセキュリティと保証のための統一された標準とガバナンスの確立</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There is a strong consensus on the need to reduce fragmentation by establishing shared, evidence-based frameworks across assurance, threat modeling, memory safety, provenance, and life cycle security. This includes developing tiered trust models, standardized terminology, and harmonized guidance aligned across international organizations and allied ecosystems. A coordinated governance structure with clear stakeholder roles (e.g., industry, government, academia) should outline a multi-year plan with measurable goals. Standards should cover the entire stack from silicon to systems and include emerging areas, such as chiplets, AI hardware, and post-quantum readiness. Consolidation will enhance interoperability, reduce compliance burdens, and accelerate adoption.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>保証、脅威モデリング、メモリ安全性、出所、ライフサイクルセキュリティにわたって、共有されたエビデンスベースの枠組みを確立することで、断片化を減らす必要があるという強い合意があります。これには、階層化された信頼モデル、標準化された用語、国際機関や同盟国のエコシステム全体で整合した調和的なガイダンスの策定が含まれます。利害関係者の役割（産業界、政府、学術界など）を明確にした協調的なガバナンス体制は、測定可能な目標を伴う複数年計画を示すべきです。標準は、シリコンからシステムまでのスタック全体を対象とし、チップレット、AI ハードウェア、耐量子への備えなどの新たな分野を含むべきです。統合により、相互運用性が高まり、コンプライアンスの負担が減り、採用が加速します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. Embed Security, Provenance, and Traceability Across the Full Semiconductor Life Cycle</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. 半導体のライフサイクル全体へのセキュリティ、出所、トレーサビリティの組み込み</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A recurring theme is the need to make security intrinsic rather than additive. This includes integrating secure-by-design principles into EDA/AI-driven workflows, embedding hardware roots of trust, and incorporating security checks into design-for-test (DFT), supply chain processes, and in-field operations. Provenance and traceability mechanisms that cover IP, components, manufacturing steps, and system deployment should leverage cryptographic identities, SBOMs, attestation, and verification pipelines. Interoperable global traceability standards and life cycle-aware access controls will enable trusted provenance, reduce counterfeit risks, and support compliance, auditability, and incident response across complex, multi-vendor ecosystems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>繰り返し挙がったテーマは、セキュリティを付加的なものではなく、本質的なものにする必要性です。これには、セキュアバイデザインの原則を EDA/AI 駆動のワークフローに統合すること、ハードウェアルートオブトラストを組み込むこと、セキュリティチェックをテスト容易化設計（DFT）、サプライチェーンのプロセス、フィールドでの運用に取り入れることが含まれます。IP、コンポーネント、製造工程、システム展開を対象とする出所とトレーサビリティの仕組みは、暗号によるアイデンティティ、SBOM、アテステーション、検証パイプラインを活用すべきです。相互運用可能なグローバルなトレーサビリティ標準とライフサイクルを考慮したアクセス制御により、信頼できる出所が実現し、偽造品のリスクが減り、複雑なマルチベンダーのエコシステム全体でコンプライアンス、監査可能性、インシデント対応が支えられます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3. Strengthen Supply Chain Security and Economic Incentives</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3. サプライチェーンセキュリティと経済的インセンティブの強化</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Adoption barriers are mainly economic and structural. Stakeholders stressed the importance of aligning incentives through procurement requirements, government demand signals, and industry consortia programs to reward secure components and verified supply chains. Requirements (e.g., SBOMs, security clauses in contracts, third-party audits) help establish consistent expectations, and focusing on high-risk, high-impact components (e.g., processors, memory, power systems, transceivers) maximizes effectiveness. Public-private partnerships, pilot programs, and dual-use (i.e., commercial and defense) approaches can reduce investment risks while demonstrating tangible returns for secure-by-design and provenance-enabled ecosystems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>採用の障壁は、主に経済的かつ構造的なものです。利害関係者は、調達要件、政府の需要シグナル、業界コンソーシアムのプログラムを通じて、安全なコンポーネントと検証済みのサプライチェーンに報いるようにインセンティブを整合させることの重要性を強調しました。要件（SBOM、契約上のセキュリティ条項、第三者監査など）は一貫した期待の確立に役立ち、高リスクで影響の大きいコンポーネント（プロセッサ、メモリ、電源システム、トランシーバーなど）に焦点を当てることで、効果が最大化されます。官民パートナーシップ、パイロットプログラム、デュアルユース（商業用途と防衛用途）のアプローチは、投資リスクを減らしつつ、セキュアバイデザインと出所を追跡できるエコシステムの具体的な見返りを示すことができます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4. Advance Scalable Tools, Automation, and Validation Methods</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4. スケーラブルなツール、自動化、検証手法の推進</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To make assurance practical at scale, investments are necessary in automation and tooling, including AI-assisted analysis, static verification, fuzzing, and formal methods designed for hardware and firmware. Standardized testing and validation methods — especially for AI chips, side-channel resistance, and fault injection resilience — should be developed and aligned with evolving threat models, including both deterministic and adaptive attack techniques. Shared datasets, reference designs, and benchmarking frameworks can help accelerate research and evaluation. Incorporating security into automated workflows and using telemetry for predictive insights will enable continuous assurance, monitoring, and life cycle management.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>大規模に保証を実用的にするためには、AI 支援の解析、静的検証、ファジング、ハードウェアとファームウェア向けに設計された形式手法を含む、自動化とツールへの投資が必要です。標準化されたテストと検証の手法は、特に AI チップ、サイドチャネル耐性、フォールトインジェクション耐性について、決定論的な攻撃技術と適応的な攻撃技術の両方を含む進化する脅威モデルに整合させて策定すべきです。共有データセット、リファレンス設計、ベンチマークの枠組みは、研究と評価の加速に役立ちます。セキュリティを自動化されたワークフローに組み込み、テレメトリを予測的な洞察に利用することで、継続的な保証、監視、ライフサイクル管理が可能になります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5. Build Workforce Capacity and Collaborative Ecosystems</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5. 人材の能力と協調的なエコシステムの構築</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A vital cross-cutting requirement is to build a skilled workforce and promote ongoing collaboration across sectors to sustain long-term progress. This involves connecting academia and industry through hands-on training, turning institutional knowledge into accessible resources, and increasing participation in NSF-backed, CHIPS R&amp;D, and interagency programs. Participating in workshops, consortia (e.g., OCP, ASCET-like efforts), and standards organizations will help align research with practical needs. Fostering interdisciplinary teams and incentivizing knowledge sharing, open datasets, and community-driven frameworks will help build expertise, break down silos, and ensure that advances in hardware security are widely adopted and continuously refined.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>分野横断的に不可欠な要件は、熟練した人材を育成し、長期的な進展を維持するために分野をまたぐ継続的な協力を促進することです。これには、実践的なトレーニングを通じて学術界と産業界をつなぐこと、組織に蓄積された知識を利用しやすいリソースに変えること、NSF が支援するプログラム、CHIPS R&amp;D、省庁間のプログラムへの参加を増やすことが含まれます。ワークショップ、コンソーシアム（OCP、ASCET のような取り組みなど）、標準化団体への参加は、研究を実際のニーズに整合させるのに役立ちます。学際的なチームを育成し、知識共有、オープンデータセット、コミュニティ主導の枠組みを奨励することで、専門性を高め、縦割りを解消し、ハードウェアセキュリティの進歩が広く採用され、継続的に改善されるようにします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. Workshop Agenda</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A. ワークショップの議事次第</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Start</th><th>Topic</th><th>Who</th></tr></thead><tbody><tr><td>8:30</td><td>NIST Safety Briefing</td><td>Jay Rekhi, NIST</td></tr><tr><td>8:35</td><td>Welcome and Introduction to NIST</td><td>Jim St. Pierre, NIST</td></tr><tr><td>8:50</td><td>Opening Remarks by Organizing Committee</td><td>Jeyavijayan Rajendran (Texas A&amp;M), Gang Qu (UMD), <strong>Ahmad-Reza Sadeghi (TU Darmstadt)</strong></td></tr><tr><th colspan="3">Session 1: Chair Ahmad-Reza Sadeghi</th></tr><tr><td>9:00</td><td>A Roadmap Towards Scalable Security Assurance</td><td>Jason Fung, Intel</td></tr><tr><td>9:30</td><td>Security in Memory and Storage</td><td>Tamara Schmitz, Micron</td></tr><tr><td>10:00</td><td>Hardware Attacks on AI Inference Chips</td><td>Marc Witteman, Keysight</td></tr><tr><td><strong>10:30</strong></td><td><strong>Break</strong></td><td></td></tr><tr><th colspan="3">Session 2: Chair Jeyavijayan Rajendran, Texas A&amp;M</th></tr><tr><td>10:45</td><td>NIST Semiconductor Standards Activities</td><td>Mary Bedner, NIST</td></tr><tr><td>11:15</td><td>NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</td><td>Selcuk Uluagac, NSF</td></tr><tr><td>11:45</td><td>Standards-Based Assurance for Trusted Electronics</td><td>Jim Will, USPAE</td></tr><tr><td><strong>12:15</strong></td><td><strong>Lunch</strong></td><td></td></tr><tr><th colspan="3">Session 3: Jay Rekhi, NIST</th></tr><tr><td>13:00</td><td>AI Provenance and Traceability</td><td>Jeremy Muldavin, Cadence</td></tr><tr><td>13:30</td><td>The Fundamentals of Semiconductor &amp; Hardware Security for an AI World</td><td>Reed Hinkel, Synopsys</td></tr><tr><td>14:00</td><td>Siemens Tessent</td><td>Lee Harrison, Siemens</td></tr><tr><td><strong>14:30</strong></td><td><strong>Break</strong></td><td></td></tr><tr><td>14:45</td><td colspan="2"><strong>Government Panel</strong><br>Moderator: Christine Rink, MITRE<br>Panelists: Qiaoyan Yu (NSF), Jim Will (USPAE), Robert Aitken (NIST CHIPS), Eric Eilertson (Microsoft), Robert Watson (University of Cambridge)</td></tr><tr><td>15:45<br>16:45</td><td colspan="2"><strong>Breakout Sessions</strong><br>Challenges in adopting hardware security in semiconductors, Moderators: Cvitan, Sandra (NIST CHIPS)<br>Secure Lifecycle Management, Moderator: Matthew Areno (Rickert-Areno Engineering, LLC)<br>Emerging Threats, Moderator: Jason Fung (Intel)<br>Breakout Session Summary Report</td></tr><tr><td><strong>17:00</strong></td><td><strong>Closing Remarks</strong></td><td></td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>開始</th><th>トピック</th><th>担当</th></tr></thead><tbody><tr><td>8:30</td><td>NIST 安全に関する説明</td><td>Jay Rekhi, NIST</td></tr><tr><td>8:35</td><td>歓迎の挨拶と NIST の紹介</td><td>Jim St. Pierre, NIST</td></tr><tr><td>8:50</td><td>組織委員会による開会の辞</td><td>Jeyavijayan Rajendran (Texas A&amp;M), Gang Qu (UMD), <strong>Ahmad-Reza Sadeghi (TU Darmstadt)</strong></td></tr><tr><th colspan="3">セッション 1: 座長 Ahmad-Reza Sadeghi</th></tr><tr><td>9:00</td><td>スケーラブルなセキュリティ保証に向けたロードマップ</td><td>Jason Fung, Intel</td></tr><tr><td>9:30</td><td>メモリとストレージのセキュリティ</td><td>Tamara Schmitz, Micron</td></tr><tr><td>10:00</td><td>AI 推論チップに対するハードウェア攻撃</td><td>Marc Witteman, Keysight</td></tr><tr><td><strong>10:30</strong></td><td><strong>休憩</strong></td><td></td></tr><tr><th colspan="3">セッション 2: 座長 Jeyavijayan Rajendran, Texas A&amp;M</th></tr><tr><td>10:45</td><td>NIST の半導体標準に関する活動</td><td>Mary Bedner, NIST</td></tr><tr><td>11:15</td><td>NSF/CISE Security, Privacy, and Trust in Cyberspace (SaTC 2.0)</td><td>Selcuk Uluagac, NSF</td></tr><tr><td>11:45</td><td>信頼できる電子機器のための標準ベースの保証</td><td>Jim Will, USPAE</td></tr><tr><td><strong>12:15</strong></td><td><strong>昼食</strong></td><td></td></tr><tr><th colspan="3">セッション 3: Jay Rekhi, NIST</th></tr><tr><td>13:00</td><td>AI の出所とトレーサビリティ</td><td>Jeremy Muldavin, Cadence</td></tr><tr><td>13:30</td><td>AI 時代のための半導体とハードウェアセキュリティの基礎</td><td>Reed Hinkel, Synopsys</td></tr><tr><td>14:00</td><td>Siemens Tessent</td><td>Lee Harrison, Siemens</td></tr><tr><td><strong>14:30</strong></td><td><strong>休憩</strong></td><td></td></tr><tr><td>14:45</td><td colspan="2"><strong>政府パネル</strong><br>司会: Christine Rink, MITRE<br>パネリスト: Qiaoyan Yu (NSF), Jim Will (USPAE), Robert Aitken (NIST CHIPS), Eric Eilertson (Microsoft), Robert Watson (University of Cambridge)</td></tr><tr><td>15:45<br>16:45</td><td colspan="2"><strong>分科会</strong><br>半導体におけるハードウェアセキュリティ採用の課題, 司会: Cvitan, Sandra (NIST CHIPS)<br>セキュアなライフサイクル管理, 司会: Matthew Areno (Rickert-Areno Engineering, LLC)<br>新たな脅威, 司会: Jason Fung (Intel)<br>分科会の要約報告</td></tr><tr><td><strong>17:00</strong></td><td><strong>閉会の辞</strong></td><td></td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 1. SUSHI@NIST workshop agenda</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. SUSHI@NIST ワークショップの議事次第</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8615.pdf">National Institute of Standards and Technology, IR 8615</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8615";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

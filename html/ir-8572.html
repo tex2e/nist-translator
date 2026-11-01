@@ -1,0 +1,1576 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8572 は、NIST の IoT サイバーセキュリティプログラム（Cybersecurity for the Internet of Things）が主催し、2025 年 3 月 5 日に開催された「Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers」での議論を要約した報告書です。このワークショップは、NIST IR 8259 の主要な更新領域を特定するために 2024 年 12 月に開催されたワークショップに続くものです。目的は、NIST IR 8259 の更新計画について議論し、IoT 製品のライフサイクルをより重視した製品の視点、リスク分析の議論の拡充、産業分野への適用、プライバシー目標を支えるデータ管理に関するサイバーセキュリティ上の考慮事項について、追加のフィードバックを集めることでした。報告書は講演者の概要とワークショップの要点を整理しています。">
+  <title>「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書 | NIST IR 8572 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”" data-search="「iot デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書 workshop summary report for “workshop on foundational cybersecurity activities for iot device manufacturers”">「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”" data-search="「iot デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書 workshop summary report for “workshop on foundational cybersecurity activities for iot device manufacturers”">「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0008" title="List of Tables" data-search="表の一覧 list of tables">表の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0006" title="1.1. About the NIST Cybersecurity for the Internet of Things Program" data-search="1.1. nist iot サイバーセキュリティプログラムについて 1.1. about the nist cybersecurity for the internet of things program">1.1. NIST IoT サイバーセキュリティプログラムについて</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0002" title="1.2. NIST IR 8259 Background" data-search="1.2. nist ir 8259 の背景 1.2. nist ir 8259 background">1.2. NIST IR 8259 の背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0006" title="1.3. Workshop Event Details" data-search="1.3. ワークショップ開催の詳細 1.3. workshop event details">1.3. ワークショップ開催の詳細</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2. Speaker Summaries" data-search="2. 講演者の概要 2. speaker summaries">2. 講演者の概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0003" title="2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”" data-search="2.1. jon boulos, kimberly-clark and wisconsin iot council, “fortifying the future” 2.1. jon boulos, kimberly-clark and wisconsin iot council, “fortifying the future”">2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0002" title="2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”" data-search="2.2. brad goodman, fido alliance and dell, “leveraging fido alliance cybersecurity standards in support of ir8259” 2.2. brad goodman, fido alliance and dell, “leveraging fido alliance cybersecurity standards in support of ir8259”">2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0011-b0001" title="3. Workshop Takeaways" data-search="3. ワークショップの要点 3. workshop takeaways">3. ワークショップの要点</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0004" title="3.1. Support for a focus on product level cybersecurity in NIST IR 8259" data-search="3.1. nist ir 8259 における製品レベルのサイバーセキュリティへの注力に対する支持 3.1. support for a focus on product level cybersecurity in nist ir 8259">3.1. NIST IR 8259 における製品レベルのサイバーセキュリティへの注力に対する支持</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0007" title="3.2. Roles and their effect on cybersecurity challenges in the IoT ecosystem" data-search="3.2. 役割と、それが iot エコシステムのサイバーセキュリティ課題に及ぼす影響 3.2. roles and their effect on cybersecurity challenges in the iot ecosystem">3.2. 役割と、それが IoT エコシステムのサイバーセキュリティ課題に及ぼす影響</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="3.3. Challenges of IoT product risk analysis" data-search="3.3. iot 製品のリスク分析の課題 3.3. challenges of iot product risk analysis">3.3. IoT 製品のリスク分析の課題</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0002" title="3.4. Scaling threat impacts and relating to the magnitude of risks" data-search="3.4. 脅威の影響の規模の見積りとリスクの大きさとの関連付け 3.4. scaling threat impacts and relating to the magnitude of risks">3.4. 脅威の影響の規模の見積りとリスクの大きさとの関連付け</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0008" title="3.5. Communicating effectively involves bridging gaps between manufacturers and customers" data-search="3.5. 効果的なコミュニケーションには製造者と顧客の間のギャップを埋めることが必要 3.5. communicating effectively involves bridging gaps between manufacturers and customers">3.5. 効果的なコミュニケーションには製造者と顧客の間のギャップを埋めることが必要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0004" title="3.6. Transparency and traceability throughout the IoT product lifecycle" data-search="3.6. iot 製品ライフサイクル全体にわたる透明性とトレーサビリティ 3.6. transparency and traceability throughout the iot product lifecycle">3.6. IoT 製品ライフサイクル全体にわたる透明性とトレーサビリティ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0001" title="3.7. Additional cybersecurity related challenges" data-search="3.7. サイバーセキュリティに関するその他の課題 3.7. additional cybersecurity related challenges">3.7. サイバーセキュリティに関するその他の課題</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0016-b0001" title="4. Conclusion" data-search="4. 結論 4. conclusion">4. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="Appendix A. List of Symbols, Abbreviations, and Acronyms" data-search="付録 a. 記号、略語、頭字語の一覧 appendix a. list of symbols, abbreviations, and acronyms">付録 A. 記号、略語、頭字語の一覧</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8572 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書</strong></span><br><span class="doc-panel-item">公開日 : 2025-05-13</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8572/final">https://csrc.nist.gov/pubs/ir/8572/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 171 / 172 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8572 は、NIST の IoT サイバーセキュリティプログラム（Cybersecurity for the Internet of Things）が主催し、2025 年 3 月 5 日に開催された「Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers」での議論を要約した報告書です。このワークショップは、NIST IR 8259 の主要な更新領域を特定するために 2024 年 12 月に開催されたワークショップに続くものです。目的は、NIST IR 8259 の更新計画について議論し、IoT 製品のライフサイクルをより重視した製品の視点、リスク分析の議論の拡充、産業分野への適用、プライバシー目標を支えるデータ管理に関するサイバーセキュリティ上の考慮事項について、追加のフィードバックを集めることでした。報告書は講演者の概要とワークショップの要点を整理しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8572</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8572</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas Michael Fagan Barbara Cuthill Brad Hoehn Evie Petrella</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas Michael Fagan Barbara Cuthill Brad Hoehn Evie Petrella</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8572</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。https://doi.org/10.6028/NIST.IR.8572</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8572</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8572</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+「IoT デバイス製造者のための基礎的なサイバーセキュリティ活動に関するワークショップ」の概要報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas Michael Fagan Barbara Cuthill Applied Cybersecurity Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas Michael Fagan Barbara Cuthill Applied Cybersecurity Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Brad Hoehn HII</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Brad Hoehn HII</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Evelyn Petrella Electrosoft</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Evelyn Petrella Electrosoft</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8572</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。https://doi.org/10.6028/NIST.IR.8572</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>May 2025</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2025 年 5 月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0016" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Craig Burkhardt, Acting Under Secretary of Commerce for Standards and Technology and Acting NIST Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Craig Burkhardt, Acting Under Secretary of Commerce for Standards and Technology and Acting NIST Director</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順を十分に特定するために、商用・非商用を問わず、特定の機器、計器、ソフトウェア、または資材を明示しています。こうした明示は、NIST がいかなる製品やサービスも推奨または保証することを意味せず、明示した資材や機器がその目的に利用できる最良のものであるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令上の責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても連邦機関が使用してもよいです。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画と移行のために、連邦機関は、NIST によるこれらの新しい刊行物の策定を注意深く追うべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外にも、NIST の多くのサイバーセキュリティ刊行物が https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2025-05-06</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Publication History Approved by the NIST Editorial Review Board on 2025-05-06</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to Cite this NIST Technical Series Publication Megas, K, Fagan M, Cuthill B, Hoehn B, Petrella E (2025) Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8572. https://doi.org/10.6028/NIST.IR.8572</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>How to Cite this NIST Technical Series Publication Megas, K, Fagan M, Cuthill B, Hoehn B, Petrella E (2025) Workshop Summary Report for “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers”. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8572. https://doi.org/10.6028/NIST.IR.8572</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iDs Katerina Megas: 0000-0002-2815-5448 Michael Fagan: 0000-0002-1861-2609 Barbara Cuthill: 0000-0002-2588-6165</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Author ORCID iDs Katerina Megas: 0000-0002-2815-5448 Michael Fagan: 0000-0002-1861-2609 Barbara Cuthill: 0000-0002-2588-6165</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information iotsecurity@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連絡先 iotsecurity@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8572/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 関連コンテンツ、更新の可能性、文書履歴を含む、本刊行物の追加情報は https://csrc.nist.gov/pubs/ir/8572/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づいて公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Abstract</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report summarizes discussions held at the March 5, 2025 &quot;Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers” organized by the NIST Cybersecurity for the Internet of Things (IoT) program. This workshop follows an earlier event held in December 2024 titled “Workshop on Updating Manufacturer Guidance for Securable Connected Product Development” to identify major update areas to NIST IR 8259. Similarly, the purpose of this more recent workshop was to discuss planned updates to NIST IR 8259 and gather additional feedback on taking a product viewpoint with greater emphasis on the IoT product lifecycle, expanded discussion of risk analysis, application to industrial contexts, and cybersecurity considerations around data management to support privacy goals. Over time, NIST work has built upon the concepts introduced in the NIST IR 8259, as reflected in subsequent publications that elaborate on IoT cybersecurity for specific sectors and use cases (e.g., federal agency use of IoT, consumer use of IoT in the home or in small businesses).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、NIST の IoT サイバーセキュリティプログラム（Cybersecurity for the Internet of Things）が主催し、2025 年 3 月 5 日に開催された「Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers」での議論を要約したものです。このワークショップは、NIST IR 8259 の主要な更新領域を特定するために 2024 年 12 月に開催された「Workshop on Updating Manufacturer Guidance for Securable Connected Product Development」に続くものです。同様に、今回のワークショップの目的は、NIST IR 8259 の更新計画について議論し、IoT 製品のライフサイクルをより重視した製品の視点、リスク分析の議論の拡充、産業分野への適用、プライバシー目標を支えるデータ管理に関するサイバーセキュリティ上の考慮事項について、追加のフィードバックを集めることでした。NIST の取り組みは、時間をかけて NIST IR 8259 で示された概念を土台に発展しており、特定の分野やユースケース（たとえば、連邦機関による IoT の利用、家庭や小規模事業者での消費者による IoT の利用）における IoT のサイバーセキュリティを詳しく述べる後続の刊行物にそれが反映されています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Keywords</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+キーワード</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Internet of Things; IoT products; manufacturing; risk assessment; product lifecycle; securable products; security requirements; software development; threat modelling.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Internet of Things; IoT products; manufacturing; risk assessment; product lifecycle; securable products; security requirements; software development; threat modelling.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Reports on Computer Systems Technology</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータシステム技術に関する報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準インフラに技術的なリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の発展と生産的な利用を進めるために、テスト、テスト方法、参照データ、概念実証実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連情報以外の情報について、費用対効果の高いセキュリティとプライバシーを確保するための、管理上、運用上、技術上、物理上の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Table of Contents</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+目次</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0006">1.1. About the NIST Cybersecurity for the Internet of Things Program</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0006">1.1. NIST IoT サイバーセキュリティプログラムについて</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">1.2. NIST IR 8259 Background</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">1.2. NIST IR 8259 の背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.3. Workshop Event Details</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.3. ワークショップ開催の詳細</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. Speaker Summaries</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. 講演者の概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003-t2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0002">2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0002">2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">3. Workshop Takeaways</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">3. ワークショップの要点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">3.1. Support for a focus on product level cybersecurity in NIST IR 8259</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">3.1. NIST IR 8259 における製品レベルのサイバーセキュリティへの注力に対する支持</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0007">3.2. Roles and their effect on cybersecurity challenges in the IoT ecosystem</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0007">3.2. 役割と、それが IoT エコシステムのサイバーセキュリティ課題に及ぼす影響</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.3. Challenges of IoT product risk analysis</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.3. IoT 製品のリスク分析の課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">3.4. Scaling threat impacts and relating to the magnitude of risks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">3.4. 脅威の影響の規模の見積りとリスクの大きさとの関連付け</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0008">3.5. Communicating effectively involves bridging gaps between manufacturers and customers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0008">3.5. 効果的なコミュニケーションには製造者と顧客の間のギャップを埋めることが必要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0004">3.6. Transparency and traceability throughout the IoT product lifecycle</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0004">3.6. IoT 製品ライフサイクル全体にわたる透明性とトレーサビリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004-t7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">3.7. Additional cybersecurity related challenges</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">3.7. サイバーセキュリティに関するその他の課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">4. Conclusion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">4. 結論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">Appendix A. List of Symbols, Abbreviations, and Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">付録 A. 記号、略語、頭字語の一覧</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>List of Tables</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+表の一覧</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0004">Table 1 - High-Level Summary of Workshop Takeaways</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0004">表 1 - ワークショップの要点の概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">Table 2 – Workshop Agenda</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">表 2 – ワークショップの議事次第</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On March 5, 2025, NIST’s Cybersecurity for Internet of Things (IoT) program hosted “Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers” to continue discussion of potential updates to Foundational Cybersecurity Activities for IoT Device Manufacturers, NIST IR 8259 [1]. The March workshop follows the December 4<sup>th</sup>, 2024, workshop titled “Workshop on Updating Manufacturer Guidance for Securable Connected Product Development” which first explored potential updates to NIST IR 8259.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2025 年 3 月 5 日、NIST の IoT サイバーセキュリティプログラム（Cybersecurity for Internet of Things）は、Foundational Cybersecurity Activities for IoT Device Manufacturers, NIST IR 8259 [1] の更新案についての議論を続けるため、「Workshop on Foundational Cybersecurity Activities for IoT Device Manufacturers」を開催しました。3 月のワークショップは、NIST IR 8259 の更新の可能性を最初に検討した、2024 年 12 月 4<sup>th</sup> 日のワークショップ「Workshop on Updating Manufacturer Guidance for Securable Connected Product Development」に続くものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The March 5<sup>th</sup> workshop documented in this report featured an overview of the status of updates to NIST IR 8259, extensive question and answer opportunities and invited two keynote speakers to discuss current cybersecurity and IoT topics relevant to the NIST IR 8259 updates. The workshop had both in-person and virtual participants, with both groups participating in the discussions that yielded significant feedback for NIST. This report summarizes what was discussed at the workshop to provide these insights to the broader community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書に記録した 3 月 5 日のワークショップでは、NIST IR 8259 の更新状況の概要が示され、十分な質疑応答の機会が設けられました。また、NIST IR 8259 の更新に関連するサイバーセキュリティと IoT の最新の話題について議論するため、2 人の基調講演者が招かれました。ワークショップには対面とオンラインの参加者がおり、どちらの参加者も議論に加わり、NIST に重要なフィードバックを寄せました。本報告書は、より広いコミュニティに知見を提供するため、ワークショップで議論された内容を要約します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The table below illustrates the takeaways from the workshop, which are discussed in Section 3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の表は、ワークショップの要点を示しており、第 3 章で議論します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 - High-Level Summary of Workshop Takeaways.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 - ワークショップの要点の概要</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>1. There is broad support for expanding the discussion of IoT products in NIST IR 8259 to make products more central to the IoT cybersecurity baseline and allow further exploration of the cybersecurity considerations of other IoT product components beyond the device.</td></tr><tr><td>2. Many cybersecurity challenges are aggravated by the limited visibility each role in the IoT ecosystem (e.g., manufacturer, integrator, customer) has into the cybersecurity of the whole system.</td></tr><tr><td>3. Performing risk analysis for IoT products remains a challenge due to the potential for unintended use or unexpected environments of use.</td></tr><tr><td>4. In understanding the magnitude of a risk, it is important to understand the scale of the potential impact from a threat.</td></tr><tr><td>5. Communicating effectively throughout IoT pre-market and post-market activities involves bridging gaps between manufacturer knowledge and customer ability to use the information.</td></tr><tr><td>6. Transparency and traceability are foundational to maintaining product cybersecurity throughout the IoT product lifecycle.</td></tr><tr><td>7. Discussions throughout the workshop highlighted challenges in IoT product lifecycle management emphasizing IoT product risks, vulnerabilities, and evolving ecosystem demands.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>1. IoT 製品に関する NIST IR 8259 の議論を拡充し、製品を IoT サイバーセキュリティのベースラインの中心に据えて、デバイス以外の IoT 製品構成要素についてもサイバーセキュリティ上の考慮事項をさらに検討できるようにすることに、幅広い支持があります。</td></tr><tr><td>2. 多くのサイバーセキュリティ課題は、IoT エコシステムの各役割（たとえば製造者、インテグレーター、顧客）が、システム全体のサイバーセキュリティを見通せる範囲が限られていることで悪化しています。</td></tr><tr><td>3. IoT 製品のリスク分析の実施は、想定外の使用や想定外の使用環境の可能性があるため、依然として課題です。</td></tr><tr><td>4. リスクの大きさを理解するには、脅威がもたらしうる影響の規模を理解することが重要です。</td></tr><tr><td>5. IoT の市場投入前および市場投入後の活動全体で効果的にコミュニケーションをとるには、製造者の知識と、顧客がその情報を利用する能力との間のギャップを埋める必要があります。</td></tr><tr><td>6. 透明性とトレーサビリティは、IoT 製品ライフサイクル全体にわたって製品のサイバーセキュリティを維持するための基礎です。</td></tr><tr><td>7. ワークショップ全体の議論では、IoT 製品のリスク、脆弱性、進化するエコシステムの要求を重視した、IoT 製品ライフサイクル管理の課題が浮き彫りになりました。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. About the NIST Cybersecurity for the Internet of Things Program</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. NIST IoT サイバーセキュリティプログラムについて</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This workshop was planned and executed by NIST’s Cybersecurity for IoT program. The Cybersecurity for IoT program supports the development and application of standards, guidelines, and related tools to improve the cybersecurity of connected devices and the environments in which they are deployed. By collaborating with stakeholders across government, industry, international bodies, and academia, the program aims to cultivate trust and foster an environment that enables innovation on a global scale. One aspect of the program’s work is creation and maintenance of guidelines for IoT cybersecurity, including, but not limited to the focus of this workshop: NIST IR 8259.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本ワークショップは、NIST の IoT サイバーセキュリティプログラムが計画し、実施しました。このプログラムは、接続されたデバイスとその展開環境のサイバーセキュリティを向上させるための標準、ガイドライン、関連ツールの開発と適用を支援しています。政府、産業界、国際機関、学術界の関係者と協力することで、信頼を育み、世界規模でイノベーションを可能にする環境を促進することを目指しています。プログラムの活動の一つは、IoT サイバーセキュリティのガイドラインの作成と維持であり、本ワークショップが焦点を当てた NIST IR 8259 もこれに含まれますが、それに限りません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2. NIST IR 8259 Background</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2. NIST IR 8259 の背景</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In May 2020, NIST published Foundational Cybersecurity Activities for IoT Device Manufacturers, NIST IR 8259, which describes recommended cybersecurity activities that manufacturers should consider integrating into their product development and support lifecycle. These foundational cybersecurity activities can help manufacturers lessen the cybersecurity-related efforts needed by customers, which in turn can reduce the prevalence and severity of IoT device compromises and the attacks performed using compromised devices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2020 年 5 月、NIST は Foundational Cybersecurity Activities for IoT Device Manufacturers, NIST IR 8259 を公開しました。これは、製造者が製品の開発およびサポートのライフサイクルに組み込むことを検討すべき、推奨されるサイバーセキュリティ活動を述べたものです。これらの基礎的なサイバーセキュリティ活動は、顧客に必要なサイバーセキュリティ関連の労力を製造者が軽減する助けとなり、その結果、IoT デバイスの侵害や、侵害されたデバイスを使った攻撃の発生率と深刻度を下げることができます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Over time, subsequent work has built upon the concepts introduced in NIST IR 8259 to introduce technical (IoT Device Cybersecurity Capability Core Baseline, NIST IR 8259A [2]) and non-technical (IoT Non-Technical Supporting Capability Core Baseline, NIST IR 8259B [3]) concepts to help manufacturers and customers consider the cybersecurity of IoT devices. The NIST IR 8259 series has been used to inform and develop further publications that elaborate on IoT cybersecurity across sectors and use cases (e.g., federal agency use cases and the U.S. Cyber Trust Mark).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>その後の取り組みは、NIST IR 8259 で示された概念を土台に、製造者と顧客が IoT デバイスのサイバーセキュリティを検討する助けとなる、技術面（IoT Device Cybersecurity Capability Core Baseline, NIST IR 8259A [2]）と非技術面（IoT Non-Technical Supporting Capability Core Baseline, NIST IR 8259B [3]）の概念を導入しました。NIST IR 8259 シリーズは、分野やユースケースをまたいで IoT サイバーセキュリティを詳しく述べるさらなる刊行物（たとえば、連邦機関のユースケースや U.S. Cyber Trust Mark）の情報提供と策定に使われてきました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8259 serves as a foundational document providing the conceptual and contextual basis for all of these publications. However, these subsequent publications introduced new concepts that, along with IoT and cybersecurity technologies and trends that have developed since 2020, could be beneficial to updating NIST IR 8259.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8259 は、これらすべての刊行物に概念的・文脈的な基礎を与える基盤文書として位置付けられます。しかし、これらの後続の刊行物は新しい概念を導入しており、2020 年以降に発展した IoT とサイバーセキュリティの技術や動向とあわせて、NIST IR 8259 の更新に有益となりえます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3. Workshop Event Details</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3. ワークショップ開催の詳細</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The purpose of the March 5<sup>th</sup> workshop was to continue discussions from the December workshop related to a major update of NIST IR 8259. The planned updates include a greater emphasis on:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3 月 5<sup>th</sup> 日のワークショップの目的は、12 月のワークショップに続き、NIST IR 8259 の大幅な更新に関する議論を継続することでした。計画している更新では、次の点をより重視します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consistently taking a product viewpoint rather than a device-centric approach</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">デバイス中心のアプローチではなく、一貫して製品の視点をとること</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Emphasizing risk analysis in determining needed product cybersecurity capabilities</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">必要な製品のサイバーセキュリティ機能を決定する際にリスク分析を重視すること</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Adding maintenance, end-of-support, and end-of-life considerations</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">保守、サポート終了、ライフサイクル終了に関する考慮事項を追加すること</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Enhancing discussion of application to industrial contexts</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">産業分野への適用に関する議論を充実させること</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Explicitly considering cybersecurity needs for data management to support privacy goals</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">プライバシー目標を支えるデータ管理に必要なサイバーセキュリティを明示的に考慮すること</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The agenda for the event is provided in Table 2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イベントの議事次第を表 2 に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2 – Workshop Agenda.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2 – ワークショップの議事次第</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Time</th><th>Title</th><th>Speaker(s)</th></tr></thead><tbody><tr><td>9:00 AM – 9:15 AM</td><td><strong>Welcome</strong></td><td>Katerina Megas, NIST</td></tr><tr><td>9:15 AM – 10:00 AM</td><td><strong>Morning Keynote Presentation:</strong> <em>Fortifying the Future: Enhancing IoT Security Frameworks</em></td><td>Jon Boulos (Kimberly-Clark)</td></tr><tr><td>10:00 AM – 10:45 AM</td><td><strong>IR 8259 Rev. 1 Preliminary Update: Overview</strong></td><td>Mike Fagan, NIST</td></tr><tr><td>10:45 AM – 11:00 AM</td><td>Break</td><td></td></tr><tr><td>11:00 AM – 11:55 AM</td><td><strong>IR 8259 Rev. 1 Preliminary Update: Session 1</strong><br>Activity 1: <em>Identify Expected Customers and Define Expected Use Cases</em> and Activity 2: <em>Research Customer Cybersecurity Needs and Goals</em></td><td>Mike Fagan, NIST</td></tr><tr><td>11:55 AM – 1:00 PM</td><td>Lunch Break</td><td></td></tr><tr><td>1:00 PM – 1:45 PM</td><td><strong>Afternoon Keynote Presentation:</strong> <em>Leveraging FIDO Alliance cybersecurity standards in support of IR8259</em></td><td>Brad Goodman (Fast Identity Online Alliance and Dell)</td></tr><tr><td>1:45 PM – 2:45 PM</td><td><strong>IR 8259 Rev. 1 Preliminary Update: Session 2</strong><br>Activity 3: <em>Determine How to Address Customer Needs and Goals</em> and Activity 4: <em>Plan for Adequate Support of Customer Needs and Goals</em></td><td>Mike Fagan, NIST</td></tr><tr><td>2:45 PM – 3:00 PM</td><td>Break</td><td></td></tr><tr><td>3:00 PM – 3:45 PM</td><td><strong>IR 8259 Rev. 1 Preliminary Update: Session 3</strong><br>Activity 5: <em>Define Approaches for Communicating to Customers</em> and Activity 6: <em>Decide What to Communicate to Customers and How to Communicate It</em></td><td>Mike Fagan, NIST</td></tr><tr><td>3:45 PM – 4:00 PM</td><td><strong>Closing Remarks</strong></td><td>Mike Fagan, NIST</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>時間</th><th>タイトル</th><th>講演者</th></tr></thead><tbody><tr><td>9:00 AM – 9:15 AM</td><td><strong>開会の挨拶</strong></td><td>Katerina Megas, NIST</td></tr><tr><td>9:15 AM – 10:00 AM</td><td><strong>午前の基調講演：</strong> <em>Fortifying the Future: Enhancing IoT Security Frameworks</em></td><td>Jon Boulos (Kimberly-Clark)</td></tr><tr><td>10:00 AM – 10:45 AM</td><td><strong>IR 8259 Rev. 1 暫定更新：概要</strong></td><td>Mike Fagan, NIST</td></tr><tr><td>10:45 AM – 11:00 AM</td><td>休憩</td><td></td></tr><tr><td>11:00 AM – 11:55 AM</td><td><strong>IR 8259 Rev. 1 暫定更新：セッション 1</strong><br>活動 1：<em>想定顧客を特定し、想定されるユースケースを定義する</em>および活動 2：<em>顧客のサイバーセキュリティ上のニーズと目標を調査する</em></td><td>Mike Fagan, NIST</td></tr><tr><td>11:55 AM – 1:00 PM</td><td>昼休み</td><td></td></tr><tr><td>1:00 PM – 1:45 PM</td><td><strong>午後の基調講演：</strong> <em>Leveraging FIDO Alliance cybersecurity standards in support of IR8259</em></td><td>Brad Goodman (Fast Identity Online Alliance and Dell)</td></tr><tr><td>1:45 PM – 2:45 PM</td><td><strong>IR 8259 Rev. 1 暫定更新：セッション 2</strong><br>活動 3：<em>顧客のニーズと目標への対処方法を決定する</em>および活動 4：<em>顧客のニーズと目標を十分に支援する計画を立てる</em></td><td>Mike Fagan, NIST</td></tr><tr><td>2:45 PM – 3:00 PM</td><td>休憩</td><td></td></tr><tr><td>3:00 PM – 3:45 PM</td><td><strong>IR 8259 Rev. 1 暫定更新：セッション 3</strong><br>活動 5：<em>顧客への伝達方法を定義する</em>および活動 6：<em>顧客に伝える内容とその伝達方法を決定する</em></td><td>Mike Fagan, NIST</td></tr><tr><td>3:45 PM – 4:00 PM</td><td><strong>閉会の挨拶</strong></td><td>Mike Fagan, NIST</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The rest of this report is organized as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の残りの構成は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 2 summarizes each invited speaker’s remarks given on the day of the workshop.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 2 章では、ワークショップ当日に招待講演者が行った発言を、講演者ごとに要約します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 3 summarizes the takeaways and observations across the entire workshop.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 3 章では、ワークショップ全体を通じた要点と所見を要約します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 4 concludes the report.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 4 章で報告書を締めくくります。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Speaker Summaries</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 講演者の概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The summaries below highlight significant points from the speakers and identify discussion topics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の概要は、講演者の重要な論点を取り上げ、議論のトピックを示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. Jon Boulos, Kimberly-Clark and Wisconsin IoT Council, “Fortifying the Future”</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mr. Jon Boulos focused on considering cybersecurity risks and controls from a product and ecosystem perspective. Many of today’s traditional IoT security programs focus on a device-centric approach. His presentation provided an overview of cybersecurity activities that should take place in each step of the product life cycle. Performing a risk assessment during the planning and design stages should accommodate growth within the expanding IoT ecosystem within its lifecycle stages. By adopting a product-centric approach, IoT device manufacturers can ensure comprehensive cybersecurity measures that are proactive, user-centric, and better aligned with the overall product lifecycle and user needs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Jon Boulos 氏は、製品とエコシステムの観点からサイバーセキュリティのリスクと対策を考えることに焦点を当てました。今日の従来型の IoT セキュリティプログラムの多くは、デバイス中心のアプローチに重点を置いています。同氏の講演は、製品ライフサイクルの各段階で実施すべきサイバーセキュリティ活動の概要を示しました。計画・設計段階でリスク評価を実施する際には、拡大する IoT エコシステムの中で、ライフサイクルの各段階における成長を考慮すべきです。製品中心のアプローチを採用することで、IoT デバイス製造者は、先を見越した、ユーザー中心の、製品ライフサイクル全体とユーザーのニーズにいっそう適合した、包括的なサイバーセキュリティ対策を確保できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This discussion included the integration of IoT devices into industrial systems and how it requires a comprehensive approach to address the complexities and security challenges. He pointed out that integration of IoT devices into industrial systems significantly increases the complexity of those systems. Adopting IoT technology and developing these secure systems requires a unique skillset and often is seen as a significant investment. Ensuring interoperability and security can be difficult without established standards and protocols.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この議論では、IoT デバイスの産業システムへの統合には、その複雑さとセキュリティ上の課題に対処する包括的なアプローチが必要であることも取り上げられました。同氏は、IoT デバイスを産業システムに統合すると、それらのシステムの複雑さが大幅に増すと指摘しました。IoT 技術を採用し、こうした安全なシステムを開発するには特有のスキルセットが必要であり、多くの場合、大きな投資とみなされます。確立された標準やプロトコルがなければ、相互運用性とセキュリティの確保は困難になりえます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mr. Boulos went on to highlight opportunities to help device manufacturers succeed and move faster:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Boulos 氏はさらに、デバイス製造者が成功し、より速く進めるための機会を挙げました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Create clear standards and guidelines from a cybersecurity and privacy perspective for IoT device manufacturers and solution providers.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IoT デバイス製造者とソリューション提供者のために、サイバーセキュリティとプライバシーの観点から明確な標準とガイドラインを作成すること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Certification and labeling programs are emerging for both devices and overall solutions.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">デバイスとソリューション全体の両方について、認証・ラベリングのプログラムが登場しつつあること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Data standards, integration, and communication protocols can help facilitate ecosystem compatibility to ensure devices can communicate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">データ標準、統合、通信プロトコルは、デバイスが通信できるようにエコシステムの互換性を促進する助けとなりえること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Dependable supply chains are important.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">信頼できるサプライチェーンが重要であること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Clear and consistent standards increase device interoperability and decrease cost.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">明確で一貫した標準は、デバイスの相互運用性を高め、コストを下げること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Providing direction on “mandatory” requirements would benefit manufacturers.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「必須」要件についての指針を示すことは、製造者の利益になること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Educating the workforce and/or future workforce for the digital transformation of the economy, such as developing training initiatives to increase skilled resources to implement and maintain IoT solutions.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">経済のデジタルトランスフォーメーションに向けて、労働力や将来の労働力を教育すること。たとえば、IoT ソリューションを実装・保守する熟練した人材を増やすための研修施策を開発すること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Public and private partnerships strengthen IoT security by leveraging the strengths, knowledge, and resources from both industry and government.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">官民のパートナーシップは、産業界と政府の双方の強み、知識、資源を活用して IoT セキュリティを強化すること。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The overall goal is to provide adequate flexibility for innovation while maintaining an appropriate level of security based on the context of the use case, data, risk, etc. Manufacturers would also benefit from clarification on where the US Cyber Trust Mark applies as well as the standardization of protocols and network infrastructure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>全体の目標は、ユースケース、データ、リスクなどの文脈に基づいて適切なレベルのセキュリティを維持しながら、イノベーションのための十分な柔軟性を確保することです。製造者は、US Cyber Trust Mark がどこに適用されるのかの明確化や、プロトコルとネットワークインフラの標準化からも利益を得られるでしょう。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. Brad Goodman, FIDO Alliance and Dell, “Leveraging FIDO Alliance cybersecurity standards in support of IR8259”</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mr. Brad Goodman discussed the Fast Identity Online (FIDO) Alliance’s work on the FIDO Device Onboarding (FDO) Initiative and on FIDO’s Passkey credentials. FIDO is an open industry association with a focused mission to reduce the world’s reliance on passwords. The central concern is that while techniques and methods already exist to secure point-to-point communication, systems can still be easily exploited.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Brad Goodman 氏は、Fast Identity Online（FIDO）Alliance による FIDO Device Onboarding（FDO）イニシアチブと FIDO のパスキー認証情報に関する取り組みについて話しました。FIDO は、世界のパスワード依存を減らすことを使命とする、オープンな業界団体です。中心的な懸念は、ポイントツーポイント通信を保護する技術や方法がすでに存在するにもかかわらず、システムが依然として容易に悪用されうることです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FDO addresses the question of establishing trust between two points to communicate securely, reliably, and in an automated fashion. It is a method for secure, zero-touch IoT device onboarding. Zero-touch means that it does not require a user to perform any operation. FDO provides mutual assurance between cloud and device that each is genuine and should interoperate with the other. It is all public key based.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FDO は、2 つの地点の間で、安全かつ確実に、自動化された形で通信するための信頼を確立するという課題に対処します。これは、安全なゼロタッチの IoT デバイスオンボーディングの方法です。ゼロタッチとは、ユーザーが何の操作も行う必要がないことを意味します。FDO は、クラウドとデバイスの間で、双方が正当なものであり、互いに相互運用すべき相手であることを相互に保証します。これはすべて公開鍵に基づいています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FIDO’s principal project is Passkey which is a password replacement based on FIDO protocols that provide faster, easier, more secure sign-ins to online services. A passkey may be synced across a secure cloud so that it is readily available on all of a user’s devices, or it can be bound to a dedicated device such as a FIDO security key. Passkeys are a user authentication system. In the IoT space, this would most probably be used to secure user-to-cloud components of an IoT product to control the product.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FIDO の主要なプロジェクトはパスキーです。これは、FIDO プロトコルに基づくパスワードの代替で、オンラインサービスへのサインインをより速く、簡単に、安全にします。パスキーは、ユーザーのすべてのデバイスですぐに使えるよう、安全なクラウドを介して同期することも、FIDO セキュリティキーなどの専用デバイスに紐付けることもできます。パスキーはユーザー認証システムです。IoT の分野では、IoT 製品を制御するための、その製品のユーザーとクラウド間のコンポーネントを保護するのに使われる可能性が最も高いでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mr. Goodman spoke on the technical protocols of how FIDO device onboarding works from factory to owner. Identity of a device should always be done through key-based mechanisms. FDO provides a way to initiate a strong, binding enrollment or security between device and cloud, whereas passkeys provide phishing-resistant password-less user authentication to that cloud. Mr. Goodman indicated that the scope of the process is designed to work across a spectrum of use cases and hardware types and that FDO provides a rigid and provable mechanism to establish ownership.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Goodman 氏は、FIDO のデバイスオンボーディングが工場から所有者までどのように機能するかについて、技術的なプロトコルを話しました。デバイスの識別は、常に鍵ベースの仕組みで行うべきです。FDO は、デバイスとクラウドの間の強力で拘束力のある登録（エンロールメント）またはセキュリティを開始する方法を提供し、パスキーは、そのクラウドに対するフィッシング耐性のあるパスワードレスのユーザー認証を提供します。Goodman 氏は、このプロセスの範囲は、さまざまなユースケースやハードウェアの種類にまたがって機能するよう設計されており、FDO は所有権を確立するための厳格で証明可能な仕組みを提供すると述べました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Workshop Takeaways</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. ワークショップの要点</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section summarizes the takeaways and observations across the entire workshop from invited speaker presentations to breakout sessions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、招待講演者の発表からブレークアウトセッションまで、ワークショップ全体を通じた要点と所見を要約します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following takeaways are the ideas, observations, and suggestions that NIST heard from workshop discussion participants, and which received significant support from participants. This workshop was not a forum for developing consensus; rather, the takeaways represent recurrent themes which emerged during discussions—not formal positions taken by participants. This document cannot capture every thought, opinion, and suggestion provided during the workshop. These takeaways do not represent NIST recommendations or guidelines; rather, they provide important feedback to the program and serve as a basis for future conversations within the community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の要点は、ワークショップの議論の参加者から NIST が聞き取った考え、所見、提案のうち、参加者から大きな支持を得たものです。このワークショップは合意形成の場ではありませんでした。要点は、議論の中で繰り返し現れたテーマであり、参加者が取った正式な立場ではありません。本書は、ワークショップ中に出されたすべての考え、意見、提案を網羅することはできません。これらの要点は NIST の推奨事項やガイドラインを表すものではありません。むしろ、プログラムへの重要なフィードバックとなり、コミュニティ内での今後の対話の基礎となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Support for a focus on product level cybersecurity in NIST IR 8259</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. NIST IR 8259 における製品レベルのサイバーセキュリティへの注力に対する支持</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There is broad support for expanding the discussion of IoT products in NIST IR 8259 to make products more central to the IoT cybersecurity baseline and allow further exploration of the cybersecurity considerations of other IoT product components beyond the device.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT 製品に関する NIST IR 8259 の議論を拡充し、製品を IoT サイバーセキュリティのベースラインの中心に据えて、デバイス以外の IoT 製品構成要素についてもサイバーセキュリティ上の考慮事項をさらに検討できるようにすることに、幅広い支持があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop discussion participants were supportive of NIST IR 8259 taking a product viewpoint to approach cybersecurity and recognized the value in moving from the existing document’s device-centric focus. Discussions indicated that IoT product components, which may be remote, have important access privileges to and control over the IoT device or devices within the IoT product. It was recognized that the special relationship between IoT product components creates new cybersecurity risks. These risks arise due to product components sharing potentially sensitive data and having control responsibilities over the IoT device’s behavior.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの議論の参加者は、NIST IR 8259 がサイバーセキュリティに製品の視点で取り組むことを支持し、現行文書のデバイス中心の焦点から移行する価値を認めました。議論では、リモートにある場合もある IoT 製品の構成要素が、IoT 製品内の 1 つまたは複数の IoT デバイスに対して、重要なアクセス権限と制御権を持つことが示されました。IoT 製品の構成要素間の特別な関係が、新たなサイバーセキュリティリスクを生むことが認識されました。これらのリスクは、製品の構成要素が、機微なデータを共有しうること、および IoT デバイスの動作に対する制御の責任を持つことから生じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. Roles and their effect on cybersecurity challenges in the IoT ecosystem</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. 役割と、それが IoT エコシステムのサイバーセキュリティ課題に及ぼす影響</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many cybersecurity challenges are aggravated by the limited visibility each role in the IoT ecosystem (e.g., manufacturer, integrator, customer) has into the cybersecurity of the whole system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くのサイバーセキュリティ課題は、IoT エコシステムの各役割（たとえば製造者、インテグレーター、顧客）が、システム全体のサイバーセキュリティを見通せる範囲が限られていることで悪化しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When discussing IoT cybersecurity, the participants frequently returned to the challenge of the varying information and visibility available to different roles across the IoT ecosystem. Manufacturers are best positioned to understand the cybersecurity capabilities of their IoT products including the cybersecurity capabilities of components from across the supply chain that are used to create the IoT product. Customers have highly varying cybersecurity knowledge depending on a number of factors such as whether they are a home consumer, small business, or large enterprise. Participants noted that additional roles are often needed in heterogeneous systems where components from various manufacturers must function securely together. System integrators, brand owners, retailers and other specialized support services can be mediators between the manufacturer and customer. These discussions also emphasized the role of third-party platform providers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT のサイバーセキュリティを議論する際、参加者は、IoT エコシステム内の役割ごとに利用できる情報と可視性が異なるという課題に、繰り返し立ち返りました。製造者は、IoT 製品を構成するためにサプライチェーン全体から調達した構成要素のサイバーセキュリティ機能を含め、自社の IoT 製品のサイバーセキュリティ機能を理解するのに最も適した立場にあります。顧客のサイバーセキュリティに関する知識は、家庭の消費者か、小規模事業者か、大企業かなど、さまざまな要因によって大きく異なります。参加者は、さまざまな製造者の構成要素が一緒に安全に機能しなければならない異種混合のシステムでは、追加の役割が必要になることが多いと指摘しました。システムインテグレーター、ブランドオーナー、小売業者、その他の専門的なサポートサービスが、製造者と顧客の仲介役になりえます。これらの議論では、サードパーティのプラットフォーム提供者の役割も強調されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Clarifying expectations and collaborating among roles is critical for securing the IoT ecosystem. With manufacturers, brand owners, integrators, and customers all having unique responsibilities, participants stressed the need to clearly define these roles to help streamline collaboration, communication, and risk management. Integrators were noted in particular as key intermediaries, responsible for adapting manufacturers&#x27; security protocols to customer-specific demands and helping bridge communication gaps effectively.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT エコシステムを保護するには、期待事項を明確にし、役割間で協力することが重要です。製造者、ブランドオーナー、インテグレーター、顧客はそれぞれ固有の責任を負っているため、参加者は、協力、コミュニケーション、リスク管理を円滑にするために、これらの役割を明確に定義する必要があると強調しました。特にインテグレーターは重要な仲介者として挙げられ、製造者のセキュリティプロトコルを顧客固有の要求に適合させ、コミュニケーションのギャップを効果的に埋める責任があるとされました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some participants identified a need for worked examples to help clarify potential collaborations across roles in the ecosystem such as integrators and manufacturers. For example, an integrator may need to analyze the risk of incorporating multiple systems from multiple manufacturers for a specific deployment.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>エコシステム内の役割（たとえばインテグレーターと製造者）の間で起こりうる協力を明確にするため、実例が必要だと指摘する参加者もいました。たとえば、インテグレーターは、特定の展開のために、複数の製造者の複数のシステムを組み込むリスクを分析する必要があるかもしれません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3. Challenges of IoT product risk analysis</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3. IoT 製品のリスク分析の課題</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Performing risk analysis for IoT products remains a challenge due to the potential for unintended use or unexpected environments of use.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT 製品のリスク分析の実施は、想定外の使用や想定外の使用環境の可能性があるため、依然として課題です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants discussed the challenges manufacturers face in conducting risk assessments without full visibility into customer environments. It was noted that in large enterprises or high security environments, there is a need for collaboration among manufacturers, system integrators, and customers due to shared responsibility and the need for customers to also perform some risk analyses. NIST’s <em>Risk Management Framework for Information Systems and Organizations,</em> NIST SP 800-37 Rev. 2 [4], <em>Security and Privacy Controls for Information Systems and Organizations,</em> NIST SP 800-53 rev. 5 [5], and <em>IoT Device Cybersecurity Guidance for the Federal Government: Establishing IoT Device Cybersecurity Requirements,</em> SP 800-213 [6] provide information for manufacturers, system integrators and enterprise customers in the performance of risk assessment and mitigations. Several participants responded that these resources were helpful, but additional guidelines or standards are needed that take the manufacturer’s perspective and consider varying risk levels across diverse deployment environments. Participants noted that current risk assessment mechanisms are aimed at addressing vulnerabilities within known, specific environments, which does not easily fit the typical manufacturer viewpoint of seeking to consider a range of possible product deployments. Participants highlighted the importance of these clarifications to ensure risks are properly identified, prioritized, and mitigated.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、顧客環境を十分に把握できないまま製造者がリスク評価を行う際の課題を議論しました。大企業や高セキュリティ環境では、責任の共有があり、顧客もいくつかのリスク分析を実施する必要があるため、製造者、システムインテグレーター、顧客の間で協力する必要があると指摘されました。NIST の <em>Risk Management Framework for Information Systems and Organizations,</em> NIST SP 800-37 Rev. 2 [4]、<em>Security and Privacy Controls for Information Systems and Organizations,</em> NIST SP 800-53 rev. 5 [5]、<em>IoT Device Cybersecurity Guidance for the Federal Government: Establishing IoT Device Cybersecurity Requirements,</em> SP 800-213 [6] は、製造者、システムインテグレーター、企業の顧客がリスク評価と軽減策を実施するための情報を提供しています。これらの資料は役に立ちますが、製造者の視点に立ち、多様な展開環境にわたるさまざまなリスクレベルを考慮した追加のガイドラインや標準が必要だと答えた参加者が数名いました。参加者は、現行のリスク評価の仕組みは、既知の特定の環境内の脆弱性への対処を目的としており、起こりうる製品の展開の幅を考慮しようとする典型的な製造者の視点には合いにくいと指摘しました。参加者は、リスクを適切に特定し、優先順位を付け、軽減するために、こうした明確化が重要であることを強調しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Alternatively, small business customers or home consumers cannot be expected to have the knowledge needed for detailed risk analysis and rely on the manufacturers who must assume greater responsibility. It was noted that the US Cyber Trust Mark program for certifying the cybersecurity of consumer IoT products only covers products as the manufacturer ships and maintains them and does not consider that installers or other IT professionals acting on behalf of the customer might have a role. The discussion underscored the complexities of the manufacturer-customer relationship emphasizing the need for careful communication to collaboratively navigate risk challenges.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一方、小規模事業者の顧客や家庭の消費者は、詳細なリスク分析に必要な知識を持っていることを期待できず、より大きな責任を負うべき製造者に頼っています。消費者向け IoT 製品のサイバーセキュリティを認証する US Cyber Trust Mark プログラムは、製造者が出荷・保守する状態の製品のみを対象としており、顧客に代わって行動する設置業者やその他の IT 専門家が役割を持つ可能性を考慮していないと指摘されました。この議論は、製造者と顧客の関係の複雑さを浮き彫りにし、リスクの課題に協力して取り組むために慎重なコミュニケーションが必要であることを強調しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some participants noted that there are scalability concerns with tailoring products to individual customer needs or deployment scenarios. Customization to individual deployments could strain resources. It was suggested that integrators could play a critical role in adapting products to meet specific operational demands.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製品を個々の顧客のニーズや展開シナリオに合わせて調整することには、スケーラビリティ上の懸念があると指摘する参加者もいました。個々の展開に合わせたカスタマイズは、資源を圧迫するおそれがあります。インテグレーターは、製品を特定の運用上の要求に適合させる上で、重要な役割を果たしうると提案されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4. Scaling threat impacts and relating to the magnitude of risks</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4. 脅威の影響の規模の見積りとリスクの大きさとの関連付け</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In understanding the magnitude of a risk, it is important to understand the scale of the potential impact from a threat.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>リスクの大きさを理解するには、脅威がもたらしうる影響の規模を理解することが重要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Risk is defined as “A measure of the extent to which an entity is threatened by a potential circumstance or event, and typically a function of: (i) the adverse impacts that would arise if the circumstance or event occurs; and (ii) the likelihood of occurrence.” [7] While threat taxonomies exist (e.g., MITRE EMB3D), there are no widely recognized taxonomies for discussing the potential impact of a threat. In the workshop discussions, participants discussed the impact of threats in terms of:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>リスクは、「潜在的な状況または事象によって主体が脅かされる程度を示す尺度であり、通常、(i) その状況または事象が発生した場合に生じる悪影響、および (ii) 発生の可能性の関数です」と定義されています [7]。脅威の分類体系（たとえば MITRE EMB3D）は存在しますが、脅威がもたらしうる影響を議論するための広く認められた分類体系はありません。ワークショップの議論では、参加者は脅威の影響を次の観点から議論しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Operational impacts to the specific local networks, IoT devices, and Information Technology (IT) experiencing the cybersecurity event; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">サイバーセキュリティ事象が発生した特定のローカルネットワーク、IoT デバイス、情報技術（IT）への運用上の影響。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Environmental impacts that use the resources of compromised local networks to launch broader attacks on critical infrastructure or industries (e.g., botnets).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">侵害されたローカルネットワークの資源を使って、重要インフラや産業に対するより広範な攻撃（たとえばボットネット）を仕掛ける環境上の影響。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The participants also used terms such as “vertical” versus “horizontal,” respectively, when discussing these two scenarios, illustrating the lack of consensus on the terminology. Though risks are generally categorized as having either operational or environmental impacts, environmental impacts could be a step towards operational impacts or vice versa.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、これら 2 つのシナリオを議論する際に、それぞれ「垂直」と「水平」といった用語も使い、用語に関する合意がないことを示しました。リスクは一般に、運用上の影響か環境上の影響のいずれかを持つものと分類されますが、環境上の影響が運用上の影響への一歩となる場合も、その逆の場合もありえます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5. Communicating effectively involves bridging gaps between manufacturers and customers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5. 効果的なコミュニケーションには製造者と顧客の間のギャップを埋めることが必要</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Communicating effectively throughout IoT pre-market and post-market activities involves bridging gaps between manufacturer knowledge and customer ability to use the information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT の市場投入前および市場投入後の活動全体で効果的にコミュニケーションをとるには、製造者の知識と、顧客がその情報を利用する能力との間のギャップを埋める必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Communication emerged as pivotal to both the pre-market and post-market stages across multiple discussions with participants regarding challenges, strategies, and roles. While some emphasized the limitations manufacturers face in direct communication with customers, especially for products sold through retailers or installed by integrators, others agreed that raising broader cybersecurity awareness is critical.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>課題、戦略、役割に関する参加者との複数の議論を通じて、コミュニケーションが市場投入前と市場投入後の両方の段階で要であることが浮かび上がりました。特に小売業者を通じて販売される製品や、インテグレーターが設置する製品について、製造者が顧客と直接コミュニケーションをとる際の限界を強調する参加者がいる一方、より広いサイバーセキュリティ意識の向上が重要であることには、ほかの参加者も同意しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Discussions indicated pre-market efforts should include setting clear expectations about device capabilities, operational lifespans, end-of-life plans, and modular upgrade paths to provide clarity to customers and integrators.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>議論では、市場投入前の取り組みに、顧客とインテグレーターに明確さを提供するため、デバイスの機能、運用寿命、ライフサイクル終了の計画、モジュール式のアップグレード経路についての期待事項を明確に設定することを含めるべきだと示されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For post-market communication efforts, participants discussed the importance of communication planning including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>市場投入後のコミュニケーションの取り組みについて、参加者は、次を含むコミュニケーション計画の重要性を議論しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">How to tailor communication strategies to align with the expected customers’ knowledge, and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">想定される顧客の知識に合わせたコミュニケーション戦略の調整方法。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Education and awareness strategies targeting both consumer and workforce users that focuses on explaining IoT product behavior, mitigating anomalies, and practicing strong cybersecurity hygiene.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IoT 製品の動作の説明、異常の軽減、強固なサイバーセキュリティ衛生の実践に重点を置いた、消費者と労働力のユーザーの双方を対象とする教育と啓発の戦略。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As part of post-market communication, participants further emphasized the need for ongoing communication about vulnerabilities, fault tolerance, updates, and product behaviors. Participants discussed the importance of manufacturers ensuring that messages are clear and are delivered using effective notification systems. One participant suggested that automation with tools like the Open Security Controls Assessment Language (OSCAL) can provide real-time monitoring and updating, ensuring consistent and accurate communication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、市場投入後のコミュニケーションの一環として、脆弱性、フォールトトレランス、更新、製品の動作についての継続的なコミュニケーションが必要であることを、さらに強調しました。参加者は、製造者がメッセージを明確にし、効果的な通知システムを使って届けることの重要性を議論しました。ある参加者は、Open Security Controls Assessment Language（OSCAL）などのツールによる自動化が、リアルタイムの監視と更新を提供し、一貫した正確なコミュニケーションを確保しうると提案しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Difficulties maintaining direct communication with customers and users limit the ability to convey critical product updates, vulnerabilities, or lifecycle plans. This gap necessitates that manufacturers acknowledge what limitations to communication exist and acknowledge that some ability to reach customers may be lost when retailers or integrators act as mediators between the manufacturer and customer.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>顧客やユーザーとの直接のコミュニケーションを維持することが難しいと、重要な製品更新、脆弱性、ライフサイクル計画を伝える能力が制限されます。このギャップがあるため、製造者は、コミュニケーションにどのような制限があるかを認識し、小売業者やインテグレーターが製造者と顧客の仲介役を務める場合には、顧客に連絡する手段の一部が失われうることを認識する必要があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.6. Transparency and traceability throughout the IoT product lifecycle</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.6. IoT 製品ライフサイクル全体にわたる透明性とトレーサビリティ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Transparency and traceability are foundational to maintaining product cybersecurity throughout the IoT product lifecycle.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>透明性とトレーサビリティは、IoT 製品ライフサイクル全体にわたって製品のサイバーセキュリティを維持するための基礎です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants emphasized the importance of both transparency and traceability in IoT product lifecycle management. In this context, transparency is open communication about cybersecurity practices and lifecycle expectations, and traceability is the ability to track and verify IoT components throughout their lifecycle.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、IoT 製品のライフサイクル管理における透明性とトレーサビリティの両方の重要性を強調しました。ここでの透明性とは、サイバーセキュリティの実践とライフサイクルに対する期待についてのオープンなコミュニケーションを指し、トレーサビリティとは、IoT の構成要素をライフサイクル全体にわたって追跡し、検証する能力を指します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Transparency was noted as foundational for addressing vulnerabilities, setting expectations, and fostering trust among stakeholders; however, transparency can also bring risks. Participants discussed the potential risks resulting from attackers exploiting publicly disclosed information (e.g., vulnerabilities). It was further noted that the customer and the attacker might be one and the same, such as when a malicious actor purchases a product for the purpose of identifying its vulnerabilities and exploiting other instances of the product. While acknowledging these challenges, it was noted that transparency helps mitigate long-term risks by providing the customer and others in the ecosystem the insights and solutions needed to maintain the products’ cybersecurity. Some participants pointed out that transparency in reporting problems is particularly vital to customers, and that information gained when manufacturers are transparent can be utilized by proactive customers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>透明性は、脆弱性への対処、期待事項の設定、関係者間の信頼の醸成の基礎であると指摘されましたが、透明性はリスクをもたらす場合もあります。参加者は、公開された情報（たとえば脆弱性）を攻撃者が悪用することで生じうるリスクを議論しました。さらに、顧客と攻撃者が同一である場合もあると指摘されました。たとえば、悪意ある者が、製品の脆弱性を特定して、その製品の別のインスタンスを悪用する目的で製品を購入する場合です。これらの課題を認めつつも、透明性は、顧客とエコシステム内のその他の関係者に、製品のサイバーセキュリティを維持するために必要な洞察と解決策を提供することで、長期的なリスクの軽減に役立つと指摘されました。問題の報告における透明性は顧客にとって特に重要であり、製造者が透明性を保つことで得られた情報は、先を見越した顧客が活用できると指摘する参加者もいました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants noted the value of traceability when securing the supply chain, ensuring chain of custody, and implementing tamper-proof mechanisms. Participants pointed out tools like Secured Component Verification (SCV) certificates and device keys are mechanisms to help improve traceability. Zero-trust architectures using techniques like real-time continuous monitoring were suggested as ways to enhance traceability across IoT ecosystems, but these could pose a challenge in operational environments which are sensitive to latency.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、サプライチェーンの保護、保管の連鎖（チェーンオブカストディ）の確保、耐タンパー機構の実装において、トレーサビリティに価値があると指摘しました。参加者は、Secured Component Verification（SCV）証明書やデバイス鍵といったツールが、トレーサビリティの向上に役立つ仕組みであると指摘しました。リアルタイムの継続的監視などの技術を使うゼロトラストアーキテクチャが、IoT エコシステム全体のトレーサビリティを高める方法として提案されましたが、遅延に敏感な運用環境では課題となりうると指摘されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.7. Additional cybersecurity related challenges</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.7. サイバーセキュリティに関するその他の課題</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Discussions throughout the workshop highlighted challenges in IoT product lifecycle management emphasizing IoT product risks, vulnerabilities, and evolving ecosystem demands.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップ全体の議論では、IoT 製品のリスク、脆弱性、進化するエコシステムの要求を重視した、IoT 製品ライフサイクル管理の課題が浮き彫りになりました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants discussed a number of evolving challenges related to cybersecurity that have emerged for IoT products:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、IoT 製品について浮上した、サイバーセキュリティに関連する進化する多くの課題を議論しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Risks posed by unsupported &quot;zombie devices&quot; that lack updates or patches, compensating controls to address the additional risk from this status, and continue to operate on the network, creating security blind spots;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">更新やパッチがなく、この状態による追加リスクに対処する補完的対策も講じられないままネットワーク上で稼働し続け、セキュリティ上の死角を生む、サポート対象外の &quot;zombie devices&quot; がもたらすリスク。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lack of secure disposal for decommissioned IoT products and product components to prevent exploitation of sensitive data or credentials as a weakness in the IoT ecosystem;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IoT エコシステムの弱点として、機微なデータや認証情報が悪用されるのを防ぐための、廃止した IoT 製品と製品の構成要素の安全な廃棄が行われていないこと。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Absence of modular replacement strategies for IoT products in long-term use cases such as industrial or healthcare settings where lifespans for products may be long;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">産業分野や医療分野など、製品の寿命が長くなりうる長期利用のユースケースにおける、IoT 製品のモジュール式の交換戦略がないこと。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Concerns raised regarding replay attacks during ownership transitions that can make the prior owner’s data accessible to the new owner;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">所有者の移行時に、前の所有者のデータを新しい所有者がアクセスできるようにしてしまいうるリプレイ攻撃について、懸念が示されたこと。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Potential for unexpected or nefarious activity from IoT products such as collecting unintended data continues to impede trust in IoT;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">意図しないデータの収集など、IoT 製品による予期せぬ、または悪意のある活動の可能性が、IoT への信頼を損ない続けていること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Practical complexities of integrating IoT products into diverse ecosystems; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IoT 製品を多様なエコシステムに統合する際の実務上の複雑さ。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Technical challenges to supporting post-quantum cryptography for most IoT products, particularly on IoT devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ほとんどの IoT 製品、特に IoT デバイスで、耐量子暗号をサポートする際の技術的課題。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While some ideas for means of addressing these challenges came up during discussions, all need further evaluation to identify the right mix of technical capabilities, manufacturer support, and public education to address.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>議論の中でこれらの課題に対処する手段についていくつかの案が出ましたが、いずれも、対処に適した技術的機能、製造者による支援、一般向け教育の組み合わせを見極めるために、さらなる評価が必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The March 5<sup>th</sup> workshop was a productive conversation that yielded many discussions and significant feedback. The workshop was structured to walk through the NIST IR 8259 document pre-market and post-market activities, starting with an overview and intertwined with keynote speakers who added context from their unique technical perspectives.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3 月 5<sup>日</sup>のワークショップは、多くの議論と重要なフィードバックをもたらした、実りある対話となりました。ワークショップは、NIST IR 8259 文書の市場投入前と市場投入後の活動を順に確認する構成で、概要から始まり、それぞれ独自の技術的視点から文脈を加える基調講演者の講演が織り交ぜられました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>From the participant discussions, NIST received feedback that will be important to the revision of NIST IR 8259. Continuing communication across the roles in the IoT ecosystem is essential to building robust IoT cybersecurity documents that apply in a wide range of deployment scenarios. In the long term, greater communication across these roles remains critical to understanding IoT cybersecurity challenges and potential means of addressing those challenges.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者の議論から、NIST は NIST IR 8259 の改訂にとって重要となるフィードバックを得ました。幅広い展開シナリオに適用できる堅牢な IoT サイバーセキュリティ文書を作成するには、IoT エコシステムの各役割間で継続してコミュニケーションをとることが不可欠です。長期的には、これらの役割間のコミュニケーションをいっそう深めることが、IoT サイバーセキュリティの課題とそれに対処しうる手段を理解する上で、引き続き重要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Fagan M, Megas KN, Scarfone K, Smith M (2020) Foundational Cybersecurity Activities for IoT Device Manufacturers. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259. https://doi.org/10.6028/NIST.IR.8259</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Fagan M, Megas KN, Scarfone K, Smith M (2020) Foundational Cybersecurity Activities for IoT Device Manufacturers. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259. https://doi.org/10.6028/NIST.IR.8259</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Fagan M, Megas KN, Scarfone K, Smith M (2020) IoT Device Cybersecurity Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259A. https://doi.org/10.6028/NIST.IR.8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Fagan M, Megas KN, Scarfone K, Smith M (2020) IoT Device Cybersecurity Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259A. https://doi.org/10.6028/NIST.IR.8259A</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Fagan M, Marron J, Brady K, Cuthill B, Megas KN, Herold R (2021) IoT Non-Technical Supporting Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259B. https://doi.org/10.6028/NIST.IR.8259B</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Fagan M, Marron J, Brady K, Cuthill B, Megas KN, Herold R (2021) IoT Non-Technical Supporting Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8259B. https://doi.org/10.6028/NIST.IR.8259B</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Joint Task Force (2018) Risk Management Framework for Information Systems and Organizations: A System Life Cycle Approach for Security and Privacy. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-37, Rev. 2. https://doi.org/10.6028/NIST.SP.800-37r2</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Joint Task Force (2018) Risk Management Framework for Information Systems and Organizations: A System Life Cycle Approach for Security and Privacy. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-37, Rev. 2. https://doi.org/10.6028/NIST.SP.800-37r2</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Joint Task Force (2020) Security and Privacy Controls for Information Systems and Organizations. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-53, Rev. 5, Includes updates as of December 10, 2020. https://doi.org/10.6028/NIST.SP.800-53r5</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Joint Task Force (2020) Security and Privacy Controls for Information Systems and Organizations. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-53, Rev. 5, Includes updates as of December 10, 2020. https://doi.org/10.6028/NIST.SP.800-53r5</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Fagan MJ, Marron JA, Brady KG, Jr., Cuthill BB, Megas KN, Herold R, Lemire D, Hoehn B (2021) IoT Device Cybersecurity Guidance for the Federal Government: Establishing IoT Device Cybersecurity Requirements. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-213. https://doi.org/10.6028/NIST.SP.800-213</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Fagan MJ, Marron JA, Brady KG, Jr., Cuthill BB, Megas KN, Herold R, Lemire D, Hoehn B (2021) IoT Device Cybersecurity Guidance for the Federal Government: Establishing IoT Device Cybersecurity Requirements. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-213. https://doi.org/10.6028/NIST.SP.800-213</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] Joint Task Force Transformation Initiative (2012) Guide for Conducting Risk Assessments. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-30, Rev. 1. https://doi.org/10.6028/NIST.SP.800-30r1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] Joint Task Force Transformation Initiative (2012) Guide for Conducting Risk Assessments. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-30, Rev. 1. https://doi.org/10.6028/NIST.SP.800-30r1</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. List of Symbols, Abbreviations, and Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A. 記号、略語、頭字語の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FIDO Fast Identity Online</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FIDO Fast Identity Online</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FDO FIDO Device Onboarding</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FDO FIDO Device Onboarding</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IR Interagency/Internal Reports</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IR 省庁間報告書／内部報告書（Interagency/Internal Reports）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IT Information Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IT 情報技術（Information Technology）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IoT Internet of Things</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT モノのインターネット（Internet of Things）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>MITRE MITRE Corporation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MITRE MITRE Corporation</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 米国国立標準技術研究所（National Institute of Standards and Technology）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NCCoE National Cybersecurity Center of Excellence</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NCCoE 国立サイバーセキュリティ卓越センター（National Cybersecurity Center of Excellence）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OT Operational Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OT 運用技術（Operational Technology）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OSCAL Open Security Controls Assessment Language</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSCAL Open Security Controls Assessment Language</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SCV Secured Component Verification</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SCV Secured Component Verification</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SP Special Publication</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP 特別刊行物（Special Publication）</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8572.pdf">National Institute of Standards and Technology, IR 8572</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8572";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

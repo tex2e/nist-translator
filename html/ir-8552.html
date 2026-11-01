@@ -1,0 +1,1910 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8552 は、基盤となるブロック暗号から構成される、トゥイーカブルで可変入力長の強擬似ランダム置換（VIL-SPRP）として、暗号アコーディオンを紹介する報告書です。アコーディオンは、さまざまなサイズのメッセージの暗号処理を容易にしつつ、NIST SP 800-38 シリーズで規定された承認済みのブロック暗号の動作モードに比べて強化されたセキュリティを提供します。報告書は、関連する用語を導入し、セキュリティの目標と性能の目標、ブロックサイズ・鍵サイズ・トゥイークのサイズ・メッセージ長に関するパラメータの要件など、アコーディオンの設計要件を概説します。また、アコーディオンの 3 つの応用カテゴリを説明します。">
+  <title>暗号アコーディオンの要件 | NIST IR 8552 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NIST Interagency Report NIST IR 8552" data-search="nist 省庁間報告書 nist ir 8552 nist interagency report nist ir 8552">NIST 省庁間報告書 NIST IR 8552</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Requirements for Cryptographic Accordions" data-search="暗号アコーディオンの要件 requirements for cryptographic accordions">暗号アコーディオンの要件</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NIST Interagency Report NIST IR 8552" data-search="nist 省庁間報告書 nist ir 8552 nist interagency report nist ir 8552">NIST 省庁間報告書 NIST IR 8552</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Requirements for Cryptographic Accordions" data-search="暗号アコーディオンの要件 requirements for cryptographic accordions">暗号アコーディオンの要件</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="要旨 abstract">要旨</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0001" title="1.1. Historical Background" data-search="1.1. 歴史的背景 1.1. historical background">1.1. 歴史的背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0005" title="1.2. Layers of Components" data-search="1.2. 構成要素の階層 1.2. layers of components">1.2. 構成要素の階層</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0012" title="2. The Accordion" data-search="2. アコーディオン 2. the accordion">2. アコーディオン</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001" title="2.1. Notation" data-search="2.1. 表記 2.1. notation">2.1. 表記</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0001" title="2.2. Security Targets" data-search="2.2. セキュリティの目標 2.2. security targets">2.2. セキュリティの目標</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0011-b0003" title="2.2.1. Formal Goal" data-search="2.2.1. 形式的な目標 2.2.1. formal goal">2.2.1. 形式的な目標</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0001" title="2.2.2. Beyond-Birthday-Bound Security" data-search="2.2.2. バースデー限界を超えるセキュリティ 2.2.2. beyond-birthday-bound security">2.2.2. バースデー限界を超えるセキュリティ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0004" title="2.2.3. Multi-User Security" data-search="2.2.3. マルチユーザーセキュリティ 2.2.3. multi-user security">2.2.3. マルチユーザーセキュリティ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0007" title="2.2.4. Key-Dependent-Input Security" data-search="2.2.4. 鍵依存入力に対するセキュリティ 2.2.4. key-dependent-input security">2.2.4. 鍵依存入力に対するセキュリティ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0010" title="2.2.5. Post-Quantum Security" data-search="2.2.5. 耐量子セキュリティ 2.2.5. post-quantum security">2.2.5. 耐量子セキュリティ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0002" title="2.3. Performance Targets" data-search="2.3. 性能の目標 2.3. performance targets">2.3. 性能の目標</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0007" title="3. Requirements for Accordion Parameters" data-search="3. アコーディオンのパラメータの要件 3. requirements for accordion parameters">3. アコーディオンのパラメータの要件</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0009" title="3.1. Block Size" data-search="3.1. ブロックサイズ 3.1. block size">3.1. ブロックサイズ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0001" title="3.2. Key Size" data-search="3.2. 鍵サイズ 3.2. key size">3.2. 鍵サイズ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0003" title="3.3. Tweak Size" data-search="3.3. トゥイークのサイズ 3.3. tweak size">3.3. トゥイークのサイズ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0010" title="3.4. Message Lengths" data-search="3.4. メッセージ長 3.4. message lengths">3.4. メッセージ長</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0013" title="4. Derived Functions and Applications" data-search="4. 派生関数と応用 4. derived functions and applications">4. 派生関数と応用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0002" title="4.1. Authenticated Encryption with Associated Data (AEAD)" data-search="4.1. 関連データ付き認証付き暗号（aead） 4.1. authenticated encryption with associated data (aead)">4.1. 関連データ付き認証付き暗号（AEAD）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0001" title="4.2. Tweakable Encryption" data-search="4.2. トゥイーカブル暗号化 4.2. tweakable encryption">4.2. トゥイーカブル暗号化</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0011" title="4.3. Deterministic Authenticated Encryption" data-search="4.3. 決定的認証付き暗号 4.3. deterministic authenticated encryption">4.3. 決定的認証付き暗号</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0009" title="4.4. Security Properties of the Derived Functions" data-search="4.4. 派生関数のセキュリティ特性 4.4. security properties of the derived functions">4.4. 派生関数のセキュリティ特性</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0017-b0011" title="4.4.1. Authentication" data-search="4.4.1. 認証 4.4.1. authentication">4.4.1. 認証</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0017-b0013" title="4.4.2. Key and Context Commitment" data-search="4.4.2. 鍵とコンテキストのコミットメント 4.4.2. key and context commitment">4.4.2. 鍵とコンテキストのコミットメント</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0010" title="4.4.3. Nonce Hiding" data-search="4.4.3. ナンスの秘匿 4.4.3. nonce hiding">4.4.3. ナンスの秘匿</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0012" title="4.4.4. Release of Unverified Plaintext" data-search="4.4.4. 未検証の平文の解放 4.4.4. release of unverified plaintext">4.4.4. 未検証の平文の解放</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0014" title="5. Next Steps" data-search="5. 次のステップ 5. next steps">5. 次のステップ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="References" data-search="references references">References</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8552 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Requirements for Cryptographic Accordions</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>暗号アコーディオンの要件</strong></span><br><span class="doc-panel-item">公開日 : 2025-04-11</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8552/final">https://csrc.nist.gov/pubs/ir/8552/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 218 / 218 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8552 は、基盤となるブロック暗号から構成される、トゥイーカブルで可変入力長の強擬似ランダム置換（VIL-SPRP）として、暗号アコーディオンを紹介する報告書です。アコーディオンは、さまざまなサイズのメッセージの暗号処理を容易にしつつ、NIST SP 800-38 シリーズで規定された承認済みのブロック暗号の動作モードに比べて強化されたセキュリティを提供します。報告書は、関連する用語を導入し、セキュリティの目標と性能の目標、ブロックサイズ・鍵サイズ・トゥイークのサイズ・メッセージ長に関するパラメータの要件など、アコーディオンの設計要件を概説します。また、アコーディオンの 3 つの応用カテゴリを説明します。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Interagency Report NIST IR 8552</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 省庁間報告書 NIST IR 8552</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Requirements for Cryptographic Accordions</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+暗号アコーディオンの要件</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Yu Long Chen Michael Davidson Morris Dworkin John Kelsey Yu Sasaki Meltem Sönmez Turan Donghoon Chang Nicky Mouha Alyssa Thompson</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Yu Long Chen Michael Davidson Morris Dworkin John Kelsey Yu Sasaki Meltem Sönmez Turan Donghoon Chang Nicky Mouha Alyssa Thompson</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8552</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のURLから無償で入手できます: https://doi.org/10.6028/NIST.IR.8552</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Interagency Report NIST IR 8552</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 省庁間報告書 NIST IR 8552</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Requirements for Cryptographic Accordions</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+暗号アコーディオンの要件</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Yu Long Chen Michael Davidson Morris Dworkin John Kelsey Yu Sasaki Meltem Sönmez Turan Computer Security Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Yu Long Chen Michael Davidson Morris Dworkin John Kelsey Yu Sasaki Meltem Sönmez Turan Computer Security Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Donghoon Chang Strativia Largo, MD</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Donghoon Chang Strativia Largo, MD</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Nicky Mouha FWI Fairfax, VA</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Nicky Mouha FWI Fairfax, VA</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Alyssa Thompson National Security Agency Guest Researcher, Computer Security Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Alyssa Thompson National Security Agency Guest Researcher, Computer Security Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8552</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のURLから無償で入手できます: https://doi.org/10.6028/NIST.IR.8552</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>April 2025</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2025年4月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 Howard Lutnick 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Craig Burkhardt, Acting Under Secretary of Commerce for Standards and Technology and Acting NIST Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Craig Burkhardt、商務次官代理（標準・技術担当）兼 NIST 所長代理</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順を適切に特定するため、商用・非商用を問わず、特定の機器、計器、ソフトウェア、または資材を挙げている場合があります。このような特定は、NIST がいかなる製品やサービスも推奨または是認していることを意味せず、挙げた資材や機器がその目的に最適であるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令上の責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関が利用できます。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合は、それらが引き続き有効です。計画や移行の目的から、連邦機関は NIST によるこれらの新しい刊行物の策定状況を注意深く追うべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されています。上記以外の多くの NIST サイバーセキュリティ刊行物は https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2025-04-02</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Publication History Approved by the NIST Editorial Review Board on 2025-04-02</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to cite this NIST Technical Series Publication Yu Long Chen, Michael Davidson, Morris Dworkin, John Kelsey, Yu Sasaki, Meltem Sönmez Turan, Donghoon Chang, Nicky Mouha, Alyssa Thompson (2025) Requirements for Cryptographic Accordions. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8552. https://doi.org/10.6028/NIST.IR.8552</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>How to cite this NIST Technical Series Publication Yu Long Chen, Michael Davidson, Morris Dworkin, John Kelsey, Yu Sasaki, Meltem Sönmez Turan, Donghoon Chang, Nicky Mouha, Alyssa Thompson (2025) Requirements for Cryptographic Accordions. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8552. https://doi.org/10.6028/NIST.IR.8552</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iDs Yu Long Chen: 0000-0002-6281-6430 Michael Davidson: 0000-0002-4862-5697 Morris Dworkin: 0000-0003-2745-9906 John Kelsey: 0000-0002-3427-1744 Yu Sasaki: 0000-0002-1273-2394 Meltem Sönmez Turan: 0000-0002-1950-7130 Donghoon Chang: 0009-0000-8496-703X Nicky Mouha: 0000-0001-8861-782X Alyssa Thompson: 0009-0009-8137-2589</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Author ORCID iDs Yu Long Chen: 0000-0002-6281-6430 Michael Davidson: 0000-0002-4862-5697 Morris Dworkin: 0000-0003-2745-9906 John Kelsey: 0000-0002-3427-1744 Yu Sasaki: 0000-0002-1273-2394 Meltem Sönmez Turan: 0000-0002-1950-7130 Donghoon Chang: 0009-0000-8496-703X Nicky Mouha: 0000-0001-8861-782X Alyssa Thompson: 0009-0009-8137-2589</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information ciphermodes@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Contact Information ciphermodes@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8552/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 本刊行物に関する追加情報は https://csrc.nist.gov/pubs/ir/8552/final で入手できます。関連コンテンツ、更新の可能性、文書の履歴も掲載されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+要旨</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report introduces the cryptographic accordion as a tweakable, variable-input-length strong pseudorandom permutation (VIL-SPRP) that is constructed from an underlying block cipher. An accordion facilitates the cryptographic processing of messages of various sizes while offering enhanced security compared to the approved block cipher modes of operation that are specified in the NIST SP 800-38 series. This report introduces associated terminology, outlines design requirements for accordions, and describes three categories of applications for them.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、基盤となるブロック暗号から構成される、トゥイーカブルで可変入力長の強擬似ランダム置換（VIL-SPRP）として、暗号アコーディオンを紹介します。アコーディオンは、さまざまなサイズのメッセージの暗号処理を容易にしつつ、NIST SP 800-38 シリーズで規定された承認済みのブロック暗号の動作モードに比べて強化されたセキュリティを提供します。本報告書は、関連する用語を導入し、アコーディオンの設計要件を概説し、アコーディオンの 3 つの応用カテゴリを説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>accordion; authenticated encryption; disk encryption; encode-then-encipher; key wrapping; length-preserving encryption.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>accordion; authenticated encryption; disk encryption; encode-then-encipher; key wrapping; length-preserving encryption.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準のインフラに技術的なリーダーシップを提供することで、米国経済と公共の福祉の向上に貢献しています。ITL は、情報技術の開発と生産的な利用を進めるため、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障に関わらない情報について、費用対効果の高いセキュリティとプライバシーのための管理、運用、技術、物理に関する標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">1.1. Historical Background</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">1.1. 歴史的背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">1.2. Layers of Components</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">1.2. 構成要素の階層</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2. The Accordion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2. アコーディオン</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.1. Notation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.1. 表記</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">2.2. Security Targets</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">2.2. セキュリティの目標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">2.2.1. Formal Goal</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">2.2.1. 形式的な目標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">2.2.2. Beyond-Birthday-Bound Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">2.2.2. バースデー限界を超えるセキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0004">2.2.3. Multi-User Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0004">2.2.3. マルチユーザーセキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.2.4. Key-Dependent-Input Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.2.4. 鍵依存入力に対するセキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0010">2.2.5. Post-Quantum Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0010">2.2.5. 耐量子セキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.3. Performance Targets</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.3. 性能の目標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0007">3. Requirements for Accordion Parameters</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0007">3. アコーディオンのパラメータの要件</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0009">3.1. Block Size</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0009">3.1. ブロックサイズ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">3.2. Key Size</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">3.2. 鍵サイズ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">3.3. Tweak Size</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">3.3. トゥイークのサイズ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0010">3.4. Message Lengths</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0010">3.4. メッセージ長</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0013">4. Derived Functions and Applications</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0013">4. 派生関数と応用</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0002">4.1. Authenticated Encryption with Associated Data (AEAD)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0002">4.1. 関連データ付き認証付き暗号（AEAD）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">4.2. Tweakable Encryption</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">4.2. トゥイーカブル暗号化</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0011">4.3. Deterministic Authenticated Encryption</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0011">4.3. 決定的認証付き暗号</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0009">4.4. Security Properties of the Derived Functions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0009">4.4. 派生関数のセキュリティ特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0011">4.4.1. Authentication</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0011">4.4.1. 認証</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0013">4.4.2. Key and Context Commitment</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0013">4.4.2. 鍵とコンテキストのコミットメント</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0010">4.4.3. Nonce Hiding</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0010">4.4.3. ナンスの秘匿</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0012">4.4.4. Release of Unverified Plaintext</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0012">4.4.4. 未検証の平文の解放</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0014">5. Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0014">5. 次のステップ</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While he was a guest researcher at NIST, Jinkeon Kang was a co-author of the discussion draft of this report [1] that was prepared for the NIST Worskhop on the Requirements for an Accordion Cipher Mode 2024. The participants in that workshop and the Third Workshop on Block Cipher Modes of Operation 2023 provided valuable feedback for the development of this publication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Jinkeon Kang は、NIST の客員研究員であった間、NIST Workshop on the Requirements for an Accordion Cipher Mode 2024 のために作成された本報告書の討議用ドラフト [1] の共著者でした。そのワークショップと Third Workshop on Block Cipher Modes of Operation 2023 の参加者は、本刊行物の策定に貴重なフィードバックを寄せてくださいました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors also appreciate the support of colleagues in NIST’s Computer Security Division, especially Andrew Regenscheid, Lily Chen, Ray Perlner, Daniel Smith-Tone, Elaine Barker, James Foti, and Sara Kerman.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者らはまた、NIST のコンピュータセキュリティ部門の同僚、特に Andrew Regenscheid、Lily Chen、Ray Perlner、Daniel Smith-Tone、Elaine Barker、James Foti、Sara Kerman の支援に感謝します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A mode of operation is a method that defines how a block cipher cryptographically processes (e.g., encrypts and/or authenticates) data beyond a single block length. The National Institute of Standards and Technology (NIST) Special Publication (SP) 800-38 series [2–10] specifies several modes that were submitted for NIST’s consideration from several different sources over many years to address a variety of security requirements and use cases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動作モードとは、ブロック暗号が、単一のブロック長を超えるデータをどのように暗号処理（たとえば、暗号化や認証）するかを定める方法です。米国国立標準技術研究所（NIST）の Special Publication（SP）800-38 シリーズ [2–10] は、さまざまなセキュリティ要件とユースケースに対応するために、長年にわたり複数の異なる提案元から NIST の検討に提出された、いくつかのモードを規定しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST introduces the term cryptographic accordion — or simply accordion — to describe a technique constructed from an underlying block cipher that itself acts like a cipher on inputs of varying sizes. Thus, an accordion is simultaneously a cipher and a mode of the underlying block cipher. Formally, an accordion is defined as a tweakable, variable-input-length-strong pseudorandom permutation (VIL-SPRP) that is constructed from an underlying block cipher. NIST expects to develop one or more accordions with a generic proof of security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、基盤となるブロック暗号から構成され、それ自体がさまざまなサイズの入力に対する暗号のように振る舞う技術を表すために、暗号アコーディオン、または単にアコーディオンという用語を導入します。したがって、アコーディオンは同時に、暗号であり、かつ基盤となるブロック暗号の動作モードでもあります。形式的には、アコーディオンは、基盤となるブロック暗号から構成される、トゥイーカブルで可変入力長の強擬似ランダム置換（VIL-SPRP）として定義されます。NIST は、汎用的な安全性証明を備えた 1 つ以上のアコーディオンを開発することを見込んでいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The limitations of the current NIST modes were identified in NIST Internal Report (IR) 8459 [11] as part of NIST’s review process under the auspices of the NIST Crypto Publication Review Board.<sup>1</sup> NIST hosted the Third Workshop on Block Cipher Modes of Operation 2023<sup>2</sup> to discuss how to improve NIST’s modes portfolio, including desirable additional security features and a variety of proposed techniques. As a follow up, NIST hosted the NIST Workshop on the Requirements for an Accordion Cipher Mode 2024 [12] to 1) propose the development of an accordion as a comprehensive solution for a variety of cryptographic functionalities and 2) solicit feedback on the design requirements.<sup>3</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現行の NIST モードの限界は、NIST Crypto Publication Review Board の主導による NIST のレビュープロセスの一環として、NIST Internal Report（IR）8459 [11] で特定されました。<sup>1</sup>NIST は、NIST のモードのポートフォリオをどう改善するかを議論するため、望ましい追加のセキュリティ機能や提案されたさまざまな技術を含めて、Third Workshop on Block Cipher Modes of Operation 2023<sup>2</sup> を開催しました。その後の取り組みとして、NIST は、1) さまざまな暗号機能の包括的な解決策としてのアコーディオンの開発を提案し、2) 設計要件についてのフィードバックを募るため、NIST Workshop on the Requirements for an Accordion Cipher Mode 2024 [12] を開催しました。<sup>3</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this report, the cryptographic functions that may be constructed from an accordion are called derived functions. These derived functions can use the properties of the accordion to offer improved security, usage bounds, and functionality over existing modes. For example, a derived function for authenticated encryption with associated data (AEAD) could provide additional security properties compared to Galois/Counter Mode (GCM) [6], such as nonce-misuse resistance, support for short tags, nonce hiding, and key commitment. These features could make the accordion-based derived function a more robust choice than GCM for many cryptographic applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書では、アコーディオンから構成できる暗号関数を派生関数と呼びます。これらの派生関数は、アコーディオンの特性を利用して、既存のモードよりも優れたセキュリティ、使用上の限界、機能を提供できます。たとえば、関連データ付き認証付き暗号（AEAD）の派生関数は、ナンス誤用耐性、短いタグのサポート、ナンスの秘匿、鍵コミットメントなど、Galois/Counter Mode（GCM）[6] に比べて追加のセキュリティ特性を提供できます。これらの機能により、アコーディオンベースの派生関数は、多くの暗号アプリケーションにとって、GCM よりも堅牢な選択肢になりえます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another benefit is that an accordion facilitates the conceptual separation of the enciphering from the functional roles of different types of inputs (e.g., confidential data, associated data, randomization values, and nonces). This separation should promote easier, faster, and simpler deployment compared to the ad hoc development of dedicated modes for specific functionalities and security features.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>もう 1 つの利点は、アコーディオンによって、暗号化の処理と、種類の異なる入力（たとえば、機密データ、関連データ、ランダム化値、ナンス）の機能上の役割とを、概念的に切り離しやすくなることです。この分離により、特定の機能やセキュリティ機能のための専用モードを場当たり的に開発する場合に比べて、展開がより容易で迅速、かつ単純になるはずです。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">1 The Crypto Publication Review Board within the Computer Security Division identifies a publication for review based on its original publishing date and any relevant issues raised since it was published. See https://csrc.nist.gov/projects/crypto-publication-review-project.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+1 コンピュータセキュリティ部門の Crypto Publication Review Board は、刊行物の当初の発行日と、発行後に提起された関連する問題に基づいて、レビューの対象となる刊行物を特定します。https://csrc.nist.gov/projects/crypto-publication-review-project を参照してください。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0007-s1" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">2 See https://csrc.nist.gov/Events/2023/third-workshop-on-block-cipher-modes-of-operation.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+2 https://csrc.nist.gov/Events/2023/third-workshop-on-block-cipher-modes-of-operation を参照してください。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0007-s2" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">3 Prior to the workshop, NIST released a discussion draft this report [1].<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+3 ワークショップに先立ち、NIST は本報告書の討議用ドラフト [1] を公開しました。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. Historical Background</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. 歴史的背景</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The notion of an accordion as a tweakable VIL-SPRP evolved from related terminology in the academic literature. The term strong pseudorandom permutation (SPRP) formally captures the idea that changing any bit of the input randomizes every bit of output for both the permutation and its inverse. The term enciphering mode describes a block cipher mode of operation that provides length-preserving encryption for variable input length (VIL) messages. The term tweakable enciphering mode indicates that the enciphering mode would take an additional input called a tweak, which was first introduced only in the context of a tweakable block cipher [13] (i.e., with fixed-length input).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トゥイーカブルな VIL-SPRP としてのアコーディオンという概念は、学術文献の関連用語から発展しました。強擬似ランダム置換（SPRP）という用語は、入力のどのビットを変えても、置換とその逆置換の両方で出力のすべてのビットがランダム化されるという考え方を形式的に表現したものです。暗号化モード（enciphering mode）という用語は、可変入力長（VIL）のメッセージに対して長さを保存する暗号化を提供するブロック暗号の動作モードを表します。トゥイーカブル暗号化モード（tweakable enciphering mode）という用語は、暗号化モードがトゥイークと呼ばれる追加の入力を取ることを示します。トゥイークは、当初はトゥイーカブルブロック暗号 [13]（すなわち、固定長入力のもの）の文脈でのみ導入されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some early works are CMC [14], EME [15], and the Hasty Pudding Cipher [16]. Several related design approaches have since emerged, such as AEZ [17], HCTR2 [18], Glevian and Vigornian [19], and Docked Double Decker [20]. There are also constructions based on other primitives (e.g., XChacha [21]) and tweakable block ciphers (e.g., Adiantum [22] and ZCZ [23]). Bellare and Rogaway’s encode-then-encipher encryption [24] is an example of a technique that could be applied to an accordion to achieve authenticated encryption. Another category of techniques that support variable input lengths is format-preserving encryption (FPE), though the input domain is usually small in this case. Moreover, NIST’s standard FF1 [10] for FPE, although AES-based, is expected to perform much less efficiently than a well-designed accordion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>初期の研究には、CMC [14]、EME [15]、Hasty Pudding Cipher [16] があります。その後、AEZ [17]、HCTR2 [18]、Glevian と Vigornian [19]、Docked Double Decker [20] など、関連する設計アプローチがいくつか現れました。他のプリミティブ（たとえば、XChacha [21]）やトゥイーカブルブロック暗号（たとえば、Adiantum [22] や ZCZ [23]）に基づく構成もあります。Bellare と Rogaway の encode-then-encipher 暗号化 [24] は、アコーディオンに適用して認証付き暗号を実現できる技術の一例です。可変入力長をサポートする技術の別のカテゴリに、フォーマット保存暗号化（FPE）がありますが、この場合、入力の領域は通常小さくなります。さらに、FPE 向けの NIST 標準 FF1 [10] は、AES ベースではあるものの、適切に設計されたアコーディオンよりはるかに効率が低いと見込まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While none of the above designs may meet the exact requirements that are outlined in this document, they provide valuable background and reference material.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上記の設計のいずれも、本書で概説する正確な要件を満たさない場合がありますが、貴重な背景と参照資料を提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2. Layers of Components</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2. 構成要素の階層</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion is one layer of a larger process for achieving a cryptographic functionality, as illustrated in Fig. 1. In particular, the underlying block cipher is the innermost layer, which is called by the accordion. The accordion is called by a derived function that defines how the accordion will be used but does not necessarily provide additional cryptographic processing of the inputs. For example, a derived function could provide AEAD functionality by encoding its inputs and providing them to the accordion. The derived function would then be called by an application, such as the Transport Layer Security (TLS) protocol for secure communication on the internet. One motivation for the development of an accordion is that it can support a variety of functionalities, which are currently met by ad hoc or dedicated modes of operation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンは、図 1 に示すように、暗号機能を実現するより大きなプロセスの 1 つの層です。特に、基盤となるブロック暗号は最も内側の層であり、アコーディオンから呼び出されます。アコーディオンは、アコーディオンをどう使うかを定めるものの、入力に対する追加の暗号処理を必ずしも提供しない派生関数から呼び出されます。たとえば、派生関数は、入力を符号化してアコーディオンに渡すことで、AEAD の機能を提供できます。派生関数はその後、インターネット上の安全な通信のための Transport Layer Security（TLS）プロトコルなどのアプリケーションから呼び出されます。アコーディオンを開発する動機の 1 つは、現在は場当たり的な、あるいは専用の動作モードで満たされているさまざまな機能を、アコーディオンがサポートできることです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The derived function layer will specify an encoding for the inputs to the accordion, and the accordion will specify the inputs for the block cipher. For an encryption application, the outer layer takes in the raw data to be encrypted and applies an encoding (e.g., by adding some integrity check bits). The shared secret or master key provided to the outer layer may be used directly as the encryption key for the accordion or to specify some new accordion key. Using any other inputs provided, the derived function layer defines a tweak for the accordion. The accordion tweak, encoded message, and accordion key are used to call the accordion encryption function. Within the accordion encryption, a block cipher key, which may be the same as the accordion key, is used to call the block cipher. The encoded message blocks are input to the block cipher encryption, and ciphertext blocks are returned. The accordion collects the ciphertext blocks into a single ciphertext, which is returned to the derived function.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>派生関数の層は、アコーディオンへの入力の符号化を指定し、アコーディオンは、ブロック暗号への入力を指定します。暗号化のアプリケーションでは、外側の層が、暗号化する生データを受け取り、符号化を適用します（たとえば、完全性チェック用のビットを追加します）。外側の層に与えられる共有シークレット鍵またはマスター鍵は、アコーディオンの暗号化鍵として直接使われることも、新しいアコーディオン鍵を指定するために使われることもあります。派生関数の層は、与えられたその他の入力を使って、アコーディオンのトゥイークを定めます。アコーディオンのトゥイーク、符号化されたメッセージ、アコーディオン鍵が、アコーディオンの暗号化関数の呼び出しに使われます。アコーディオンの暗号化の内部では、アコーディオン鍵と同じ場合もあるブロック暗号の鍵を使って、ブロック暗号を呼び出します。符号化されたメッセージのブロックがブロック暗号の暗号化に入力され、暗号文ブロックが返されます。アコーディオンは、暗号文ブロックを 1 つの暗号文にまとめ、それが派生関数に返されます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0009-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8552/p0009-drawing-01.png" alt="Diagram of three nested boxes. The outer box is labeled &quot;Derived functions (AEAD, Tweakable encryption, DAE, etc.)&quot;, the middle box &quot;Accordion (using tweak)&quot;, and the inner box &quot;Block Cipher&quot;. Inside the inner box, a circle &quot;E&quot; takes input &quot;X&quot; from above and &quot;Key&quot; from the left, and outputs &quot;Y&quot; downward."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3重の入れ子の箱の図です。外側の箱は「Derived functions (AEAD, Tweakable encryption, DAE, etc.)」、中間の箱は「Accordion (using tweak)」、内側の箱は「Block Cipher」です。内側の箱の中で、円「E」に上から「X」、左から「Key」が入り、下へ「Y」が出ます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1. Layered structure of the accordion and derived functions</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. アコーディオンと派生関数の階層構造</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When the layer is clear from the context, the terminology can be simplified. For example, within the accordion level, the terms accordion key and encoded message can be shortened to the key and the message.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>文脈から層が明らかな場合は、用語を簡略化できます。たとえば、アコーディオンのレベルでは、アコーディオン鍵と符号化されたメッセージという用語を、鍵とメッセージに短縮できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST intends to develop and standardize an accordion that can support derived functions for at least three applications: AEAD, tweakable encryption, and deterministic authenticated encryption.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、少なくとも 3 つのアプリケーション、すなわち AEAD、トゥイーカブル暗号化、決定的認証付き暗号の派生関数をサポートできるアコーディオンを開発し、標準化することを意図しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. The Accordion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. アコーディオン</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section elaborates on the notation, definitions, and properties envisioned for approved accordions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、承認済みのアコーディオンについて想定する表記、定義、特性を詳しく説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Notation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. 表記</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion will have several parameters that are fixed within a given instance. The eventual accordion standard may support multiple parameter sets. The following table provides the notation for elements of an accordion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンには、特定のインスタンス内で固定されるパラメータがいくつかあります。最終的なアコーディオン標準は、複数のパラメータセットをサポートする可能性があります。次の表は、アコーディオンの要素の表記を示します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Symbol</th><th>Definition</th></tr></thead><tbody><tr><td>\(a\)</td><td>Integer such that \(ag\) is the minimum allowed message size in bits</td></tr><tr><td>\(b\)</td><td>Integer such that \(bg\) is the maximum allowed message size in bits</td></tr><tr><td>\(C\)</td><td>Ciphertext</td></tr><tr><td>\(E\)</td><td>Underlying block cipher</td></tr><tr><td>\(g\)</td><td>Granularity of message sizes</td></tr><tr><td>\(K\)</td><td>Secret key</td></tr><tr><td>\(k\)</td><td>Length of the secret key \(K\) in bits</td></tr><tr><td>\(\ell\)</td><td>Length of the message \(M\) in bits</td></tr><tr><td>\(M\)</td><td>Message</td></tr><tr><td>\(n\)</td><td>Block size of block cipher \(E\)</td></tr><tr><td>\(T\)</td><td>Tweak</td></tr><tr><td>\(s\)</td><td>Length of tweak in bits</td></tr><tr><td>\(s_{min}\)</td><td>Minimum allowed bit size for tweak \(T\)</td></tr><tr><td>\(s_{max}\)</td><td>Maximum allowed bit size for tweak \(T\)</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>記号</th><th>定義</th></tr></thead><tbody><tr><td>\(a\)</td><td>\(ag\) が許容される最小のメッセージサイズ（ビット）となる整数</td></tr><tr><td>\(b\)</td><td>\(bg\) が許容される最大のメッセージサイズ（ビット）となる整数</td></tr><tr><td>\(C\)</td><td>暗号文</td></tr><tr><td>\(E\)</td><td>基盤となるブロック暗号</td></tr><tr><td>\(g\)</td><td>メッセージサイズの粒度</td></tr><tr><td>\(K\)</td><td>共通鍵</td></tr><tr><td>\(k\)</td><td>共通鍵 \(K\) の長さ（ビット）</td></tr><tr><td>\(\ell\)</td><td>メッセージ \(M\) の長さ（ビット）</td></tr><tr><td>\(M\)</td><td>メッセージ</td></tr><tr><td>\(n\)</td><td>ブロック暗号 \(E\) のブロックサイズ</td></tr><tr><td>\(T\)</td><td>トゥイーク</td></tr><tr><td>\(s\)</td><td>トゥイークの長さ（ビット）</td></tr><tr><td>\(s_{min}\)</td><td>トゥイーク \(T\) に許容される最小のビットサイズ</td></tr><tr><td>\(s_{max}\)</td><td>トゥイーク \(T\) に許容される最大のビットサイズ</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion consists of the encryption algorithm \(\mathtt{A.enc}\) and the decryption algorithm \(\mathtt{A.dec}\).<sup>4</sup> The three inputs to \(\mathtt{A.enc}\) are a secret key \(K \in \{0,1\}^k\); a tweak \(T \in \{0,1\}^s\), where \(s_{min} \leq s \leq s_{max}\); and a message \(M \in \{0,1\}^\ell\), where \(\ell \in \{ag, (a+1)g, \ldots, bg\}\). The output is a ciphertext \(C \in \{0,1\}^\ell\):</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンは、暗号化アルゴリズム \(\mathtt{A.enc}\) と復号アルゴリズム \(\mathtt{A.dec}\) からなります。<sup>4</sup>\(\mathtt{A.enc}\) への 3 つの入力は、共通鍵 \(K \in \{0,1\}^k\)、トゥイーク \(T \in \{0,1\}^s\)（ただし \(s_{min} \leq s \leq s_{max}\)）、メッセージ \(M \in \{0,1\}^\ell\)（ただし \(\ell \in \{ag, (a+1)g, \ldots, bg\}\)）です。出力は暗号文 \(C \in \{0,1\}^\ell\) です。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0036">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\mathtt{A.enc}(K, T, M) = C. \tag{1}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\mathtt{A.enc}(K, T, M) = C. \tag{1}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0037">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For any fixed values of \(K\) and \(T\), \(\mathtt{A.enc}\) is a permutation, and the decryption algorithm \(\mathtt{A.dec}\) is its inverse so that</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(K\) と \(T\) の任意の固定値に対して、\(\mathtt{A.enc}\) は置換であり、復号アルゴリズム \(\mathtt{A.dec}\) はその逆であるため、次が成り立ちます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0039">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\mathtt{A.dec}(K, T, C) = M. \tag{2}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\mathtt{A.dec}(K, T, C) = M. \tag{2}\]        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0010-b0039-s1" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">4 Although the names of these functions and the term ciphertext suggest a focus on confidentiality applications, an accordion may also support applications that do not require confidentiality (e.g., authentication only). Similarly, the term message can refer to any kind of data input to the accordion.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+4 これらの関数の名前と暗号文という用語は、機密性を目的とするアプリケーションに焦点を当てていることを示唆しますが、アコーディオンは、機密性を必要としないアプリケーション（たとえば、認証のみ）もサポートできます。同様に、メッセージという用語は、アコーディオンへのあらゆる種類のデータ入力を指しえます。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Security Targets</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. セキュリティの目標</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion design should support each of the following security goals to the highest extent reasonable, and a specification for the design should include analysis of the security goals and identify the level of security achieved for each.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンの設計は、次の各セキュリティ目標を合理的な範囲で最大限にサポートすべきであり、設計の仕様には、セキュリティ目標の分析を含め、それぞれで達成されるセキュリティのレベルを特定すべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1. Formal Goal</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1. 形式的な目標</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A \((q, \sigma, t)\)-distinguisher against an accordion is an algorithm \(\mathcal{D}\) making at most \(q\) oracle queries with the total number of queried blocks being at most \(\sigma\), running in time at most \(t\), and outputting a single bit \(b\). The following game defines the security that is expected from this construction:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンに対する \((q, \sigma, t)\)-識別器とは、\(\mathcal{D}\) で表され、最大 \(q\) 回のオラクルクエリを行い、問い合わせるブロックの総数が最大 \(\sigma\)、実行時間が最大 \(t\) で、1 ビット \(b\) を出力するアルゴリズムです。次のゲームが、この構成に期待されるセキュリティを定義します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">At the beginning of the game, the challenger generates a bit \(b\) and a key \(K\) uniformly at random.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">ゲームの開始時に、チャレンジャーが、ビット \(b\) と鍵 \(K\) を一様ランダムに生成します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">The distinguisher \(\mathcal{D}\) is allowed to make up to \(q\) queries to the challenger of the form encrypt\((T, x)\) or decrypt\((T, x)\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">識別器 \(\mathcal{D}\) は、最大 \(q\) 回、チャレンジャーに対して encrypt\((T, x)\) または decrypt\((T, x)\) の形式のクエリを行えます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) If \(b = 0\), the challenger answers these queries as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) \(b = 0\) の場合、チャレンジャーはこれらのクエリに次のように答えます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\begin{aligned}\text{encrypt}(T, x) &= \mathtt{A.enc}(K, T, x)\\ \text{decrypt}(T, x) &= \mathtt{A.dec}(K, T, x).\end{aligned}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\begin{aligned}\text{encrypt}(T, x) &= \mathtt{A.enc}(K, T, x)\\ \text{decrypt}(T, x) &= \mathtt{A.dec}(K, T, x).\end{aligned}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(b) If \(b = 1\), then for each distinct choice of \((T, |x|)\), where \(|x|\) denotes the length of \(x\) in bits, the challenger selects and remembers a new random permutation on \(2^{|x|}\) elements, \(\Pi_{T,|x|}\). It answers queries using \(\Pi_{T,|x|}, \Pi^{-1}_{T,|x|}\) as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(b) \(b = 1\) の場合、\((T, |x|)\) の異なる選択ごとに（\(|x|\) は \(x\) のビット長を表す）、チャレンジャーは \(2^{|x|}\) 個の要素上の新しいランダム置換 \(\Pi_{T,|x|}\) を選んで記憶します。チャレンジャーは、\(\Pi_{T,|x|}, \Pi^{-1}_{T,|x|}\) を使って、クエリに次のように答えます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\begin{aligned}\text{encrypt}(T, x) &= \Pi_{T,|x|}(x)\\ \text{decrypt}(T, x) &= \Pi^{-1}_{T,|x|}(x).\end{aligned}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\begin{aligned}\text{encrypt}(T, x) &= \Pi_{T,|x|}(x)\\ \text{decrypt}(T, x) &= \Pi^{-1}_{T,|x|}(x).\end{aligned}\]        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">After making \(q\) such queries, the distinguisher \(\mathcal{D}\) must guess \(b\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">このようなクエリを \(q\) 回行った後、識別器 \(\mathcal{D}\) は \(b\) を推測しなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion is required to ensure that for any \((q, \sigma, t)\)-distinguisher \(\mathcal{D}\), the advantage of winning this game is negligibly small for relevant values of \(q\), \(\sigma\), and \(t\). The relevant values for \(q\), \(\sigma\), and \(t\) will depend on the block size, the key size, the accordion, and the computation model used for the adversary. For example, the time \(t\) for a purely classical adversary will always be bounded above by \(2^{|K|}\). Additionally, NIST may consider various approaches to defining the time parameter \(t\) with respect to parallelization, memory access costs, communications overhead, and other estimated costs of an attack and may relate relevant values of \(t\) to the security strength categories defined in the NIST PQC standardization process [25] and used in NIST’s transition plan to PQC [26].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンは、任意の \((q, \sigma, t)\)-識別器 \(\mathcal{D}\) について、このゲームに勝つアドバンテージが、\(q\)、\(\sigma\)、\(t\) の関連する値に対して無視できるほど小さいことを確実にすることが求められます。\(q\)、\(\sigma\)、\(t\) の関連する値は、ブロックサイズ、鍵サイズ、アコーディオン、攻撃者に使う計算モデルによって決まります。たとえば、純粋に古典的な攻撃者の時間 \(t\) は、常に \(2^{|K|}\) で上から抑えられます。さらに、NIST は、並列化、メモリアクセスのコスト、通信のオーバーヘッド、その他の攻撃の推定コストに関して、時間パラメータ \(t\) を定義するさまざまなアプローチを検討する場合があり、\(t\) の関連する値を、NIST の PQC 標準化プロセス [25] で定義され、NIST の PQC への移行計画 [26] で使われているセキュリティ強度のカテゴリと関連付ける場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.2. Beyond-Birthday-Bound Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.2. バースデー限界を超えるセキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The usage bounds of many cryptographic techniques are limited by the “birthday bound,” where collisions (i.e., repetitions among a set of randomly generated data blocks) can be expected to occur. A technique that is specifically designed to provide “beyond-birthday-bound” (BBB) security against generic cryptanalytic attacks would support less restrictive usage bounds on the amount of data that is processed per key.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くの暗号技術の使用上の限界は、衝突（すなわち、ランダムに生成されたデータブロックの集合の中での重複）が発生すると見込まれる「バースデー限界」によって制限されます。汎用的な暗号解読攻撃に対して「バースデー限界を超える」（BBB）セキュリティを提供するよう特に設計された技術は、鍵あたりで処理するデータ量に対する使用上の限界の制約が、より緩くなります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>More formally, for an accordion to support BBB security, the advantage of winning the game defined in Sec. 2.2.1 against any \((q, \sigma, t)\)-distinguisher \(\mathcal{D}\) should be negligibly small, even when \(2^{n/2}\) or more blocks of input are processed. Moreover, NIST expects the BBB security to hold for all queries, including multiple queries with the same tweak.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>より形式的には、アコーディオンが BBB セキュリティをサポートするには、任意の \((q, \sigma, t)\)-識別器 \(\mathcal{D}\) に対して、2.2.1 節で定義したゲームに勝つアドバンテージは、\(2^{n/2}\) ブロック以上の入力が処理される場合でも、無視できるほど小さくすべきです。さらに、NIST は、同じトゥイークでの複数のクエリを含め、すべてのクエリに対して BBB セキュリティが成り立つと期待しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.3. Multi-User Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.3. マルチユーザーセキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security bounds for primitives (e.g., an accordion or derived function) are typically given for a single user. Multi-user security considers how the security of these primitives changes as the number of independent users of the primitive gets larger. There are generic bounds on multi-user security, but a complete analysis requires consideration of how a given construction of a primitive affects its multi-user security (e.g., [27–36]).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プリミティブ（たとえば、アコーディオンや派生関数）のセキュリティ限界は、通常、単一のユーザーについて与えられます。マルチユーザーセキュリティは、プリミティブの独立したユーザーの数が増えるにつれて、これらのプリミティブのセキュリティがどう変化するかを考慮します。マルチユーザーセキュリティには汎用的な限界がありますが、完全な分析には、プリミティブの特定の構成がマルチユーザーセキュリティにどう影響するかの考慮が必要です（たとえば、[27–36]）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Evaluating how security degrades as the number of users grows is a challenging technical problem. While the generic bounds are acceptable, NIST prefers to standardize an accordion with better multi-user security than is provided by generic bounds.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ユーザー数が増えるにつれてセキュリティがどう劣化するかを評価することは、技術的に困難な問題です。汎用的な限界は許容できるものの、NIST は、汎用的な限界で提供されるより優れたマルチユーザーセキュリティを持つアコーディオンを標準化することを望んでいます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.4. Key-Dependent-Input Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.4. 鍵依存入力に対するセキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some applications involve encrypting inputs that include the key or are derived from the key in some way. For example, when the operating system swaps the contents of some memory page to disk, the storage encryption mode being used could encrypt a copy of its own key. The security proofs of most chaining modes do not cover this use case; the property required to ensure security is called security against key-dependent inputs (KDI security) [37–39]. As shown in [39], it is impossible to construct a KDI-secure deterministic construction (e.g., the accordion) if there is no restriction on generating KDIs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一部のアプリケーションでは、鍵を含む、あるいは何らかの形で鍵から導出された入力を暗号化します。たとえば、オペレーティングシステムが、メモリページの内容をディスクにスワップする際、使用中のストレージ暗号化モードが、自らの鍵のコピーを暗号化する場合があります。ほとんどのチェーニングモードの安全性証明は、このユースケースを対象としていません。セキュリティを確保するために必要な性質は、鍵依存入力に対するセキュリティ（KDI セキュリティ）と呼ばれます [37–39]。[39] で示されているとおり、KDI の生成に制限がない場合、KDI に対して安全な決定的構成（たとえば、アコーディオン）を構築することは不可能です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>However, it is expected that the typical application of an accordion for disk encryption will not have practical attacks in the KDI setting, as the attacks that were applicable to the initial drafts of the IEEE 1619 standard [11] are unlikely to apply to the setting where an accordion encrypts plaintexts whose size corresponds to an entire disk sector.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>しかし、ディスク暗号化へのアコーディオンの典型的な適用では、KDI の設定下で実用的な攻撃は生じないと見込まれます。IEEE 1619 標準 [11] の初期のドラフトに適用できた攻撃は、アコーディオンがディスクセクター全体に相当するサイズの平文を暗号化する設定には適用できそうにないためです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.5. Post-Quantum Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.5. 耐量子セキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is interested in both analysis and security proofs of the accordion in a quantum setting following the Q1 model [40–42], which assumes that a quantum adversary can only interact with the target primitive (i.e., make queries to Encrypt(T,x) and Decrypt(T,x)) through classical communication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、量子攻撃者が対象のプリミティブと古典的な通信を通じてのみやり取りできる（すなわち、Encrypt(T,x) と Decrypt(T,x) へのクエリのみを行える）と仮定する Q1 モデル [40–42] に従う、量子設定におけるアコーディオンの分析と安全性証明の両方に関心があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. Performance Targets</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. 性能の目標</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While performance is not as critical as security, the better an accordion performs, the more useful it is likely to be. The most important platform is likely to be relatively powerful processors in desktop or laptop computers and those used in cloud environments with hardware AES support. Performance in dedicated hardware, field programmable gate arrays, and constrained devices is also worthwhile but is not NIST’s focus for an accordion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>性能はセキュリティほど重要ではありませんが、アコーディオンの性能が高いほど、有用になる可能性が高くなります。最も重要なプラットフォームは、デスクトップやノート PC の比較的強力なプロセッサと、ハードウェアの AES サポートを備えたクラウド環境で使われるプロセッサになる可能性が高くあります。専用ハードウェア、フィールドプログラマブルゲートアレイ、制約のあるデバイスでの性能にも価値はありますが、アコーディオンについての NIST の焦点ではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The security requirements for an accordion require multiple passes over the message. Thus, it is almost certain to be slower than many existing one-pass block cipher modes, like GCM. However, an accordion will ideally not be significantly more expensive than twice the cost (e.g., in time, block cipher calls, gates) of GCM over the same input size.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンのセキュリティ要件には、メッセージに対する複数回のパスが必要です。したがって、GCM のような既存の多くの 1 パスのブロック暗号モードより遅くなることはほぼ確実です。ただし、アコーディオンは、同じ入力サイズに対する GCM のコスト（たとえば、時間、ブロック暗号の呼び出し、ゲート数）の 2 倍を大きく超えないことが理想的です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion should allow substantial parallelism for large input sizes. Modern CPUs often support multiple AES instructions or other operations in parallel, and an accordion should allow the user to take advantage of this.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンは、大きな入力サイズに対して大幅な並列処理を可能にすべきです。最近の CPU は、複数の AES 命令やその他の演算を並列にサポートすることが多く、アコーディオンは、ユーザーがこれを活用できるようにすべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An accordion should not impose too much additional overhead on small input sizes. An accordion that does a substantial amount of setup work before processing an input block will generally perform poorly on small inputs. Some applications require efficient processing of even relatively short messages.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンは、小さな入力サイズに過度な追加のオーバーヘッドを課すべきではありません。入力ブロックを処理する前に相当量のセットアップ作業を行うアコーディオンは、一般に小さな入力に対する性能が低くなります。一部のアプリケーションでは、比較的短いメッセージでも効率的な処理が必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Requirements for Accordion Parameters</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. アコーディオンのパラメータの要件</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section proposes the ranges of sizes/lengths that should be required or supported for accordion parameters.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、アコーディオンのパラメータについて、必須とすべき、あるいはサポートすべきサイズ／長さの範囲を提案します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Block Size</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. ブロックサイズ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST has proposed to approve a block cipher with 256-bit blocks [43] and, therefore, expects to develop an accordion with \(n = 256\). This main accordion, denoted by ACC256, would provide very high assurance against generic cryptanalytic attacks with relatively little performance overhead.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、256 ビットブロックのブロック暗号を承認することを提案しており [43]、したがって \(n = 256\) のアコーディオンの開発を見込んでいます。ACC256 と表されるこの主要なアコーディオンは、比較的小さな性能オーバーヘッドで、汎用的な暗号解読攻撃に対して非常に高い保証を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST also expects to develop two accordions with \(n = 128\) for compatibility with existing implementations of the AES block cipher [44]. One option, denoted by ACC128, would have an analogous design to ACC256. The second option, denoted by BBBACC, would provide BBB security against generic cryptanalytic attacks, as discussed in Sec. 2.2.2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST はまた、AES ブロック暗号 [44] の既存の実装との互換性のために、\(n = 128\) の 2 つのアコーディオンの開発を見込んでいます。1 つ目の選択肢である ACC128 は、ACC256 と類似の設計になります。2 つ目の選択肢である BBBACC は、2.2.2 節で論じたとおり、汎用的な暗号解読攻撃に対して BBB セキュリティを提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. Key Size</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. 鍵サイズ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST requires any approved accordion to support \(k = 256\) and may also allow \(k = 128\) or \(k = 192\) for ACC128 or BBBACC.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、承認されるすべてのアコーディオンが \(k = 256\) をサポートすることを求め、ACC128 または BBBACC については \(k = 128\) や \(k = 192\) も許容する場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3. Tweak Size</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3. トゥイークのサイズ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST requires all three accordions to support variable-length tweaks with some minimum bit length \(s_{min}\) and up to some maximum bit length \(s_{max}\). For some applications, NIST expects that the accordion will need to support tweaks with a large maximum length. For example, in order to efficiently construct an AEAD derived function from an accordion, the tweak will likely contain the AEAD’s associated data. The value for \(s_{min}\) should be at most that of the block size \(n\), and the value of \(s_{max}\) should be at least \(2^{48}\) bits. While some applications (e.g., storage encryption) can take advantage of more efficient processing for tweaks that are short and of a fixed length, supporting fixed-length tweaks alone is insufficient. An accordion must be capable of handling the full range of required tweak lengths, even if it optimizes for specific, fixed-length tweaks to enhance performance in certain use cases. The ability to process variable-length tweaks remains essential to ensure flexibility and compatibility across diverse applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、3 つのアコーディオンすべてが、最小ビット長 \(s_{min}\) 以上、最大ビット長 \(s_{max}\) 以下の可変長トゥイークをサポートすることを求めます。一部のアプリケーションでは、アコーディオンが最大長の大きいトゥイークをサポートする必要があると NIST は見込んでいます。たとえば、アコーディオンから AEAD 派生関数を効率的に構成するには、トゥイークに AEAD の関連データが含まれる可能性が高いです。\(s_{min}\) の値はブロックサイズ \(n\) 以下とし、\(s_{max}\) の値は少なくとも \(2^{48}\) ビットとすべきです。一部のアプリケーション（たとえば、ストレージ暗号化）では、短い固定長のトゥイークをより効率的に処理できますが、固定長のトゥイークだけをサポートするのでは不十分です。特定のユースケースで性能を高めるために特定の固定長トゥイークに最適化する場合でも、アコーディオンは必要なトゥイーク長の全範囲を扱える必要があります。多様なアプリケーション間で柔軟性と互換性を確保するには、可変長トゥイークを処理できることが引き続き不可欠です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4. Message Lengths</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4. メッセージ長</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Given the granularity \(g\), the minimum message bit length \(ag\), and the maximum message bit length \(bg\), an accordion supports a total of \((b - a + 1)\) allowed message lengths \(\ell \in \{ag, (a+1)g, \ldots, bg\}\). An accordion with a granularity of one bit (\(g = 1\)) can process any message between its minimum and maximum length, whereas a scheme with a granularity of 128 bits can only process messages whose length is a multiple of 128 bits between its minimum and maximum lengths.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>粒度 \(g\)、最小のメッセージビット長 \(ag\)、最大のメッセージビット長 \(bg\) が与えられると、アコーディオンは、合計 \((b - a + 1)\) 個の許容されるメッセージ長 \(\ell \in \{ag, (a+1)g, \ldots, bg\}\) をサポートします。粒度が 1 ビット（\(g = 1\)）のアコーディオンは、最小長と最大長の間の任意のメッセージを処理できますが、粒度が 128 ビットの方式は、最小長と最大長の間で、長さが 128 ビットの倍数であるメッセージしか処理できません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST requires a granularity of \(g \leq 8\) and the minimum message length \(ag\) to be at most \(2n\) bits for any accordion. NIST also requires the maximum message length to be at least \(2^{96}\) bits for ACC256, at least \(2^{48}\) bits for ACC128, and at least \(2^{64}\) bits for BBBACC.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、あらゆるアコーディオンについて、粒度が \(g \leq 8\) であり、最小のメッセージ長 \(ag\) が最大でも \(2n\) ビットであることを求めます。NIST はまた、最大のメッセージ長が、ACC256 では少なくとも \(2^{96}\) ビット、ACC128 では少なくとも \(2^{48}\) ビット、BBBACC では少なくとも \(2^{64}\) ビットであることを求めます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Derived Functions and Applications</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 派生関数と応用</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section describes the derived functions of an accordion for the following three categories of applications: AEAD, tweakable encryption, and deterministic authenticated encryption (DAE). Each of these functions will have some application-specific inputs along with the message and a key. The particular use case of the function motivates a set of properties that should be achieved. For example, AEAD by definition includes a means of data authentication, while tweakable encryption does not. The following subsections provide 1) some guidelines for each of the derived functions, 2) an indication of how the functions could be constructed out of an accordion, and 3) discussion of additional security considerations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、次の 3 つのアプリケーションカテゴリ、すなわち AEAD、トゥイーカブル暗号化、決定的認証付き暗号（DAE）について、アコーディオンの派生関数を説明します。これらの各関数には、メッセージと鍵のほかに、アプリケーション固有の入力があります。関数の個別のユースケースによって、達成すべき一連の特性が決まります。たとえば、AEAD は定義上データ認証の手段を含みますが、トゥイーカブル暗号化は含みません。以降の小節では、1) 各派生関数のガイドライン、2) 関数をアコーディオンからどう構成できるかの目安、3) 追加のセキュリティ上の考慮事項の議論を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Authenticated Encryption with Associated Data (AEAD)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. 関連データ付き認証付き暗号（AEAD）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An AEAD scheme uses a key, a nonce, and optional associated data to encrypt a plaintext into a ciphertext while authenticating the plaintext and associated data. One possible construction for authenticated encryption from an accordion is shown in Fig. 2. In this example, the accordion message consists of the plaintext padded with \(\tau\) fixed bits (zeros) to support authentication<sup>5</sup>, which is verified upon decryption (not depicted). This construction encodes the nonce and any associated data into the accordion tweak.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AEAD 方式は、鍵、ナンス、任意の関連データを使い、平文と関連データを認証しながら、平文を暗号文に暗号化します。アコーディオンから認証付き暗号を構成する方法の一つを、図 2 に示します。この例では、アコーディオンのメッセージは、認証をサポートするために \(\tau\) 個の固定ビット（ゼロ）で埋めた平文からなり<sup>5</sup>、復号時に検証されます（図示せず）。この構成は、ナンスと任意の関連データをアコーディオンのトゥイークに符号化します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In practice, it can be difficult to ensure that nonces are not repeated. Therefore, nonce misuse resistance is an important property for an AEAD scheme. If the nonce is encoded as part of the tweak, then the security definition of the accordion ensures that repetition of the tweak<sup>6</sup> imposes the smallest possible security loss. Accordions are deterministic, so any invocations of the accordion on the same input — including the same tweak — will result in the same output. Otherwise, each new invocation will appear to be randomly selected from the set of not-yet-seen outputs of the correct length from the accordion function.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実際には、ナンスが繰り返されないことを確実にするのは難しい場合があります。したがって、ナンス誤用耐性は AEAD 方式にとって重要な特性です。ナンスをトゥイークの一部として符号化すれば、アコーディオンのセキュリティ定義により、トゥイークの繰り返し<sup>6</sup>によるセキュリティ上の損失が最小限に抑えられることが保証されます。アコーディオンは決定的であるため、同じトゥイークを含む同じ入力でアコーディオンを呼び出すと、常に同じ出力になります。それ以外の場合、新しい呼び出しのたびに、アコーディオン関数から得られる、まだ確認されていない正しい長さの出力の集合から、ランダムに選ばれたように見える出力が得られます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0015-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8552/p0015-drawing-01.png" alt="Diagram: boxes &quot;Nonce&quot; and &quot;Associated Data&quot; are joined by a brace into an arrow labeled &quot;Tweak&quot; that enters &quot;Accordion&quot;; &quot;Key&quot; also enters &quot;Accordion&quot;. Boxes &quot;Plaintext&quot; and &quot;00…0&quot; are joined by a brace into the top of &quot;Accordion&quot;; a double arrow labeled τ above &quot;00…0&quot; marks its width. &quot;Accordion&quot; outputs &quot;Ciphertext&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図では、箱「Nonce」と「Associated Data」が波括弧でまとめられ、「Tweak」と書かれた矢印として「Accordion」に入ります。「Key」も「Accordion」に入ります。箱「Plaintext」と「00…0」は波括弧でまとめられて「Accordion」の上から入り、「00…0」の上の両向き矢印 τ がその幅を示します。「Accordion」から「Ciphertext」が出ます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2. Accordion-based authenticated encryption using an encode-then-encipher approach</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2. encode-then-encipher アプローチを用いた、アコーディオンベースの認証付き暗号</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">5 It is possible to specify a message encoding that also hides the length of the plaintext.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+5 平文の長さも隠すメッセージ符号化を指定することも可能です。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0013-s1" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">6 This repetition constitutes “nonce misuse” in the context of the AEAD scheme, even though tweaks are permitted to repeat at the accordion level.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+6 この繰り返しは、アコーディオンのレベルではトゥイークの繰り返しが許容されていても、AEAD 方式の文脈では「ナンスの誤用」にあたります。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Tweakable Encryption</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. トゥイーカブル暗号化</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A tweakable encryption derived function includes a tweak input to the accordion to encrypt a message. Unlike the AEAD case, an integrity check value is not encoded into the message, so message authentication is not provided. Although padding may still need to be applied to the message to reach an allowed message size, a small granularity could enable encryption without ciphertext expansion, making this derived function useful for storage encryption.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トゥイーカブル暗号化の派生関数は、メッセージを暗号化するために、アコーディオンへのトゥイークの入力を含みます。AEAD の場合と異なり、完全性チェック値はメッセージに符号化されないため、メッセージ認証は提供されません。許容されるメッセージサイズに合わせるために、メッセージにパディングを適用する必要が生じることがありますが、粒度が小さければ、暗号文が膨張しない暗号化が可能になり、この派生関数はストレージ暗号化に有用になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3 shows one possible derived function for tweakable encryption for storage devices. In this example, each data unit is encoded as a separate accordion message for which the accordion tweak is an encoding of the data unit’s index. For an accordion to be practical for this application, changing the tweak should be very efficient.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3 は、ストレージデバイス向けのトゥイーカブル暗号化の派生関数の一例を示します。この例では、各データ単位が個別のアコーディオンメッセージとして符号化され、アコーディオンのトゥイークはデータ単位のインデックスを符号化したものです。この用途でアコーディオンを実用的なものにするには、トゥイークの変更はきわめて効率的であるべきです。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0016-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8552/p0016-drawing-01.png" alt="Diagram: &quot;Data Unit Index&quot; leads to an arrow labeled &quot;Tweak&quot; into &quot;Accordion&quot;; &quot;Data Unit&quot; enters &quot;Accordion&quot; from above and &quot;Key&quot; from the left. &quot;Accordion&quot; outputs &quot;Ciphertext&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図では、「Data Unit Index」が「Tweak」と書かれた矢印として「Accordion」に入ります。「Data Unit」は上から、「Key」は左から「Accordion」に入り、「Accordion」から「Ciphertext」が出ます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3. Accordion-based tweakable encryption for storage devices</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3. ストレージデバイス向けの、アコーディオンベースのトゥイーカブル暗号化</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3. Deterministic Authenticated Encryption</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3. 決定的認証付き暗号</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A derived function for deterministic authenticated encryption (DAE) provides authentication without a tweak. A common use case for this derived function is key wrapping. As DAE does not involve a tweak, any constant minimal length tweak could be chosen to specify the mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>決定的認証付き暗号（DAE）の派生関数は、トゥイークなしで認証を提供します。この派生関数の一般的なユースケースは鍵ラッピングです。DAE はトゥイークを伴わないため、モードを指定するには、任意の定数の最小長のトゥイークを選べます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4 shows one possible construction for a derived function for key wrapping. In this example, the empty string is furnished as the accordion tweak. The plaintext input — an encoding of the key to be wrapped — is also padded with \(\tau\) fixed bits (zeros) as the accordion message. Upon decryption (not depicted), the \(\tau\) padding bits are verified for correctness to authenticate the message.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4 は、鍵ラッピングの派生関数の構成の一例を示します。この例では、アコーディオンのトゥイークとして空文字列が与えられます。平文入力（ラッピングする鍵の符号化）も、アコーディオンのメッセージとして \(\tau\) 個の固定ビット（ゼロ）で埋められます。復号時（図示せず）には、メッセージを認証するために、\(\tau\) 個のパディングビットが正しいことが検証されます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0017-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8552/p0017-drawing-01.png" alt="Diagram: &quot;Empty String&quot; leads to an arrow labeled &quot;Tweak&quot; into &quot;Accordion&quot;; &quot;Key Encryption Key&quot; also enters &quot;Accordion&quot;. Boxes &quot;Plaintext&quot; and &quot;00…0&quot; are joined by a brace into the top of &quot;Accordion&quot;; a double arrow labeled τ above &quot;00…0&quot; marks its width. &quot;Accordion&quot; outputs &quot;Ciphertext&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図では、「Empty String」が「Tweak」と書かれた矢印として「Accordion」に入ります。「Key Encryption Key」も「Accordion」に入ります。箱「Plaintext」と「00…0」は波括弧でまとめられて「Accordion」の上から入り、「00…0」の上の両向き矢印 τ がその幅を示します。「Accordion」から「Ciphertext」が出ます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4. Accordion-based DAE for key wrapping</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4. 鍵ラッピングのための、アコーディオンベースの DAE</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.4. Security Properties of the Derived Functions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.4. 派生関数のセキュリティ特性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The derived functions should support each of the security properties described below to the highest extent reasonable. A specification of the derived functions should include analysis of the security goals and identify the level of security achieved for each.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>派生関数は、以下に述べるセキュリティ特性のそれぞれを、合理的な範囲で最大限にサポートすべきです。派生関数の仕様には、セキュリティ目標の分析を含め、それぞれで達成されるセキュリティのレベルを特定すべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.4.1. Authentication</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.4.1. 認証</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The AEAD and DAE derived functions both support authentication of the input data. The number of bits of authentication security is \(\tau\), which means that \(2^{-\tau}\) is the maximum allowable probability that any given invalid ciphertext will be accepted as valid. The value of \(\tau\) also indicates the minimum number of bits of ciphertext expansion. A derived function that supports authentication will specify the set of values that are allowed for \(\tau\), which may include options for small ciphertext expansion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AEAD と DAE の派生関数はどちらも、入力データの認証をサポートします。認証セキュリティのビット数は \(\tau\) であり、任意の不正な暗号文が有効として受け入れられる確率の許容される最大値が \(2^{-\tau}\) であることを意味します。\(\tau\) の値は、暗号文の膨張の最小ビット数も示します。認証をサポートする派生関数は、\(\tau\) に許容される値の集合を指定し、その中に暗号文の膨張を小さくするオプションが含まれる場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.4.2. Key and Context Commitment</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.4.2. 鍵とコンテキストのコミットメント</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In many applications of cryptographic functions with authentication, it is important to have assurance that a given output can only be successfully authenticated when the key and other context (e.g., nonce and associated data) are correct (i.e., unchanged). In other words, it should be infeasible to find two different tuples of inputs that are cryptographically processed to the same output. This property is called key commitment when the key varies but the other context does not and context commitment when the key and other context may all vary.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証を伴う暗号関数の多くのアプリケーションでは、鍵とその他のコンテキスト（たとえば、ナンスと関連データ）が正しい（すなわち、変更されていない）場合にのみ、ある出力の認証が成功することの保証が重要です。言い換えれば、暗号処理して同じ出力になる、異なる 2 つの入力の組を見つけることは、計算上実行不可能であるべきです。この特性は、鍵が変化してその他のコンテキストは変化しない場合を鍵コミットメント、鍵とその他のコンテキストがすべて変化しうる場合をコンテキストコミットメントと呼びます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Formally, the “committing security” notions by Bellare and Hoang [45] are adapted: let \(C = F(K, P, U)\) be a derived function that processes key \(K\), (plaintext) message \(P\), and additional context \(U\) to produce (ciphertext) output \(C\). Key and context commitment are properties for which it should be computationally infeasible to find \(K_1, P_1, U_1, K_2, P_2\), and \(U_2\) such that \(F(K_1, P_1, U_1) = F(K_2, P_2, U_2)\). The key commitment property requires that \(K_1 \neq K_2\), while the context commitment property requires that \((K_1, P_1, U_1) \neq (K_2, P_2, U_2)\). For the AEAD derived function, this notion of key (context) commitment aligns with the definition in [45] for CMT-1 (CMT-4). Analogous definitions would apply for DAE and any other derived function with authentication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>形式的には、Bellare と Hoang [45] による「コミットメントセキュリティ」の概念を適用します。\(C = F(K, P, U)\) を、鍵 \(K\)、（平文の）メッセージ \(P\)、追加のコンテキスト \(U\) を処理して（暗号文の）出力 \(C\) を生成する派生関数とします。鍵とコンテキストのコミットメントとは、\(K_1, P_1, U_1, K_2, P_2, U_2\) であって \(F(K_1, P_1, U_1) = F(K_2, P_2, U_2)\) となるものを見つけることが計算上実行不可能であるという特性です。鍵コミットメントの特性では \(K_1 \neq K_2\) を要求し、コンテキストコミットメントの特性では \((K_1, P_1, U_1) \neq (K_2, P_2, U_2)\) を要求します。AEAD 派生関数では、この鍵（コンテキスト）コミットメントの概念は、[45] における CMT-1（CMT-4）の定義に対応します。DAE や、認証を伴うその他の派生関数にも同様の定義が当てはまります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Because key commitment is important in many real-world applications, NIST expects to require this property in the derived functions that support authentication. Although context commitment would also be useful, it seems less essential and possibly more difficult to achieve. For this reason, NIST does not require context commitment but would consider designs that support this property.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>鍵コミットメントは多くの実世界のアプリケーションで重要であるため、NIST は、認証をサポートする派生関数にこの特性を求めることを見込んでいます。コンテキストコミットメントも有用ですが、重要性はやや低く、達成がより難しい可能性があります。このため、NIST はコンテキストコミットメントを求めませんが、この特性をサポートする設計は検討します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.4.3. Nonce Hiding</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.4.3. ナンスの秘匿</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In some applications that involve a cryptographic function with a nonce, the nonce may reveal private data and should not be disclosed. A function that protects the contents of the nonce from disclosure is said to be nonce-hiding [46]. It is straightforward to construct derived functions for AEAD with this property.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ナンスを伴う暗号関数を使うアプリケーションの一部では、ナンスが非公開のデータを明らかにする場合があり、開示すべきではありません。ナンスの内容を開示から保護する関数は、ナンス秘匿（nonce-hiding）であると言われます [46]。この特性を持つ AEAD の派生関数を構成するのは簡単です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>4.4.4. Release of Unverified Plaintext</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+4.4.4. 未検証の平文の解放</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cryptographic functions that provide authentication are subject to a particular kind of implementation failure: they can reveal plaintext before it has been authenticated. This is often difficult to avoid, especially when very large messages are being processed. Security under the release of unverified plaintext (RUP) is a property of a cryptographic function with authentication that ensures that the adversary does not gain an advantage if authentication fails, even if the unauthenticated plaintext is released. Several variations of this notion exist [47–50], the strongest of which requires leakage to be indistinguishable from random data. Using an encode-then-encipher approach for authenticated encryption over the accordion provides assurance of RUP security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証を提供する暗号関数は、特有の種類の実装上の失敗を起こしえます。平文が認証される前に、それを明らかにしてしまう場合があります。これは、特に非常に大きなメッセージを処理している場合に、避けることが難しいことが多くあります。未検証の平文の解放（RUP）下でのセキュリティは、認証を伴う暗号関数の特性で、認証されていない平文が解放されたとしても、認証が失敗した場合に攻撃者が優位を得ないことを保証するものです。この概念にはいくつかの変種があり [47–50]、最も強いものは、漏えいがランダムなデータと区別できないことを求めます。アコーディオン上で認証付き暗号に encode-then-encipher アプローチを使うと、RUP セキュリティが保証されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 次のステップ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST intends to lead a collaborative, transparent process with the cryptographic community to develop accordions that are suitable for most general-purpose cryptographic applications, especially those that require confidentiality and/or authentication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、ほとんどの汎用の暗号アプリケーション、特に機密性または認証（あるいはその両方）を必要とするものに適したアコーディオンを開発するため、暗号コミュニティとの協調的で透明性のあるプロセスを主導することを意図しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST expects to release a series of increasingly specific proposals for public feedback, beginning with a recommendation for a high-level design approach based on the current state of the art and ending with a full specification that meets the requirements in this publication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、現在の技術水準に基づく高レベルの設計アプローチの推奨から始まり、本刊行物の要件を満たす完全な仕様に至るまで、段階的により具体的になる一連の提案を、一般からのフィードバックのために公開することを見込んでいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The ciphermodes-forum@list.nist.gov emailing list has been established for dialogue regarding NIST’s Block Cipher Modes project. To subscribe to the mailing list, visit https://groups.google.com/a/list.nist.gov/g/ciphermodes-forum.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ciphermodes-forum@list.nist.gov のメーリングリストは、NIST の Block Cipher Modes プロジェクトに関する対話のために設けられています。メーリングリストに登録するには、https://groups.google.com/a/list.nist.gov/g/ciphermodes-forum にアクセスしてください。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+References</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Chen YL, Davidson M, Dworkin M, Kang J, Kelsey J, Sasaki Y, Sönmez Turan M, Chang D, Mouha N, Thompson A (2024) Proposal of Requirements for an Accordion Mode – Discussion Draft for the NIST Accordion Mode Workshop 2024, National Institute of Standards and Technology, Workshop Discussion Draft. Available at https://csrc.nist.gov/files/pubs/other/2024/04/10/proposal-of-requirements-for-an-accordion-mode-dis/iprd/docs/proposal-of-requirements-for-an-accordion-mode-discussion-draft.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Chen YL, Davidson M, Dworkin M, Kang J, Kelsey J, Sasaki Y, Sönmez Turan M, Chang D, Mouha N, Thompson A (2024) Proposal of Requirements for an Accordion Mode – Discussion Draft for the NIST Accordion Mode Workshop 2024, National Institute of Standards and Technology, Workshop Discussion Draft. 入手先: https://csrc.nist.gov/files/pubs/other/2024/04/10/proposal-of-requirements-for-an-accordion-mode-dis/iprd/docs/proposal-of-requirements-for-an-accordion-mode-discussion-draft.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Dworkin M (2001) Recommendation for Block Cipher Modes of Operation: Methods and Techniques, NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Dworkin M (2001) Recommendation for Block Cipher Modes of Operation: Methods and Techniques, NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: Three Variants of Ciphertext Stealing for CBC Mode, Addendum to NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A-Add.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: Three Variants of Ciphertext Stealing for CBC Mode, Addendum to NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A-Add.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Dworkin M (2005) Recommendation for Block Cipher Modes of Operation: the CMAC Mode for Authentication, (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-38B. DOI:10.6028/NIST.SP.800-38B.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Dworkin M (2005) Recommendation for Block Cipher Modes of Operation: the CMAC Mode for Authentication, (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-38B. DOI:10.6028/NIST.SP.800-38B.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Dworkin M (2004) Recommendation for Block Cipher Modes of Operation: The CCM Mode for Authentication and Confidentiality, NIST SP 800-38C. https://doi.org/10.6028/NIST.SP.800-38C.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Dworkin M (2004) Recommendation for Block Cipher Modes of Operation: The CCM Mode for Authentication and Confidentiality, NIST SP 800-38C. https://doi.org/10.6028/NIST.SP.800-38C.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Dworkin M (2007) Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC, NIST SP 800-38D. https://doi.org/10.6028/NIST.SP.800-38D.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Dworkin M (2007) Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC, NIST SP 800-38D. https://doi.org/10.6028/NIST.SP.800-38D.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: The XTS-AES Mode for Confidentiality on Storage Devices, NIST SP 800-38E. https://doi.org/10.6028/NIST.SP.800-38E.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: The XTS-AES Mode for Confidentiality on Storage Devices, NIST SP 800-38E. https://doi.org/10.6028/NIST.SP.800-38E.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Dworkin M (2012) Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping, NIST SP 800-38F. https://doi.org/10.6028/NIST.SP.800-38F.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Dworkin M (2012) Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping, NIST SP 800-38F. https://doi.org/10.6028/NIST.SP.800-38F.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] Dworkin M (2016) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G. https://doi.org/10.6028/NIST.SP.800-38G.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] Dworkin M (2016) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G. https://doi.org/10.6028/NIST.SP.800-38G.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] Dworkin M, Mouha N (2025) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G Revision 1 Second Public Draft. https://doi.org/10.6028/NIST.SP.800-38Gr1.2pd.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] Dworkin M, Mouha N (2025) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G Revision 1 Second Public Draft. https://doi.org/10.6028/NIST.SP.800-38Gr1.2pd.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] Mouha N, Dworkin M (2024) Report on the Block Cipher Modes of Operation in the NIST SP 800-38 Series, NISTIR 8459. https://doi.org/10.6028/NIST.IR.8459.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] Mouha N, Dworkin M (2024) Report on the Block Cipher Modes of Operation in the NIST SP 800-38 Series, NISTIR 8459. https://doi.org/10.6028/NIST.IR.8459.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] Thompson A, Sönmez Turan M (2024) NIST Workshop on the Requirements for an Accordion Cipher Mode 2024: Workshop Report, NISTIR 8537. https://doi.org/10.6028/NIST.IR.8537.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] Thompson A, Sönmez Turan M (2024) NIST Workshop on the Requirements for an Accordion Cipher Mode 2024: Workshop Report, NISTIR 8537. https://doi.org/10.6028/NIST.IR.8537.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] Liskov MD, Rivest RL, Wagner DA (2002) Tweakable block ciphers. Advances in Cryptology - CRYPTO 2002, 22nd Annual International Cryptology Conference, Santa Barbara, California, USA, August 18-22, 2002, Proceedings, ed Yung M (Springer), Lecture Notes in Computer Science, Vol. 2442, pp 31–46. DOI:10.1007/3-540-45708-9\_3. Available at https://doi.org/10.1007/3-540-45708-9_3</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] Liskov MD, Rivest RL, Wagner DA (2002) Tweakable block ciphers. Advances in Cryptology - CRYPTO 2002, 22nd Annual International Cryptology Conference, Santa Barbara, California, USA, August 18-22, 2002, Proceedings, ed Yung M (Springer), Lecture Notes in Computer Science, Vol. 2442, pp 31–46. DOI:10.1007/3-540-45708-9\_3. 入手先: https://doi.org/10.1007/3-540-45708-9_3</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[14] Halevi S, Rogaway P (2003) A Tweakable Enciphering Mode. Advances in Cryptology - CRYPTO 2003, 23rd Annual International Cryptology Conference, Santa Barbara, California, USA, August 17-21, 2003, Proceedings, ed Boneh D (Springer), Lecture Notes in Computer Science, Vol. 2729, pp 482–499. Available at https://doi.org/10.1007/978-3-540-45146-4_28.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[14] Halevi S, Rogaway P (2003) A Tweakable Enciphering Mode. Advances in Cryptology - CRYPTO 2003, 23rd Annual International Cryptology Conference, Santa Barbara, California, USA, August 17-21, 2003, Proceedings, ed Boneh D (Springer), Lecture Notes in Computer Science, Vol. 2729, pp 482–499. 入手先: https://doi.org/10.1007/978-3-540-45146-4_28.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s14">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[15] Halevi S, Rogaway P (2004) A Parallelizable Enciphering Mode. Topics in Cryptology - CT-RSA 2004, The Cryptographers’ Track at the RSA Conference 2004, San Francisco, CA, USA, February 23-27, 2004, Proceedings, ed Okamoto T (Springer), Lecture Notes in Computer Science, Vol. 2964, pp 292–304. Available at https://doi.org/10.1007/978-3-540-24660-2_23.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[15] Halevi S, Rogaway P (2004) A Parallelizable Enciphering Mode. Topics in Cryptology - CT-RSA 2004, The Cryptographers’ Track at the RSA Conference 2004, San Francisco, CA, USA, February 23-27, 2004, Proceedings, ed Okamoto T (Springer), Lecture Notes in Computer Science, Vol. 2964, pp 292–304. 入手先: https://doi.org/10.1007/978-3-540-24660-2_23.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s15">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[16] Schroeppel R (1998) Hasty Pudding Cipher Specification. Available at http://richard.schroeppel.name:8015/hpc/hpc-spec.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[16] Schroeppel R (1998) Hasty Pudding Cipher Specification. 入手先: http://richard.schroeppel.name:8015/hpc/hpc-spec.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s16">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[17] Hoang VT, Krovetz T, Rogaway P (2017) AEZ v5: Authenticated encryption by enciphering. https://www.cs.ucdavis.edu/~rogaway/aez/aez.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[17] Hoang VT, Krovetz T, Rogaway P (2017) AEZ v5: Authenticated encryption by enciphering. https://www.cs.ucdavis.edu/~rogaway/aez/aez.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s17">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[18] Crowley P, Huckleberry N, Biggers E (2023) Length-preserving encryption with HCTR2, The Third NIST Workshop on Block Cipher Modes of Operation 2023. https://csrc.nist.gov/csrc/media/Events/2023/third-workshop-on-block-cipher-modes-of-operation/documents/accepted-papers/Length%20Preserving%20Encryption.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[18] Crowley P, Huckleberry N, Biggers E (2023) Length-preserving encryption with HCTR2, The Third NIST Workshop on Block Cipher Modes of Operation 2023. https://csrc.nist.gov/csrc/media/Events/2023/third-workshop-on-block-cipher-modes-of-operation/documents/accepted-papers/Length%20Preserving%20Encryption.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s18">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[19] Campbell P (2023) GLEVIAN and VIGORNIAN: Robust beyond-birthday AEAD modes, Cryptology ePrint Archive, Paper 2023/1379. Available at https://eprint.iacr.org/2023/1379.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[19] Campbell P (2023) GLEVIAN and VIGORNIAN: Robust beyond-birthday AEAD modes, Cryptology ePrint Archive, Paper 2023/1379. 入手先: https://eprint.iacr.org/2023/1379.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s19">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[20] Dobraunig C, Matusiewicz K, Mennink B, Tereschenko A (2024) Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption, NIST Workshop on the Requirements for an Accordion Cipher Mode 2024. https://csrc.nist.gov/csrc/media/Events/2024/accordion-cipher-mode-workshop-2024/documents/papers/efficient-instances-docked-double-decker.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[20] Dobraunig C, Matusiewicz K, Mennink B, Tereschenko A (2024) Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption, NIST Workshop on the Requirements for an Accordion Cipher Mode 2024. https://csrc.nist.gov/csrc/media/Events/2024/accordion-cipher-mode-workshop-2024/documents/papers/efficient-instances-docked-double-decker.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s20">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[21] Arciszewski S (2018) XChaCha: eXtended-nonce ChaCha and AEAD_XChaCha20_Poly1305, IETF Internet-Draft. https://datatracker.ietf.org/doc/html/draft-arciszewski-xchacha-02.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[21] Arciszewski S (2018) XChaCha: eXtended-nonce ChaCha and AEAD_XChaCha20_Poly1305, IETF Internet-Draft. https://datatracker.ietf.org/doc/html/draft-arciszewski-xchacha-02.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s21">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[22] Crowley P, Biggers E (2018) Adiantum: length-preserving encryption for entry-level processors. IACR Trans Symmetric Cryptol 2018(4):39–61. Available at https://doi.org/10.13154/tosc.v2018.i4.39-61.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[22] Crowley P, Biggers E (2018) Adiantum: length-preserving encryption for entry-level processors. IACR Trans Symmetric Cryptol 2018(4):39–61. 入手先: https://doi.org/10.13154/tosc.v2018.i4.39-61.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s22">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[23] Bhaumik R, List E, Nandi M (2018) ZCZ - Achieving n-bit SPRP Security with a Minimal Number of Tweakable-Block-Cipher Calls. Advances in Cryptology - ASIACRYPT 2018 - 24th International Conference on the Theory and Application of Cryptology and Information Security, Brisbane, QLD, Australia, December 2-6, 2018, Proceedings, Part I, eds Peyrin T, Galbraith SD (Springer), Lecture Notes in Computer Science, Vol. 11272, pp 336–366. Available at https://doi.org/10.1007/978-3-030-03326-2_12.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[23] Bhaumik R, List E, Nandi M (2018) ZCZ - Achieving n-bit SPRP Security with a Minimal Number of Tweakable-Block-Cipher Calls. Advances in Cryptology - ASIACRYPT 2018 - 24th International Conference on the Theory and Application of Cryptology and Information Security, Brisbane, QLD, Australia, December 2-6, 2018, Proceedings, Part I, eds Peyrin T, Galbraith SD (Springer), Lecture Notes in Computer Science, Vol. 11272, pp 336–366. 入手先: https://doi.org/10.1007/978-3-030-03326-2_12.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s23">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[24] Bellare M, Rogaway P (2000) Encode-Then-Encipher Encryption: How to Exploit Nonces or Redundancy in Plaintexts for Efficient Cryptography. Advances in Cryptology - ASIACRYPT 2000, 6th International Conference on the Theory and Application of Cryptology and Information Security, Kyoto, Japan, December 3-7, 2000, Proceedings, ed Okamoto T (Springer), Lecture Notes in Computer Science, Vol. 1976, pp 317–330. Available at https://doi.org/10.1007/3-540-44448-3_24.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[24] Bellare M, Rogaway P (2000) Encode-Then-Encipher Encryption: How to Exploit Nonces or Redundancy in Plaintexts for Efficient Cryptography. Advances in Cryptology - ASIACRYPT 2000, 6th International Conference on the Theory and Application of Cryptology and Information Security, Kyoto, Japan, December 3-7, 2000, Proceedings, ed Okamoto T (Springer), Lecture Notes in Computer Science, Vol. 1976, pp 317–330. 入手先: https://doi.org/10.1007/3-540-44448-3_24.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s24">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[25] National Institute of Standards and Technology (2016) Submission Requirements and Evaluation Criteria for the Post-Quantum Cryptography Standardization Process. Available at https://csrc.nist.gov/CSRC/media/Projects/Post-Quantum-Cryptography/documents/call-for-proposals-final-dec-2016.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[25] National Institute of Standards and Technology (2016) Submission Requirements and Evaluation Criteria for the Post-Quantum Cryptography Standardization Process. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Post-Quantum-Cryptography/documents/call-for-proposals-final-dec-2016.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s25">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[26] Moody D, Perlner R, Regenscheid A, Robinson A, Cooper D (2024) Transition to Post-Quantum Cryptography Standards, NISTIR 8547. https://doi.org/10.6028/NIST.IR.8547.ipd.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[26] Moody D, Perlner R, Regenscheid A, Robinson A, Cooper D (2024) Transition to Post-Quantum Cryptography Standards, NISTIR 8547. https://doi.org/10.6028/NIST.IR.8547.ipd.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s26">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[27] Mouha N, Luykx A (2015) Multi-key Security: The Even-Mansour Construction Revisited. Advances in Cryptology - CRYPTO 2015 - 35th Annual Cryptology Conference, Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part I, eds Gennaro R, Robshaw M (Springer), Lecture Notes in Computer Science, Vol. 9215, pp 209–223. Available at https://doi.org/10.1007/978-3-662-47989-6_10.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[27] Mouha N, Luykx A (2015) Multi-key Security: The Even-Mansour Construction Revisited. Advances in Cryptology - CRYPTO 2015 - 35th Annual Cryptology Conference, Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part I, eds Gennaro R, Robshaw M (Springer), Lecture Notes in Computer Science, Vol. 9215, pp 209–223. 入手先: https://doi.org/10.1007/978-3-662-47989-6_10.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s27">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[28] Hoang VT, Tessaro S (2016) Key-alternating ciphers and key-length extension: Exact bounds and multi-user security. Advances in Cryptology - CRYPTO 2016 - 36th Annual International Cryptology Conference, Santa Barbara, CA, USA, August 14-18, 2016, Proceedings, Part I, eds Robshaw M, Katz J (Springer), Lecture Notes in Computer Science, Vol. 9814, pp 3–32. Available at https://doi.org/10.1007/978-3-662-53018-4_1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[28] Hoang VT, Tessaro S (2016) Key-alternating ciphers and key-length extension: Exact bounds and multi-user security. Advances in Cryptology - CRYPTO 2016 - 36th Annual International Cryptology Conference, Santa Barbara, CA, USA, August 14-18, 2016, Proceedings, Part I, eds Robshaw M, Katz J (Springer), Lecture Notes in Computer Science, Vol. 9814, pp 3–32. 入手先: https://doi.org/10.1007/978-3-662-53018-4_1.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s28">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[29] Hoang VT, Tessaro S (2017) The multi-user security of double encryption. Advances in Cryptology - EUROCRYPT 2017 - 36th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Paris, France, April 30 - May 4, 2017, Proceedings, Part II, eds Coron J, Nielsen JB, Lecture Notes in Computer Science, Vol. 10211, pp 381–411. Available at https://doi.org/10.1007/978-3-319-56614-6_13.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[29] Hoang VT, Tessaro S (2017) The multi-user security of double encryption. Advances in Cryptology - EUROCRYPT 2017 - 36th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Paris, France, April 30 - May 4, 2017, Proceedings, Part II, eds Coron J, Nielsen JB, Lecture Notes in Computer Science, Vol. 10211, pp 381–411. 入手先: https://doi.org/10.1007/978-3-319-56614-6_13.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s29">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[30] Bose P, Hoang VT, Tessaro S (2018) Revisiting AES-GCM-SIV: multi-user security, faster key derivation, and better bounds. Advances in Cryptology - EUROCRYPT 2018 - 37th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Tel Aviv, Israel, April 29 - May 3, 2018 Proceedings, Part I, eds Nielsen JB, Rijmen V (Springer), Lecture Notes in Computer Science, Vol. 10820, pp 468–499. Available at https://doi.org/10.1007/978-3-319-78381-9_18.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[30] Bose P, Hoang VT, Tessaro S (2018) Revisiting AES-GCM-SIV: multi-user security, faster key derivation, and better bounds. Advances in Cryptology - EUROCRYPT 2018 - 37th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Tel Aviv, Israel, April 29 - May 3, 2018 Proceedings, Part I, eds Nielsen JB, Rijmen V (Springer), Lecture Notes in Computer Science, Vol. 10820, pp 468–499. 入手先: https://doi.org/10.1007/978-3-319-78381-9_18.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s30">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[31] Hoang VT, Tessaro S, Thiruvengadam A (2018) The multi-user security of gcm, revisited: Tight bounds for nonce randomization. Proceedings of the 2018 ACM SIGSAC Conference on Computer and Communications Security, CCS 2018, Toronto, ON, Canada, October 15-19, 2018, eds Lie D, Mannan M, Backes M, Wang X (ACM), pp 1429–1440. Available at https://doi.org/10.1145/3243734.3243816.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[31] Hoang VT, Tessaro S, Thiruvengadam A (2018) The multi-user security of gcm, revisited: Tight bounds for nonce randomization. Proceedings of the 2018 ACM SIGSAC Conference on Computer and Communications Security, CCS 2018, Toronto, ON, Canada, October 15-19, 2018, eds Lie D, Mannan M, Backes M, Wang X (ACM), pp 1429–1440. 入手先: https://doi.org/10.1145/3243734.3243816.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s31">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[32] Chen YL, Tessaro S (2021) Better security-efficiency trade-offs in permutation-based two-party computation. Advances in Cryptology - ASIACRYPT 2021 - 27th International Conference on the Theory and Application of Cryptology and Information Security, Singapore, December 6-10, 2021, Proceedings, Part II, eds Tibouchi M, Wang H (Springer), Lecture Notes in Computer Science, Vol. 13091, pp 275–304. Available at https://doi.org/10.1007/978-3-030-92075-3_10.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[32] Chen YL, Tessaro S (2021) Better security-efficiency trade-offs in permutation-based two-party computation. Advances in Cryptology - ASIACRYPT 2021 - 27th International Conference on the Theory and Application of Cryptology and Information Security, Singapore, December 6-10, 2021, Proceedings, Part II, eds Tibouchi M, Wang H (Springer), Lecture Notes in Computer Science, Vol. 13091, pp 275–304. 入手先: https://doi.org/10.1007/978-3-030-92075-3_10.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s32">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[33] Chen YL (2022) A modular approach to the security analysis of two-permutation constructions. Advances in Cryptology - ASIACRYPT 2022 - 28th International Conference on the Theory and Application of Cryptology and Information Security, Taipei, Taiwan, December 5-9, 2022, Proceedings, Part I, eds Agrawal S, Lin D (Springer), Lecture Notes in Computer Science, Vol. 13791, pp 379–409. Available at https://doi.org/10.1007/978-3-031-22963-3_13.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[33] Chen YL (2022) A modular approach to the security analysis of two-permutation constructions. Advances in Cryptology - ASIACRYPT 2022 - 28th International Conference on the Theory and Application of Cryptology and Information Security, Taipei, Taiwan, December 5-9, 2022, Proceedings, Part I, eds Agrawal S, Lin D (Springer), Lecture Notes in Computer Science, Vol. 13791, pp 379–409. 入手先: https://doi.org/10.1007/978-3-031-22963-3_13.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s33">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[34] Bhattacharya S, Nandi M (2021) Luby-rackoff backwards with more users and more security. Advances in Cryptology - ASIACRYPT 2021 - 27th International Conference on the Theory and Application of Cryptology and Information Security, Singapore, December 6-10, 2021, Proceedings, Part III, eds Tibouchi M, Wang H (Springer), Lecture Notes in Computer Science, Vol. 13092, pp 345–375. Available at https://doi.org/10.1007/978-3-030-92078-4_12.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[34] Bhattacharya S, Nandi M (2021) Luby-rackoff backwards with more users and more security. Advances in Cryptology - ASIACRYPT 2021 - 27th International Conference on the Theory and Application of Cryptology and Information Security, Singapore, December 6-10, 2021, Proceedings, Part III, eds Tibouchi M, Wang H (Springer), Lecture Notes in Computer Science, Vol. 13092, pp 345–375. 入手先: https://doi.org/10.1007/978-3-030-92078-4_12.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s34">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[35] Choi W, Kim H, Lee J, Lee Y (2022) Multi-user security of the sum of truncated random permutations. Advances in Cryptology - ASIACRYPT 2022 - 28th International Conference on the Theory and Application of Cryptology and Information Security, Taipei, Taiwan, December 5-9, 2022, Proceedings, Part II, eds Agrawal S, Lin D (Springer), Lecture Notes in Computer Science, Vol. 13792, pp 682–710. Available at https://doi.org/10.1007/978-3-031-22966-4_23.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[35] Choi W, Kim H, Lee J, Lee Y (2022) Multi-user security of the sum of truncated random permutations. Advances in Cryptology - ASIACRYPT 2022 - 28th International Conference on the Theory and Application of Cryptology and Information Security, Taipei, Taiwan, December 5-9, 2022, Proceedings, Part II, eds Agrawal S, Lin D (Springer), Lecture Notes in Computer Science, Vol. 13792, pp 682–710. 入手先: https://doi.org/10.1007/978-3-031-22966-4_23.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s35">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[36] Chen YL, Choi W, Lee C (2023) Improved multi-user security using the squared-ratio method. Advances in Cryptology - CRYPTO 2023 - 43rd Annual International Cryptology Conference, CRYPTO 2023, Santa Barbara, CA, USA, August 20-24, 2023, Proceedings, Part II, eds Handschuh H, Lysyanskaya A (Springer), Lecture Notes in Computer Science, Vol. 14082, pp 694–724. Available at https://doi.org/10.1007/978-3-031-38545-2_23.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[36] Chen YL, Choi W, Lee C (2023) Improved multi-user security using the squared-ratio method. Advances in Cryptology - CRYPTO 2023 - 43rd Annual International Cryptology Conference, CRYPTO 2023, Santa Barbara, CA, USA, August 20-24, 2023, Proceedings, Part II, eds Handschuh H, Lysyanskaya A (Springer), Lecture Notes in Computer Science, Vol. 14082, pp 694–724. 入手先: https://doi.org/10.1007/978-3-031-38545-2_23.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s36">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[37] Ball MV (2008) NIST’s consideration of XTS-AES as standardized by IEEE Std 1619-2007, https://csrc.nist.gov/CSRC/media/Projects/Block-Cipher-Techniques/documents/BCM/Comments/XTS/XTS_comments-Ball.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[37] Ball MV (2008) NIST’s consideration of XTS-AES as standardized by IEEE Std 1619-2007, https://csrc.nist.gov/CSRC/media/Projects/Block-Cipher-Techniques/documents/BCM/Comments/XTS/XTS_comments-Ball.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s37">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[38] Black J, Rogaway P, Shrimpton T (2002) Encryption-Scheme Security in the Presence of Key-Dependent Messages. Selected Areas in Cryptography, 9th Annual International Workshop, SAC 2002, St. John’s, Newfoundland, Canada, August 15-16, 2002. Revised Papers, eds Nyberg K, Heys HM (Springer), Lecture Notes in Computer Science, Vol. 2595, pp 62–75. Available at https://doi.org/10.1007/3-540-36492-7_6.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[38] Black J, Rogaway P, Shrimpton T (2002) Encryption-Scheme Security in the Presence of Key-Dependent Messages. Selected Areas in Cryptography, 9th Annual International Workshop, SAC 2002, St. John’s, Newfoundland, Canada, August 15-16, 2002. Revised Papers, eds Nyberg K, Heys HM (Springer), Lecture Notes in Computer Science, Vol. 2595, pp 62–75. 入手先: https://doi.org/10.1007/3-540-36492-7_6.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s38">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[39] Halevi S, Krawczyk H (2007) Security under key-dependent inputs. Proceedings of the 2007 ACM Conference on Computer and Communications Security, CCS 2007, Alexandria, Virginia, USA, October 28-31, 2007, eds Ning P, di Vimercati SDC, Syverson PF (ACM), pp 466–475. Available at https://doi.org/10.1145/1315245.1315303.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[39] Halevi S, Krawczyk H (2007) Security under key-dependent inputs. Proceedings of the 2007 ACM Conference on Computer and Communications Security, CCS 2007, Alexandria, Virginia, USA, October 28-31, 2007, eds Ning P, di Vimercati SDC, Syverson PF (ACM), pp 466–475. 入手先: https://doi.org/10.1145/1315245.1315303.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s39">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[40] Zhandry M (2012) How to construct quantum random functions. 53rd Annual IEEE Symposium on Foundations of Computer Science, FOCS 2012, New Brunswick, NJ, USA, October 20-23, 2012 (IEEE Computer Society), pp 679–687. DOI:10.1109/FOCS.2012.37. Available at https://doi.org/10.1109/FOCS.2012.37</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[40] Zhandry M (2012) How to construct quantum random functions. 53rd Annual IEEE Symposium on Foundations of Computer Science, FOCS 2012, New Brunswick, NJ, USA, October 20-23, 2012 (IEEE Computer Society), pp 679–687. DOI:10.1109/FOCS.2012.37. 入手先: https://doi.org/10.1109/FOCS.2012.37</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s40">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[41] Kaplan M, Leurent G, Leverrier A, Naya-Plasencia M (2016) Quantum differential and linear cryptanalysis. IACR Trans Symmetric Cryptol 2016(1):71–94. DOI:10.13154/TOSC.V2016.I1.71-94. Available at https://doi.org/10.13154/tosc.v2016.i1.71-94</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[41] Kaplan M, Leurent G, Leverrier A, Naya-Plasencia M (2016) Quantum differential and linear cryptanalysis. IACR Trans Symmetric Cryptol 2016(1):71–94. DOI:10.13154/TOSC.V2016.I1.71-94. 入手先: https://doi.org/10.13154/tosc.v2016.i1.71-94</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s41">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[42] Bonnetain X, Hosoyamada A, Naya-Plasencia M, Sasaki Y, Schrottenloher A (2019) Quantum attacks without superposition queries: The offline simon’s algorithm. Advances in Cryptology - ASIACRYPT 2019 - 25th International Conference on the Theory and Application of Cryptology and Information Security, Kobe, Japan, December 8-12, 2019, Proceedings, Part I, eds Galbraith SD, Moriai S (Springer), Lecture Notes in Computer Science, Vol. 11921, pp 552–583. DOI:10.1007/978-3-030-34578-5\_20. Available at https://doi.org/10.1007/978-3-030-34578-5_20</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[42] Bonnetain X, Hosoyamada A, Naya-Plasencia M, Sasaki Y, Schrottenloher A (2019) Quantum attacks without superposition queries: The offline simon’s algorithm. Advances in Cryptology - ASIACRYPT 2019 - 25th International Conference on the Theory and Application of Cryptology and Information Security, Kobe, Japan, December 8-12, 2019, Proceedings, Part I, eds Galbraith SD, Moriai S (Springer), Lecture Notes in Computer Science, Vol. 11921, pp 552–583. DOI:10.1007/978-3-030-34578-5\_20. 入手先: https://doi.org/10.1007/978-3-030-34578-5_20</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s42">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[43] National Institute of Standards and Technology (2024) NIST Proposes to Standardize a Wider Variant of AES. https://csrc.nist.gov/news/2024/nist-proposes-to-standardize-wider-variant-of-aes.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[43] National Institute of Standards and Technology (2024) NIST Proposes to Standardize a Wider Variant of AES. https://csrc.nist.gov/news/2024/nist-proposes-to-standardize-wider-variant-of-aes.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s43">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[44] National Institute of Standards and Technology (Published 2001; Updated 2023) Advanced Encryption Standard (AES), FIPS 197. https://doi.org/10.6028/NIST.FIPS.197-upd1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[44] National Institute of Standards and Technology (Published 2001; Updated 2023) Advanced Encryption Standard (AES), FIPS 197. https://doi.org/10.6028/NIST.FIPS.197-upd1.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s44">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[45] Bellare M, Hoang VT (2022) Efficient schemes for committing authenticated encryption. Advances in Cryptology - EUROCRYPT 2022 - 41st Annual International Conference on the Theory and Applications of Cryptographic Techniques, Trondheim, Norway, May 30 - June 3, 2022, Proceedings, Part II, eds Dunkelman O, Dziembowski S (Springer), Lecture Notes in Computer Science, Vol. 13276, pp 845–875. DOI:10.1007/978-3-031-07085-3\_29. Available at https://doi.org/10.1007/978-3-031-07085-3_29</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[45] Bellare M, Hoang VT (2022) Efficient schemes for committing authenticated encryption. Advances in Cryptology - EUROCRYPT 2022 - 41st Annual International Conference on the Theory and Applications of Cryptographic Techniques, Trondheim, Norway, May 30 - June 3, 2022, Proceedings, Part II, eds Dunkelman O, Dziembowski S (Springer), Lecture Notes in Computer Science, Vol. 13276, pp 845–875. DOI:10.1007/978-3-031-07085-3\_29. 入手先: https://doi.org/10.1007/978-3-031-07085-3_29</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s45">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[46] Bellare M, Ng R, Tackmann B (2019) Nonces are noticed: AEAD revisited. Advances in Cryptology - CRYPTO 2019 - 39th Annual International Cryptology Conference, Santa Barbara, CA, USA, August 18-22, 2019, Proceedings, Part I, eds Boldyreva A, Micciancio D (Springer), Lecture Notes in Computer Science, Vol. 11692, pp 235–265. Available at https://doi.org/10.1007/978-3-030-26948-7_9.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[46] Bellare M, Ng R, Tackmann B (2019) Nonces are noticed: AEAD revisited. Advances in Cryptology - CRYPTO 2019 - 39th Annual International Cryptology Conference, Santa Barbara, CA, USA, August 18-22, 2019, Proceedings, Part I, eds Boldyreva A, Micciancio D (Springer), Lecture Notes in Computer Science, Vol. 11692, pp 235–265. 入手先: https://doi.org/10.1007/978-3-030-26948-7_9.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s46">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[47] Andreeva E, Bogdanov A, Luykx A, Mennink B, Mouha N, Yasuda K (2014) How to securely release unverified plaintext in authenticated encryption. Advances in Cryptology - ASIACRYPT 2014 - 20th International Conference on the Theory and Application of Cryptology and Information Security, Kaoshiung, Taiwan, R.O.C., December 7-11, 2014. Proceedings, Part I, eds Sarkar P, Iwata T (Springer), Lecture Notes in Computer Science, Vol. 8873, pp 105–125. Available at https://doi.org/10.1007/978-3-662-45611-8_6.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[47] Andreeva E, Bogdanov A, Luykx A, Mennink B, Mouha N, Yasuda K (2014) How to securely release unverified plaintext in authenticated encryption. Advances in Cryptology - ASIACRYPT 2014 - 20th International Conference on the Theory and Application of Cryptology and Information Security, Kaoshiung, Taiwan, R.O.C., December 7-11, 2014. Proceedings, Part I, eds Sarkar P, Iwata T (Springer), Lecture Notes in Computer Science, Vol. 8873, pp 105–125. 入手先: https://doi.org/10.1007/978-3-662-45611-8_6.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s47">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[48] Hoang VT, Krovetz T, Rogaway P (2015) Robust Authenticated-Encryption AEZ and the Problem That It Solves. Advances in Cryptology - EUROCRYPT 2015 - 34th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Sofia, Bulgaria, April 26-30, 2015, Proceedings, Part I, eds Oswald E, Fischlin M (Springer), Lecture Notes in Computer Science, Vol. 9056, pp 15–44. Available at https://doi.org/10.1007/978-3-662-46800-5_2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[48] Hoang VT, Krovetz T, Rogaway P (2015) Robust Authenticated-Encryption AEZ and the Problem That It Solves. Advances in Cryptology - EUROCRYPT 2015 - 34th Annual International Conference on the Theory and Applications of Cryptographic Techniques, Sofia, Bulgaria, April 26-30, 2015, Proceedings, Part I, eds Oswald E, Fischlin M (Springer), Lecture Notes in Computer Science, Vol. 9056, pp 15–44. 入手先: https://doi.org/10.1007/978-3-662-46800-5_2.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s48">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[49] Barwell G, Page D, Stam M (2015) Rogue decryption failures: Reconciling ae robustness notions. IMACC 2015: Proceedings of the 15th IMA International Conference on Cryptography and Coding, ed Groth J (Springer), Lecture Notes in Computer Science, Vol. 9496, pp 94–111. Available at https://doi.org/10.1007/978-3-319-27239-9_6.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[49] Barwell G, Page D, Stam M (2015) Rogue decryption failures: Reconciling ae robustness notions. IMACC 2015: Proceedings of the 15th IMA International Conference on Cryptography and Coding, ed Groth J (Springer), Lecture Notes in Computer Science, Vol. 9496, pp 94–111. 入手先: https://doi.org/10.1007/978-3-319-27239-9_6.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002-s49">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[50] Ashur T, Dunkelman O, Luykx A (2017) Boosting authenticated encryption robustness with minimal modifications. Annual International Cryptology Conference (Springer), pp 3–33.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[50] Ashur T, Dunkelman O, Luykx A (2017) Boosting authenticated encryption robustness with minimal modifications. Annual International Cryptology Conference (Springer), pp 3–33.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8552.pdf">National Institute of Standards and Technology, IR 8552</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8552";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

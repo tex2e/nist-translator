@@ -1,0 +1,1765 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8578 は、2025 年 4 月に開催された最初の「Cyber AI Profile ワークショップ」での議論をまとめた報告書です。このワークショップで NIST は、AI 向けの NIST Cybersecurity Framework コミュニティプロファイルの策定に向けたフィードバックを求めました。Cyber AI Profile は、AI システムおよびセキュリティ能力に関連するサイバーセキュリティリスクを管理するためのガイドラインを提供するものです。議論は、組織が AI を導入する際に直面するガバナンス上および運用上の課題に焦点を当て、2025 年 2 月の Cybersecurity and AI Workshop Concept Paper に対して寄せられたコメントを土台としています。報告書は、パネルセッションやブレイクアウトセッションの概要、主な収穫、今後のステップを記述しています。">
+  <title>「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書 | NIST IR 8578 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+<label class="toc-show-all"><input type="checkbox" id="toc-show-all"> 深い階層も表示（3 件）</label>    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop #1" data-search="「cyber ai profile」ハイブリッドワークショップ #1 の概要報告書 workshop summary report for “cyber ai profile” hybrid workshop #1">「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop #1" data-search="「cyber ai profile」ハイブリッドワークショップ #1 の概要報告書 workshop summary report for “cyber ai profile” hybrid workshop #1">「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0015" title="List of Tables" data-search="表の一覧 list of tables">表の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0003" title="1.1. About the NIST Cyber AI Profile" data-search="1.1. nist cyber ai profile について 1.1. about the nist cyber ai profile">1.1. NIST Cyber AI Profile について</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0001" title="1.2. Background for the Cyber AI Profile Workshop" data-search="1.2. cyber ai profile ワークショップの背景 1.2. background for the cyber ai profile workshop">1.2. Cyber AI Profile ワークショップの背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0004" title="1.3. About the Cyber AI Profile Workshop" data-search="1.3. cyber ai profile ワークショップについて 1.3. about the cyber ai profile workshop">1.3. Cyber AI Profile ワークショップについて</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0004" title="2. Event Summary" data-search="2. イベントの概要 2. event summary">2. イベントの概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001" title="2.1. Workshop Agenda &amp; Highlights" data-search="2.1. ワークショップの議事次第とハイライト 2.1. workshop agenda &amp; highlights">2.1. ワークショップの議事次第とハイライト</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0006" title="2.1.1. Welcome and Opening Remarks" data-search="2.1.1. 歓迎の辞と開会の挨拶 2.1.1. welcome and opening remarks">2.1.1. 歓迎の辞と開会の挨拶</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0008" title="2.1.2. NCCoE Welcome" data-search="2.1.2. nccoe からの歓迎の辞 2.1.2. nccoe welcome">2.1.2. NCCoE からの歓迎の辞</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0010" title="2.1.3. Setting the Stage for the Cyber AI Profile" data-search="2.1.3. cyber ai profile の背景説明 2.1.3. setting the stage for the cyber ai profile">2.1.3. Cyber AI Profile の背景説明</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0003" title="2.2. Fireside Chat: Potential Interplays Between the CSF and AI RMF for Cybersecurity" data-search="2.2. ファイヤーサイドチャット: サイバーセキュリティのための csf と ai rmf の潜在的な相互作用 2.2. fireside chat: potential interplays between the csf and ai rmf for cybersecurity">2.2. ファイヤーサイドチャット: サイバーセキュリティのための CSF と AI RMF の潜在的な相互作用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0006" title="2.3. Summary of Panel Sessions" data-search="2.3. パネルセッションの概要 2.3. summary of panel sessions">2.3. パネルセッションの概要</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0007" title="2.3.1. Panel 1 – Protection of AI Systems" data-search="2.3.1. パネル 1 – ai システムの保護 2.3.1. panel 1 – protection of ai systems">2.3.1. パネル 1 – AI システムの保護</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0013-b0002" title="2.3.2. Panel 2 – Defensive and Adversarial Use of AI" data-search="2.3.2. パネル 2 – ai の防御的利用と敵対的利用 2.3.2. panel 2 – defensive and adversarial use of ai">2.3.2. パネル 2 – AI の防御的利用と敵対的利用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0002" title="2.4. Summary of Breakout Sessions" data-search="2.4. ブレイクアウトセッションの概要 2.4. summary of breakout sessions">2.4. ブレイクアウトセッションの概要</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0014-b0003" title="2.4.1. Track A – Focus Area Descriptions" data-search="2.4.1. トラック a – フォーカスエリアの記述 2.4.1. track a – focus area descriptions">2.4.1. トラック A – フォーカスエリアの記述</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0015-b0001" title="Securing AI System Components:" data-search="ai システムコンポーネントの保護: securing ai system components:">AI システムコンポーネントの保護:</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0015-b0003" title="Conducting AI-Enabled Cyber Defense:" data-search="ai を活用したサイバー防御の実施: conducting ai-enabled cyber defense:">AI を活用したサイバー防御の実施:</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0015-b0005" title="Thwarting AI-Enabled Cyber Attacks:" data-search="ai を活用したサイバー攻撃の阻止: thwarting ai-enabled cyber attacks:">AI を活用したサイバー攻撃の阻止:</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0016-b0002" title="2.4.2. Track B – Anticipated Profile Uses and Elements" data-search="2.4.2. トラック b – 想定される profile の用途と要素 2.4.2. track b – anticipated profile uses and elements">2.4.2. トラック B – 想定される Profile の用途と要素</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0017-b0007" title="2.4.3. Track C – Priorities in the CSF Core" data-search="2.4.3. トラック c – csf コアにおける優先事項 2.4.3. track c – priorities in the csf core">2.4.3. トラック C – CSF コアにおける優先事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0020-b0002" title="3. Key Takeaways" data-search="3. 主な収穫 3. key takeaways">3. 主な収穫</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0014" title="3.1. Adjacent Considerations" data-search="3.1. 関連する検討事項 3.1. adjacent considerations">3.1. 関連する検討事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0023-b0008" title="4. Next Steps" data-search="4. 今後の取り組み 4. next steps">4. 今後の取り組み</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0025-b0001" title="References" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8578 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop #1</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書</strong></span><br><span class="doc-panel-item">公開日 : 2026-08-03</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8578/final">https://csrc.nist.gov/pubs/ir/8578/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 193 / 194 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8578 は、2025 年 4 月に開催された最初の「Cyber AI Profile ワークショップ」での議論をまとめた報告書です。このワークショップで NIST は、AI 向けの NIST Cybersecurity Framework コミュニティプロファイルの策定に向けたフィードバックを求めました。Cyber AI Profile は、AI システムおよびセキュリティ能力に関連するサイバーセキュリティリスクを管理するためのガイドラインを提供するものです。議論は、組織が AI を導入する際に直面するガバナンス上および運用上の課題に焦点を当て、2025 年 2 月の Cybersecurity and AI Workshop Concept Paper に対して寄せられたコメントを土台としています。報告書は、パネルセッションやブレイクアウトセッションの概要、主な収穫、今後のステップを記述しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8578</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8578</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop #1</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas Bronwyn Patrick Julie Nethery Snyder</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas Bronwyn Patrick Julie Nethery Snyder</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8578</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のサイトから無料で入手できます: https://doi.org/10.6028/NIST.IR.8578</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8578</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8578</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop #1</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+「Cyber AI Profile」ハイブリッドワークショップ #1 の概要報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas Applied Cybersecurity Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas 応用サイバーセキュリティ部門 情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Bronwyn Patrick Julie Nethery Snyder National Cybersecurity Center of Excellence MITRE</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Bronwyn Patrick Julie Nethery Snyder 国立サイバーセキュリティ卓越センター MITRE</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8578</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のサイトから無料で入手できます: https://doi.org/10.6028/NIST.IR.8578</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>August 2026</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026年8月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0013" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 Howard Lutnick 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（National Institute of Standards and Technology）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dr. Arvind Raman, Under Secretary of Commerce for Standards and Technology and NIST Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Arvind Raman 博士、標準技術担当商務次官 兼 NIST 所長</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順を十分に特定するために、市販または非市販の特定の機器、装置、ソフトウェア、資料を挙げています。こうした特定は、NIST がいかなる製品やサービスも推奨または是認することを意味せず、挙げた資料や機器がその目的に最適であるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、法令で定められた NIST の責務に従って現在策定中の、他の刊行物への参照が含まれる場合があります。そうした関連刊行物が完成する前であっても、本刊行物の情報（概念や方法論を含む）を連邦政府機関が利用してもかまいません。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画と移行のため、連邦政府機関は、これらの新しい刊行物の策定状況を注意深く追うべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外の NIST のサイバーセキュリティ刊行物の多くは https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Policies Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST技術シリーズの方針；著作権、使用、ライセンスに関する声明；NIST技術シリーズ刊行物識別子の構文</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Publication History Approved by the NIST Editorial Review Board on 2026-07-14</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>刊行履歴 2026-07-14 に NIST 編集審査委員会（Editorial Review Board）が承認しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>How to Cite this NIST Technical Series Publication Megas K, Patrick B, Snyder J (2026) Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (NIST IR) NIST IR 8578. https://doi.org/10.6028/NIST.IR.8578</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この NIST Technical Series 刊行物の引用方法 Megas K, Patrick B, Snyder J (2026) Workshop Summary Report for “Cyber AI Profile” Hybrid Workshop. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (NIST IR) NIST IR 8578. https://doi.org/10.6028/NIST.IR.8578</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Author ORCID iDs Katerina Megas: 0000-0002-2815-5448 Bronwyn Patrick: 0009-0001-7885-4773 Julie Snyder: 0009-0004-6352-2831</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者の ORCID iD Katerina Megas: 0000-0002-2815-5448 Bronwyn Patrick: 0009-0001-7885-4773 Julie Snyder: 0009-0004-6352-2831</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contact Information cyberaiprofile@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連絡先 cyberaiprofile@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional Information Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8578/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>追加情報 本刊行物に関する追加情報（関連コンテンツ、更新の可能性、文書の履歴を含む）は https://csrc.nist.gov/pubs/ir/8578/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Abstract</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report summarizes the discussion at the first “Cyber AI Profile Workshop” in April 2025 during which NIST sought feedback toward the development of a NIST Cybersecurity Framework Community Profile for AI. The Cyber AI Profile will provide guidelines for managing cybersecurity risks associated with AI systems and security capabilities. Discussions at the workshop focused on governance and operational challenges organizations face when adopting AI. It built on comments received in response to the February 2025 Cybersecurity and AI Workshop Concept Paper.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、2025年4月に開催された最初の「Cyber AI Profile ワークショップ」での議論をまとめたものです。このワークショップで NIST は、AI 向けの NIST Cybersecurity Framework コミュニティプロファイルの策定に向けたフィードバックを求めました。Cyber AI Profile は、AI システムおよびセキュリティ能力に関連するサイバーセキュリティリスクを管理するためのガイドラインを提供します。ワークショップでの議論は、組織が AI を導入する際に直面するガバナンス上および運用上の課題に焦点を当てました。議論は、2025年2月の Cybersecurity and AI Workshop Concept Paper に対して寄せられたコメントを土台としています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Keywords</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+キーワード</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Artificial Intelligence; Community Profile; Cyber AI Profile; Cybersecurity Framework</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Artificial Intelligence; Community Profile; Cyber AI Profile; Cybersecurity Framework</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Reports on Computer Systems Technology</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータシステム技術に関する報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof-of-concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include developing management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of information other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラに技術面でのリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるために、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける、国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーを確保するための管理・運用・技術・物理面の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Table of Contents</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+目次</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">1.1. About the NIST Cyber AI Profile</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">1.1. NIST Cyber AI Profile について</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">1.2. Background for the Cyber AI Profile Workshop</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">1.2. Cyber AI Profile ワークショップの背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0002-t3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">1.3. About the Cyber AI Profile Workshop</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">1.3. Cyber AI Profile ワークショップについて</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2. Event Summary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2. イベントの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.1. Workshop Agenda &amp; Highlights</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.1. ワークショップの議事次第とハイライト</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.1.1. Welcome and Opening Remarks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.1.1. 歓迎の辞と開会の挨拶</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0008">2.1.2. NCCoE Welcome</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0008">2.1.2. NCCoE からの歓迎の辞</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0010">2.1.3. Setting the Stage for the Cyber AI Profile</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0010">2.1.3. Cyber AI Profile の背景説明</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">2.2. Fireside Chat: Potential Interplays Between the CSF and AI RMF for Cybersecurity</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">2.2. ファイヤーサイドチャット: サイバーセキュリティのための CSF と AI RMF の潜在的な相互作用</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006-t2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">2.3. Summary of Panel Sessions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">2.3. パネルセッションの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.3.1. Panel 1 – Protection of AI Systems</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.3.1. パネル 1 – AI システムの保護</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.3.2. Panel 2 – Defensive and Adversarial Use of AI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">2.3.2. パネル 2 – AI の防御的利用と敵対的利用</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0002">2.4. Summary of Breakout Sessions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0002">2.4. ブレイクアウトセッションの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">2.4.1. Track A – Focus Area Descriptions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">2.4.1. トラック A – フォーカスエリアの記述</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">2.4.2. Track B – Anticipated Profile Uses and Elements</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">2.4.2. トラック B – 想定される Profile の用途と要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0007">2.4.3. Track C – Priorities in the CSF Core</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0007">2.4.3. トラック C – CSF コアにおける優先事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0002">3. Key Takeaways</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0002">3. 主な収穫</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0012-t1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0022-b0014">3.1. Adjacent Considerations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0022-b0014">3.1. 関連する検討事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0023-b0008">4. Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0023-b0008">4. 今後のステップ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0025-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0025-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>List of Tables</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+表の一覧</h2>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0006">Table 1. Cyber AI Profile Workshop Agenda</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0006">表 1. Cyber AI Profile ワークショップの議事次第</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">Table 2. CSF Functions Discussed During the Fireside Chat</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">表 2. ファイヤーサイドチャットで議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0010">Table 3. CSF Functions Discussed During Panel 1</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0010">表 3. パネル 1 で議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">Table 4. CSF Functions Discussed During Panel 2</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">表 4. パネル 2 で議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0008">Table 5. CSF Functions Discussed During Track A Focus Group Breakouts</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0008">表 5. トラック A のフォーカスグループのブレイクアウトで議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0005">Table 6. CSF Functions Discussed During Track B Focus Group Breakouts</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0005">表 6. トラック B のフォーカスグループのブレイクアウトで議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">Table 7.: CSF Functions Discussed During Track C Focus Group Breakouts</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">表 7: トラック C のフォーカスグループのブレイクアウトで議論された CSF の機能</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Acknowledgments</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+謝辞</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors extend their gratitude to all those who contributed insights that shaped discussions at the workshop. Thank you to the many stakeholders across sectors, the participants, speakers, and moderators of the Cyber AI Profile Workshop, and our colleagues at NIST and The MITRE Corporation, who provided the expertise necessary to conduct this workshop. Additionally, the thoughtful feedback stakeholders shared leading up to the event, including comments on the Cybersecurity and AI Workshop Concept Paper, was instrumental in shaping discussions at the workshop and this document summarizing the workshop.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者らは、ワークショップでの議論を形づくる知見を寄せてくださったすべての方々に感謝します。分野を超えた多くの関係者、Cyber AI Profile ワークショップの参加者、講演者、モデレーター、およびこのワークショップを開催するために必要な専門知識を提供してくださった NIST と The MITRE Corporation の同僚の皆様に感謝します。また、イベントに先立って関係者が寄せてくださった示唆に富むフィードバック（Cybersecurity and AI Workshop Concept Paper に関するコメントを含む）は、ワークショップでの議論と、ワークショップをまとめた本書の形成に大きく役立ちました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On April 3, 2025, the National Institute of Standards and Technology (NIST) National Cybersecurity Center of Excellence hosted a public workshop titled Cyber AI Profile Workshop. The event brought together stakeholders from government, industry, and academia to discuss questions in the Cybersecurity and AI Workshop Concept Paper [1] published on February 14, 2025, as well as comments received on the concept paper. This document provides a summary of the workshop’s discussions, including opening remarks, fireside chat, panels, and breakout sessions. These activities aimed to define Focus Areas, identify anticipated uses, and outline useful elements for the proposed Cyber Artificial Intelligence (AI) Profile. By incorporating insights from participants across various organizations, the workshop established a collaborative foundation for addressing AI-specific cybersecurity challenges while enabling organizations to harness AI’s transformative potential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2025年4月3日、国立標準技術研究所（NIST）の国立サイバーセキュリティ卓越センターは、Cyber AI Profile Workshop と題する公開ワークショップを開催しました。このイベントには、政府、産業界、学術界の関係者が集まり、2025年2月14日に公開された Cybersecurity and AI Workshop Concept Paper [1] に含まれる問いと、そのコンセプトペーパーに寄せられたコメントについて議論しました。本書は、開会の挨拶、ファイヤーサイドチャット、パネル、ブレイクアウトセッションを含む、ワークショップでの議論の概要を示します。これらの活動は、提案されている Cyber Artificial Intelligence（AI）Profile のフォーカスエリアを定義し、想定される用途を特定し、有用な要素の概要を示すことを目的としていました。さまざまな組織の参加者の知見を取り入れることで、ワークショップは、AI 固有のサイバーセキュリティ課題に取り組むための協力的な基盤を築くとともに、組織が AI の変革的な可能性を活用できるようにしました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. About the NIST Cyber AI Profile</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. NIST Cyber AI Profile について</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Recent advances in AI technologies bring great opportunities to organizations, but also new and modified risks and impacts that need to be managed in the domain of cybersecurity. NIST is evaluating how to use existing frameworks, such as the NIST Cybersecurity Framework 2.0 (CSF 2.0) [2], to assist organizations as they face these new or expanded risks. Feedback from the cybersecurity community strongly suggests that developing guidelines based on CSF 2.0 to address AI-related cybersecurity risks would be valuable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AI 技術の最近の進歩は、組織に大きな機会をもたらしますが、サイバーセキュリティの領域で管理する必要のある、新しい、または変化したリスクと影響ももたらします。NIST は、組織がこれらの新しい、または拡大したリスクに直面する際に役立つよう、NIST Cybersecurity Framework 2.0（CSF 2.0）[2] などの既存のフレームワークをどのように使えるかを評価しています。サイバーセキュリティコミュニティからのフィードバックは、AI 関連のサイバーセキュリティリスクに対処するために CSF 2.0 に基づくガイドラインを策定することには価値があると強く示唆しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations vary in whether and how they use AI in their operations. Some organizations may not yet be using AI. Some may be using cybersecurity solutions enabled with machine learning (ML) technology for pattern detection and planning, but have not yet adopted newer, transformational AI capabilities, such as Generative AI. Regardless of where organizations are on their AI journey, they need risk management approaches that account for the realities of advancements in the use of AI to position them to defend against AI-enabled cyberattacks from adversaries and to leverage AI-enabled cyber defense capabilities. To address these emerging risks and opportunities, particularly in a rapidly evolving field, NIST is developing the Cyber AI Profile to identify how organizations can leverage and adapt the CSF 2.0 [2] to manage AI-related risks effectively [1]. The Cyber AI Profile will seek to help organizations integrate AI-specific considerations into existing cybersecurity programs by:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織が業務で AI を使用しているかどうか、またどのように使用しているかは、組織によって異なります。まだ AI を使用していない組織もあります。パターン検出と計画立案に機械学習（ML）技術を用いるサイバーセキュリティソリューションを使用しているものの、生成 AI などの新しい変革的な AI 能力はまだ採用していない組織もあります。組織が AI 活用のどの段階にあるかにかかわらず、AI の利用の進展という現実を考慮したリスク管理アプローチが必要です。それにより、敵対者による AI を活用したサイバー攻撃から防御し、AI を活用したサイバー防御能力を利用できるようになります。特に急速に進化している分野で、これらの新たなリスクと機会に対処するため、NIST は、組織が AI 関連リスクを効果的に管理できるよう、CSF 2.0 [2] をどのように活用し、適応させられるかを特定する Cyber AI Profile を策定しています [1]。Cyber AI Profile は、次のことによって、組織が AI 固有の検討事項を既存のサイバーセキュリティプログラムに統合できるよう支援することを目指しています。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Establishing a shared understanding of AI-related cybersecurity priorities and considerations for any organization;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">あらゆる組織に共通する、AI 関連のサイバーセキュリティの優先事項と検討事項についての共通理解を確立すること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Fostering collaboration and communication across the AI and cybersecurity communities; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI コミュニティとサイバーセキュリティコミュニティの間の協力とコミュニケーションを促進すること。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Providing common AI cybersecurity target outcomes that organizations can use to support strategic planning efforts and cybersecurity assessments, based on the CSF Core.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">戦略的な計画の取り組みとサイバーセキュリティ評価を支援するために組織が使用できる、CSF コアに基づく、AI に関するサイバーセキュリティの共通の目標成果を提供すること。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2. Background for the Cyber AI Profile Workshop</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2. Cyber AI Profile ワークショップの背景</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop’s goal was to gather community feedback on the Cybersecurity and AI Workshop Concept Paper [1] to inform the direction and contents of the Cyber AI Profile. This concept paper outlined NIST’s initial observations and proposed approaches for addressing the intersection of AI and cybersecurity. Recognizing the transformative opportunities and risks introduced by AI, NIST sought input on whether existing frameworks, such as the CSF 2.0 [2] and the Artificial Intelligence Risk Management Framework (AI RMF) [3], could be adapted to address AI-specific challenges effectively.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの目標は、Cyber AI Profile の方向性と内容を方向づけるため、Cybersecurity and AI Workshop Concept Paper [1] に関するコミュニティのフィードバックを集めることでした。このコンセプトペーパーは、AI とサイバーセキュリティの交差領域に対処するための NIST の初期の所見と提案するアプローチを概説しています。AI がもたらす変革的な機会とリスクを認識して、NIST は、CSF 2.0 [2] や Artificial Intelligence Risk Management Framework（AI RMF）[3] などの既存のフレームワークを、AI 固有の課題に効果的に対処するために適応させられるかどうかについて意見を求めました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This workshop was the first workshop, representing an early step in engaging stakeholders to define the scope of the Cyber AI Profile. The workshop explored the scope, focus areas, and practical applications of the Cyber AI Profile, with a focus on securing AI system components that leverage AI for cyber defense and thwarting AI-enabled cyber attacks. By engaging stakeholders across sectors, NIST aimed to ensure the development of meaningful guidelines that support organizations in managing AI-related cybersecurity risks while capitalizing on AI’s capabilities. Public feedback on the Cybersecurity and AI Workshop Concept Paper [1] informed the agenda and planned discussions for the Cyber AI Profile Workshop.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このワークショップは最初のワークショップであり、Cyber AI Profile の範囲を定義するために関係者の参加を促す初期の一歩でした。ワークショップでは、Cyber AI Profile の範囲、フォーカスエリア、実用的な応用を探りました。その際、サイバー防御に AI を活用する AI システムコンポーネントの保護と、AI を活用したサイバー攻撃の阻止に重点が置かれました。NIST は、さまざまな分野の関係者に参加してもらうことで、AI の能力を活用しつつ、組織が AI 関連のサイバーセキュリティリスクを管理するのを支援する、有意義なガイドラインの策定を確実にすることを目指しました。Cybersecurity and AI Workshop Concept Paper [1] に対する一般からのフィードバックが、Cyber AI Profile ワークショップの議事次第と予定された議論に反映されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3. About the Cyber AI Profile Workshop</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3. Cyber AI Profile ワークショップについて</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The agenda for the one-day free, public, hybrid workshop is provided in Table 1. The workshop consisted of a presentation, fireside chat, and two panel discussions that were open to all in-person and livestream audiences, followed by three rounds of in-person breakout sessions related to the cybersecurity challenges AI introduces to organizations and how the Cyber AI Profile could be used to address those challenges.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この 1 日間の無料の公開ハイブリッドワークショップの議事次第を表 1 に示します。ワークショップは、発表、ファイヤーサイドチャット、2 つのパネルディスカッションで構成され、これらは会場参加者とライブ配信の視聴者の全員に公開されました。続いて、AI が組織にもたらすサイバーセキュリティ上の課題と、それらの課題に対処するために Cyber AI Profile をどのように使えるかに関連する、会場参加者向けのブレイクアウトセッションが 3 ラウンド行われました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. Cyber AI Profile Workshop Agenda</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1. Cyber AI Profile ワークショップの議事次第</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Time</th><th>Activity and Presenters</th></tr></thead><tbody><tr><td>9:00 – 9:10</td><td><b>Welcome and Opening Remarks: James St. Pierre,</b> Deputy Director of the NIST Information Technology Laboratory (ITL)</td></tr><tr><td>9:10 – 9:20</td><td><b>NCCoE Welcome: Cherilyn Pascoe,</b> Director of the National Cybersecurity Center of Excellence</td></tr><tr><td>9:20 – 9:50</td><td><b>Setting the Stage for the Cyber AI Profile: Katerina Megas,</b> Program Manager for NIST’s Cybersecurity, Privacy, and AI Programs</td></tr><tr><td>9:50 – 10:50</td><td><b>Fireside Chat: Potential Interplays Between the CSF and AI RMF for Cybersecurity</b><ul><li><b>Moderator:</b> Dan Caprio, DLA</li><li>Stephen Quinn, NIST</li><li>Martin Stanley, NIST</li></ul></td></tr><tr><td>10:20 – 11:05</td><td><b>Panel: Protection of AI Systems</b><ul><li><b>Moderator:</b> Vicky Pillitteri, NIST</li><li>Johann Dettweiler, stackArmor</li><li>Arun Pamulapati, Databricks</li><li>Charley Snyder, Google</li><li>Sam Wasko, ProtectAI</li></ul></td></tr><tr><td>11:05 – 11:50</td><td><b>Panel: Defensive and Adversary Use of AI</b><ul><li><b>Moderator:</b> Martin Stanley, NIST</li><li>Drew Bagley, CrowdStrike</li><li>Dan Kent, Cloudflare</li><li>Michelle Sahar, OpenPolicy</li><li>Robert Sandler, Trend Micro</li></ul></td></tr><tr><td>1:30 – 4:35</td><td><b>Breakout Sessions</b><ul><li>Facilitator Track A: Hillary Tran, NIST NCCoE/MITRE</li><li>Facilitator Track B: Jon Davis, NIST NCCoE/MITRE</li><li>Facilitator Track C: John Dombrowski, NIST NCCoE/MITRE</li></ul></td></tr><tr><td>4:40 – 5:00</td><td><b>Workshop Close-out and Next Steps</b><ul><li>Katerina Megas, NIST</li><li>Hillary Tran, NIST NCCoE/MITRE</li><li>Jon Davis, NIST NCCoE/MITRE</li><li>John Dombrowski, NIST NCCoE/MITRE</li></ul></td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>時間</th><th>内容と発表者</th></tr></thead><tbody><tr><td>9:00 – 9:10</td><td><b>歓迎の辞と開会の挨拶: James St. Pierre、</b>NIST 情報技術研究所（ITL）副所長</td></tr><tr><td>9:10 – 9:20</td><td><b>NCCoE からの歓迎の辞: Cherilyn Pascoe、</b>国立サイバーセキュリティ卓越センター所長</td></tr><tr><td>9:20 – 9:50</td><td><b>Cyber AI Profile の背景説明: Katerina Megas、</b>NIST サイバーセキュリティ・プライバシー・AI プログラムのプログラムマネージャー</td></tr><tr><td>9:50 – 10:50</td><td><b>ファイヤーサイドチャット: サイバーセキュリティのための CSF と AI RMF の潜在的な相互作用</b><ul><li><b>モデレーター:</b> Dan Caprio、DLA</li><li>Stephen Quinn、NIST</li><li>Martin Stanley、NIST</li></ul></td></tr><tr><td>10:20 – 11:05</td><td><b>パネル: AI システムの保護</b><ul><li><b>モデレーター:</b> Vicky Pillitteri、NIST</li><li>Johann Dettweiler、stackArmor</li><li>Arun Pamulapati、Databricks</li><li>Charley Snyder、Google</li><li>Sam Wasko、ProtectAI</li></ul></td></tr><tr><td>11:05 – 11:50</td><td><b>パネル: AI の防御的利用と敵対者による利用</b><ul><li><b>モデレーター:</b> Martin Stanley、NIST</li><li>Drew Bagley、CrowdStrike</li><li>Dan Kent、Cloudflare</li><li>Michelle Sahar、OpenPolicy</li><li>Robert Sandler、Trend Micro</li></ul></td></tr><tr><td>1:30 – 4:35</td><td><b>ブレイクアウトセッション</b><ul><li>トラック A ファシリテーター: Hillary Tran、NIST NCCoE/MITRE</li><li>トラック B ファシリテーター: Jon Davis、NIST NCCoE/MITRE</li><li>トラック C ファシリテーター: John Dombrowski、NIST NCCoE/MITRE</li></ul></td></tr><tr><td>4:40 – 5:00</td><td><b>ワークショップの総括と今後のステップ</b><ul><li>Katerina Megas、NIST</li><li>Hillary Tran、NIST NCCoE/MITRE</li><li>Jon Davis、NIST NCCoE/MITRE</li><li>John Dombrowski、NIST NCCoE/MITRE</li></ul></td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop provided a platform for exploring AI cybersecurity opportunities and challenges, as well as the potential role of the Cyber AI Profile in addressing these issues. Throughout the day, participants engaged in dynamic conversations about governance, framework integration, operationalization challenges, and risk management strategies for AI systems. The workshop highlighted the importance of collaboration between the AI and cybersecurity communities, actionable implementation guidelines, and tailored approaches to securing AI components, thwarting AI-enabled attacks, and leveraging AI for cyber-defense.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップは、AI のサイバーセキュリティに関する機会と課題、そしてこれらの問題に対処する Cyber AI Profile の潜在的な役割を探る場となりました。1 日を通じて、参加者は、AI システムのガバナンス、フレームワークの統合、運用化の課題、リスク管理戦略について活発な対話を行いました。ワークショップでは、AI コミュニティとサイバーセキュリティコミュニティの協力、実行可能な実装ガイドライン、そして AI コンポーネントの保護、AI を活用した攻撃の阻止、サイバー防御への AI の活用に向けた個別対応のアプローチの重要性が強調されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Materials from the workshop are available on the event page (https://www.nccoe.nist.gov/get-involved/attend-events/cyber-ai-profile-workshop). Post-workshop materials include a recording of the morning sessions and the presentation slides for the morning sessions and afternoon breakouts.<sup>1</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの資料はイベントページ（https://www.nccoe.nist.gov/get-involved/attend-events/cyber-ai-profile-workshop）で入手できます。ワークショップ後の資料には、午前のセッションの録画と、午前のセッションおよび午後のブレイクアウトセッションの発表スライドが含まれます。<sup>1</sup></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Event Summary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. イベントの概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants in the workshop explored the cybersecurity opportunities and complex challenges introduced by AI systems, emphasizing the need for actionable solutions and cross-disciplinary collaboration. Discussions focused on integrating AI-specific risks into existing frameworks, such as the NIST CSF 2.0 [2], while addressing governance, operationalization, and risk management strategies. The subsections that follow summarize each presentation and discussion on the agenda.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、AI システムがもたらすサイバーセキュリティ上の機会と複雑な課題を探り、実行可能な解決策と分野横断的な協力が必要であることを強調しました。議論は、ガバナンス、運用化、リスク管理戦略に取り組みながら、AI 固有のリスクを NIST CSF 2.0 [2] などの既存のフレームワークに統合することに焦点を当てました。以下の小節では、議事次第にある各発表と議論をまとめます。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0009-b0006" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">1 The afternoon breakout sessions were not recorded.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+1 午後のブレイクアウトセッションは録画されていません。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Workshop Agenda &amp; Highlights</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. ワークショップの議事次第とハイライト</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop began with opening remarks from Jim St. Pierre, Deputy Director of the Information Technology Laboratory (ITL) at NIST, Cherilyn Pascoe, Director of the NCCoE, and Katerina Megas, Program Manager for the NIST Cybersecurity, Privacy, and AI Programs. Each speaker emphasized:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップは、NIST 情報技術研究所（ITL）副所長の Jim St. Pierre 氏、NCCoE 所長の Cherilyn Pascoe 氏、NIST サイバーセキュリティ・プライバシー・AI プログラムのプログラムマネージャーの Katerina Megas 氏による開会の挨拶で始まりました。各氏は、次の点を強調しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The importance of collaboration in addressing the intersection of cybersecurity and AI;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サイバーセキュリティと AI の交差領域に対処するうえでの協力の重要性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">NIST’s mission to foster innovation and competitiveness through standards and technology; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">標準と技術を通じてイノベーションと競争力を育むという NIST の使命。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The critical role of stakeholder input in shaping practical, impactful guidelines.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">実用的で影響力のあるガイドラインを形づくるうえでの、関係者の意見の重要な役割。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.1. Welcome and Opening Remarks</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.1. 歓迎の辞と開会の挨拶</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Jim St. Pierre, Deputy Director of NIST’s ITL, welcomed attendees to the NCCoE and expressed gratitude for their collaboration. He provided an overview of NIST’s mission to promote innovation and industrial competitiveness through measurement science, standards, and technology. Highlighting NIST’s non-regulatory status, he emphasized NIST’s ability to foster close industry collaboration without regulatory constraints. He also introduced ITL’s research areas, including cybersecurity, quantum computing, AI, and biometrics, and emphasized the importance of securing AI systems to align with NIST’s mission. Mr. St. Pierre concluded by thanking attendees for their input to help shape NIST’s outputs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の ITL 副所長の Jim St. Pierre 氏は、参加者を NCCoE に迎え、その協力に感謝の意を示しました。同氏は、計測科学、標準、技術を通じてイノベーションと産業競争力を促進するという NIST の使命について概要を説明しました。NIST が規制を行う立場にないことを強調し、規制上の制約なしに産業界と密接に協力できる NIST の強みを述べました。同氏はまた、サイバーセキュリティ、量子コンピューティング、AI、生体認証を含む ITL の研究分野を紹介し、NIST の使命に沿って AI システムを保護することの重要性を強調しました。St. Pierre 氏は、NIST の成果物を形づくる助けとなる意見を寄せてくれた参加者に感謝して締めくくりました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.2. NCCoE Welcome</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.2. NCCoE からの歓迎の辞</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cherilyn Pascoe, Director of the NCCoE, welcomed participants and highlighted the center’s collaborative approach to addressing cybersecurity challenges. She emphasized the NCCoE’s role in transitioning NIST’s world-class research into practical, real-world security solutions. Ms. Pascoe discussed the critical importance of cybersecurity to national and economic security and acknowledged the rapidly evolving landscape of threats and technologies, particularly AI. She outlined the NCCoE’s expertise in cybersecurity and AI, including initiatives such as Community Profiles, Privacy-Enhancing Technologies, and the Dioptra testbed. Ms. Pascoe encouraged active participation in the workshop, stressing the importance of community input in developing impactful guidelines.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NCCoE 所長の Cherilyn Pascoe 氏は、参加者を歓迎し、サイバーセキュリティ上の課題に取り組むセンターの協力的なアプローチを強調しました。同氏は、NIST の世界水準の研究を、実用的で実世界のセキュリティソリューションへと移行させる NCCoE の役割を強調しました。Pascoe 氏は、国家安全保障と経済安全保障にとってサイバーセキュリティが決定的に重要であることを論じ、脅威と技術、特に AI の状況が急速に進化していることを認めました。同氏は、コミュニティプロファイル、プライバシー強化技術、Dioptra テストベッドなどの取り組みを含む、サイバーセキュリティと AI に関する NCCoE の専門知識の概要を説明しました。Pascoe 氏は、影響力のあるガイドラインを策定するうえでコミュニティの意見が重要であることを強調し、ワークショップへの積極的な参加を呼びかけました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.3. Setting the Stage for the Cyber AI Profile</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.3. Cyber AI Profile の背景説明</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina Megas, Program Manager for NIST’s Cybersecurity, Privacy, and AI Programs, provided an overview of the program, examples of ongoing and past work at NIST supporting the program’s mission, as well as the goals and structure of the workshop. A few examples of current NIST work within the AI space include the AI RMF, the Dioptra testbed, the Adversarial Machine Learning Taxonomy and Terminology of Attacks and Mitigations, the Secure Software Development Framework (SSDF), TrojAI, and the expansion of the NICE Framework (to include Competency Areas aligned to the AI RMF and CSF 2.0). She shared insights from preliminary stakeholder engagements, highlighting three key takeaways: the urgent need for AI-focused cybersecurity guidelines, the importance of leveraging existing frameworks, and the necessity of a common taxonomy to address cybersecurity challenges in AI.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST サイバーセキュリティ・プライバシー・AI プログラムのプログラムマネージャーである Katerina Megas 氏は、このプログラムの概要、プログラムの使命を支える NIST の進行中および過去の取り組みの例、ならびにワークショップの目標と構成を説明しました。AI 分野における NIST の現在の取り組みの例には、AI RMF、Dioptra テストベッド、Adversarial Machine Learning Taxonomy and Terminology of Attacks and Mitigations、Secure Software Development Framework（SSDF）、TrojAI、NICE Framework の拡張（AI RMF および CSF 2.0 に整合するコンピテンシー領域を含める）があります。同氏は、予備的な関係者との対話から得られた知見を紹介し、3 つの主な収穫、すなわち、AI に焦点を当てたサイバーセキュリティガイドラインの緊急の必要性、既存のフレームワークを活用することの重要性、AI におけるサイバーセキュリティ上の課題に対処するための共通の分類体系の必要性を強調しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ms. Megas introduced the concept of a Cyber AI Profile, which aims to bridge the AI and cybersecurity communities, align requirements, and provide practical guidelines for organizations. She outlined the roadmap for developing the profile, emphasizing collaboration and community input. Ms. Megas also previewed the workshop’s breakout sessions, which focused on refining the Profile’s Focus Areas, understanding how organizations would leverage the Profile, and what elements the community would like the Profile to contain.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Megas 氏は、AI コミュニティとサイバーセキュリティコミュニティの橋渡しをし、要件を整合させ、組織に実用的なガイドラインを提供することを目指す、Cyber AI Profile の概念を紹介しました。同氏は、協力とコミュニティの意見を重視する、Profile の策定ロードマップの概要を説明しました。Megas 氏はまた、Profile のフォーカスエリアを洗練させること、組織が Profile をどのように活用するかを理解すること、コミュニティが Profile にどのような要素を含めたいかに焦点を当てる、ワークショップのブレイクアウトセッションの予告も行いました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Fireside Chat: Potential Interplays Between the CSF and AI RMF for Cybersecurity</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. ファイヤーサイドチャット: サイバーセキュリティのための CSF と AI RMF の潜在的な相互作用</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The fireside chat featured NIST experts Steve Quinn and Martin Stanley, moderated by Dan Caprio, to discuss the interplay between the CSF 2.0 [2] and the AI RMF [3]. The discussion emphasized the need for executive-level governance and oversight to manage AI-related cybersecurity risks effectively. The NIST experts highlighted the importance of integrating AI into enterprise risk management strategies and aligning AI-specific risks with existing cybersecurity frameworks. They also explored the challenges of operationalizing AI risk management and the need for actionable guidelines to help organizations implement AI-enabled cybersecurity controls. Discussions also emphasized the importance of collaboration between AI and cybersecurity communities to address shared challenges and opportunities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ファイヤーサイドチャットでは、NIST の専門家である Steve Quinn 氏と Martin Stanley 氏が、Dan Caprio 氏をモデレーターとして、CSF 2.0 [2] と AI RMF [3] の相互作用について議論しました。議論では、AI 関連のサイバーセキュリティリスクを効果的に管理するために、経営層レベルのガバナンスと監督が必要であることが強調されました。NIST の専門家は、AI をエンタープライズリスク管理戦略に統合し、AI 固有のリスクを既存のサイバーセキュリティフレームワークに整合させることの重要性を強調しました。また、AI リスク管理の運用化における課題と、組織が AI を活用したサイバーセキュリティ管理策を実装するのを支援する実行可能なガイドラインの必要性も探りました。議論ではさらに、共通の課題と機会に対処するために、AI コミュニティとサイバーセキュリティコミュニティの協力が重要であることが強調されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Themes discussed during the fireside chat were grouped by CSF Functions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ファイヤーサイドチャットで議論されたテーマは、CSF の機能ごとに分類されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2. Themes Discussed During the Fireside Chat by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2. ファイヤーサイドチャットで議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Theme</th></tr></thead><tbody><tr><th>GOVERN (GV)</th><td><ul><li>Provide executive level oversight of AI risk to address today’s needs and prepare for additional AI capabilities in the future.</li><li>Account for upside/positive risks, not just negative risks.</li><li>Leverage frameworks to support incorporating AI risk management into current enterprise risk management processes.</li><li>Use standardized terminology/taxonomy between AI and cyber communities and practitioners to enable these communities to effectively collaborate.</li><li>Apply the forthcoming Cyber AI Profile, which will synthesize elements from NIST frameworks (e.g., CSF, AI RMF) and other resources, to inform a comprehensive cyber-AI strategy.</li></ul></td></tr><tr><th>IDENTIFY (ID)</th><td><ul><li>Identify risks associated with the adoption of new AI technology.</li></ul></td></tr><tr><th>PROTECT (PR)</th><td><ul><li>Develop implementation guidance for cybersecurity controls for AI systems.</li></ul></td></tr><tr><th>DETECT (DE)</th><td><ul><li>Integrate detection of AI threats into current cyber detection capabilities.</li></ul></td></tr><tr><th>RESPOND (RS)</th><td>Respond was not directly addressed during the fireside chat.</td></tr><tr><th>RECOVER (RC)</th><td>Recover was not directly addressed during the fireside chat.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>テーマ</th></tr></thead><tbody><tr><th>統治（GOVERN、GV）</th><td><ul><li>今日のニーズに対処し、将来の追加の AI 能力に備えるため、AI リスクに対する経営層レベルの監督を行います。</li><li>否定的なリスクだけでなく、上振れ・肯定的なリスクも考慮します。</li><li>AI リスク管理を現在のエンタープライズリスク管理プロセスに組み込むことを支援するために、フレームワークを活用します。</li><li>AI コミュニティとサイバーコミュニティおよびその実務担当者の間で標準化された用語・分類体系を使用し、これらのコミュニティが効果的に協力できるようにします。</li><li>NIST のフレームワーク（たとえば、CSF、AI RMF）やその他のリソースの要素を統合する、今後公開される Cyber AI Profile を適用して、包括的なサイバー・AI 戦略の指針とします。</li></ul></td></tr><tr><th>識別（IDENTIFY、ID）</th><td><ul><li>新しい AI 技術の導入に伴うリスクを識別します。</li></ul></td></tr><tr><th>防御（PROTECT、PR）</th><td><ul><li>AI システムのサイバーセキュリティ管理策の実装ガイダンスを策定します。</li></ul></td></tr><tr><th>検知（DETECT、DE）</th><td><ul><li>AI の脅威の検知を、現在のサイバー検知能力に統合します。</li></ul></td></tr><tr><th>対応（RESPOND、RS）</th><td>対応（Respond）は、ファイヤーサイドチャットでは直接取り上げられませんでした。</td></tr><tr><th>復旧（RECOVER、RC）</th><td>復旧（Recover）は、ファイヤーサイドチャットでは直接取り上げられませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Other considerations mentioned include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>挙げられたその他の考慮事項には、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">There is a need to translate existing resources (e.g., frameworks, controls) into actionable implementation guidance for AI rather than creating something wholly new.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">既存のリソース（たとえば、フレームワーク、管理策）を、まったく新しいものを作るのではなく、AI のための実行可能な実装ガイダンスに変換する必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Frameworks can inform executive-level decision-making by providing clarity on acceptable risk levels and strategies for mitigating AI-related threats.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">フレームワークは、許容可能なリスクレベルと AI 関連の脅威を緩和する戦略を明確にすることで、経営層レベルの意思決定に情報を提供できます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Frameworks can put risk in perspective by providing clarity on acceptable risk levels and strategies for mitigating AI-related threats.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">フレームワークは、許容可能なリスクレベルと AI 関連の脅威を緩和する戦略を明確にすることで、リスクを適切に位置づけられます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Reference architectures and taxonomies are needed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">リファレンスアーキテクチャと分類体系が必要です。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. Summary of Panel Sessions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. パネルセッションの概要</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.3.1. Panel 1 – Protection of AI Systems</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.3.1. パネル 1 – AI システムの保護</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first panel of industry experts, moderated by Vicky Pillitteri, focused on identifying the scope, usage, gaps, and next steps for protecting AI systems from a cybersecurity perspective. Panelists highlighted that AI systems consist of multiple components, including data, models, applications, and infrastructure, each requiring tailored security measures. They noted that traditional cybersecurity concepts apply to AI systems, but there are differences in implementation that need to be addressed. Panelists also discussed the importance of understanding and applying current publications and references rather than reinventing the wheel or creating additional guidance, noting that duplicative guidance can be a burden for organizations when addressing threat modeling, supply chain security, and shared responsibility among stakeholders. Panelists highlighted the need for actionable implementation guidelines to address AI-specific risks, such as prompt injection and data poisoning, while leveraging existing cybersecurity principles, as well as the potential need for use case or industry-specific Profiles based on the Cyber AI Profile (after it is published). The discussion also stressed the importance of education and collaboration across teams to bridge knowledge gaps between AI researchers and cybersecurity professionals.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Vicky Pillitteri 氏がモデレーターを務めた、業界の専門家による最初のパネルは、サイバーセキュリティの観点から AI システムを保護するための範囲、使用法、ギャップ、今後のステップを特定することに焦点を当てました。パネリストは、AI システムはデータ、モデル、アプリケーション、インフラストラクチャを含む複数のコンポーネントで構成され、それぞれに個別対応のセキュリティ対策が必要であると強調しました。従来のサイバーセキュリティの概念は AI システムにも当てはまるものの、対処が必要な実装上の違いがあると指摘しました。パネリストはまた、車輪を再発明したり追加のガイダンスを作成したりするのではなく、現在の刊行物や参照資料を理解して適用することの重要性についても議論し、重複するガイダンスは、脅威モデリング、サプライチェーンセキュリティ、関係者間の責任共有に取り組む組織にとって負担となりうると指摘しました。パネリストは、プロンプトインジェクションやデータポイズニングなど、AI 固有のリスクに対処するために、既存のサイバーセキュリティの原則を活用しつつ、実行可能な実装ガイドラインが必要であることや、（公開後の）Cyber AI Profile に基づくユースケース別または業界別の Profile が必要になる可能性があることを強調しました。議論ではまた、AI 研究者とサイバーセキュリティ専門家の間の知識のギャップを埋めるために、教育とチーム間の協力が重要であることも強調されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Themes discussed during the panel were grouped by CSF Functions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パネルで議論されたテーマは、CSF の機能ごとに分類されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 3. Themes Discussed During Panel 1 by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 3. パネル 1 で議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Theme</th></tr></thead><tbody><tr><th>GOVERN (GV)</th><td><ul><li>Understand and manage risks associated with AI supply chain including the data.</li></ul></td></tr><tr><th>IDENTIFY (ID)</th><td><ul><li>Identify the multiple components of an AI system (model, data, applications) that need to be addressed as part of a comprehensive cybersecurity strategy for AI.</li><li>Conduct threat modeling for the entire system and its activities</li><li>Understand the provenance of assets.</li><li>Understand the risk associated with third party models.</li></ul></td></tr><tr><th>PROTECT (PR)</th><td><ul><li>Develop implementation guidance specific to AI (e.g., prompt injection and data poisoning).</li><li>Provide training throughout the organization to understand proper use of AI and manage AI-related risks.</li><li>Protect data (both protection of sensitive data and privacy are concerns)</li><li>Scan assets for vulnerabilities.</li></ul></td></tr><tr><th>DETECT (DE)</th><td>Detect was not directly addressed during this panel.</td></tr><tr><th>RESPOND (RS)</th><td>Respond was not directly addressed during this panel.</td></tr><tr><th>RECOVER (RC)</th><td>Recover was not directly addressed during this panel.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>テーマ</th></tr></thead><tbody><tr><th>統治（GOVERN、GV）</th><td><ul><li>データを含む AI サプライチェーンに関連するリスクを理解し、管理します。</li></ul></td></tr><tr><th>識別（IDENTIFY、ID）</th><td><ul><li>AI のための包括的なサイバーセキュリティ戦略の一部として対処する必要がある、AI システムの複数のコンポーネント（モデル、データ、アプリケーション）を識別します。</li><li>システム全体とその活動について脅威モデリングを実施する</li><li>資産の出所を理解します。</li><li>サードパーティのモデルに関連するリスクを理解します。</li></ul></td></tr><tr><th>防御（PROTECT、PR）</th><td><ul><li>AI に固有の実装ガイダンス（たとえば、プロンプトインジェクションとデータポイズニング）を策定します。</li><li>AI の適切な使用を理解し、AI 関連のリスクを管理するために、組織全体でトレーニングを提供します。</li><li>データを保護する（機微なデータの保護とプライバシーの両方が懸念事項である）</li><li>資産の脆弱性をスキャンします。</li></ul></td></tr><tr><th>検知（DETECT、DE）</th><td>検知（Detect）は、このパネルでは直接取り上げられませんでした。</td></tr><tr><th>対応（RESPOND、RS）</th><td>対応（Respond）は、このパネルでは直接取り上げられませんでした。</td></tr><tr><th>復旧（RECOVER、RC）</th><td>復旧（Recover）は、このパネルでは直接取り上げられませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.3.2. Panel 2 – Defensive and Adversarial Use of AI</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.3.2. パネル 2 – AI の防御的利用と敵対的利用</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The second panel of industry experts, moderated by Martin Stanley, explored the use of AI in cybersecurity defense and the adversarial use of AI to augment cyberattacks. Panelists discussed how AI enhances cybersecurity tools by improving threat detection, incident response, and behavioral analysis. They highlighted the role of AI in enabling predictive path analysis and reducing alert fatigue for defenders. On the adversarial side, panelists noted that AI lowers the barrier for attackers, enabling faster and more scalable attacks, such as AI-crafted phishing campaigns and automated vulnerability exploitation. The discussion emphasized the need for defenders to leverage AI to match adversaries&#x27; speed and scale while addressing transparency, trust, and accountability in AI-enabled systems. Panelists called for red teaming, continuous risk evaluation, governance frameworks, and robust identity management to mitigate risks associated with adversarial machine learning and protecting AI systems after adoption. Panelists also acknowledged that there may be a need for additional regulation in this space to address any identified gaps.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Martin Stanley 氏がモデレーターを務めた業界専門家による 2 つ目のパネルでは、サイバーセキュリティ防御における AI の利用と、サイバー攻撃を増強するための攻撃者による AI の利用が検討されました。パネリストは、AI が脅威検知、インシデント対応、行動分析を改善することで、サイバーセキュリティツールをどのように強化するかを議論しました。また、AI が予測的なパス分析を可能にし、防御側のアラート疲れを軽減する役割を果たすことを強調しました。攻撃者側について、パネリストは、AI が攻撃者にとっての障壁を下げ、AI が作成したフィッシングキャンペーンや脆弱性の自動悪用など、より速く、より大規模な攻撃を可能にすると指摘しました。議論では、AI を活用したシステムにおける透明性、信頼、説明責任に対処しながら、防御側が攻撃者の速度と規模に対抗するために AI を活用する必要があることが強調されました。パネリストは、敵対的機械学習に関連するリスクを軽減し、導入後の AI システムを保護するため、レッドチーミング、継続的なリスク評価、ガバナンスフレームワーク、堅牢なアイデンティティ管理を求めました。パネリストはまた、特定されたギャップに対処するため、この分野で追加の規制が必要になる可能性があることも認めました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Themes discussed during the panel were grouped by CSF Functions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パネルで議論されたテーマは、CSF の機能ごとに分類されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 4. Themes Discussed During Panel 2 by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 4. パネル 2 で議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Theme</th></tr></thead><tbody><tr><th>GOVERN (GV)</th><td><ul><li>Expand governance practices to understand the role of AI in the organization and to address its intersections with other areas (e.g., privacy).</li><li>Understand the opportunities and risks associated with the use of AI to defend systems.</li><li>Develop a methodology to gain insight into decision making by AI systems.</li></ul></td></tr><tr><th>IDENTIFY (ID)</th><td><ul><li>Know the organization’s points of vulnerability throughout the network and the data lifecycle.</li></ul>Inventory AI assets (e.g., hardware, models, application programing interfaces (APIs), keys, agents).<ul><li>Take a layered approach to thwarting against attacks, factoring in networks, containers, servers, platforms, data, and infrastructure.</li><li>Understand the risks associated with attackers leveraging AI using existing attack vectors.</li><li>Recognize both common and unique aspects of AI risks.</li><li>Understand risks to supply chain of AI tools.</li><li>Use simulation capabilities to better prepare against adversarial tools.</li><li>Scale identity management practices to address how quickly and easily adversaries can move through a compromised network.</li><li>Build AI considerations into red-teaming practices.</li><li>Incorporate feedback loops to continue improving AI use in cybersecurity activities.</li></ul></td></tr><tr><th>PROTECT (PR)</th><td><ul><li>Capitalize on the potential of AI capabilities to strengthen defenses.</li><li>Recognize the risks of adversarial AI to compromise identity management.</li><li>Understand the use cases for and protections necessary to effectively use agentic AI.</li></ul></td></tr><tr><th>DETECT (DE)</th><td><ul><li>Capitalize on new monitoring and analysis capabilities (e.g., user and machine behavioral analysis, real-time monitoring and response).</li><li>Leverage AI during event analysis. For example, it is already frequently used to increase the efficiency of activities like anomaly detection and it can enhance an organization’s ability to conduct more holistic analyses using inputs from multiple sources (different types of devices and telemetries).</li><li>Identify AI capabilities that can support organizations in moving from a reactive defensive mode to proactive (e.g., predictive analysis).</li></ul></td></tr><tr><th>RESPOND (RS)</th><td><ul><li>Enhance response and recovery efforts, for example using AI tools to recommend steps to take based on an event.</li><li>Understand the risk associated with using AI for response.</li></ul></td></tr><tr><th>RECOVER (RC)</th><td>Recover was not directly addressed during this panel.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>テーマ</th></tr></thead><tbody><tr><th>統治（GOVERN、GV）</th><td><ul><li>組織における AI の役割を理解し、他の領域（たとえばプライバシー）との交差に対処するために、ガバナンスの実践を拡充します。</li><li>システムを防御するための AI の使用に関連する機会とリスクを理解します。</li><li>AI システムによる意思決定への洞察を得るための方法論を策定します。</li></ul></td></tr><tr><th>識別（IDENTIFY、ID）</th><td><ul><li>ネットワーク全体とデータライフサイクル全体にわたる、組織の脆弱性のあるポイントを把握します。</li></ul>AI 資産（たとえば、ハードウェア、モデル、アプリケーションプログラミングインターフェース（API）、鍵、エージェント）の目録を作成します。<ul><li>ネットワーク、コンテナ、サーバー、プラットフォーム、データ、インフラストラクチャを考慮して、攻撃を阻止するための多層的なアプローチをとります。</li><li>攻撃者が既存の攻撃ベクトルを使って AI を活用することに伴うリスクを理解します。</li><li>AI リスクの共通する側面と固有の側面の両方を認識します。</li><li>AI ツールのサプライチェーンに対するリスクを理解します。</li><li>敵対的なツールにより適切に備えるために、シミュレーション機能を使用します。</li><li>攻撃者が侵害されたネットワーク内をどれだけ速く容易に移動できるかに対処するために、アイデンティティ管理の実践を拡大します。</li><li>レッドチーミングの実践に AI に関する考慮事項を組み込みます。</li><li>サイバーセキュリティ活動での AI の利用を改善し続けるために、フィードバックループを組み込みます。</li></ul></td></tr><tr><th>防御（PROTECT、PR）</th><td><ul><li>防御を強化するために、AI 能力の可能性を活用します。</li><li>アイデンティティ管理を侵害する敵対的 AI のリスクを認識します。</li><li>エージェント型 AI を効果的に使用するためのユースケースと、必要な保護を理解します。</li></ul></td></tr><tr><th>検知（DETECT、DE）</th><td><ul><li>新しい監視・分析能力（たとえば、ユーザーとマシンの行動分析、リアルタイムの監視と対応）を活用します。</li><li>イベント分析で AI を活用します。たとえば、異常検知のような活動の効率を高めるためにすでに頻繁に使われており、複数の情報源（異なる種類のデバイスとテレメトリ）からの入力を使って、組織がより包括的な分析を行う能力を強化できます。</li><li>組織が事後対応型の防御モードから事前対応型（たとえば、予測分析）へ移行するのを支援できる AI 能力を特定します。</li></ul></td></tr><tr><th>対応（RESPOND、RS）</th><td><ul><li>たとえば、イベントに基づいてとるべき手順を推奨する AI ツールを使うなど、対応と復旧の取り組みを強化します。</li><li>対応に AI を使用することに伴うリスクを理解します。</li></ul></td></tr><tr><th>復旧（RECOVER、RC）</th><td>復旧（Recover）は、このパネルでは直接取り上げられませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4. Summary of Breakout Sessions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4. ブレイクアウトセッションの概要</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.4.1. Track A – Focus Area Descriptions</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.4.1. トラック A – フォーカスエリアの記述</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This breakout session focused on refining the descriptions of the three primary Focus Areas for the Cyber AI Profile: securing AI system components, thwarting AI-enabled cyberattacks, and using AI for cyber-defense activities. Characteristics that arose for each Cyber AI Profile Focus Area are listed below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このブレイクアウトセッションは、Cyber AI Profile の 3 つの主要なフォーカスエリア、すなわち、AI システムコンポーネントの保護、AI を活用したサイバー攻撃の阻止、サイバー防御活動への AI の活用、の記述を洗練させることに焦点を当てました。Cyber AI Profile の各フォーカスエリアについて挙がった特徴を以下に示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>Securing AI System Components:</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+AI システムコンポーネントの保護:</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants emphasized the expanded attack surface introduced by AI systems, including risks tied to data, models, infrastructure, and applications. Discussions highlighted the dynamic nature of AI systems, their interaction with external data sources, and supply chain dependencies, as well as governance challenges related to contracts, regulations, and organizational culture shifts.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、データ、モデル、インフラストラクチャ、アプリケーションに結び付いたリスクを含め、AI システムがもたらす攻撃対象領域の拡大を強調しました。議論では、AI システムの動的な性質、外部データソースとのやり取り、サプライチェーンへの依存関係に加えて、契約、規制、組織文化の変化に関連するガバナンス上の課題が取り上げられました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>Conducting AI-Enabled Cyber Defense:</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+AI を活用したサイバー防御の実施:</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The session highlighted efficiency gains in tasks like anomaly detection and incident response while addressing risks such as false positives/negatives. Participants also stressed the importance of benchmarking AI performance and integrating multidisciplinary perspectives to ensure effective implementation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このセッションでは、異常検知やインシデント対応などのタスクにおける効率の向上が強調され、誤検知・見逃しなどのリスクにも取り組みました。参加者はまた、効果的な実装を確保するために、AI の性能のベンチマークと学際的な視点の統合が重要であることを強調しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>Thwarting AI-Enabled Cyber Attacks:</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+AI を活用したサイバー攻撃の阻止:</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants explored the scale, speed, and automation of such AI-enabled threats, advocating for proactive defense measures, incident response plans tailored to AI-specific risks, and the adoption of zero-trust architecture principles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、そうした AI を活用した脅威の規模、速度、自動化を探り、事前対応型の防御策、AI 固有のリスクに合わせたインシデント対応計画、ゼロトラストアーキテクチャの原則の採用を提唱しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CSF-related topics that arose throughout the Focus Area discussions were grouped by CSF Functions and included:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フォーカスエリアの議論全体で挙がった CSF 関連のトピックは、CSF の機能ごとに分類され、次のものが含まれました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 5. Themes Discussed During Track A Focus Group Breakouts by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 5. トラック A のフォーカスグループのブレイクアウトで議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Theme</th></tr></thead><tbody><tr><th>GOVERN (GV)</th><td><ul><li>Explainability and confidence levels in AI interactions are critical for trustworthiness and regulatory compliance.</li><li>Transparency in the AI supply chain is essential.</li><li>Need for metrics to assess AI defense capabilities.</li><li>Need to understand the relationship between AI risks and privacy risks.</li><li>Use contracts to understand and govern AI-related cybersecurity requirements.</li></ul></td></tr><tr><th>IDENTIFY (ID)</th><td><ul><li>Identify risks associated with the use of AI systems, including third-party and supply chain risks (e.g., AI integrated into purchased applications).</li><li>Consider security throughout the data life cycle.</li><li>Need to understand data quality and use (generally and for cybersecurity activities) and the potential impacts to privacy of individuals (e.g., ensuring data is not leaked from a model).</li></ul></td></tr><tr><th>PROTECT (PR)</th><td><ul><li>Strong access controls (e.g., access control lists, role-based access controls) to accomplish zero trust architectures (ZTA) will be necessary to manage access to data.</li><li>The workforce will need role-based training and awareness to understand cybersecurity implications related to AI and to ensure proper use.</li><li>Implement cybersecurity controls for AI that scale.</li><li>Protect against prompt injections and data poisoning.</li><li>Protect against supply chain attacks.</li></ul></td></tr><tr><th>DETECT (DE)</th><td><ul><li>Develop novel methods needed to detect prompt injection and data poisoning.</li><li>Mitigate false positives generated by AI hallucinations.</li></ul></td></tr><tr><th>RESPOND (RS)</th><td><ul><li>Address AI-specific considerations in incident response plans.</li></ul></td></tr><tr><th>RECOVER (RC)</th><td>Recover was not directly addressed during Track A.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>テーマ</th></tr></thead><tbody><tr><th>統治（GOVERN、GV）</th><td><ul><li>AI とのやり取りにおける説明可能性と信頼度は、信頼性と規制遵守にとって重要です。</li><li>AI サプライチェーンの透明性は不可欠です。</li><li>AI の防御能力を評価するための指標が必要です。</li><li>AI リスクとプライバシーリスクの関係を理解する必要があります。</li><li>契約を使って、AI 関連のサイバーセキュリティ要件を理解し、統治します。</li></ul></td></tr><tr><th>識別（IDENTIFY、ID）</th><td><ul><li>サードパーティリスクやサプライチェーンリスク（たとえば、購入したアプリケーションに組み込まれた AI）を含む、AI システムの使用に関連するリスクを識別します。</li><li>データライフサイクル全体にわたってセキュリティを考慮します。</li><li>データの品質と使用（一般的な使用と、サイバーセキュリティ活動での使用）と、個人のプライバシーへの潜在的な影響（たとえば、モデルからデータが漏えいしないようにすること）を理解する必要があります。</li></ul></td></tr><tr><th>防御（PROTECT、PR）</th><td><ul><li>データへのアクセスを管理するには、ゼロトラストアーキテクチャ（ZTA）を実現するための強力なアクセス制御（たとえば、アクセス制御リスト、ロールベースのアクセス制御）が必要になります。</li><li>従業員は、AI に関連するサイバーセキュリティ上の影響を理解し、適切な使用を確保するために、ロールベースのトレーニングと意識向上が必要になります。</li><li>スケールする AI 向けのサイバーセキュリティ管理策を実装します。</li><li>プロンプトインジェクションとデータポイズニングから保護します。</li><li>サプライチェーン攻撃から保護します。</li></ul></td></tr><tr><th>検知（DETECT、DE）</th><td><ul><li>プロンプトインジェクションとデータポイズニングを検知するために必要な新しい手法を開発します。</li><li>AI のハルシネーションによって生じる誤検知を緩和します。</li></ul></td></tr><tr><th>対応（RESPOND、RS）</th><td><ul><li>インシデント対応計画で AI 固有の考慮事項に対処します。</li></ul></td></tr><tr><th>復旧（RECOVER、RC）</th><td>復旧（Recover）は、トラック A では直接取り上げられませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.4.2. Track B – Anticipated Profile Uses and Elements</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.4.2. トラック B – 想定される Profile の用途と要素</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This session explored the anticipated uses of the Cyber AI Profile and the essential elements it should include.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このセッションは、Cyber AI Profile の想定される用途と、含めるべき不可欠な要素を探りました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ways participants envision using the Cyber AI Profile include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者が Cyber AI Profile の使い方として思い描いているものには、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Supporting Effective Communication: Participants view the Cyber AI Profile as a tool to communicate an organization&#x27;s risk posture and provide metrics that customers, partners, and regulators can rely on.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">効果的なコミュニケーションの支援: 参加者は、Cyber AI Profile を、組織のリスク態勢を伝え、顧客、パートナー、規制当局が信頼できる指標を提供するツールと見ています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Aligning the Landscape: Participants plan to use the Cyber AI Profile to harmonize across the growing body of standards of guidance.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">状況の整合: 参加者は、増え続ける標準やガイダンスの間を調和させるために Cyber AI Profile を使うことを計画しています。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants also expressed the following additional desired characteristics of the Cyber AI Profile:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者はまた、Cyber AI Profile に望む追加の特性として、次を挙げました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Scalability: Participants noted that the Cyber AI Profile should be scalable to meet the needs of any size organization.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">スケーラビリティ: 参加者は、Cyber AI Profile はあらゆる規模の組織のニーズを満たせるようスケーラブルであるべきだと指摘しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Common taxonomy: Participants view the Cyber AI Profile as a way to create a governance taxonomy between the AI and cybersecurity communities, which can be used to describe the relationship between cybersecurity and AI risk. Participants noted the connections between existing frameworks, including the NIST Cybersecurity Framework (CSF), NIST AI Risk Management Framework (AI RMF), NIST Privacy Framework, NIST Risk Management Framework (NIST RMF), and Security and Privacy Controls for Information Systems and Organizations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">共通の分類体系: 参加者は、Cyber AI Profile を、サイバーセキュリティと AI リスクの関係を記述するために使える、AI コミュニティとサイバーセキュリティコミュニティの間のガバナンスの分類体系を作る手段と見ています。参加者は、NIST Cybersecurity Framework（CSF）、NIST AI Risk Management Framework（AI RMF）、NIST Privacy Framework、NIST Risk Management Framework（NIST RMF）、Security and Privacy Controls for Information Systems and Organizations を含む既存のフレームワーク間のつながりを指摘しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Operational integration: Participants emphasized the need for practical implementation guidance that organizations could operationalize within existing security processes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">運用面の統合: 参加者は、組織が既存のセキュリティプロセスの中で運用化できる、実用的な実装ガイダンスの必要性を強調しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Harmonization: Identify existing guidance and understand how these emerging guidance documents can be used to develop a standard approach to cybersecurity and AI risk management. Suggestions included mappings to international standards, such as the European Union’s General Data Protection Regulation (GDPR) and the anticipated ISO/IEC 27090, and leveraging tools like MITRE ATLAS<sup>TM</sup> for threat modeling.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">調和: 既存のガイダンスを特定し、これらの新たなガイダンス文書を、サイバーセキュリティと AI リスク管理への標準的なアプローチの策定にどのように使えるかを理解すること。提案には、欧州連合の一般データ保護規則（GDPR）や予定されている ISO/IEC 27090 などの国際標準への対応付けや、脅威モデリングのための MITRE ATLAS<sup>TM</sup> のようなツールの活用が含まれました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Interactive and Customizable: Participants would like the Cyber AI Profile to be produced in a format that enables users to interact with it during use, including features such as weighting Categories and Subcategories to facilitate prioritization and to provide more specific information to supplement the Core.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">インタラクティブでカスタマイズ可能: 参加者は、優先順位付けを容易にするためのカテゴリとサブカテゴリの重み付けや、コアを補足するより具体的な情報の提供などの機能を含め、利用者が使用中に操作できる形式で Cyber AI Profile が作成されることを望んでいます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Metrics: Participants expressed interest in modular and repeatable metrics.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">指標: 参加者は、モジュール式で再現可能な指標に関心を示しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Future-proof: Participants emphasized the importance of future-proofing the Profile to accommodate emerging technologies and the evolving regulatory and standards landscape.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">将来への対応: 参加者は、新興技術や進化する規制・標準の状況に対応できるよう、Profile を将来に備えさせることの重要性を強調しました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While the purpose of this session was to understand the use of the Cyber AI Profile and the types of content the Profile should contain for usability, the discussions also yielded several insights into specific considerations related to the CSF Core:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このセッションの目的は、Cyber AI Profile の使用と、使いやすさのために Profile に含めるべき内容の種類を理解することでしたが、議論からは、CSF コアに関連する具体的な考慮事項についてもいくつかの知見が得られました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 6. Themes Discussed During Track B Focus Group Breakouts by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 6. トラック B のフォーカスグループのブレイクアウトで議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Theme</th></tr></thead><tbody><tr><th>GOVERN (GV)</th><td><ul><li>Describe oversight-level considerations, particularly for boards of organizations.</li><li>Address responsibility for managing risks based on various types of AI systems the organization is adopting/implementing (e.g., Large Language Models (LLMs,) generative AI.</li></ul></td></tr><tr><th>IDENTIFY (ID)</th><td>Identify was not directly addressed during Track B.</td></tr><tr><th>PROTECT (PR)</th><td><ul><li>Need to focus on data integrity in addition to data security</li><li>Emphasize AI’s significant dependency on data governance, potentially as its own Profile.<sup>2</sup></li></ul></td></tr><tr><th>DETECT (DE)</th><td>Detect was not directly addressed during Track B.</td></tr><tr><th>RESPOND (RS)</th><td>Respond was not directly addressed during Track B.</td></tr><tr><th>RECOVER (RC)</th><td>Recover was not directly addressed during Track B.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>テーマ</th></tr></thead><tbody><tr><th>統治（GOVERN、GV）</th><td><ul><li>特に組織の取締役会向けに、監督レベルの考慮事項を記述します。</li><li>組織が導入・実装している AI システムのさまざまな種類（たとえば、大規模言語モデル（LLM）、生成 AI）に基づいて、リスク管理の責任に対処します。</li></ul></td></tr><tr><th>識別（IDENTIFY、ID）</th><td>識別（Identify）は、トラック B では直接取り上げられませんでした。</td></tr><tr><th>防御（PROTECT、PR）</th><td><ul><li>データセキュリティに加えて、データの完全性に焦点を当てる必要がある</li><li>AI がデータガバナンスに大きく依存していることを強調します。場合によっては独自の Profile とします。<sup>2</sup></li></ul></td></tr><tr><th>検知（DETECT、DE）</th><td>検知（Detect）は、トラック B では直接取り上げられませんでした。</td></tr><tr><th>対応（RESPOND、RS）</th><td>対応（Respond）は、トラック B では直接取り上げられませんでした。</td></tr><tr><th>復旧（RECOVER、RC）</th><td>復旧（Recover）は、トラック B では直接取り上げられませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.4.3. Track C – Priorities in the CSF Core</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.4.3. トラック C – CSF コアにおける優先事項</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This session used the Functions and Categories of the CSF Core to begin identifying the top threats and unique considerations for the three Cyber AI Profile Focus Areas outlined in the concept paper. Participants emphasized the need to integrate AI-specific risks into existing frameworks and to provide actionable guidelines for organizations; they indicated they like the idea of treating the three Focus Areas separately to address their distinct challenges while recognizing areas of overlap, such as governance and monitoring. The table below provides an overview of themes that arose for each Focus Area by CSF Function and reflects cross-cutting themes across all three Focus Areas.<sup>3</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このセッションでは、CSF コアの機能とカテゴリを使って、コンセプトペーパーで概説された Cyber AI Profile の 3 つのフォーカスエリアについて、主要な脅威と固有の考慮事項の特定に着手しました。参加者は、AI 固有のリスクを既存のフレームワークに統合し、組織に実行可能なガイドラインを提供する必要性を強調しました。また、ガバナンスや監視など重複する領域を認識しつつ、3 つのフォーカスエリアそれぞれの固有の課題に対処するために別々に扱うという考え方を支持すると述べました。下の表は、CSF の機能ごとに各フォーカスエリアで挙がったテーマの概要と、3 つのフォーカスエリアすべてに共通するテーマを示しています。<sup>3</sup></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0017-b0009" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">2 See this related NIST Data Governance and Management Profile effort.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+2 関連する NIST の取り組みである Data Governance and Management Profile を参照してください。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0017-b0010" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">3 The table only reflects topics that were discussed during the short time allocated for each breakout session. This table is not intended to provide a comprehensive list of considerations. This topic was further explored in a series of virtual Cyber AI Profile Community of Interest working sessions.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=17">原本 PDF p.17</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+3 この表には、各ブレイクアウトセッションに割り当てられた短い時間の中で議論されたトピックのみが反映されています。この表は、考慮事項の網羅的な一覧を提供することを意図したものではありません。このトピックは、Cyber AI Profile Community of Interest の一連のバーチャルワーキングセッションでさらに検討されました。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 7.: Themes Discussed for Each Focus Area During Track C Focus Group Breakouts by CSF Function</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 7.: トラック C のフォーカスグループのブレイクアウトで各フォーカスエリアについて議論されたテーマ（CSF の機能別）</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Function</th><th>Securing AI System Components</th><th>Conducting AI-enabled Cyber Defense</th><th>Thwarting AI-enabled Cyber Attacks</th></tr></thead><tbody><tr><th rowspan="2">GOVERN (GV)</th><td><ul><li>Certification systems for AI components to ensure integrity and reduce risks associated with open-source models and third-party dependencies.</li></ul></td><td><ul><li>Need for privacy protection and addressing bias concerns in AI models.</li></ul></td><td><ul><li>Emphasis on supply chain security.</li></ul></td></tr><tr><td colspan="3"><ul><li>Emphasis on data governance, privacy, and supply chain security, use of autonomous AI systems, and incident accountability.</li><li>Cross-team collaboration to bridge the gap between AI and cybersecurity experts.</li><li>Multidisciplinary approach managing AI cybersecurity opportunities and risks, involving relevant parties like legal and procurement/<wbr/>acquisitions<wbr/>.</li><li>Opportunities to integrate AI-specific risks into existing frameworks, including feedback loops to improve governance and monitoring.</li></ul></td></tr><tr><th rowspan="2">IDENTIFY (ID)</th><td><ul><li>AI systems introduce new system components, which expand the attack surface (e.g., AI agents, public-facing systems, and supply chain dependencies).</li><li>Examples of threats identified included: Data poisoning, and supply chain vulnerabilities.</li></ul></td><td><ul><li>Lack of standardized benchmarks for measuring AI's effectiveness in cybersecurity.</li><li>Emphasis on red teaming/adversarial testing.</li></ul></td><td><ul><li>How to differentiate between AI-enabled attacks and non-AI-enabled attacks.</li><li>Examples of threats identified included: Adversarial use of AI tools makes existing violations faster and more novel, amplifying risks rather than introducing entirely new ones (e.g., social engineering becomes faster and more realistic and can be done on a larger scale).</li></ul></td></tr><tr><td colspan="3"><ul><li>Tracking data provenance, bias detection in models, and supply chain risks.</li></ul></td></tr><tr><th rowspan="2">PROTECT (PR)</th><td><ul><li>Need for robust security measures, data governance, and privacy considerations.</li><li>Importance of training and awareness across the organization to address AI-related risks.</li></ul></td><td>Specific theme not identified.</td><td>Specific theme not identified.</td></tr><tr><td colspan="3"><ul><li>Importance of education to bridge the gap between AI and cybersecurity experts.</li><li>Cryptographic signing, boundary protection, and prompt injection defenses.</li><li>The importance of data integrity, accuracy, and provenance was emphasized, particularly for AI systems reliant on external or third-party data sources.</li></ul></td></tr><tr><th rowspan="2">DETECT (DE)</th><td>Specific theme not identified.</td><td><ul><li>Examples of opportunities to use AI in cybersecurity defense included: AI enhances efficiency in cybersecurity by analyzing large volumes of logs, detecting threats faster, and saving time and resources.</li></ul></td><td><ul><li>Need for controls to catch AI-enabled attacks, such as prompt injection and data poisoning.</li></ul></td></tr><tr><td colspan="3"><ul><li>Automated anomaly detection and continuous monitoring of AI systems.</li><li>AI is likely to play a larger role in Detect as the availability of tools that support outcomes in this Function increases (e.g., monitoring).</li></ul></td></tr><tr><th rowspan="2">RESPOND (RS)</th><td>Specific theme not identified.</td><td><ul><li>Understanding the circumstances around automated responses and when there is a need for human intervention.</li><li>Examples of opportunities to use AI in cybersecurity defense included: AI-driven automation and threat intelligence sharing.</li></ul></td><td>Specific theme not identified.</td></tr><tr><td colspan="3"><ul><li>The importance of considering the autonomous nature of AI and its impact on incident response.</li><li>Tailored incident response plans for AI-specific threats.</li></ul></td></tr><tr><th>RECOVER (RC)</th><td colspan="3">Specific themes not identified.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>機能</th><th>AI システムコンポーネントの保護</th><th>AI を活用したサイバー防御の実施</th><th>AI を活用したサイバー攻撃の阻止</th></tr></thead><tbody><tr><th rowspan="2">統治（GOVERN、GV）</th><td><ul><li>オープンソースモデルやサードパーティへの依存関係に関連するリスクを低減し、完全性を確保するための、AI コンポーネントの認証システム。</li></ul></td><td><ul><li>プライバシー保護の必要性と、AI モデルにおけるバイアスの懸念への対処。</li></ul></td><td><ul><li>サプライチェーンセキュリティの重視。</li></ul></td></tr><tr><td colspan="3"><ul><li>データガバナンス、プライバシー、サプライチェーンセキュリティ、自律的な AI システムの使用、インシデントに対する説明責任の重視。</li><li>AI の専門家とサイバーセキュリティの専門家の間のギャップを埋めるための、チーム間の協力。</li><li>法務や調達・取得など、関係する部門を巻き込んだ、AI のサイバーセキュリティ上の機会とリスクを管理する学際的なアプローチ。</li><li>ガバナンスと監視を改善するためのフィードバックループを含め、AI 固有のリスクを既存のフレームワークに統合する機会。</li></ul></td></tr><tr><th rowspan="2">識別（IDENTIFY、ID）</th><td><ul><li>AI システムは、攻撃対象領域を拡大する新しいシステムコンポーネント（たとえば、AI エージェント、一般公開システム、サプライチェーンへの依存関係）をもたらします。</li><li>特定された脅威の例: データポイズニング、サプライチェーンの脆弱性。</li></ul></td><td><ul><li>サイバーセキュリティにおける AI の有効性を測定するための標準化されたベンチマークの欠如。</li><li>レッドチーミング・敵対的テストの重視。</li></ul></td><td><ul><li>AI を活用した攻撃と AI を活用しない攻撃を区別する方法。</li><li>特定された脅威の例: AI ツールの敵対的な利用は、既存の違反をより速く、より斬新なものにし、まったく新しいリスクをもたらすというよりは、リスクを増幅させる（たとえば、ソーシャルエンジニアリングがより速く、より現実的になり、より大規模に実行できる）。</li></ul></td></tr><tr><td colspan="3"><ul><li>データの出所の追跡、モデルにおけるバイアスの検出、サプライチェーンリスク。</li></ul></td></tr><tr><th rowspan="2">防御（PROTECT、PR）</th><td><ul><li>堅牢なセキュリティ対策、データガバナンス、プライバシーに関する考慮事項の必要性。</li><li>AI 関連のリスクに対処するための、組織全体でのトレーニングと意識向上の重要性。</li></ul></td><td>特定のテーマは特定されませんでした。</td><td>特定のテーマは特定されませんでした。</td></tr><tr><td colspan="3"><ul><li>AI の専門家とサイバーセキュリティの専門家の間のギャップを埋めるための教育の重要性。</li><li>暗号による署名、境界防御、プロンプトインジェクションへの防御。</li><li>特に、外部またはサードパーティのデータソースに依存する AI システムにとって、データの完全性、正確性、出所の重要性が強調されました。</li></ul></td></tr><tr><th rowspan="2">検知（DETECT、DE）</th><td>特定のテーマは特定されませんでした。</td><td><ul><li>サイバーセキュリティ防御に AI を使用する機会の例: AI は、大量のログの分析、脅威のより速い検知、時間とリソースの節約によって、サイバーセキュリティの効率を高めます。</li></ul></td><td><ul><li>プロンプトインジェクションやデータポイズニングなど、AI を活用した攻撃を捕捉するための管理策の必要性。</li></ul></td></tr><tr><td colspan="3"><ul><li>自動化された異常検知と、AI システムの継続的モニタリング。</li><li>この機能の成果（たとえば、モニタリング）を支援するツールが利用可能になるにつれて、AI は検知においてより大きな役割を果たす可能性が高い。</li></ul></td></tr><tr><th rowspan="2">対応（RESPOND、RS）</th><td>特定のテーマは特定されませんでした。</td><td><ul><li>自動化された対応の状況と、人間の介入が必要になる場合を理解します。</li><li>サイバーセキュリティ防御に AI を使用する機会の例: AI による自動化と脅威インテリジェンスの共有。</li></ul></td><td>特定のテーマは特定されませんでした。</td></tr><tr><td colspan="3"><ul><li>AI の自律的な性質とそのインシデント対応への影響を考慮することの重要性。</li><li>AI 固有の脅威に合わせたインシデント対応計画。</li></ul></td></tr><tr><th>復旧（RECOVER、RC）</th><td colspan="3">特定のテーマは特定されませんでした。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Key Takeaways</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 主な収穫</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Cyber AI Profile Workshop offered participants an opportunity to share feedback and insights with NIST throughout the day. These takeaways reflect ideas that resonated strongly across discussions and provide valuable feedback for NIST’s ongoing efforts for the Cyber AI Profile and other NIST programs. Participants emphasized the importance of integrating AI-specific risks into existing frameworks, adopting proactive defense strategies, and ensuring supply chain security. Transparency, accountability, and continuous monitoring were identified as critical for maintaining trust and system integrity. Participants also called for the Cyber AI Profile to be modular and adaptable, to include sector-specific Profiles, and to cover the importance of multidisciplinary collaboration to ensure the Profile’s relevance across diverse sectors and organizational sizes. Attendees requested that the Cyber AI Profile focus on risk management rather than compliance, providing actionable guidelines to help organizations navigate the evolving cybersecurity landscape shaped by AI technologies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Cyber AI Profile ワークショップは、参加者が 1 日を通じて、フィードバックと知見を NIST と共有する機会となりました。これらの収穫は、議論全体で強く共感を得た考えを反映しており、Cyber AI Profile およびその他の NIST プログラムに対する NIST の継続的な取り組みに貴重なフィードバックを提供します。参加者は、AI 固有のリスクを既存のフレームワークに統合すること、事前対応型の防御戦略を採用すること、サプライチェーンセキュリティを確保することの重要性を強調しました。透明性、説明責任、継続的モニタリングは、信頼とシステムの完全性を維持するうえで重要であると特定されました。参加者はまた、Cyber AI Profile がモジュール式で適応可能であること、分野別の Profile を含むこと、そして Profile が多様な分野や組織規模で適切であり続けるように学際的な協力の重要性を扱うことを求めました。出席者は、Cyber AI Profile がコンプライアンスではなくリスク管理に焦点を当て、AI 技術によって形づくられる進化するサイバーセキュリティの状況を組織が進むのに役立つ実行可能なガイドラインを提供するよう要望しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The summarized takeaways outlined below do not represent formal recommendations to NIST but rather serve as a foundation for future community engagement. These takeaways will inform NIST’s continued efforts to develop the Cyber AI Profile as a practical resource for organizations navigating AI-related risks and opportunities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下にまとめた収穫は、NIST への正式な提言を表すものではなく、今後のコミュニティとの関わりの基礎となるものです。これらの収穫は、AI 関連のリスクと機会に取り組む組織にとって実用的なリソースとなるよう NIST が Cyber AI Profile の策定を続ける取り組みに役立てられます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Enterprise Risk Management and Governance: Participants generally agreed that AI risk is organizational risk. As such, it is critical to integrate AI risk management into existing enterprise risk management practices and governance structures.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">エンタープライズリスク管理とガバナンス: 参加者は概ね、AI リスクは組織のリスクであるという点で一致しました。したがって、AI リスク管理を既存のエンタープライズリスク管理の実践とガバナンス体制に統合することが重要です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Multidisciplinary Collaboration and Education: AI use introduces considerations from multiple aspects of organizational operations, including legal, technical, procurement/acquisitions, and governance teams. Collaboration across these areas was highlighted as essential for addressing AI-related cybersecurity risks. Participants called for integrating perspectives through multidisciplinary teams to ensure a comprehensive enterprise view. They also discussed the need for education and cross-team collaboration to bridge the knowledge gaps between AI and cybersecurity experts.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">学際的な協力と教育: AI の利用は、法務、技術、調達・取得、ガバナンスのチームなど、組織運営のさまざまな側面からの考慮事項をもたらします。これらの領域にまたがる協力は、AI 関連のサイバーセキュリティリスクに対処するために不可欠であると強調されました。参加者は、包括的なエンタープライズの視点を確保するために、学際的なチームを通じて視点を統合することを求めました。また、AI の専門家とサイバーセキュリティの専門家の間の知識のギャップを埋めるために、教育とチーム間の協力が必要であることも議論しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Dual-Use Nature of AI: AI&#x27;s dual-use nature, both as a tool for enhancing defenses and as a means for adversaries to amplify attacks, presents both opportunities and risks. Cybersecurity considerations need to address these dual uses. AI can enhance cybersecurity tools, such as anomaly detection and incident response, but it can also enable adversaries to scale and automate attacks, including phishing, data poisoning, and model inversion. Proactive defense measures, such as automated red teaming and zero-trust principles, were identified as essential.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI のデュアルユースの性質: AI は、防御を強化するツールであると同時に、攻撃者が攻撃を増幅する手段でもあるというデュアルユースの性質を持ち、機会とリスクの両方をもたらします。サイバーセキュリティに関する考慮事項は、これらのデュアルユースに対処する必要があります。AI は、異常検知やインシデント対応などのサイバーセキュリティツールを強化できますが、フィッシング、データポイズニング、モデル反転を含む攻撃の規模拡大と自動化を攻撃者に可能にすることもあります。自動化されたレッドチーミングやゼロトラストの原則などの事前対応型の防御策が不可欠であると特定されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Effectiveness in Cyber-Defense: AI enhances cybersecurity efficiency, enabling faster data analysis and reduced reliance on third-party services. However, participants stressed the importance of measurable benchmarks to assess AI performance and mitigate challenges such as false positives and negatives, ensuring AI-driven cyber-defense capabilities perform as expected.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サイバー防御における有効性: AI はサイバーセキュリティの効率を高め、より速いデータ分析とサードパーティサービスへの依存の低減を可能にします。ただし、参加者は、AI の性能を評価し、誤検知・見逃しなどの課題を緩和して、AI によるサイバー防御能力が期待どおりに機能することを確保するために、測定可能なベンチマークが重要であることを強調しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Supply Chain Security: The workshop underscored the importance of securing the AI supply chain, including the need to understand the origins of AI components (e.g., microservices, containers, libraries) and data, the new vulnerabilities they may introduce, and their potential impacts on cybersecurity. Discussions also covered open-source models, training and use of third-party models, understanding the impacts of model changes over time, and third-party dependencies (as well as the need for trust and provenance).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サプライチェーンセキュリティ: ワークショップでは、AI サプライチェーンの保護の重要性が強調されました。これには、AI コンポーネント（たとえば、マイクロサービス、コンテナ、ライブラリ）とデータの出所、それらがもたらしうる新たな脆弱性、サイバーセキュリティへの潜在的な影響を理解する必要性が含まれます。議論では、オープンソースモデル、サードパーティモデルの学習と使用、モデルの変更が時間とともに及ぼす影響の理解、サードパーティへの依存関係（および信頼と出所の必要性）も取り上げられました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Transparency: Participants called for greater transparency in AI systems used to support cybersecurity, including clear documentation of data provenance, model behavior, and decision-making processes. Concerns about the distribution of data leading to incorrect results were identified as areas requiring more focus to ensure trustworthiness in cybersecurity implementations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">透明性: 参加者は、サイバーセキュリティを支援するために使われる AI システムにおいて、データの出所、モデルの挙動、意思決定プロセスの明確な文書化を含む、より高い透明性を求めました。データの分布が誤った結果につながることへの懸念は、サイバーセキュリティの実装における信頼性を確保するために、より注力が必要な領域として特定されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Human-in-the-Loop: Participants stressed the importance of human-in-the-loop processes and training to ensure effective implementation and oversight of AI systems used for cybersecurity. Discussions highlighted challenges in understanding AI behavior, including the variability of responses and the difficulty in interpreting AI-driven decisions. Bridging knowledge gaps between AI researchers and cybersecurity professionals was identified as critical for enabling the two communities to work together to build and maintain trustworthy AI systems.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ヒューマン・イン・ザ・ループ: 参加者は、サイバーセキュリティに使われる AI システムの効果的な実装と監督を確保するために、ヒューマン・イン・ザ・ループのプロセスとトレーニングが重要であることを強調しました。議論では、応答のばらつきや AI による意思決定の解釈の難しさなど、AI の挙動を理解する際の課題が取り上げられました。AI 研究者とサイバーセキュリティ専門家の間の知識のギャップを埋めることは、両コミュニティが協力して信頼できる AI システムを構築し維持できるようにするうえで重要であると特定されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Framework Integration: Participants emphasized the need for a shared understanding and common taxonomy between the AI and cybersecurity communities and noted the importance of integrating AI-specific risks into existing frameworks, such as the NIST Cybersecurity Framework (CSF), NIST AI Risk Management Framework (AI RMF), NIST Privacy Framework, NIST Risk Management Framework (NIST RMF), and Security and Privacy Controls for Information Systems and Organizations. Suggestions included mapping to international standards, such as the European Union’s General Data Protection Regulation (GDPR) and the anticipated ISO/IEC 27090, and leveraging other resources, such as MITRE ATLAS<sup>TM</sup>, for threat modeling. The need for sector-specific Community Profiles tailored to industries like healthcare, finance, and energy was also discussed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">フレームワークの統合: 参加者は、AI コミュニティとサイバーセキュリティコミュニティの間の共通理解と共通の分類体系の必要性を強調し、AI 固有のリスクを、NIST Cybersecurity Framework（CSF）、NIST AI Risk Management Framework（AI RMF）、NIST Privacy Framework、NIST Risk Management Framework（NIST RMF）、Security and Privacy Controls for Information Systems and Organizations などの既存のフレームワークに統合することの重要性を指摘しました。提案には、欧州連合の一般データ保護規則（GDPR）や予定されている ISO/IEC 27090 などの国際標準への対応付けや、脅威モデリングのための MITRE ATLAS<sup>TM</sup> などの他のリソースの活用が含まれました。医療、金融、エネルギーなどの業界に合わせた、分野別のコミュニティプロファイルの必要性も議論されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Implementation Guidance and Informative References: Multiple discussions stressed the need for guidance on implementing controls for AI systems and informative references to help organizations understand how to manage AI-related risks. See this related NIST effort: SP 800-53 Control Overlays for Securing AI Systems (COSAiS).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">実装ガイダンスと参考情報: 複数の議論で、AI システムの管理策を実装するためのガイダンスと、組織が AI 関連のリスクを管理する方法を理解するのに役立つ参考情報の必要性が強調されました。関連する NIST の取り組みである SP 800-53 Control Overlays for Securing AI Systems（COSAiS）を参照してください。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Data Governance: Data governance was identified as a critical topic, particularly for AI systems reliant on external or third-party data sources. Participants called for a separate Focus Area to address sensitive data and its use in AI systems, including privacy considerations. See this related NIST effort: Data Governance and Management Profile.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">データガバナンス: データガバナンスは、特に外部またはサードパーティのデータソースに依存する AI システムにとって、重要なトピックであると特定されました。参加者は、機微なデータと、プライバシーに関する考慮事項を含む AI システムでのその使用に対処するために、別個のフォーカスエリアを設けることを求めました。関連する NIST の取り組みである Data Governance and Management Profile を参照してください。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additionally, there was significant emphasis on the need to supplement traditional cybersecurity measures with those tailored for AI. Examples of tailored approaches discussed during the workshop include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、従来のサイバーセキュリティ対策を、AI に合わせた対策で補完する必要性が大きく強調されました。ワークショップで議論された個別対応のアプローチの例には、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cryptographic signing for models.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">モデルの暗号による署名。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Certification systems.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">認証システム。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Use of AI Software Bill of Materials (AI SBOM) to enhance transparency and accountability in AI components.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI コンポーネントの透明性と説明責任を高めるための、AI ソフトウェア部品表（AI SBOM）の使用。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Securing feedback loops, where model outputs are reused for further training or decision making, to prevent amplification of errors or adversarial manipulations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">誤りの増幅や敵対的な操作を防ぐための、モデルの出力がさらなる学習や意思決定に再利用されるフィードバックループの保護。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Robust governance strategies to address risks, such as data poisoning and model manipulation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">データポイズニングやモデル操作などのリスクに対処するための、堅牢なガバナンス戦略。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Adaptive identity management and access control strategies and policies to address the growing and complex role of non-human identities, such as AI agents and applications, in organizational environments.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">組織環境における、AI エージェントやアプリケーションなどの非人間のアイデンティティが担う、増大し複雑化する役割に対処するための、適応型のアイデンティティ管理およびアクセス制御の戦略とポリシー。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Incident response strategies and plans that distinguish attacks against AI models from traditional cybersecurity incidents and facilitate appropriate responses to attacks on AI systems (e.g., reverting to last known-good versions of models after model poisoning).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI モデルに対する攻撃を従来のサイバーセキュリティインシデントと区別し、AI システムへの攻撃に対する適切な対応を促進する（たとえば、モデルポイズニングの後に最後の正常なバージョンのモデルに戻す）インシデント対応戦略と計画。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Data security throughout its lifecycle in AI systems (e.g., model inputs and outputs)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI システムにおけるライフサイクル全体にわたるデータセキュリティ（たとえば、モデルの入力と出力）</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These takeaways provide a foundation for future community engagement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの知見は、今後のコミュニティとの関わりの基礎となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Adjacent Considerations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. 関連する検討事項</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Throughout the event, participants highlighted several important themes that extend beyond the immediate scope of the Cyber AI Profile. While these topics will not be directly addressed in the current iteration of the Profile, they offer valuable insights that may inform future initiatives for the AI Cybersecurity and Privacy Program and other NIST programs. By acknowledging these ideas, NIST reaffirms its commitment to adapting to the evolving needs of the community and exploring opportunities for continued engagement and development.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>イベントを通じて、参加者は、Cyber AI Profile の直接の範囲を超えるいくつかの重要なテーマを強調しました。これらのトピックは Profile の現在の版では直接取り上げられませんが、AI サイバーセキュリティ・プライバシープログラムやその他の NIST プログラムの今後の取り組みに役立つ可能性のある貴重な知見を提供します。これらの考えを認めることで、NIST は、コミュニティの進化するニーズに適応し、継続的な関わりと開発の機会を探るという姿勢を改めて示します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0022-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Implementation Based on AI Maturity: Participants highlighted the need for the Cyber AI Profile to support diverse use cases and organizational contexts. This includes tailoring implementation guidance based on the maturity of AI adoption, such as developing models from scratch, fine-tuning existing models, or using third-party tools. By addressing these varying levels of maturity, the profile can help organizations apply security measures and governance strategies that align with their specific AI capabilities and risks.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI の成熟度に基づく実装: 参加者は、Cyber AI Profile が多様なユースケースと組織の状況を支援する必要があることを強調しました。これには、モデルをゼロから開発する、既存のモデルをファインチューニングする、サードパーティのツールを使用するなど、AI 導入の成熟度に基づいて実装ガイダンスを調整することが含まれます。これらのさまざまな成熟度に対処することで、Profile は、組織が自らの AI 能力とリスクに合ったセキュリティ対策とガバナンス戦略を適用するのに役立てられます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Tailored Support for Small and Medium Businesses (SMBs): Participants emphasized the need for the Cyber AI Profile to provide SMBs with tailored support, including simple acquisition questions and practical tools to address their unique challenges.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">中小企業（SMB）への個別対応の支援: 参加者は、Cyber AI Profile が、SMB の固有の課題に対処するための簡単な調達の質問や実用的なツールを含め、SMB に個別対応の支援を提供する必要性を強調しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Sector-Specific Profiles: Discussions highlighted the desire for NIST to develop sector-specific Cyber AI Profiles and tailored incident response plans to address diverse use cases and ensure relevance across industries.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">分野別の Profile: 議論では、多様なユースケースに対処し、業界全体での適切性を確保するために、NIST が分野別の Cyber AI Profile と、個別対応のインシデント対応計画を策定することへの要望が強調されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Scalable and Adaptable Tools: The need for scalable and adaptable tools to manage AI-related cybersecurity risks was emphasized. Participants suggested interactive and customizable design features for the Cyber AI Profile, such as OLIR-based mappings and LLM integration, to make the profile more user-friendly and applicable across diverse industries.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">スケーラブルで適応可能なツール: AI 関連のサイバーセキュリティリスクを管理するための、スケーラブルで適応可能なツールの必要性が強調されました。参加者は、Profile をよりユーザーフレンドリーにし、多様な業界に適用できるようにするために、OLIR ベースの対応付けや LLM との統合など、Cyber AI Profile のインタラクティブでカスタマイズ可能な設計機能を提案しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SP 800-53 rev 5 Crosswalk: Participants recommended leveraging NIST SP 800-53 controls to provide detailed, implementable security measures tailored to AI-specific risks.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SP 800-53 Rev. 5 の対応表: 参加者は、AI 固有のリスクに合わせた、詳細で実装可能なセキュリティ対策を提供するために、NIST SP 800-53 の管理策を活用することを推奨しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI Supply Chain Documentation: Participants advocated for the inclusion of an AI Software Bill of Materials (SBOM) to address supply chain risks associated with AI systems. This initiative would enhance transparency and accountability by identifying the provenance, authenticity, and security of AI components, including open-source models and third-party dependencies. Cryptographic signing and certification systems were suggested as additional measures to ensure the integrity of AI systems across the supply chain.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AI サプライチェーンのドキュメント: 参加者は、AI システムに関連するサプライチェーンリスクに対処するために、AI ソフトウェア部品表（SBOM）を含めることを提唱しました。この取り組みは、オープンソースモデルやサードパーティへの依存関係を含む AI コンポーネントの出所、真正性、セキュリティを特定することで、透明性と説明責任を高めます。サプライチェーン全体にわたる AI システムの完全性を確保する追加の対策として、暗号による署名と認証システムが提案されました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0023-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Workforce Development: Participants emphasized the need for workforce training and development to address AI-related cybersecurity risks and to prepare cybersecurity teams for the effects of adopting AI-enabled tools.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">人材の育成: 参加者は、AI 関連のサイバーセキュリティリスクに対処し、AI を活用したツールの導入による影響にサイバーセキュリティチームが備えるために、人材のトレーニングと育成が必要であることを強調しました。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 今後の取り組み</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop provided NIST with valuable feedback that validated the use of the three focus areas (Secure, Defend, and Thwart) and their definitions, and informed the Preliminary Draft of the Cyber AI Profile. The summer 2025 Community of Interest (COI) Working Sessions<sup>4</sup> followed up on several lines of discussion surfaced at this event. This stakeholder input is essential to the open, transparent process for developing the Cyber AI Profile. Each step of the process toward the Cyber AI Profile will build on the previous actions and information. This workshop was informed by comments received on the Cybersecurity and AI Workshop Concept Paper [1] and the themes gleaned from those responses. The insights from this workshop, as well as comments submitted on the Cyber AI Profile Concept Paper [1], informed the direction of the Cyber AI Profile Preliminary Draft.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このワークショップは NIST に貴重なフィードバックを提供し、それによって 3 つのフォーカスエリア（Secure、Defend、Thwart）とその定義の使用が裏付けられ、Cyber AI Profile の予備ドラフトに情報が提供されました。2025年夏の Community of Interest（COI）ワーキングセッション<sup>4</sup>では、このイベントで浮かび上がったいくつかの議論の流れがさらに検討されました。この関係者の意見は、Cyber AI Profile を策定するための開かれた透明性のあるプロセスに不可欠です。Cyber AI Profile に向けたプロセスの各ステップは、それ以前の行動と情報の上に積み上げられます。このワークショップでは、Cybersecurity and AI Workshop Concept Paper [1] に寄せられたコメントと、それらの回答から得られたテーマが踏まえられました。このワークショップから得られた知見と、Cyber AI Profile Concept Paper [1] に提出されたコメントは、Cyber AI Profile 予備ドラフトの方向性に反映されました。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0023-b0010" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">4 Materials from Summer 2025 Community of Interest meetings are available at https://www.nccoe.nist.gov/projects/cyber-ai-profile/2025-virtual-working-sessions-materials<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=23">原本 PDF p.23</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+4 2025年夏の Community of Interest の会合の資料は https://www.nccoe.nist.gov/projects/cyber-ai-profile/2025-virtual-working-sessions-materials で入手できます。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most current version of the Cyber AI Profile roadmap is maintained here. For more information on updates to the Cyber AI Profile, Cyber AI Profile roadmap phases, or to join the Cyber AI Profile COI, please visit the NCCoE Cyber AI Profile project page, available at https://www.nccoe.nist.gov/projects/cyber-ai-profile.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Cyber AI Profile ロードマップの最新バージョンはこちらで管理されています。Cyber AI Profile の更新情報、Cyber AI Profile ロードマップの各フェーズについて詳しく知りたい場合、または Cyber AI Profile COI への参加を希望する場合は、https://www.nccoe.nist.gov/projects/cyber-ai-profile で公開されている NCCoE Cyber AI Profile プロジェクトページをご覧ください。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] National Institute of Standards and Technology (2025). Cybersecurity and AI Workshop Concept Paper National Institute of Standards and Technology. Available at https://www.nccoe.nist.gov/sites/default/files/2025-02/cyber-ai-concept-paper.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] National Institute of Standards and Technology (2025). Cybersecurity and AI Workshop Concept Paper National Institute of Standards and Technology. 入手先: https://www.nccoe.nist.gov/sites/default/files/2025-02/cyber-ai-concept-paper.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] National Institute of Standards and Technology (2024). The NIST Cybersecurity Framework (CSF) 2.0 (National Institute of Standards and Technology, Gaithersburg, MD), NIST Cybersecurity White Paper (CSWP) 29. https://doi.org/10.6028/NIST.CSWP.29</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] National Institute of Standards and Technology (2024). The NIST Cybersecurity Framework (CSF) 2.0 (National Institute of Standards and Technology, Gaithersburg, MD), NIST Cybersecurity White Paper (CSWP) 29. https://doi.org/10.6028/NIST.CSWP.29</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] National Institute of Standards and Technology (2023). Artificial Intelligence Risk Management Framework (AI RMF 1.0). Available at https://doi.org/10.6028/NIST.AI.100-1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] National Institute of Standards and Technology (2023). Artificial Intelligence Risk Management Framework (AI RMF 1.0). 入手先: https://doi.org/10.6028/NIST.AI.100-1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] National Institute of Standards and Technology (2021). NIST Privacy Framework: A Tool for Improving Privacy Through Enterprise Risk Management, Version 1.0 (National Institute of Standards and Technology, Gaithersburg, MD), NIST Cybersecurity White Paper (CSWP) 10. Available at https://doi.org/10.6028/NIST.CSWP.01162020</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] National Institute of Standards and Technology (2021). NIST Privacy Framework: A Tool for Improving Privacy Through Enterprise Risk Management, Version 1.0 (National Institute of Standards and Technology, Gaithersburg, MD), NIST Cybersecurity White Paper (CSWP) 10. 入手先: https://doi.org/10.6028/NIST.CSWP.01162020</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] National Institute of Standards and Technology (2020). National Online Informative References Program (OLIR). Available at https://csrc.nist.gov/projects/olir</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] National Institute of Standards and Technology (2020). National Online Informative References Program (OLIR). 入手先: https://csrc.nist.gov/projects/olir</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8578.pdf">National Institute of Standards and Technology, IR 8578</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8578";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
