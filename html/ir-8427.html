@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8427 は、NIST SP 800-90 シリーズにおける完全エントロピーの仮定に関して、誤差の値 ε を選定した根拠を示す報告書です。SP 800-90 シリーズでは、1 ビットあたりのエントロピーの量が少なくとも 1 − ε（ε は高々 2^-32）であれば、そのビット列は完全エントロピーを持つと仮定します。乱数ビット生成器やサンプルデータ列の解析によって完全エントロピーを確保することは困難であるため、本報告書は完全エントロピーの代替的な定義を用います。そして、この定義が満たされるときに得られるエントロピーの水準を計算することで、その根拠を示します。">
+  <title>SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察 | NIST IR 8427 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NIST Interagency Report" data-search="nist 省庁間報告書 nist interagency report">NIST 省庁間報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="NIST IR 8427" data-search="nist ir 8427 nist ir 8427">NIST IR 8427</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Discussion on the Full Entropy Assumption of the SP 800-90 Series" data-search="sp 800-90 シリーズにおける完全エントロピーの仮定に関する考察 discussion on the full entropy assumption of the sp 800-90 series">SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NIST Interagency Report" data-search="nist 省庁間報告書 nist interagency report">NIST 省庁間報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="NIST IR 8427" data-search="nist ir 8427 nist ir 8427">NIST IR 8427</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Discussion on the Full Entropy Assumption of the SP 800-90 Series" data-search="sp 800-90 シリーズにおける完全エントロピーの仮定に関する考察 discussion on the full entropy assumption of the sp 800-90 series">SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピューターシステム技術に関する報告書 reports on computer systems technology">コンピューターシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0003" title="2. Problem Statement" data-search="2. 問題の定式化 2. problem statement">2. 問題の定式化</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0005" title="3. Full Entropy Definition" data-search="3. 完全エントロピーの定義 3. full entropy definition">3. 完全エントロピーの定義</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="4. Claims" data-search="4. 主張 4. claims">4. 主張</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0002" title="4.1. Claim 1" data-search="4.1. 主張1 4.1. claim 1">4.1. 主張1</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0042" title="4.2. Claim 2" data-search="4.2. 主張2 4.2. claim 2">4.2. 主張2</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0002" title="5. Assumptions" data-search="5. 仮定 5. assumptions">5. 仮定</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0004" title="5.1. Assumption 1: The Test Statistic is Normally Distributed" data-search="5.1. 仮定1: 検定統計量は正規分布に従う 5.1. assumption 1: the test statistic is normally distributed">5.1. 仮定1: 検定統計量は正規分布に従う</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0031" title="5.2. Assumption 2: The Conditioning Function Output Probabilities are Random Variables" data-search="5.2. 仮定2: コンディショニング関数の出力確率は確率変数である 5.2. assumption 2: the conditioning function output probabilities are random variables">5.2. 仮定2: コンディショニング関数の出力確率は確率変数である</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0002" title="5.3. Assumption 3: The Conditioning Function Output Probabilities are Normally Distributed" data-search="5.3. 仮定3: コンディショニング関数の出力確率は正規分布に従う 5.3. assumption 3: the conditioning function output probabilities are normally distributed">5.3. 仮定3: コンディショニング関数の出力確率は正規分布に従う</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0011-b0001" title="Appendix A. Proofs" data-search="付録a 証明 appendix a. proofs">付録A 証明</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0002" title="A.1. Proof of Claim 1" data-search="a.1. 主張1の証明 a.1. proof of claim 1">A.1. 主張1の証明</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0014" title="A.2. Justification of the Claim on Higher Powers of \theta_j" data-search="a.2. \theta_j の高次の冪に関する主張の正当化 a.2. justification of the claim on higher powers of \theta_j">A.2. \theta_j の高次の冪に関する主張の正当化</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0081" title="A.3. Proof of Claim 2" data-search="a.3. 主張2の証明 a.3. proof of claim 2">A.3. 主張2の証明</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="Appendix B. List of Symbols, Abbreviations, and Acronyms" data-search="付録b 記号・略語・頭字語の一覧 appendix b. list of symbols, abbreviations, and acronyms">付録B 記号・略語・頭字語の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="Appendix C. Glossary" data-search="付録c 用語集 appendix c. glossary">付録C 用語集</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8427 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Discussion on the Full Entropy Assumption of the SP 800-90 Series</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察</strong></span><br><span class="doc-panel-item">公開日 : 2023-04-14</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8427/final">https://csrc.nist.gov/pubs/ir/8427/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 150 / 151 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8427 は、NIST SP 800-90 シリーズにおける完全エントロピーの仮定に関して、誤差の値 ε を選定した根拠を示す報告書です。SP 800-90 シリーズでは、1 ビットあたりのエントロピーの量が少なくとも 1 − ε（ε は高々 2^-32）であれば、そのビット列は完全エントロピーを持つと仮定します。乱数ビット生成器やサンプルデータ列の解析によって完全エントロピーを確保することは困難であるため、本報告書は完全エントロピーの代替的な定義を用います。そして、この定義が満たされるときに得られるエントロピーの水準を計算することで、その根拠を示します。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Interagency Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 省庁間報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8427</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8427</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Discussion on the Full Entropy Assumption of the SP 800-90 Series</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Darryl Buller Aaron Kaufer Allen Roginsky Meltem Sönmez Turan</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Darryl Buller Aaron Kaufer Allen Roginsky Meltem Sönmez Turan</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8427.ipd</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のURLから無料で入手できます: https://doi.org/10.6028/NIST.IR.8427.ipd</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Interagency Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 省庁間報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8427</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8427</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Discussion on the Full Entropy Assumption of the SP 800-90 Series</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+SP 800-90 シリーズにおける完全エントロピーの仮定に関する考察</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Darryl Buller Aaron Kaufer Cybersecurity Directorate National Security Agency</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Darryl Buller Aaron Kaufer Cybersecurity Directorate National Security Agency</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Allen Roginsky Meltem Sönmez Turan Computer Security Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Allen Roginsky Meltem Sönmez Turan Computer Security Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8427</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次のURLから無料で入手できます: https://doi.org/10.6028/NIST.IR.8427</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>April 2023</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2023年4月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Gina M. Raimondo, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>U.S. Department of Commerce Gina M. Raimondo, Secretary</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Laurie E. Locascio, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Laurie E. Locascio, NIST Director and Under Secretary of Commerce for Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文では、実験手順を十分に特定するために、商用・非商用を問わず、機器、計器、ソフトウェア、または材料を挙げている場合があります。このような記載は、NIST がいかなる製品やサービスも推奨または是認することを意味せず、挙げた材料や機器がその目的に最適であると必ずしも認めることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令で定められた責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関が利用してかまいません。したがって、各刊行物が完成するまでは、既存の要件、ガイドライン、手順がある場合は、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各組織は、パブリックコメントの期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外の NIST のサイバーセキュリティ関連刊行物の多くは、https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>NIST Technical Series Policies</strong><br>Copyright, Use, and Licensing Statements<br>NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>NIST Technical Series Policies</strong><br>Copyright, Use, and Licensing Statements<br>NIST Technical Series Publication Identifier Syntax</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Publication History</strong><br>Approved by the NIST Editorial Review Board on 2023-03-30</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>刊行履歴</strong><br>2023-03-30 に NIST Editorial Review Board によって承認されました</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>How to Cite this NIST Technical Series Publication:</strong><br>Buller D, Kaufer A, Roginsky A, Sönmez Turan M (2023) Discussion on the Full Entropy Assumption of the SP 800-90 Series. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8427. https://doi.org/10.6028/NIST.IR.8427</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>本 NIST Technical Series 刊行物の引用方法:</strong><br>Buller D, Kaufer A, Roginsky A, Sönmez Turan M (2023) Discussion on the Full Entropy Assumption of the SP 800-90 Series. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8427. https://doi.org/10.6028/NIST.IR.8427</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Author ORCID iDs</strong><br>Roginsky, Allen: 0000-0003-2684-6736<br>Meltem Sönmez Turan: 0000-0002-1950-7130</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>著者の ORCID iD</strong><br>Roginsky, Allen: 0000-0003-2684-6736<br>Meltem Sönmez Turan: 0000-0002-1950-7130</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Submit Comments</strong><br>rbg_comments@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>コメントの送付先</strong><br>rbg_comments@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づいて公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NIST Special Publication (SP) 800-90 series supports the generation of high-quality random bits for cryptographic and non-cryptographic use. The security strength of a random number generator depends on the unpredictability of its outputs. This unpredictability can be measured in terms of entropy, which the NIST SP 800-90 series measures using min-entropy. A full-entropy bitstring has an amount of entropy equal to its length. Full-entropy bitstrings are important for cryptographic applications, as these bitstrings have ideal randomness properties and may be used for any cryptographic purpose. Due to the difficulty of generating and testing full-entropy bitstrings, the SP 800-90 series assumes that a bitstring has full entropy if the amount of entropy per bit is at least \(1 - \varepsilon\), where \(\varepsilon\) is at most \(2^{-32}\). This report provides a justification for the selection of this value of \(\varepsilon\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Special Publication（SP）800-90 シリーズは、暗号用途および非暗号用途に使う高品質な乱数ビットの生成を支援します。乱数生成器のセキュリティ強度は、その出力の予測不可能性に依存します。この予測不可能性はエントロピーで測ることができ、NIST SP 800-90 シリーズでは最小エントロピーを用いて予測不可能性を測定します。完全エントロピーのビット列とは、エントロピーの量がその長さに等しいビット列です。完全エントロピーのビット列は理想的な乱数性を備え、あらゆる暗号用途に使用できるため、暗号アプリケーションにとって重要です。ただし、完全エントロピーのビット列は生成も検査も困難であることから、SP 800-90 シリーズでは、1ビットあたりのエントロピーの量が少なくとも \(1 - \varepsilon\)（\(\varepsilon\) は高々 \(2^{-32}\)）であれば、そのビット列は完全エントロピーを持つと仮定します。本報告書は、この \(\varepsilon\) の値を選定した根拠を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>entropy; min-entropy; random number generation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>entropy; min-entropy; random number generation.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピューターシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラに対する技術的なリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるため、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障に関係しない情報のセキュリティとプライバシーについて、費用対効果の高い管理、運営、技術および物理的な標準ならびにガイドラインを策定することが含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0003">2. Problem Statement</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0003">2. 問題の定式化</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0005">3. Full Entropy Definition</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0005">3. 完全エントロピーの定義</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">4. Claims</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">4. 主張</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0005-i1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">4.1. Claim 1</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">4.1. 主張1</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0005-i2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0042">4.2. Claim 2</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0042">4.2. 主張2</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">5. Assumptions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">5. 仮定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006-i1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">5.1. Assumption 1: The Test Statistic is Normally Distributed</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">5.1. 仮定1: 検定統計量は正規分布に従う</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006-i2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0031">5.2. Assumption 2: The Conditioning Function Output Probabilities are Random Variables</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0031">5.2. 仮定2: コンディショニング関数の出力確率は確率変数である</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006-i3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">5.3. Assumption 3: The Conditioning Function Output Probabilities are Normally Distributed</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">5.3. 仮定3: コンディショニング関数の出力確率は正規分布に従う</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">Appendix A. Proofs</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">付録A 証明</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008-i1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">A.1. Proof of Claim 1</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">A.1. 主張1の証明</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008-i2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0014">A.2. Justification of the Claim on Higher Powers of \(\theta_j\)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0014">A.2. \(\theta_j\) の高次の冪に関する主張の正当化</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008-i3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0081">A.3. Proof of Claim 2</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0081">A.3. 主張2の証明</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">Appendix B. List of Symbols, Abbreviations, and Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">付録B 記号・略語・頭字語の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">Appendix C. Glossary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">付録C 用語集</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NIST Special Publication (SP) 800-90 series [1][2][3] supports the generation of high-quality random bits for cryptographic and non-cryptographic use. The security strength of a random number generator depends on the unpredictability of its outputs. This unpredictability can be measured in terms of entropy, which the NIST SP 800-90 series measures using min-entropy. The SP 800-90 series refers to certain bitstrings as having full entropy, meaning that they have an amount of entropy equal to their length. Such bitstrings are important for cryptographic applications since they have the highest level of unpredictability and may therefore be used for any cryptographic purpose. The SP 800-90 series assumes that a bitstring has full entropy if the amount of entropy per bit is at least \(1 - \varepsilon\), where \(\varepsilon\) is at most \(2^{-32}\). This report provides a justification for the selection of this value of \(\varepsilon\). Due to the difficulty of ensuring full entropy through the analysis of random bit generators and sample data sequences, this is accomplished by using an alternative definition of full entropy and calculating the resulting entropy level when this definition is satisfied.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Special Publication（SP）800-90 シリーズ [1][2][3] は、暗号用途および非暗号用途に使う高品質な乱数ビットの生成を支援します。乱数生成器のセキュリティ強度は、その出力の予測不可能性に依存します。この予測不可能性はエントロピーで測ることができ、NIST SP 800-90 シリーズでは最小エントロピーを用いて測定します。SP 800-90 シリーズでは、エントロピーの量がその長さに等しいビット列を、完全エントロピーを持つビット列と呼びます。このようなビット列は予測不可能性が最も高く、あらゆる暗号用途に使用できるため、暗号アプリケーションにとって重要です。SP 800-90 シリーズでは、1ビットあたりのエントロピーの量が少なくとも \(1 - \varepsilon\)（\(\varepsilon\) は高々 \(2^{-32}\)）であれば、そのビット列は完全エントロピーを持つと仮定します。本報告書は、この \(\varepsilon\) の値を選定した根拠を示します。乱数ビット生成器やサンプルデータ列の解析によって完全エントロピーを確保することは困難であるため、完全エントロピーの代替的な定義を用い、この定義が満たされるときに得られるエントロピーの水準を計算することで、この根拠を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Problem Statement</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 問題の定式化</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SP 800-90 series uses a definition of full entropy that prescribes a numerical threshold on the entropy per bit (at least \(1 - \varepsilon\), where \(\varepsilon\) is at most \(2^{-32}\)). However, although this is an intuitive way to define full entropy, it is generally not possible to ensure sufficient entropy within this tolerance by analyzing a Random Bit Generator (RBG) or estimating entropy from a data sample. It is, therefore, necessary to use a different definition from which a practical approach to ensuring full entropy can be derived. The report begins by defining full entropy in terms of a hypothetical distinguishing game. The report then presents and proves two results following from this definition. First, it is shown how output satisfying this definition can be generated using a vetted conditioning function (see [2]) acting on data having an entropy level that meets or exceeds a certain value. Second, it is shown that the entropy level of output produced by such a process satisfies the full entropy threshold used in the SP 800-90 series, thereby demonstrating a connection between these two definitions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP 800-90 シリーズは、1ビットあたりのエントロピーに数値のしきい値（少なくとも \(1 - \varepsilon\)、ここで \(\varepsilon\) は高々 \(2^{-32}\)）を定める完全エントロピーの定義を用いています。しかし、これは完全エントロピーを定義する直感的な方法ではあるものの、乱数ビット生成器（RBG）を解析したり、データサンプルからエントロピーを推定したりして、この許容範囲内で十分なエントロピーを確保することは、一般に不可能です。そのため、完全エントロピーを確保する実用的な方法を導ける別の定義を用いる必要があります。本報告書はまず、仮想的な識別ゲームによって完全エントロピーを定義します。次に、この定義から導かれる二つの結果を示して証明します。第一に、この定義を満たす出力を、一定値以上のエントロピー水準を持つデータに対して審査済みコンディショニング関数（[2] を参照）を適用することで生成できることを示します。第二に、このような処理で生成した出力のエントロピー水準が、SP 800-90 シリーズで用いる完全エントロピーのしきい値を満たすことを示し、二つの定義の間の関係を明らかにします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Full Entropy Definition</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 完全エントロピーの定義</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Full entropy will be defined as follows. Consider a distinguishing game where an adversary attempts to distinguish between two cases – REAL and IDEAL. Assume that the adversary is provided with \(W\) \(n\)-bit outputs \(b_1, b_2, \ldots, b_W\). In the REAL case, each output is generated by a cryptographic conditioning function operating on an output from a real-life entropy source. In the IDEAL case, the outputs are generated by an idealized randomness source that produces independent \(n\)-bit outputs with each output value having a probability of \(2^{-n}\). One of the two cases is chosen at random with each being equally likely. Outputs of length \(n\) bits generated in the REAL case are defined as having full entropy with respect to \(W\) and \(\delta\) (where \(\delta &gt; 0\)) if a computationally unlimited adversary cannot correctly distinguish between the REAL and IDEAL cases with probability higher than \(\frac{1}{2} + \delta\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>完全エントロピーを次のように定義します。攻撃者が二つの場合、すなわち REAL と IDEAL を識別しようとする識別ゲームを考えます。攻撃者に、\(n\) ビットの出力 \(W\) 個 \(b_1, b_2, \ldots, b_W\) が与えられるものとします。REAL の場合、各出力は、現実のエントロピー源の出力に暗号学的コンディショニング関数を適用して生成されます。IDEAL の場合、各出力は、各出力値の確率が \(2^{-n}\) である独立な \(n\) ビットの出力を生成する理想化された乱数源によって生成されます。二つの場合のうち一方が、等しい確率でランダムに選ばれます。REAL の場合に生成された長さ \(n\) ビットの出力は、計算能力に制限のない攻撃者が REAL と IDEAL を \(\frac{1}{2} + \delta\) より高い確率で正しく識別できないとき、\(W\) と \(\delta\)（\(\delta &gt; 0\)）に関して完全エントロピーを持つと定義します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Claims</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 主張</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Claim 1</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. 主張1</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Output from a vetted conditioning function with sufficient input entropy satisfies the full entropy definition.</strong></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>十分な入力エントロピーを持つ審査済みコンディショニング関数の出力は、完全エントロピーの定義を満たします。</strong></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Suppose that values for the \(W\) and \(\delta\) parameters used in the definition of full entropy are given and that a vetted conditioning function generates an \(n\)-bit output by processing an entropy sequence having min-entropy \(H\). Then if \(H \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3\), the \(n\)-bit output satisfies the definition of full entropy with respect to \(W\) and \(\delta\). The proof of this claim is given in A.1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>完全エントロピーの定義で用いる \(W\) と \(\delta\) のパラメーターの値が与えられ、審査済みコンディショニング関数が、最小エントロピー \(H\) を持つエントロピー列を処理して \(n\) ビットの出力を生成するとします。このとき、\(H \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3\) であれば、その \(n\) ビットの出力は、\(W\) と \(\delta\) に関して完全エントロピーの定義を満たします。この主張の証明は A.1 に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>From the above inequality, \(H - n\) represents the minimum required amount by which the input entropy must exceed \(n\) in order to ensure full entropy. The following table shows this minimum value for various values of \(W\) and \(\delta\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上の不等式から、\(H - n\) は、完全エントロピーを確保するために入力エントロピーが \(n\) を超えていなければならない最小量を表します。次の表は、さまざまな \(W\) と \(\delta\) の値に対するこの最小値を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. Minimum value of additional entropy \(H - n\) required for various values of \(W\) and \(\delta\)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表1. さまざまな \(W\) と \(\delta\) の値に対して必要な追加エントロピー \(H - n\) の最小値</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0007-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th></th><th colspan="7">\(\delta\)</th></tr><tr><th>\(W\)</th><th>\(2^{-20}\)</th><th>\(2^{-18}\)</th><th>\(2^{-16}\)</th><th>\(2^{-14}\)</th><th>\(2^{-12}\)</th><th>\(2^{-10}\)</th><th>\(2^{-8}\)</th></tr></thead><tbody><tr><td>\(2^{32}\)</td><td>67.3</td><td>63.3</td><td>59.3</td><td>55.3</td><td>51.3</td><td>47.3</td><td>43.3</td></tr><tr><td>\(2^{40}\)</td><td>75.3</td><td>71.3</td><td>67.3</td><td>63.3</td><td>59.3</td><td>55.3</td><td>51.3</td></tr><tr><td>\(2^{48}\)</td><td>83.3</td><td>79.3</td><td>75.3</td><td>71.3</td><td>67.3</td><td>63.3</td><td>59.3</td></tr><tr><td>\(2^{56}\)</td><td>91.3</td><td>87.3</td><td>83.3</td><td>79.3</td><td>75.3</td><td>71.3</td><td>67.3</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th></th><th colspan="7">\(\delta\)</th></tr><tr><th>\(W\)</th><th>\(2^{-20}\)</th><th>\(2^{-18}\)</th><th>\(2^{-16}\)</th><th>\(2^{-14}\)</th><th>\(2^{-12}\)</th><th>\(2^{-10}\)</th><th>\(2^{-8}\)</th></tr></thead><tbody><tr><td>\(2^{32}\)</td><td>67.3</td><td>63.3</td><td>59.3</td><td>55.3</td><td>51.3</td><td>47.3</td><td>43.3</td></tr><tr><td>\(2^{40}\)</td><td>75.3</td><td>71.3</td><td>67.3</td><td>63.3</td><td>59.3</td><td>55.3</td><td>51.3</td></tr><tr><td>\(2^{48}\)</td><td>83.3</td><td>79.3</td><td>75.3</td><td>71.3</td><td>67.3</td><td>63.3</td><td>59.3</td></tr><tr><td>\(2^{56}\)</td><td>91.3</td><td>87.3</td><td>83.3</td><td>79.3</td><td>75.3</td><td>71.3</td><td>67.3</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It is assumed in SP 800-90C that there is an upper bound of \(2^{64}\) bits on the amount of output that an adversary attempting a distinguishing attack can obtain. Consider the combination \(W = 2^{48}\) and \(\delta = 2^{-10}\). Given \(W = 2^{48}\) \(n\)-bit RBG outputs, each output can be up to \(2^{16} = 65536\) bits long without exceeding the \(2^{64}\) data-quantity bound. Note that 10000 RBGs –each producing 1000 outputs per second– would require nearly a year to produce \(W = 2^{48}\) outputs. According to the table above, an adversary who obtains \(W = 2^{48}\) \(n\)-bit outputs has a distinguishing probability no greater than \(\frac{1}{2} + \delta = \frac{1}{2} + 2^{-10} \cong 0.501\) when \(H\), the conditioning function input min-entropy for each \(n\)-bit output, is at least \(n + 63.3\). This minimum value, rounded up to \(n + 64\), is used in this document and in SP 800-90C as the condition for satisfying the full entropy definition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP 800-90C では、識別攻撃を試みる攻撃者が取得できる出力量に \(2^{64}\) ビットの上限があると仮定しています。\(W = 2^{48}\)、\(\delta = 2^{-10}\) の組み合わせを考えます。\(n\) ビットの RBG 出力 \(W = 2^{48}\) 個が与えられるとき、データ量の上限 \(2^{64}\) を超えないためには、各出力の長さは最大で \(2^{16} = 65536\) ビットとなります。なお、1秒あたり1000個の出力を生成する RBG 10000台でも、\(W = 2^{48}\) 個の出力を生成するには1年近くを要します。上の表によると、\(W = 2^{48}\) 個の \(n\) ビット出力を取得した攻撃者の識別確率は、各 \(n\) ビット出力に対するコンディショニング関数の入力最小エントロピー \(H\) が少なくとも \(n + 63.3\) であれば、\(\frac{1}{2} + \delta = \frac{1}{2} + 2^{-10} \cong 0.501\) 以下です。この最小値を切り上げた \(n + 64\) を、本書および SP 800-90C では、完全エントロピーの定義を満たす条件として用います。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0042">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Claim 2</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. 主張2</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0043">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Outputs that satisfy the definition of full entropy in Section 3 also satisfy the full entropy threshold in SP 800-90C.</strong></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>第3節の完全エントロピーの定義を満たす出力は、SP 800-90C の完全エントロピーのしきい値も満たします。</strong></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0044">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Suppose that \(W = 2^{48}\) and \(\delta = 2^{-10}\). According to Claim 1, if the input min-entropy satisfies \(H \ge n + 64\), then the conditioning function output satisfies the definition of full entropy. In this case, it can also be shown that the average per-bit min-entropy of the resulting \(n\)-bit output is at least \(1 - 2^{-32}\). The proof of this claim is given in A.3. It is interesting to note that if a process generates outputs satisfying the definition of full entropy based on the distinguishing game, the outputs also satisfy the more intuitive definition in terms of an actual numerical entropy threshold. The resulting value \(\varepsilon = 2^{-32}\) is the value given in SP 800-90C as the threshold for full entropy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(W = 2^{48}\)、\(\delta = 2^{-10}\) とします。主張1によれば、入力の最小エントロピーが \(H \ge n + 64\) を満たすとき、コンディショニング関数の出力は完全エントロピーの定義を満たします。この場合、得られる \(n\) ビット出力の1ビットあたりの平均最小エントロピーが少なくとも \(1 - 2^{-32}\) であることも示せます。この主張の証明は A.3 に示します。注目すべきは、識別ゲームに基づく完全エントロピーの定義を満たす出力を生成する処理は、その出力が、実際の数値のエントロピーしきい値に基づく、より直感的な定義も満たすという点です。このとき得られる値 \(\varepsilon = 2^{-32}\) は、SP 800-90C が完全エントロピーのしきい値として示している値です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Assumptions</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 仮定</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The proofs of the two claims made in this paper require some assumptions. These assumptions are presented and explained below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文の二つの主張の証明には、いくつかの仮定が必要です。以下に、これらの仮定を示して説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.1. Assumption 1: The Test Statistic is Normally Distributed</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.1. 仮定1: 検定統計量は正規分布に従う</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The proof of Claim 1 uses a test statistic \(X\) computed from data values generated in either the REAL or the IDEAL case. It will be assumed that \(X\) is approximately normally distributed. This statistic is of the form \(X = \sum_{i=1}^{W} x_i\), where the variables \(x_i\) are independent and identically distributed, and depend on the observed values \(b_i\). If \(\mu_x\) and \(\sigma_x^2\) are the true mean and variance of the individual variables \(x_i\), respectively (\(\mu_x\) and \(\sigma_x^2\) are derived in A.1), then \(\frac{\frac{X}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)} = \frac{\frac{\sum_{i=1}^{W} x_i}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)}\) is approximately normally distributed by the Central Limit Theorem when \(W\) is large (we assume \(W = 2^{48}\)). Since \(X\) can be obtained from \(\frac{\frac{X}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)}\) by a linear transformation, \(X\) is also approximately normally distributed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>主張1の証明では、REAL の場合または IDEAL の場合のいずれかで生成されたデータ値から計算される検定統計量 \(X\) を用います。\(X\) はおおよそ正規分布に従うと仮定します。この統計量は \(X = \sum_{i=1}^{W} x_i\) の形をしており、変数 \(x_i\) は独立同分布で、観測値 \(b_i\) に依存します。\(\mu_x\) と \(\sigma_x^2\) をそれぞれ個々の変数 \(x_i\) の真の平均と分散とすると（\(\mu_x\) と \(\sigma_x^2\) は A.1 で導出します）、\(W\) が大きい場合（\(W = 2^{48}\) と仮定します）、\(\frac{\frac{X}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)} = \frac{\frac{\sum_{i=1}^{W} x_i}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)}\) は、中心極限定理によりおおよそ正規分布に従います。\(X\) は \(\frac{\frac{X}{W} - \mu_x}{\left(\sigma_x / \sqrt{W}\right)}\) から線形変換によって得られるため、\(X\) もおおよそ正規分布に従います。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0031">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.2. Assumption 2: The Conditioning Function Output Probabilities are Random Variables</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.2. 仮定2: コンディショニング関数の出力確率は確率変数である</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The discussion of full entropy in this paper is in the context of the SP 800-90 series, where bit sequences having full entropy are to be generated by processing entropy source output sequences (that generally do not have full entropy) with a vetted conditioning function or a Deterministic Random Bit Generator (DRBG). The assumption below is made in that context.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文における完全エントロピーの議論は SP 800-90 シリーズの文脈におけるものであり、そこでは、完全エントロピーを持つビット列は、（一般には完全エントロピーを持たない）エントロピー源の出力列を、審査済みコンディショニング関数または決定論的乱数ビット生成器（DRBG）で処理して生成されます。以下の仮定は、この文脈で置くものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Suppose that a conditioning function generates an \(n\)-bit output by processing a sequence from an entropy source. Consider the probability \(p_j\) for the \(j^{th}\) possible output value from the conditioning function. These probabilities are determined by the interaction between the specific conditioning function used and the space of possible inputs to that function. In the distinguishing game used in the full entropy definition, the adversary has complete knowledge of the conditioning function and its input space, and—being computationally unlimited—can determine the probabilities \(p_j\). For the purposes of this paper, determining the values of these probabilities is infeasible. However, it is useful to consider the \(p_j\) as random variables rather than fixed values and use statistics associated with these random variables to find the probability distribution of the test statistic \(X\). This can be justified as follows. Consider the application of the conditioning function to the input space of entropy source sequences to obtain the conditioning function output. The resulting mapping depends on both the selected input domain and the details of the conditioning function. The domain of this function is determined by the characteristics of the entropy source and the length of the entropy source sequences that are input to the conditioning function. These details effectively select from a large number of possible domains for the function. A consequence of the cryptographic properties of conditioning functions used in RBGs is that there is no simple pattern in the mapping from elements of the domain to elements of the range of the function, and there is no discernible bias in the assignment of outputs to inputs. Therefore, although the conditioning function is deterministic, this report will assume that it is effectively a mapping that assigns an \(n\)-bit output to each value in the domain with a uniform distribution so that each possible output value has a probability of \(2^{-n}\) of being the output value assigned to a given input value. (Note that multiple input values can be assigned a given output value.) Under this assumption, since probability \(p_j\) is the sum of the probabilities of the inputs mapped to the \(j^{th}\) output value, the probability \(p_j\) can be treated as a random variable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンディショニング関数が、エントロピー源からの列を処理して \(n\) ビットの出力を生成するとします。コンディショニング関数の \(j\) 番目の出力値の確率 \(p_j\) を考えます。これらの確率は、使用する具体的なコンディショニング関数と、その関数への入力として可能な空間との相互作用によって決まります。完全エントロピーの定義で用いる識別ゲームでは、攻撃者はコンディショニング関数とその入力空間を完全に知っており、計算能力に制限がないため、確率 \(p_j\) を求めることができます。本論文の目的上、これらの確率の値を求めることは実行不可能です。しかし、\(p_j\) を固定値ではなく確率変数とみなし、これらの確率変数に関する統計量を用いて検定統計量 \(X\) の確率分布を求めることは有用です。これは次のように正当化できます。エントロピー源の列からなる入力空間にコンディショニング関数を適用して、コンディショニング関数の出力を得ることを考えます。得られる写像は、選択した入力の定義域と、コンディショニング関数の詳細の両方に依存します。この関数の定義域は、エントロピー源の特性と、コンディショニング関数に入力されるエントロピー源の列の長さによって決まります。これらの詳細は、この関数の非常に多くの可能な定義域の中から一つを事実上選択します。RBG で使用されるコンディショニング関数の暗号学的性質の帰結として、定義域の要素から関数の値域の要素への写像には単純なパターンがなく、入力への出力の割り当てに識別できる偏りもありません。したがって、コンディショニング関数は決定論的ではあるものの、本報告書では、これは定義域の各値に対して一様分布で \(n\) ビットの出力を割り当てる写像と事実上みなせるものとし、各出力値が、与えられた入力値に割り当てられる出力値となる確率は \(2^{-n}\) であるとします（複数の入力値に同じ出力値が割り当てられる場合があることに注意してください）。この仮定の下では、確率 \(p_j\) は \(j\) 番目の出力値に写像される入力の確率の総和であるため、\(p_j\) は確率変数として扱えます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.3. Assumption 3: The Conditioning Function Output Probabilities are Normally Distributed</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.3. 仮定3: コンディショニング関数の出力確率は正規分布に従う</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Consider that \(p_j\) is treated as a random variable as explained in Assumption 2. Suppose that there are \(M\) possible inputs to the conditioning function, with probabilities \(\{q_1, q_2, \ldots, q_M\}\). (Note that no assumptions will be made on the input probability distribution.) The output probability \(p_j\) can then be written as \(p_j = \sum_{i=1}^{M} q_i I_{i,j}\), where \(I_{i,j} = 1\) if the conditioning function maps the \(i^{\text{th}}\) input to the \(j^{\text{th}}\) output, and \(I_{i,j} = 0\) otherwise. Under Assumption 2, the assignment of inputs to outputs is done independently for each input, so for each value of \(j\), the variables \(q_i I_{i,j}\) are independent. The value of \(M\) is dependent on the characteristics of the entropy source outputs and the bit length of the conditioning function input. However, it is reasonable to assume that \(M\) is at least \(2^n\), the number of possible conditioning function outputs (it would be difficult to achieve a level of output entropy near \(n\) otherwise). Given the above statements, \(p_j\) is of a similar form to that of \(X\) in Assumption 1 and, according to a version of the Central Limit Theorem applying to independent random variables not having the same distribution, can be assumed to be approximately normally distributed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>仮定2で説明したとおり、\(p_j\) を確率変数として扱うことを考えます。コンディショニング関数への可能な入力が \(M\) 個あり、その確率が \(\{q_1, q_2, \ldots, q_M\}\) であるとします（入力の確率分布には何の仮定も置かないことに注意してください）。このとき、出力確率 \(p_j\) は \(p_j = \sum_{i=1}^{M} q_i I_{i,j}\) と書けます。ここで、\(I_{i,j} = 1\) はコンディショニング関数が \(i\) 番目の入力を \(j\) 番目の出力に写像する場合、\(I_{i,j} = 0\) はそれ以外の場合です。仮定2の下では、入力への出力の割り当ては入力ごとに独立に行われるため、各 \(j\) の値について、変数 \(q_i I_{i,j}\) は独立です。\(M\) の値は、エントロピー源の出力の特性と、コンディショニング関数の入力のビット長に依存します。しかし、\(M\) は少なくとも、コンディショニング関数の可能な出力の数である \(2^n\) であると仮定するのが妥当です（そうでなければ、出力エントロピーを \(n\) に近い水準にすることは困難です）。以上から、\(p_j\) は仮定1の \(X\) と同様の形をしており、同一分布に従わない独立な確率変数に適用される中心極限定理の一形式により、おおよそ正規分布に従うと仮定できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Barker EB, Kelsey JM (2015) Recommendation for Random Number Generation Using Deterministic Random Bit Generators. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90Ar1. https://doi.org/10.6028/NIST.SP.800-90Ar1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Barker EB, Kelsey JM (2015) Recommendation for Random Number Generation Using Deterministic Random Bit Generators. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90Ar1. https://doi.org/10.6028/NIST.SP.800-90Ar1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Sönmez Turan M, Barker EB, Kelsey JM, McKay KA, Baish ML, Boyle M (2018) Recommendation for the Entropy Sources Used for Random Bit Generation. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90B. https://doi.org/10.6028/NIST.SP.800-90B</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Sönmez Turan M, Barker EB, Kelsey JM, McKay KA, Baish ML, Boyle M (2018) Recommendation for the Entropy Sources Used for Random Bit Generation. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90B. https://doi.org/10.6028/NIST.SP.800-90B</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Barker EB, Kelsey JM, McKay K, Roginsky A, Sönmez Turan M (2022) Recommendation for Random Bit Generator (RBG) Constructions. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90C 3pd, Third public draft. https://doi.org/10.6028/NIST.SP.800-90C.3pd</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Barker EB, Kelsey JM, McKay K, Roginsky A, Sönmez Turan M (2022) Recommendation for Random Bit Generator (RBG) Constructions. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-90C 3pd, Third public draft. https://doi.org/10.6028/NIST.SP.800-90C.3pd</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Handbook of Mathematical Functions, with Formulas, Graphs, and Mathematical Tables, Milton Abramowitz and Irene A. Stegun, editors, Dover Publications, New York, 1972.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Handbook of Mathematical Functions, with Formulas, Graphs, and Mathematical Tables, Milton Abramowitz and Irene A. Stegun, editors, Dover Publications, New York, 1972.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. Proofs</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録A 証明</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.1. Proof of Claim 1</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.1. 主張1の証明</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Suppose that random output is generated by processing a quantity of entropy data using a conditioning function. The claim is that given values of \(W\) and \(\delta\), it is possible to find a threshold such that if the min-entropy of the input to the conditioning function meets or exceeds that threshold, the conditioning function output will satisfy the definition of full entropy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ある量のエントロピーデータをコンディショニング関数で処理して乱数出力を生成するとします。この主張は、\(W\) と \(\delta\) の値が与えられたとき、コンディショニング関数への入力の最小エントロピーがあるしきい値以上であれば、コンディショニング関数の出力が完全エントロピーの定義を満たすような、しきい値を見つけられる、というものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Let \(B = \{b_1, b_2, \ldots, b_W\}\) be the set of observed \(n\)-bit outputs, \(p_j\) be the probability of the \(j^{\text{th}}\) possible output from the conditioning function applied to the specified quantity of entropy data, and \(p_{b_i}\) be the probability of the \(i^{\text{th}}\) observed output in the REAL case. Note that each \(p_{b_i}\) corresponds to some \(p_j\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(B = \{b_1, b_2, \ldots, b_W\}\) を観測された \(n\) ビット出力の集合、\(p_j\) を、指定された量のエントロピーデータにコンディショニング関数を適用して得られる \(j\) 番目の可能な出力の確率、\(p_{b_i}\) を REAL の場合に \(i\) 番目に観測された出力の確率とします。各 \(p_{b_i}\) はいずれかの \(p_j\) に対応することに注意してください。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Now consider the likelihood ratio \(\frac{\mathit{Pr}[\mathit{REAL}|B]}{\mathit{Pr}[\mathit{IDEAL}|B]}\). Clearly, the adversary will conclude that \(B\) was produced by the REAL case if this likelihood ratio is greater than one and by the IDEAL case otherwise (there would be no reason to guess the less likely case). Since the REAL and IDEAL cases are equally likely, this likelihood ratio can be rewritten as \(\frac{\mathit{Pr}[B|\text{REAL}]}{\mathit{Pr}[B|\text{IDEAL}]}\) using Bayes Theorem. For ease of computation, compute the base-2 log of the likelihood ratio and denote the resulting statistic as \(X\). The adversary will conclude that \(B\) was produced by the REAL case if \(X &gt; 0\) and by the IDEAL case otherwise. Then the following is true:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ここで、尤度比 \(\frac{\mathit{Pr}[\mathit{REAL}|B]}{\mathit{Pr}[\mathit{IDEAL}|B]}\) を考えます。攻撃者は、この尤度比が1より大きければ \(B\) は REAL の場合によって生成されたと結論し、そうでなければ IDEAL の場合によって生成されたと結論することは明らかです（可能性の低い方の場合を推測する理由はありません）。REAL の場合と IDEAL の場合は等確率であるため、この尤度比はベイズの定理により \(\frac{\mathit{Pr}[B|\text{REAL}]}{\mathit{Pr}[B|\text{IDEAL}]}\) と書き換えられます。計算を容易にするため、尤度比の2を底とする対数を計算し、得られた統計量を \(X\) と表します。攻撃者は、\(X &gt; 0\) であれば \(B\) は REAL の場合によって生成されたと結論し、そうでなければ IDEAL の場合によって生成されたと結論します。このとき、次が成り立ちます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} X &amp;= \log_2\left(\frac{\mathit{Pr}[B|\text{REAL}]}{\mathit{Pr}[B|\text{IDEAL}]}\right) \\ &amp;= \log_2(\mathit{Pr}[B|\text{REAL}]) - \log_2(\mathit{Pr}[B|\text{IDEAL}]) \\ &amp;= \log_2\left(\prod_{i=1}^{W} p_{b_i}\right) - \log_2\left(2^{-nW}\right) \\ &amp;= \sum_{i=1}^{W} \left(n + \log_2 p_{b_i}\right) \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} X &amp;= \log_2\left(\frac{\mathit{Pr}[B|\text{REAL}]}{\mathit{Pr}[B|\text{IDEAL}]}\right) \\ &amp;= \log_2(\mathit{Pr}[B|\text{REAL}]) - \log_2(\mathit{Pr}[B|\text{IDEAL}]) \\ &amp;= \log_2\left(\prod_{i=1}^{W} p_{b_i}\right) - \log_2\left(2^{-nW}\right) \\ &amp;= \sum_{i=1}^{W} \left(n + \log_2 p_{b_i}\right) \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The statistic \(X\) is a random variable that depends on the set \(B\) of observed \(n\)-bit outputs \(b_i\) and the probabilities \(p_{b_i}\) of those outputs in the REAL case. To assess the adversary’s distinguishing success probability, the probability distribution of \(X\) in both the REAL and IDEAL cases is required. Note that \(X\) is the sum of \(W\) individual random variables \(x_i = n + \log_2 p_{b_i}\). These variables, being determined by the generation of independent outputs \(b_i\), are independent and identically distributed. (In the IDEAL case, this is clearly true. In the REAL case, it follows from the assumed properties of the conditioning function.) As noted in Assumption 1, it is assumed that \(X\) is approximately normally distributed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>統計量 \(X\) は、観測された \(n\) ビット出力 \(b_i\) の集合 \(B\) と、REAL の場合のそれらの出力の確率 \(p_{b_i}\) に依存する確率変数です。攻撃者の識別成功確率を評価するには、REAL の場合と IDEAL の場合の両方における \(X\) の確率分布が必要です。\(X\) は、\(W\) 個の個別の確率変数 \(x_i = n + \log_2 p_{b_i}\) の和であることに注意してください。これらの変数は、独立な出力 \(b_i\) の生成によって決まるため、独立同分布です（IDEAL の場合、これは明らかに成り立ちます。REAL の場合は、コンディショニング関数について仮定した性質から導かれます）。仮定1で述べたとおり、\(X\) はおおよそ正規分布に従うと仮定します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0052">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Consider that \(p_j\) is treated as a random variable as explained in Assumption 2. Then \(E[p_j] = \sum_{i=1}^{M} q_i E[I_{i,j}] = \sum_{i=1}^{M} 2^{-n} q_i = 2^{-n}\). Similarly,</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>仮定2で説明したとおり、\(p_j\) を確率変数として扱うことを考えます。すると、\(E[p_j] = \sum_{i=1}^{M} q_i E[I_{i,j}] = \sum_{i=1}^{M} 2^{-n} q_i = 2^{-n}\) です。同様に、</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} \mathit{VAR}[p_j] &amp;= \sum_{i=1}^{M} \mathit{VAR}[q_i I_{i,j}] \\ &amp;= \sum_{i=1}^{M} \left(E\left[(q_i I_{i,j})^2\right] - \left(E[q_i I_{i,j}]\right)^2\right) \\ &amp;= \sum_{i=1}^{M} \left(2^{-n} q_i^2 - 2^{-2n} q_i^2\right) \\ &amp;= \left(2^{-n} - 2^{-2n}\right) \sum_{i=1}^{M} q_i^2 \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} \mathit{VAR}[p_j] &amp;= \sum_{i=1}^{M} \mathit{VAR}[q_i I_{i,j}] \\ &amp;= \sum_{i=1}^{M} \left(E\left[(q_i I_{i,j})^2\right] - \left(E[q_i I_{i,j}]\right)^2\right) \\ &amp;= \sum_{i=1}^{M} \left(2^{-n} q_i^2 - 2^{-2n} q_i^2\right) \\ &amp;= \left(2^{-n} - 2^{-2n}\right) \sum_{i=1}^{M} q_i^2 \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Now write \(p_j\) as \(p_j = 2^{-n}(1 + \theta_j)\). Then \(\theta_j = 2^n p_j - 1\), so \(E[\theta_j] = 2^n E[p_j] - 1 = 0\) and \(\mathit{VAR}[\theta_j] = 2^{2n} \mathit{VAR}[p_j] = (2^n - 1) \sum_{i=1}^{M} q_i^2\). Since the input collision entropy \(H_2 = -\log_2 \sum_{i=1}^{M} q_i^2\), \(\mathit{VAR}[\theta_j] = (2^n - 1) 2^{-H_2}\). Note that since \(p_j\) is assumed to be normally distributed as explained in Assumption 3, \(\theta_j = 2^n p_j - 1\) is also normally distributed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次に、\(p_j\) を \(p_j = 2^{-n}(1 + \theta_j)\) と書きます。すると \(\theta_j = 2^n p_j - 1\) なので、\(E[\theta_j] = 2^n E[p_j] - 1 = 0\) であり、\(\mathit{VAR}[\theta_j] = 2^{2n} \mathit{VAR}[p_j] = (2^n - 1) \sum_{i=1}^{M} q_i^2\) です。入力の衝突エントロピーは \(H_2 = -\log_2 \sum_{i=1}^{M} q_i^2\) なので、\(\mathit{VAR}[\theta_j] = (2^n - 1) 2^{-H_2}\) です。仮定3で説明したとおり \(p_j\) は正規分布に従うと仮定しているため、\(\theta_j = 2^n p_j - 1\) も正規分布に従うことに注意してください。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The mean and variance of \(X\) depend on whether the source is REAL or IDEAL. Let \(\mu_R = E[x_i|\text{REAL}]\), \(\mu_I = E[x_i|\text{IDEAL}]\), \(\sigma_R^2 = \mathit{VAR}[x_i|\text{REAL}]\), and \(\sigma_I^2 = \mathit{VAR}[x_i|\text{IDEAL}]\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(X\) の平均と分散は、乱数源が REAL か IDEAL かによって異なります。\(\mu_R = E[x_i|\text{REAL}]\)、\(\mu_I = E[x_i|\text{IDEAL}]\)、\(\sigma_R^2 = \mathit{VAR}[x_i|\text{REAL}]\)、\(\sigma_I^2 = \mathit{VAR}[x_i|\text{IDEAL}]\) とします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Now derive \(\mu_R\), \(\mu_I\), \(\sigma_R^2\), and \(\sigma_I^2\). Each of these values is computed by summing over the relevant expression using \(2^{-n}\) or \(p_j\) as the probability weighting factors for the IDEAL and REAL cases, respectively. Thus,</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次に、\(\mu_R\)、\(\mu_I\)、\(\sigma_R^2\)、\(\sigma_I^2\) を導出します。これらの値はそれぞれ、IDEAL の場合は \(2^{-n}\)、REAL の場合は \(p_j\) を確率の重み係数として、該当する式を総和して計算します。したがって、</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0083">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} E[x_i|\text{IDEAL}] &amp;= E\left[n + \log_2 p_{b_i} | \text{IDEAL}\right] \\ &amp;= \sum_{j=1}^{2^n} \left(n + \log_2 p_j\right) 2^{-n} \\ &amp;= \sum_{j=1}^{2^n} \left(n + \frac{\ln\left(2^{-n}(1 + \theta_j)\right)}{\ln 2}\right) 2^{-n} \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} 2^{-n} \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} E[x_i|\text{IDEAL}] &amp;= E\left[n + \log_2 p_{b_i} | \text{IDEAL}\right] \\ &amp;= \sum_{j=1}^{2^n} \left(n + \log_2 p_j\right) 2^{-n} \\ &amp;= \sum_{j=1}^{2^n} \left(n + \frac{\ln\left(2^{-n}(1 + \theta_j)\right)}{\ln 2}\right) 2^{-n} \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} 2^{-n} \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0093">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Taylor series for \(\ln(1 + \theta_j)\) is \(\theta_j - \frac{{\theta_j}^2}{2} + \frac{{\theta_j}^3}{3} - \frac{{\theta_j}^4}{4} + \cdots\). It is shown in A.2 that for cases of interest, \(|\theta_j|\) is on the order of \(10^{-8}\) or smaller. For such values of \(\theta_j\), \(\ln(1 + \theta_j) \cong \theta_j - \frac{{\theta_j}^2}{2}\), and omitting the terms beyond \({\theta_j}^2\) results in a relative error in \(\ln(1 + \theta_j)\) on the order of \(10^{-16}\). The sum above is therefore approximately</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(\ln(1 + \theta_j)\) のテイラー級数は \(\theta_j - \frac{{\theta_j}^2}{2} + \frac{{\theta_j}^3}{3} - \frac{{\theta_j}^4}{4} + \cdots\) です。対象とする場合には \(|\theta_j|\) が \(10^{-8}\) 程度以下であることが A.2 で示されます。このような \(\theta_j\) の値に対しては \(\ln(1 + \theta_j) \cong \theta_j - \frac{{\theta_j}^2}{2}\) であり、\({\theta_j}^2\) を超える項を省略したときの \(\ln(1 + \theta_j)\) の相対誤差は \(10^{-16}\) 程度です。したがって、上の和はおおよそ次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0109">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \sum_{j=1}^{2^n} \frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2} 2^{-n} = \frac{1}{\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j}{2^n} - \frac{1}{2\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n}. \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \sum_{j=1}^{2^n} \frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2} 2^{-n} = \frac{1}{\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j}{2^n} - \frac{1}{2\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n}. \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first sum in this expression is zero, by the definition of \(\theta_j\). To evaluate the second sum, note that the sum is computed over the \(2^n\) values of \(\theta_j\). Each of these \(2^n\) values can be considered as a specific value of the corresponding random variable. Since these random variables have the same distribution, the \(2^n\) values can also be treated as a sample of size \(2^n\) from any one of these random variables. By definition, \(\mathit{VAR}[\theta_j] = E[\theta_j^2] - E[\theta_j]^2\). The term \(\frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n}\) is the sample mean of \(\theta_j^2\) and is, therefore, approximately \(\mathit{VAR}[\theta_j] + E[\theta_j]^2\). Substituting the values of \(E[\theta_j]\) and \(\mathit{VAR}[\theta_j]\) found above, the following is obtained:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この式の第1の和は、\(\theta_j\) の定義によりゼロです。第2の和を評価するために、この和が \(2^n\) 個の \(\theta_j\) の値について計算されることに注意します。これら \(2^n\) 個の値は、それぞれ対応する確率変数の具体的な値とみなせます。これらの確率変数は同じ分布に従うため、\(2^n\) 個の値は、これらの確率変数のいずれか一つからの大きさ \(2^n\) の標本としても扱えます。定義により \(\mathit{VAR}[\theta_j] = E[\theta_j^2] - E[\theta_j]^2\) です。項 \(\frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n}\) は \(\theta_j^2\) の標本平均であり、したがって、おおよそ \(\mathit{VAR}[\theta_j] + E[\theta_j]^2\) です。上で求めた \(E[\theta_j]\) と \(\mathit{VAR}[\theta_j]\) の値を代入すると、次が得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0013-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} E[x_i|\text{IDEAL}] &amp;\cong -\frac{1}{2\ln 2}\left(\mathit{VAR}[\theta_j] + E[\theta_j]^2\right) \\ &amp;= -\frac{1}{2\ln 2}(2^n - 1)2^{-H_2} \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} E[x_i|\text{IDEAL}] &amp;\cong -\frac{1}{2\ln 2}\left(\mathit{VAR}[\theta_j] + E[\theta_j]^2\right) \\ &amp;= -\frac{1}{2\ln 2}(2^n - 1)2^{-H_2} \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The derivation of \(E[x_i|\text{REAL}]\) is similar and is as follows (again omitting powers of \(\theta_j\) beyond \({\theta_j}^2\)).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(E[x_i|\text{REAL}]\) の導出も同様で、次のとおりです（ここでも \({\theta_j}^2\) を超える \(\theta_j\) の冪は省略します）。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0013-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} E[x_i|\text{REAL}] &amp;= E\left[n + \log_2 p_{b_i} |\text{REAL}\right] \\ &amp;= \sum_{j=1}^{2^n} \left(n + \log_2 p_j\right) p_j \\ &amp;= \sum_{j=1}^{2^n} \left(n + \frac{\ln\left(2^{-n}(1 + \theta_j)\right)}{\ln 2}\right) p_j \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} p_j \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} 2^{-n}(1 + \theta_j) \\ &amp;\cong \sum_{j=1}^{2^n} \frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2} 2^{-n}(1 + \theta_j) \\ &amp;\cong \frac{1}{\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j}{2^n} + \frac{1}{2\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} \\ &amp;\cong \frac{1}{2\ln 2}\left(\mathit{VAR}[\theta_j] + E[\theta_j]^2\right) \\ &amp;= \frac{1}{2\ln 2}(2^n - 1)2^{-H_2} \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} E[x_i|\text{REAL}] &amp;= E\left[n + \log_2 p_{b_i} |\text{REAL}\right] \\ &amp;= \sum_{j=1}^{2^n} \left(n + \log_2 p_j\right) p_j \\ &amp;= \sum_{j=1}^{2^n} \left(n + \frac{\ln\left(2^{-n}(1 + \theta_j)\right)}{\ln 2}\right) p_j \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} p_j \\ &amp;= \sum_{j=1}^{2^n} \frac{\ln(1 + \theta_j)}{\ln 2} 2^{-n}(1 + \theta_j) \\ &amp;\cong \sum_{j=1}^{2^n} \frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2} 2^{-n}(1 + \theta_j) \\ &amp;\cong \frac{1}{\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j}{2^n} + \frac{1}{2\ln 2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} \\ &amp;\cong \frac{1}{2\ln 2}\left(\mathit{VAR}[\theta_j] + E[\theta_j]^2\right) \\ &amp;= \frac{1}{2\ln 2}(2^n - 1)2^{-H_2} \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0050">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Reusing portions of these calculations, the variance of \(x_i\) in the IDEAL case is obtained as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの計算の一部を再利用すると、IDEAL の場合の \(x_i\) の分散は次のように得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0013-b0054">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} \mathit{VAR}[x_i|\text{IDEAL}] &amp;= E\left[\left(n + \log_2 p_{b_i}\right)^2 |\text{IDEAL}\right] - E\left[n + \log_2 p_{b_i} |\text{IDEAL}\right]^2 \\ &amp;\cong \sum_{j=1}^{2^n} \left(\frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2}\right)^2 2^{-n} - \left(-\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;\cong \frac{1}{(\ln 2)^2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2}\left(1 - \frac{1}{4}(2^n - 1)2^{-H_2}\right) \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} \mathit{VAR}[x_i|\text{IDEAL}] &amp;= E\left[\left(n + \log_2 p_{b_i}\right)^2 |\text{IDEAL}\right] - E\left[n + \log_2 p_{b_i} |\text{IDEAL}\right]^2 \\ &amp;\cong \sum_{j=1}^{2^n} \left(\frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2}\right)^2 2^{-n} - \left(-\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;\cong \frac{1}{(\ln 2)^2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2}\left(1 - \frac{1}{4}(2^n - 1)2^{-H_2}\right) \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Similarly, the variance of \(x_i\) in the REAL case is obtained as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>同様に、REAL の場合の \(x_i\) の分散は次のように得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} \mathit{VAR}[x_i|\text{REAL}] &amp;= E\left[\left(n + \log_2 p_{b_i}\right)^2 |\text{REAL}\right] - E\left[n + \log_2 p_{b_i} |\text{REAL}\right]^2 \\ &amp;\cong \sum_{j=1}^{2^n} \left(\frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2}\right)^2 2^{-n} (1 + \theta_j) - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;\cong \frac{1}{(\ln 2)^2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2}\left(1 - \frac{1}{4}(2^n - 1)2^{-H_2}\right) \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} \mathit{VAR}[x_i|\text{REAL}] &amp;= E\left[\left(n + \log_2 p_{b_i}\right)^2 |\text{REAL}\right] - E\left[n + \log_2 p_{b_i} |\text{REAL}\right]^2 \\ &amp;\cong \sum_{j=1}^{2^n} \left(\frac{\theta_j - \frac{\theta_j^2}{2}}{\ln 2}\right)^2 2^{-n} (1 + \theta_j) - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;\cong \frac{1}{(\ln 2)^2} \frac{\sum_{j=1}^{2^n} \theta_j^2}{2^n} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2} - \left(\frac{1}{2\ln 2}(2^n - 1)2^{-H_2}\right)^2 \\ &amp;= \frac{1}{(\ln 2)^2}(2^n - 1)2^{-H_2}\left(1 - \frac{1}{4}(2^n - 1)2^{-H_2}\right) \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that for typical values of \(n\), \(\mu_I\) and \(\mu_R\) are closely approximated as \(-\frac{1}{2\ln 2} 2^{n-H_2}\) and \(\frac{1}{2\ln 2} 2^{n-H_2}\), respectively. Also, assuming that \(H_2\) will need to exceed \(n\) by at least a moderate amount in order to satisfy the definition of full entropy, \(\sigma_I^2 = \sigma_R^2\) can be closely approximated as \(\sigma^2 = \frac{1}{(\ln 2)^2} 2^{n-H_2}\). The statistic \(X\) is therefore approximately normally distributed with means and variance as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(n\) が典型的な値であれば、\(\mu_I\) と \(\mu_R\) はそれぞれ \(-\frac{1}{2\ln 2} 2^{n-H_2}\) と \(\frac{1}{2\ln 2} 2^{n-H_2}\) によってよく近似されることに注意してください。また、完全エントロピーの定義を満たすためには \(H_2\) が \(n\) を少なくともある程度は上回る必要があると仮定すると、\(\sigma_I^2 = \sigma_R^2\) は \(\sigma^2 = \frac{1}{(\ln 2)^2} 2^{n-H_2}\) としてよく近似できます。したがって、統計量 \(X\) はおおよそ正規分布に従い、その平均と分散は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0047">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{gathered} E[X|\text{REAL}] = -E[X|\text{IDEAL}] = -W\mu_I \cong \frac{W}{2\ln 2} 2^{n-H_2} \\ \mathit{VAR}[X|\text{REAL}] = \mathit{VAR}[X|\text{IDEAL}] = W\sigma^2 \cong \frac{W}{(\ln 2)^2} 2^{n-H_2} \end{gathered} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{gathered} E[X|\text{REAL}] = -E[X|\text{IDEAL}] = -W\mu_I \cong \frac{W}{2\ln 2} 2^{n-H_2} \\ \mathit{VAR}[X|\text{REAL}] = \mathit{VAR}[X|\text{IDEAL}] = W\sigma^2 \cong \frac{W}{(\ln 2)^2} 2^{n-H_2} \end{gathered} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0051">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Now consider the probability that the adversary correctly determines whether the REAL or IDEAL case produced the observed sample \(B\). This probability is as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次に、攻撃者が、観測された標本 \(B\) が REAL の場合と IDEAL の場合のどちらによって生成されたかを正しく判定する確率を考えます。この確率は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0053">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} \mathit{Pr}[\text{Correct}] &amp;= \mathit{Pr}[\text{IDEAL}]\,\mathit{Pr}[\text{Correct}|\text{IDEAL}] + \mathit{Pr}[\text{REAL}]\,\mathit{Pr}[\text{Correct}|\text{REAL}] \\ &amp;= \frac{1}{2}\mathit{Pr}[X &lt; 0|\text{IDEAL}] + \frac{1}{2}\mathit{Pr}[X &gt; 0|\text{REAL}] \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} \mathit{Pr}[\text{Correct}] &amp;= \mathit{Pr}[\text{IDEAL}]\,\mathit{Pr}[\text{Correct}|\text{IDEAL}] + \mathit{Pr}[\text{REAL}]\,\mathit{Pr}[\text{Correct}|\text{REAL}] \\ &amp;= \frac{1}{2}\mathit{Pr}[X &lt; 0|\text{IDEAL}] + \frac{1}{2}\mathit{Pr}[X &gt; 0|\text{REAL}] \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that because of the symmetry resulting from \(X\) having a normal distribution with variance \(W\sigma^2\) in both the REAL and IDEAL cases and expected values that are negatives of each other in these two cases, \(\mathit{Pr}[X &lt; 0|\text{IDEAL}] = \mathit{Pr}[X &gt; 0|\text{REAL}]\), which gives the following:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>REAL の場合と IDEAL の場合のどちらでも \(X\) は分散 \(W\sigma^2\) の正規分布に従い、期待値は両者で符号が逆であるという対称性から、\(\mathit{Pr}[X &lt; 0|\text{IDEAL}] = \mathit{Pr}[X &gt; 0|\text{REAL}]\) となることに注意してください。これにより、次が得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} \mathit{Pr}[\text{Correct}] &amp;= \mathit{Pr}[X &lt; 0|\text{IDEAL}] \\ &amp;= \mathit{Pr}\left[\frac{X - W\mu_I}{\sqrt{W\sigma^2}} &lt; \frac{0 - W\mu_I}{\sqrt{W\sigma^2}} |\text{IDEAL}\right] \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} \mathit{Pr}[\text{Correct}] &amp;= \mathit{Pr}[X &lt; 0|\text{IDEAL}] \\ &amp;= \mathit{Pr}\left[\frac{X - W\mu_I}{\sqrt{W\sigma^2}} &lt; \frac{0 - W\mu_I}{\sqrt{W\sigma^2}} |\text{IDEAL}\right] \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Since in the IDEAL case, \(X\) is normally distributed with mean \(W\mu_I\) and variance \(W\sigma^2\), the value \(z = \frac{X - W\mu_I}{\sqrt{W\sigma^2}}\) is a standard normal random variable, so this probability is \(F\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right)\), where \(F\) is the cumulative distribution function of the standard normal distribution. \(F(x) \le \frac{1}{2} + \frac{1}{2}\sqrt{1 - e^{-2x^2/\pi}}\) when \(x &gt; 0\) (see Section 26.2.24 of [4]). Thus, \(\mathit{Pr}[\text{Correct}] = F\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right) \le \frac{1}{2} + \delta\) if the following inequality is satisfied:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IDEAL の場合、\(X\) は平均 \(W\mu_I\)、分散 \(W\sigma^2\) の正規分布に従うため、値 \(z = \frac{X - W\mu_I}{\sqrt{W\sigma^2}}\) は標準正規確率変数であり、この確率は \(F\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right)\) です。ここで \(F\) は標準正規分布の累積分布関数です。\(x &gt; 0\) のとき \(F(x) \le \frac{1}{2} + \frac{1}{2}\sqrt{1 - e^{-2x^2/\pi}}\) です（[4] の Section 26.2.24 を参照）。したがって、次の不等式が満たされるならば、\(\mathit{Pr}[\text{Correct}] = F\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right) \le \frac{1}{2} + \delta\) です。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \frac{1}{2} + \frac{1}{2}\sqrt{1 - e^{-2\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right)^2/\pi}} \le \frac{1}{2} + \delta \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \frac{1}{2} + \frac{1}{2}\sqrt{1 - e^{-2\left(\frac{-W\mu_I}{\sqrt{W\sigma^2}}\right)^2/\pi}} \le \frac{1}{2} + \delta \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0042">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>From the derivations above, \(\frac{-W\mu_I}{\sqrt{W\sigma^2}} = \frac{1}{2}\sqrt{W} \cdot 2^{\frac{n-H_2}{2}}\), giving the following sequence of inequalities:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上の導出から \(\frac{-W\mu_I}{\sqrt{W\sigma^2}} = \frac{1}{2}\sqrt{W} \cdot 2^{\frac{n-H_2}{2}}\) となり、次の一連の不等式が得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0047">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{gathered} \frac{1}{2}\sqrt{1 - e^{-2\left(\frac{1}{4}W \cdot 2^{n-H_2}\right)/\pi}} \le \delta \\ 1 - e^{-\frac{1}{2}W \cdot 2^{n-H_2}/\pi} \le 4\delta^2 \\ 1 - 4\delta^2 \le e^{-\frac{1}{2}W \cdot 2^{n-H_2}/\pi} \\ \ln(1 - 4\delta^2) \le -\frac{1}{2}W \cdot 2^{n-H_2}/\pi \\ -2\pi\ln(1 - 4\delta^2) \ge W \cdot 2^{n-H_2} \\ \log_2(2\pi) + \log_2(-\ln(1 - 4\delta^2)) \ge \log_2 W + n - H_2 \\ H_2 \ge n + \log_2 W - \log_2(2\pi) - \log_2(-\ln(1 - 4\delta^2)) \end{gathered} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{gathered} \frac{1}{2}\sqrt{1 - e^{-2\left(\frac{1}{4}W \cdot 2^{n-H_2}\right)/\pi}} \le \delta \\ 1 - e^{-\frac{1}{2}W \cdot 2^{n-H_2}/\pi} \le 4\delta^2 \\ 1 - 4\delta^2 \le e^{-\frac{1}{2}W \cdot 2^{n-H_2}/\pi} \\ \ln(1 - 4\delta^2) \le -\frac{1}{2}W \cdot 2^{n-H_2}/\pi \\ -2\pi\ln(1 - 4\delta^2) \ge W \cdot 2^{n-H_2} \\ \log_2(2\pi) + \log_2(-\ln(1 - 4\delta^2)) \ge \log_2 W + n - H_2 \\ H_2 \ge n + \log_2 W - \log_2(2\pi) - \log_2(-\ln(1 - 4\delta^2)) \end{gathered} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0060">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Since \(4\delta^2 \cong 0\) when \(\delta \cong 0\), \(-\ln(1 - 4\delta^2)\) is closely approximated by \(4\delta^2\), so the inequality can be written as:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(\delta \cong 0\) のとき \(4\delta^2 \cong 0\) なので、\(-\ln(1 - 4\delta^2)\) は \(4\delta^2\) によってよく近似され、不等式は次のように書けます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0065">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ H_2 \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3 \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ H_2 \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3 \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0067">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This derivation has shown that if the above inequality is satisfied by a sufficiently high value of \(H_2\), then the distinguishing probability \(\mathit{Pr}[\text{Correct}] \le \frac{1}{2} + \delta\). Now note that min-entropy \(H\) is a lower bound on collision-entropy \(H_2\) and consider the following inequality where collision-entropy \(H_2\) is replaced with min-entropy \(H\):</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この導出により、上の不等式が十分に高い \(H_2\) の値によって満たされるならば、識別確率は \(\mathit{Pr}[\text{Correct}] \le \frac{1}{2} + \delta\) となることが示されました。ここで、最小エントロピー \(H\) は衝突エントロピー \(H_2\) の下界であることに注意し、衝突エントロピー \(H_2\) を最小エントロピー \(H\) に置き換えた次の不等式を考えます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ H \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3 \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ H \ge n + \log_2\left(\frac{W}{\delta^2}\right) - \log_2 \pi - 3 \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>If this inequality is satisfied by a sufficiently high value of min-entropy \(H\), then the previous inequality involving collision-entropy \(H_2\) is also satisfied, and \(\mathit{Pr}[\text{Correct}] \le \frac{1}{2} + \delta\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この不等式が十分に高い最小エントロピー \(H\) の値によって満たされるならば、衝突エントロピー \(H_2\) に関する先の不等式も満たされ、\(\mathit{Pr}[\text{Correct}] \le \frac{1}{2} + \delta\) となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Q.E.D.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>証明終。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.2. Justification of the Claim on Higher Powers of \(\theta_j\)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.2. \(\theta_j\) の高次の冪に関する主張の正当化</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the proof of Claim 1, sums of the powers of \(\theta_j\) higher than \(\theta_j^2\) were omitted. This does not affect the validity of the conclusion if \(\theta_j\) is sufficiently near zero. This is established as follows. Recall that there are \(2^n\) values of \(\theta_j\), each of which is approximately normally distributed with mean zero and variance approximately \(2^{n-H_2}\). Consider the largest \(\theta_j\): \(\theta_{max} = \max_j\{\theta_j\}\). \(\theta_{max}\) is \(z = \frac{\theta_{max}}{2^{\frac{n-H_2}{2}}}\) standard deviations away from zero (which was shown in A.1 to be the mean of \(\theta_j\)). The value of \(z\) is expected to be such that in a collection of \(2^n\) standard normal random variates, approximately one of the variates is greater than or equal to this value of \(z\). If \(f(z)\) and \(F(z)\) are the density function and the cumulative distribution function of the standard normal distribution, respectively, then for large \(z\), \(1 - F(z) \cong \frac{f(z)}{z}\) (see Section 26.2.12 of [4]). The desired value of \(z\), therefore, gives \((1 - F(z))2^n \cong 1\), which leads to \(\frac{2^n}{z\sqrt{2\pi}} e^{-\frac{z^2}{2}} = 1\), or \(z^2 + 2\ln z = 2n\ln 2 - \ln(2\pi)\). Since \(z^2\) dominates the left side of this equation for moderately large values of \(z\), the desired value of \(z\) is approximately \(\sqrt{2n\ln 2 - \ln(2\pi)}\). The value of \(\theta_{max}\) is then expected to be approximately \(2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\). For any of the typical values of \(n\) and a value of \(H_2\) given by the lower bound established in Claim 1, \(H_2 \ge n + 64\), so \(2^{\frac{n-H_2}{2}} \le 2^{-32}\), and it can be calculated that \(\theta_{max}\) is a positive value that is likely to be less than \(10^{-8}\). A similar argument leads to \(\theta_{min}\) being approximately \(-\theta_{max}\), so it is expected that \(|\theta_j| \le 10^{-8}\) for all \(j\). Therefore, it is safe to omit powers of \(\theta_j\) higher than \(\theta_j^2\), since it is shown in A.1 that doing so has a negligible effect.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>主張1の証明では、\(\theta_j^2\) より高次の \(\theta_j\) の冪の和を省略しました。\(\theta_j\) が十分にゼロに近ければ、これは結論の妥当性に影響しません。これは次のように示せます。\(\theta_j\) の値が \(2^n\) 個あり、それぞれがおおよそ平均ゼロ、分散がおおよそ \(2^{n-H_2}\) の正規分布に従うことを思い出してください。最大の \(\theta_j\)、すなわち \(\theta_{max} = \max_j\{\theta_j\}\) を考えます。\(\theta_{max}\) は、ゼロ（A.1 で \(\theta_j\) の平均であることが示されました）から \(z = \frac{\theta_{max}}{2^{\frac{n-H_2}{2}}}\) 標準偏差分だけ離れています。\(z\) の値は、\(2^n\) 個の標準正規確率変量の集まりの中で、おおよそ1個の変量がこの \(z\) の値以上になるような値であると期待されます。\(f(z)\) と \(F(z)\) をそれぞれ標準正規分布の密度関数と累積分布関数とすると、\(z\) が大きいとき \(1 - F(z) \cong \frac{f(z)}{z}\) です（[4] の Section 26.2.12 を参照）。したがって、求める \(z\) の値は \((1 - F(z))2^n \cong 1\) を満たし、これより \(\frac{2^n}{z\sqrt{2\pi}} e^{-\frac{z^2}{2}} = 1\)、すなわち \(z^2 + 2\ln z = 2n\ln 2 - \ln(2\pi)\) が得られます。\(z\) がある程度大きい値であれば、この式の左辺では \(z^2\) が支配的であるため、求める \(z\) の値はおおよそ \(\sqrt{2n\ln 2 - \ln(2\pi)}\) です。すると、\(\theta_{max}\) はおおよそ \(2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\) であると期待されます。典型的な \(n\) の値と、主張1で確立した下界 \(H_2 \ge n + 64\) を満たす \(H_2\) の値については、\(2^{\frac{n-H_2}{2}} \le 2^{-32}\) であり、\(\theta_{max}\) は \(10^{-8}\) 未満である可能性が高い正の値であると計算できます。同様の議論により、\(\theta_{min}\) はおおよそ \(-\theta_{max}\) となるため、すべての \(j\) について \(|\theta_j| \le 10^{-8}\) であると期待されます。したがって、\(\theta_j^2\) より高次の \(\theta_j\) の冪を省略しても、A.1 で示したとおり影響は無視できるほど小さいため、安全に省略できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0081">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.3. Proof of Claim 2</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.3. 主張2の証明</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0082">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It is shown in A.2 that \(\theta_{max} \cong 2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\), which implies that the corresponding value \(p_{max} = \max_j\{p_j\}\) is approximately \(2^{-n}\left(1 + 2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right)\). If the min-entropy of the input to the conditioning function is \(H\), then \(H_2 \ge H\), so</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>A.2 で \(\theta_{max} \cong 2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\) であることが示されており、これは、対応する値 \(p_{max} = \max_j\{p_j\}\) がおおよそ \(2^{-n}\left(1 + 2^{\frac{n-H_2}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right)\) であることを意味します。コンディショニング関数への入力の最小エントロピーが \(H\) であれば \(H_2 \ge H\) なので、</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0096">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ p_{max} \le 2^{-n}\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right). \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ p_{max} \le 2^{-n}\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right). \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0100">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The min-entropy corresponding to this value of \(p_{max}\) is:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この \(p_{max}\) の値に対応する最小エントロピーは次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0101">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ \begin{aligned} -\log_2 p_{max} &amp;\ge n - \log_2\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right) \\ &amp;= n - \frac{\ln\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right)}{\ln 2} \end{aligned} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ \begin{aligned} -\log_2 p_{max} &amp;\ge n - \log_2\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right) \\ &amp;= n - \frac{\ln\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right)}{\ln 2} \end{aligned} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Since \(H \ge n + 64\), \(2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\) is a very small positive number, so \(\ln\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right) \cong 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\), giving</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(H \ge n + 64\) なので、\(2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\) は非常に小さい正の数であり、したがって \(\ln\left(1 + 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\right) \cong 2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}\) となるため、次が得られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0017-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ -\log_2 p_{max} \ge n - \frac{2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}}{\ln 2} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ -\log_2 p_{max} \ge n - \frac{2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}}{\ln 2} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dividing this value by \(n\) gives an average per-bit min-entropy of at least</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この値を \(n\) で割ると、1ビットあたりの平均最小エントロピーは少なくとも次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0017-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ 1 - \frac{2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}}{n\ln 2} \]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ 1 - \frac{2^{\frac{n-H}{2}}\sqrt{2n\ln 2 - \ln(2\pi)}}{n\ln 2} \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When \(H \ge n + 64\), a per-bit min-entropy of at least \(1 - 2^{-32}c\) is obtained, where \(0 &lt; c &lt; 1\) for all the values of \(n\) of interest. Therefore, when \(H \ge n + 64\), the average per-bit min-entropy of the \(n\)-bit conditioning function output is at least \(1 - 2^{-32}\). Q.E.D.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>\(H \ge n + 64\) のとき、関心のあるすべての \(n\) の値について、1ビットあたりの最小エントロピーは少なくとも \(1 - 2^{-32}c\)（\(0 &lt; c &lt; 1\)）となります。したがって、\(H \ge n + 64\) のとき、\(n\) ビットのコンディショニング関数出力の1ビットあたりの平均最小エントロピーは少なくとも \(1 - 2^{-32}\) です。証明終。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B. List of Symbols, Abbreviations, and Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録B 記号・略語・頭字語の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>DRBG</strong><br>Deterministic Random Bit Generator</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>DRBG</strong><br>決定論的乱数ビット生成器（Deterministic Random Bit Generator）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>NIST</strong><br>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>NIST</strong><br>米国国立標準技術研究所（National Institute of Standards and Technology）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>RBG</strong><br>Random Bit Generator</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>RBG</strong><br>乱数ビット生成器（Random Bit Generator）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>SP</strong><br>(NIST) Special Publication</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>SP</strong><br>（NIST）Special Publication</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>\(\varepsilon\)</strong><br>A positive constant that is assumed to be no greater than \(2^{-32}\)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>\(\varepsilon\)</strong><br>\(2^{-32}\) 以下であると仮定する正の定数</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>E(\(X\))</strong><br>The expected value of the random variable \(X\)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>E(\(X\))</strong><br>確率変数 \(X\) の期待値</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>log<sub>2</sub>(x)</strong><br>Base-2 logarithm of x</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>log<sub>2</sub>(x)</strong><br>x の2を底とする対数</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>ln(x)</strong><br>Natural logarithm of x</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>ln(x)</strong><br>x の自然対数</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Var(x)</strong><br>Variance of random variable x</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Var(x)</strong><br>確率変数 x の分散</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix C. Glossary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録C 用語集</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>adversary</strong><br>A malicious entity whose goal is to determine, to guess, or to influence the output of an RBG.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>adversary</strong><br>RBG の出力を判定、推測、または操作することを目的とする悪意のある主体。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>bitstring</strong><br>An ordered sequence (string) of 0s and 1s. The leftmost bit is the most significant bit.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>bitstring</strong><br>0と1の順序付けられた並び（列）。最も左のビットが最上位ビットです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>conditioning function</strong><br>A deterministic function used to reduce bias and/or improve the entropy per bit.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>conditioning function</strong><br>偏りを減らす、または1ビットあたりのエントロピーを向上させるために用いる決定論的関数。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>cryptographic boundary</strong><br>An explicitly defined physical or conceptual perimeter that establishes the physical and/or logical bounds of a cryptographic module and contains all of the hardware, software, and/or firmware components of a cryptographic module.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>cryptographic boundary</strong><br>暗号モジュールの物理的または論理的な境界を定め、暗号モジュールのすべてのハードウェア、ソフトウェア、ファームウェアの構成要素を含む、明示的に定義された物理的または概念的な範囲。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>entropy</strong><br>A measure of the randomness or uncertainty of a random variable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>entropy</strong><br>確率変数のランダムさまたは不確実性の尺度。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>entropy source</strong><br>The combination of a noise source, health tests, and optional conditioning component that produce bitstrings containing entropy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>entropy source</strong><br>エントロピーを含むビット列を生成する、ノイズ源、ヘルス試験、および任意のコンディショニング構成要素の組み合わせ。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>full-entropy bitstring</strong><br>A bitstring with ideal randomness (i.e., the amount of entropy per bit is equal to 1). This publication proves that a bitstring satisfying a certain definition of full entropy has an entropy rate of at least \(1 - \varepsilon\), where \(\varepsilon\) is at most \(2^{-32}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>full-entropy bitstring</strong><br>理想的なランダムさを持つビット列（すなわち、1ビットあたりのエントロピーの量が1に等しいもの）。本刊行物は、完全エントロピーのある定義を満たすビット列が、少なくとも \(1 - \varepsilon\)（\(\varepsilon\) は高々 \(2^{-32}\)）のエントロピー率を持つことを証明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>ideal randomness source</strong><br>The source of an ideal random sequence of bits. Each bit of an ideal random sequence is unpredictable and unbiased, with a value that is independent of the values of the other bits in the sequence. Prior to an observation of the sequence, the value of each bit is equally likely to be 0 or 1, and the probability that a particular bit will have a particular value is unaffected by knowledge of the values of any or all of the other bits. An ideal random sequence of \(n\) bits contains \(n\) bits of entropy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>ideal randomness source</strong><br>理想的な乱数ビット列の源。理想的な乱数ビット列の各ビットは予測不可能かつ偏りがなく、その値は列中の他のビットの値から独立しています。列を観測する前の各ビットの値は、0である確率と1である確率が等しく、特定のビットが特定の値を取る確率は、他のビットの一部または全部の値を知っても変わりません。\(n\) ビットの理想的な乱数列は、\(n\) ビットのエントロピーを含みます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>likelihood ratio test</strong><br>A statistical test aimed at distinguishing between two competing models that could have produced an observed event based on a comparison of the likelihoods of the observed event, given the two models.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>likelihood ratio test</strong><br>観測された事象を生じさせた可能性のある二つの競合するモデルのうち、どちらであるかを識別することを目的とする統計的検定。二つのモデルのもとでの観測事象の尤度の比較に基づきます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>min-entropy</strong><br>A lower bound on the entropy of a random variable. The precise formulation for min-entropy is \((-\log_2 \max p_i)\) for a discrete distribution having probabilities \(p_1, \ldots, p_k\). Min-entropy is often used as a measure of the unpredictability of a random variable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>min-entropy</strong><br>確率変数のエントロピーの下界。最小エントロピーの正確な定式化は、確率 \(p_1, \ldots, p_k\) を持つ離散分布について \((-\log_2 \max p_i)\) です。最小エントロピーは、確率変数の予測不可能性の尺度としてよく用いられます。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8427.pdf">National Institute of Standards and Technology, IR 8427</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8427";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

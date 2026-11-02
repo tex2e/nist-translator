@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8355 は、Workforce Framework for Cybersecurity（NICE フレームワーク）、NIST Special Publication 800-181 Revision 1 に含まれるコンピテンシー領域を説明する刊行物です。コンピテンシー領域とは、特定の領域でタスクを遂行する能力と相関する、関連する知識記述とスキル記述のまとまりです。本書は、コンピテンシー領域の進化と策定の経緯を含めて詳しく示し、コンピテンシー領域と職務ロールの違いを明らかにし、さまざまな関係者の視点から使用例を示します。最後に、NICE フレームワークのコンピテンシー領域の一覧が、本刊行物とは別に公開・維持されている場所を示します。">
+  <title>NICE フレームワークのコンピテンシー領域：仕事に即応できるサイバーセキュリティ人材の育成 | NIST IR 8355 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NIST Internal Report" data-search="nist 内部報告書 nist internal report">NIST 内部報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="NIST IR 8355" data-search="nist ir 8355 nist ir 8355">NIST IR 8355</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="NICE Framework Competency Areas" data-search="nice フレームワークのコンピテンシー領域 nice framework competency areas">NICE フレームワークのコンピテンシー領域</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NIST Internal Report" data-search="nist 内部報告書 nist internal report">NIST 内部報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="NIST IR 8355" data-search="nist ir 8355 nist ir 8355">NIST IR 8355</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="NICE Framework Competency Areas" data-search="nice フレームワークのコンピテンシー領域 nice framework competency areas">NICE フレームワークのコンピテンシー領域</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0004" title="NIST Technical Series Policies" data-search="nist technical series の方針 nist technical series policies">NIST Technical Series の方針</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0005" title="Publication History" data-search="刊行履歴 publication history">刊行履歴</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0006" title="How to Cite this NIST Technical Series Publication:" data-search="本 nist technical series 刊行物の引用方法: how to cite this nist technical series publication:">本 NIST Technical Series 刊行物の引用方法:</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0007" title="Author ORCID iDs" data-search="著者の orcid id author orcid ids">著者の ORCID iD</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0008" title="Contact Information" data-search="連絡先 contact information">連絡先</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="要旨 abstract">要旨</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0004" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0006" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Audience" data-search="想定読者 audience">想定読者</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0003" title="Document Conventions" data-search="文書の表記規則 document conventions">文書の表記規則</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0005" title="Note to Readers" data-search="読者へのメモ note to readers">読者へのメモ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Patent Disclosure Notice" data-search="特許開示通知 patent disclosure notice">特許開示通知</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0018" title="List of Tables" data-search="表の一覧 list of tables">表の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0020" title="List of Figures" data-search="図の一覧 list of figures">図の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0005" title="1.1. Purpose" data-search="1.1. 目的 1.1. purpose">1.1. 目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0007" title="1.2. Scope" data-search="1.2. 適用範囲 1.2. scope">1.2. 適用範囲</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="2. Competency Areas and the NICE Framework" data-search="2. コンピテンシー領域と nice フレームワーク 2. competency areas and the nice framework">2. コンピテンシー領域と NICE フレームワーク</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0003" title="2.1. Evolution of NICE Framework Competency Areas" data-search="2.1. nice フレームワークのコンピテンシー領域の進化 2.1. evolution of nice framework competency areas">2.1. NICE フレームワークのコンピテンシー領域の進化</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0002" title="2.2. Defining Competency Areas" data-search="2.2. コンピテンシー領域の定義 2.2. defining competency areas">2.2. コンピテンシー領域の定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="2.3. Competency Areas and Work Roles" data-search="2.3. コンピテンシー領域と職務ロール 2.3. competency areas and work roles">2.3. コンピテンシー領域と職務ロール</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0005" title="3. Competency Area Development" data-search="3. コンピテンシー領域の策定 3. competency area development">3. コンピテンシー領域の策定</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0003" title="4. Example Uses" data-search="4. 使用例 4. example uses">4. 使用例</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0003" title="4.1. Employer Perspective" data-search="4.1. 雇用主の視点 4.1. employer perspective">4.1. 雇用主の視点</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0009" title="4.2. Education, Training, or Credential Provider Perspective" data-search="4.2. 教育・訓練・資格認定の提供者の視点 4.2. education, training, or credential provider perspective">4.2. 教育・訓練・資格認定の提供者の視点</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0014" title="4.3. Learner Perspective" data-search="4.3. 学習者の視点 4.3. learner perspective">4.3. 学習者の視点</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0016-b0006" title="5. List of NICE Framework Competency Areas" data-search="5. nice フレームワークのコンピテンシー領域の一覧 5. list of nice framework competency areas">5. NICE フレームワークのコンピテンシー領域の一覧</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="Appendix A. List of Symbols, Abbreviations, and Acronyms" data-search="付録 a. 記号、略語、頭字語の一覧 appendix a. list of symbols, abbreviations, and acronyms">付録 A. 記号、略語、頭字語の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="Appendix B. Glossary" data-search="付録 b. 用語集 appendix b. glossary">付録 B. 用語集</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8355 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">NICE Framework Competency Areas: Preparing a Job-Ready Cybersecurity Workforce</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>NICE フレームワークのコンピテンシー領域：仕事に即応できるサイバーセキュリティ人材の育成</strong></span><br><span class="doc-panel-item">公開日 : 2023-06-21</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8355/final">https://csrc.nist.gov/pubs/ir/8355/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 178 / 179 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8355 は、Workforce Framework for Cybersecurity（NICE フレームワーク）、NIST Special Publication 800-181 Revision 1 に含まれるコンピテンシー領域を説明する刊行物です。コンピテンシー領域とは、特定の領域でタスクを遂行する能力と相関する、関連する知識記述とスキル記述のまとまりです。本書は、コンピテンシー領域の進化と策定の経緯を含めて詳しく示し、コンピテンシー領域と職務ロールの違いを明らかにし、さまざまな関係者の視点から使用例を示します。最後に、NICE フレームワークのコンピテンシー領域の一覧が、本刊行物とは別に公開・維持されている場所を示します。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Internal Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 内部報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8355</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8355</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NICE Framework Competency Areas</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NICE フレームワークのコンピテンシー領域</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Preparing a Job-Ready Cybersecurity Workforce</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>仕事に即応できるサイバーセキュリティ人材の育成</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Karen A. Wetzel</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Karen A. Wetzel</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8355</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8355</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Internal Report</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 内部報告書</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST IR 8355</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST IR 8355</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NICE Framework Competency Areas</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NICE フレームワークのコンピテンシー領域</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Preparing a Job-Ready Cybersecurity Workforce</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>仕事に即応できるサイバーセキュリティ人材の育成</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Karen A. Wetzel</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Karen A. Wetzel</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Applied Security Division Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE Applied Security Division Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8355</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8355</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>June 2023</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2023年6月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Gina M. Raimondo, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>U.S. Department of Commerce Gina M. Raimondo, Secretary</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Laurie E. Locascio, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Laurie E. Locascio, NIST Director and Under Secretary of Commerce for Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順を十分に特定するために、商用・非商用を問わず、特定の商用機器、計器、ソフトウェア、または資材を挙げている場合があります。こうした特定は、NIST がそれらの製品やサービスを推奨または保証することを意味せず、挙げられた資材や機器がその目的に最適であるとは限らないことも意味しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令上の責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。概念や方法論を含む本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦政府機関が利用してもよいです。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、および手順が存在する場合には、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織には、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されています。上記以外の多くの NIST サイバーセキュリティ刊行物は https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>NIST Technical Series Policies</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+NIST Technical Series の方針</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Copyright, Use, and Licensing Statements</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著作権、使用、およびライセンスに関する声明</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Technical Series 刊行物識別子の構文</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Publication History</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+刊行履歴</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Approved by the NIST Editorial Review Board on 2023-06-01</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2023-06-01 に NIST 編集審査委員会（Editorial Review Board）が承認</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>How to Cite this NIST Technical Series Publication:</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+本 NIST Technical Series 刊行物の引用方法:</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Wetzel KA (2023) NICE Framework Competency Areas: Preparing a Job-Ready Cybersecurity Workforce. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal or Interagency Report (IR) NIST IR 8355. https://doi.org/10.6028/NIST.IR.8355</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Wetzel KA (2023) NICE Framework Competency Areas: Preparing a Job-Ready Cybersecurity Workforce. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal or Interagency Report (IR) NIST IR 8355. https://doi.org/10.6028/NIST.IR.8355</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Author ORCID iDs</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+著者の ORCID iD</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Karen A. Wetzel: 0009-0004-0683-808X</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Karen A. Wetzel: 0009-0004-0683-808X</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Contact Information</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+連絡先</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>niceframework@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>niceframework@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報公開法（FOIA）に基づいて公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+要旨</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication from NICE describes Competency Areas as included in the <em>Workforce Framework for Cybersecurity (NICE Framework)</em>, NIST Special Publication 800-181, Revision 1. The NICE Framework is a fundamental reference for describing and sharing information about cybersecurity work. At its core are Task, Knowledge, and Skill (TKS) statements that provide a foundation for learners, including students, job seekers, and employees. These statements are then used to define Competency Areas—clusters of related Knowledge and Skill statements that correlates with one’s capability to perform Tasks in a particular domain—and Work Roles, which are composed of Task statements that constitute work for which someone is responsible or accountable. This document shares more detail about what NICE Framework Competency Areas are, including their evolution and development, clarifies the differences between Competency Areas and Work Roles, and provides example uses for Competency Areas from various stakeholder perspectives, and. Finally, the publication identifies where the NICE Framework list of Competency Areas is separately published and maintained distinct from this publication so it can be updated more frequently as a flexible and contemporary reference resource.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE による本刊行物は、<em>Workforce Framework for Cybersecurity (NICE Framework)</em>（NIST Special Publication 800-181 Revision 1）に含まれるコンピテンシー領域について説明します。NICE フレームワークは、サイバーセキュリティ業務を記述し、その情報を共有するための基本的な参照資料です。その中核にあるタスク（Task）、知識（Knowledge）、スキル（Skill）の記述（TKS 記述）は、学生、求職者、従業員を含む学習者にとっての基盤となります。これらの記述は、コンピテンシー領域と職務ロール（Work Role）の定義に用いられます。コンピテンシー領域とは、特定の領域でタスクを遂行する能力と相関する、関連した知識記述とスキル記述のまとまりです。職務ロールは、ある人が責任を負う、または説明責任を負う業務を構成するタスク記述からなります。本書では、コンピテンシー領域の進化と策定の経緯を含め、その内容を詳しく説明し、コンピテンシー領域と職務ロールの違いを明らかにするとともに、さまざまな関係者の視点からコンピテンシー領域の使用例を示し、最後に、柔軟で現代的な参照資源としてより頻繁に更新できるよう、NICE フレームワークのコンピテンシー領域一覧が本刊行物とは別に公開・維持されている場所を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>competency; Competency Area; cyber; cybersecurity; cyberspace; education; knowledge; risk management; role; security; skill; task; team; training; workforce; work role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>competency; Competency Area; cyber; cybersecurity; cyberspace; education; knowledge; risk management; role; security; skill; task; team; training; workforce; work role.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）の情報技術研究所（ITL）は、米国の測定・標準インフラに技術面でのリーダーシップを発揮することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるために、試験、試験方法、参照データ、概念実証実装、および技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーを実現するための、管理上、事務上、技術上、および物理上の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Audience</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+想定読者</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NICE Framework serves as a bridge between employers and education, training, and certification providers as well as a tool to help learners determine needs and demonstrate capabilities. A standardized approach to Competency Areas provides accessible information about what individuals need to know and be able to do, enables the development of more effective learning, and establishes regular processes to consistently describe and validate a learner’s capabilities. Therefore, the following are both stakeholders and the audience for this work: employers; workforce development and human resources professionals; education, training, and certification providers; and learners.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークは、雇用主と、教育・訓練・認定の提供者とをつなぐ架け橋であり、学習者が必要なものを見極め、能力を示すのを助けるツールでもあります。コンピテンシー領域への標準化されたアプローチは、個人が何を知り、何ができる必要があるかについて利用しやすい情報を提供し、より効果的な学習の開発を可能にし、学習者の能力を一貫して記述し検証するための定期的なプロセスを確立します。したがって、次の者が本作業の関係者であり、想定読者でもあります。雇用主、人材開発および人事の専門家、教育・訓練・認定の提供者、および学習者です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Document Conventions</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+文書の表記規則</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The terms “shall” and “shall not” indicate requirements to be followed strictly in order to conform to the publication and from which no deviation is permitted. The terms “should” and “should not” indicate that among several possibilities one is recommended as particularly suitable, without mentioning or excluding others, or that a certain course of action is preferred but not necessarily required, or that (in the negative form) a certain possibility or course of action is discouraged but not prohibited. The terms “may” and “need not” indicate a course of action permissible within the limits of the publication. The terms “can” and “cannot” indicate a possibility and capability, whether material, physical or causal.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「shall」および「shall not」は、本刊行物に適合するために厳密に従わなければならない要件を示し、逸脱は認められません。「should」および「should not」は、複数の可能性の中で、他を挙げたり除外したりせずに一つが特に適していると推奨されること、ある行動方針が好ましいが必須ではないこと、または（否定形では）ある可能性や行動方針が推奨されないが禁止されてはいないことを示します。「may」および「need not」は、本刊行物の範囲内で許容される行動方針を示します。「can」および「cannot」は、物質的、物理的、または因果的な可能性と能力を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Those seeking a career in cybersecurity or performing cybersecurity work—including students, job seekers, and employees—are referenced as Learners. This moniker highlights that each member of the workforce is also a lifelong learner.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サイバーセキュリティの分野でのキャリアを求める人や、サイバーセキュリティ業務に従事する人（学生、求職者、従業員を含みます）は、学習者（Learners）と呼ばれます。この呼称は、労働力の一人ひとりが生涯にわたる学習者でもあることを強調しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Note to Readers</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+読者へのメモ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication assumes existing knowledge of the <em>Workforce Framework for Cybersecurity (NICE Framework)</em>, NIST Special Publication 800-181, Revision 1, and is expected to be read in that context. This document was released in draft form for comment twice prior to this publication. The first draft was released in March 2021, along with an initial list of proposed Competency Areas. A second draft was released in December 2021. Feedback received on those drafts, conversations with NICE community members, and insights from workshops that brought together subject matter experts on this topic have matured understanding of NICE Framework Competency Areas. The adjustments to this document are the result. Any subsequent draft(s) may be further adjusted, including the separately provided Competency Areas, their descriptions, and associated Task, Knowledge, and Skill (TKS) statements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、<em>Workforce Framework for Cybersecurity (NICE Framework)</em>、NIST Special Publication 800-181 Revision 1 についての知識を前提としており、その文脈で読まれることを想定しています。本書は、本刊行物の前に、意見募集のためのドラフトとして 2 回公開されています。最初のドラフトは、提案されたコンピテンシー領域の初期の一覧とともに 2021 年 3 月に公開され、2 回目のドラフトは 2021 年 12 月に公開されました。これらのドラフトに寄せられたフィードバック、NICE コミュニティのメンバーとの対話、およびこのテーマの専門家を集めたワークショップから得られた知見により、NICE フレームワークのコンピテンシー領域への理解が深まりました。本書の修正は、その結果です。今後作成されるドラフトは、別途提供されるコンピテンシー領域、その説明、および関連するタスク・知識・スキル（TKS）記述を含め、さらに修正される可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Patent Disclosure Notice</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+特許開示通知</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NOTICE: ITL has requested that holders of patent claims whose use may be required for compliance with the guidance or requirements of this publication disclose such patent claims to ITL. However, holders of patents are not obligated to respond to ITL calls for patents and ITL has not undertaken a patent search in order to identify which, if any, patents may apply to this publication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>通知: ITL は、本刊行物のガイダンスまたは要件への準拠に使用が必要となる可能性のある特許クレームの保有者に対し、そうした特許クレームを ITL に開示するよう求めています。ただし、特許の保有者には ITL の特許募集に応じる義務はなく、ITL も、本刊行物に該当する特許があるかどうかを特定するための特許調査は行っていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As of the date of publication and following call(s) for the identification of patent claims whose use may be required for compliance with the guidance or requirements of this publication, no such patent claims have been identified to ITL.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>発行日の時点で、本刊行物のガイダンスまたは要件への準拠に使用が必要となる可能性のある特許クレームの特定を求める募集が行われましたが、そのような特許クレームは ITL に対して特定されていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>No representation is made or implied by ITL that licenses are not required to avoid patent infringement in the use of this publication.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ITL は、本刊行物の使用において特許侵害を避けるためにライセンスが不要であると表明も示唆もしていません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">1.1. Purpose</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">1.1. 目的</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0007">1.2. Scope</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0007">1.2. 適用範囲</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2. Competency Areas and the NICE Framework</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2. コンピテンシー領域と NICE フレームワーク</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.1. Evolution of NICE Framework Competency Areas</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.1. NICE フレームワークのコンピテンシー領域の進化</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.2. Defining Competency Areas</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.2. コンピテンシー領域の定義</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">2.3. Competency Areas and Work Roles</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">2.3. コンピテンシー領域と職務ロール</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">3. Competency Area Development</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">3. コンピテンシー領域の策定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">4. Example Uses</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">4. 使用例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003">4.1. Employer Perspective</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003">4.1. 雇用主の視点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0009">4.2. Education, Training, or Credential Provider Perspective</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0009">4.2. 教育・訓練・資格認定の提供者の視点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0007-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0014">4.3. Learner Perspective</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0014">4.3. 学習者の視点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0006">5. List of NICE Framework Competency Areas</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0006">5. NICE フレームワークのコンピテンシー領域の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">Appendix A. List of Symbols, Abbreviations, and Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">付録 A. 記号、略語、頭字語の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">Appendix B. Glossary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">付録 B. 用語集</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Tables</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+表の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">Table 1. Competency Areas vs. Work Roles</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">表 1. コンピテンシー領域と職務ロールの比較</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Figures</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+図の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">Fig. 1. NICE Competency Area Stakeholders</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">図 1. NICE コンピテンシー領域の関係者</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0007-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">Fig. 2. Building Blocks, Competency Areas, and Work Roles</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">図 2. 構成要素、コンピテンシー領域、および職務ロール</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) would like to particularly acknowledge the work of William Newhouse (NIST), Kevin Sanchez-Cherry (Department of Transportation), Leo Van Duyn (JPMorgan Chase &amp; Co.), and Clarence Williams (Department of Veterans Affairs), whose work provided the basis from which this publication came. NIST also wishes to thank these team members from the NICE Framework Core Authoring Team that includes representatives from numerous departments and agencies in the United States Federal Government whose dedicated efforts contributed significantly to that publication:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）は、William Newhouse（NIST）、Kevin Sanchez-Cherry（Department of Transportation）、Leo Van Duyn（JPMorgan Chase &amp; Co.）、Clarence Williams（Department of Veterans Affairs）の各氏の業績に特に謝意を表します。その業績が本刊行物の基礎となりました。また NIST は、米国連邦政府の多数の省庁の代表者を含む NICE フレームワーク中核執筆チームの次のメンバーにも感謝します。彼らの献身的な努力が本刊行物に大きく貢献しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Lisa Dorr, Department of Homeland Security<br>Ryan Farr, Department of Defense<br>Pam Frugoli, Department of Labor<br>Matt Isnor, Department of Defense<br>Patrick Johnson, Department of Defense<br>Rodney Petersen, National Institute of Standards and Technology<br>Danielle Santos, National Institute of Standards and Technology<br>Stephanie Shively, Department of Defense<br>Kenneth Vrooman, Cybersecurity and Infrastructure Security Agency</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8355/p0008-table-01.png" alt="原本 PDF p.8 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Lisa Dorr, Department of Homeland Security<br>Ryan Farr, Department of Defense<br>Pam Frugoli, Department of Labor<br>Matt Isnor, Department of Defense<br>Patrick Johnson, Department of Defense<br>Rodney Petersen, National Institute of Standards and Technology<br>Danielle Santos, National Institute of Standards and Technology<br>Stephanie Shively, Department of Defense<br>Kenneth Vrooman, Cybersecurity and Infrastructure Security Agency</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Finally, the team appreciates and acknowledges the contributions of those who established previous editions of cybersecurity workforce frameworks as described at the history page of the NICE Framework Resource Center.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最後に、チームは、NICE Framework Resource Center の歴史ページに記載されているように、サイバーセキュリティ人材フレームワークの従来版を確立した人々の貢献に感謝し、謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE released the <em>Workforce Framework for Cybersecurity (NICE Framework)</em>, NIST Special Publication 800-181, Revision 1, in November 2020 [1]. The revised NICE Framework established a set of building blocks—Task, Knowledge, and Skill statements—that describe cybersecurity work and what someone must know or be able to do to complete that work. It also identifies common ways these building blocks can be applied, most notably through Work Roles and, new in the NICE Framework revision 1, Competency Areas.<sup>1</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE は 2020 年 11 月に、<em>Workforce Framework for Cybersecurity (NICE Framework)</em>、NIST Special Publication 800-181 Revision 1 を公開しました [1]。改訂された NICE フレームワークは、サイバーセキュリティ業務と、その業務を遂行するために人が知る必要のあること、または実行できる必要のあることを記述する一連の構成要素（タスク、知識、スキルの記述）を確立しました。また、これらの構成要素を適用する一般的な方法も示しています。最も顕著な方法は職務ロールであり、NICE フレームワーク Revision 1 で新たに加わったのがコンピテンシー領域です。<sup>1</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Framework Competency Areas group together related Task, Knowledge, and Skill (TKS) statements to form a higher-level description of capabilities typically needed in a particular cybersecurity domain. By clearly defining what a person needs to know and do to perform well in a defined area of cybersecurity work, Competency Areas provide a means to communicate the needs of employers, the capabilities of learners (which, for the purposes of the NICE Framework includes students, job seekers, and employees), and the value of education, training, and certifications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークのコンピテンシー領域は、関連するタスク、知識、スキル（TKS）の記述をまとめ、特定のサイバーセキュリティ領域で通常必要とされる能力のより高次の記述を形成します。サイバーセキュリティ業務の定義された領域で優れた成果を上げるために人が何を知り、何を行う必要があるかを明確に定義することで、コンピテンシー領域は、雇用主のニーズ、学習者（NICE フレームワークの目的上、学生、求職者、従業員を含みます）の能力、そして教育・訓練・資格認定の価値を伝える手段を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Learners:</b> Individuals who perform cybersecurity work, including students, job seekers, and employees.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8355/p0009-table-01.png" alt="原本 PDF p.9 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>学習者:</b> 学生、求職者、従業員を含む、サイバーセキュリティ業務を行う個人。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas are defined via an employer-driven approach that enables education and training providers to be responsive to employer or sector needs by creating experiences that help learners develop and demonstrate relevant and needed capabilities. They correlate with performance on the job and can be improved through education, training (including on-the-job and apprenticeships), or other learning experiences.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、雇用主主導のアプローチで定義されます。これにより、教育・訓練の提供者は、学習者が関連する必要な能力を身につけ、示すのに役立つ経験を作り出すことで、雇用主や業界のニーズに対応できます。コンピテンシー領域は職務上の成果と相関し、教育、訓練（実務を通じた訓練や見習い制度を含みます）、またはその他の学習経験を通じて向上させることができます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. Purpose</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. 目的</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication provides readers background information on NICE Framework Competency Areas and why they were introduced in the revised NICE Framework, describes how the Competency Areas are defined and written, and shares with readers ways NICE Framework Competency Areas can be used.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、NICE フレームワークのコンピテンシー領域についての背景情報と、改訂版 NICE フレームワークでそれが導入された理由を読者に提供し、コンピテンシー領域がどのように定義・記述されるかを説明し、NICE フレームワークのコンピテンシー領域の使い方を紹介します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2. Scope</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2. 適用範囲</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Competency Areas described in this publication are part of the <em>Workforce Framework for Cybersecurity (NICE Framework)</em>, which provides a lexicon for describing cybersecurity work and the individuals who do that work. The NICE Framework considers the “cybersecurity workforce” to include not only those whose primary focus is on cybersecurity but also those who need specific cybersecurity-related knowledge and skills to properly manage cybersecurity-related risks to the enterprise.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物で説明するコンピテンシー領域は、<em>Workforce Framework for Cybersecurity (NICE Framework)</em> の一部です。このフレームワークは、サイバーセキュリティ業務と、その業務を行う個人を記述するための語彙を提供します。NICE フレームワークは、「サイバーセキュリティ人材」に、サイバーセキュリティを主たる業務とする人だけでなく、エンタープライズのサイバーセキュリティ関連リスクを適切に管理するために、サイバーセキュリティに関する特定の知識やスキルを必要とする人も含めて考えています。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0009-b0009" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> The NICE Framework building block statements, Work Roles, and Competency Areas are made available online as part of the NICE Framework Resource Center in order to allow for regular review and updates [2].<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> NICE フレームワークの構成要素の記述、職務ロール、およびコンピテンシー領域は、定期的な見直しと更新ができるよう、NICE Framework Resource Center の一部としてオンラインで公開されています [2]。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Competency Areas and the NICE Framework</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. コンピテンシー領域と NICE フレームワーク</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The introduction of Competency Areas into the NICE Framework is a response to a growing need to better identify and secure talent through skills- and competency-based hiring. Hiring based only on degrees increases the likelihood of excluding qualified candidates, particularly for jobs related to emerging technologies. A shift to competency-based hiring and promotion ensures that the individuals most capable of performing the roles and responsibilities required of a specific position are those selected for that position. With the inclusion of Competency Areas, the NICE Framework provides a means of helping the NICE Framework users shift to competency-based hiring practices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークへのコンピテンシー領域の導入は、スキルやコンピテンシーに基づく採用を通じて、人材をより適切に見極め、確保する必要性が高まっていることへの対応です。学位のみに基づく採用では、特に新興技術に関連する職務で、適格な候補者を除外してしまう可能性が高まります。コンピテンシーに基づく採用と昇進へ移行することで、特定の職位に求められる役割と責任を最も遂行できる人が、その職位に選ばれるようになります。コンピテンシー領域を含めることで、NICE フレームワークは、利用者がコンピテンシーに基づく採用慣行へ移行するのを支援する手段を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas use an employer-driven approach to group together related Knowledge and Skill statements that correlate with one’s capability to perform Tasks in a particular domain. Over time, NICE may work with the cybersecurity community to introduce new Competency Areas or update or retire existing Competency Areas in response to evolving needs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、雇用主主導のアプローチを用いて、特定の領域でタスクを遂行する能力と相関する、関連する知識記述とスキル記述をまとめます。NICE は、時間をかけて、サイバーセキュリティコミュニティと協力し、変化するニーズに応じて、新しいコンピテンシー領域の導入や、既存のコンピテンシー領域の更新・廃止を行う場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Framework Competency Areas are complementary to Work Roles and provide a means to assess learner capabilities in the defined areas. (See <em>Section 2.3, Competency Areas and Work Roles</em>, for more information about how Competency Areas differ from and work in conjunction with Work Roles.)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークのコンピテンシー領域は職務ロールを補完するものであり、定義された領域における学習者の能力を評価する手段を提供します。（コンピテンシー領域が職務ロールとどう異なり、どう連携するかの詳細は、<em>2.3 節「コンピテンシー領域と職務ロール」</em>を参照してください。）</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Evolution of NICE Framework Competency Areas</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. NICE フレームワークのコンピテンシー領域の進化</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Framework Competency Areas were first introduced in the NIST Special Publication 800-181 in the 2020 revision, but they also derive from earlier work. The first version of the National Cybersecurity Workforce Framework 1.0 (April 2013), which preceded and formed the basis for NIST SP 800-181, included a mapping of Knowledge, Skill, and Ability (KSA) statements to “competencies.”<sup>2</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークのコンピテンシー領域は、2020 年改訂版の NIST Special Publication 800-181 で初めて導入されましたが、それ以前の取り組みにも由来しています。NIST SP 800-181 に先行し、その基礎となった National Cybersecurity Workforce Framework 1.0 の最初の版（2013 年 4 月）には、知識・スキル・能力（KSA）の記述を「コンピテンシー」に対応付けたものが含まれていました。<sup>2</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These competencies pulled from a 2011 U.S. Office of Personnel Management (OPM) memorandum that introduced a “Competency Model for Cybersecurity,” which itself followed a coordinated effort with the Federal Chief Information Officers (CIO) Council and NICE in November 2009 [3].<sup>3</sup> The OPM model presented 117 competencies related to four occupation series and the pay grades of personnel in those occupations. A subject matter expert panel review of the OPM model conducted at that time identified 50 competencies to align with the NICE Framework KSAs found in five of the seven categories of work.<sup>4</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのコンピテンシーは、2011 年の米国人事管理局（OPM）の覚書から取り入れられたものです。この覚書は「サイバーセキュリティのコンピテンシーモデル」を導入したもので、2009 年 11 月の連邦最高情報責任者（CIO）評議会および NICE との連携した取り組みに続くものでした [3]。<sup>3</sup> OPM モデルは、4 つの職種系列と、それらの職種に就く職員の給与等級に関連する 117 のコンピテンシーを示していました。当時行われた OPM モデルの専門家パネルによる審査では、7 つの業務カテゴリのうち 5 つに見られる NICE フレームワークの KSA に対応させる 50 のコンピテンシーが特定されました。<sup>4</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Prior to publishing NIST SP 800-181in 2017, consideration was given as to whether competencies should be included, but it was decided not to maintain them as part of the NICE Framework at that time. Inclusion of competencies in the NICE Framework was revisited for the 2020 publication, when they were added to the publication as a means of applying TKS statements, along with Work Roles. In March 2021, a draft list of “competencies” was released for comment. Feedback received during that comment period, as well as stakeholder conversations held via a workshop and in other settings, informed the next stage of development, so that a clearer understanding of this new approach could be made. The result is a shift from “competencies” to the current “Competency Areas” described herein. Although the overall purpose of Competency Areas remains the same, this new phrasing better signals an approach that broadly defines the knowledge and skills one needs to be capable in a defined domain, distinct from one’s proficiency in completing a single task. The list of Competency Areas themselves, though derived from and informed by earlier efforts, is an evolution of that work and will continue to be updated and adjusted in response to the shifting cybersecurity environment.<sup>5</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2017 年に NIST SP 800-181 を公開する前に、コンピテンシーを含めるべきかどうかが検討されましたが、当時は NICE フレームワークの一部として維持しないことが決まりました。NICE フレームワークにコンピテンシーを含めることは、2020 年の刊行物に向けて再検討され、職務ロールとともに TKS 記述を適用する手段として刊行物に加えられました。2021 年 3 月には、「コンピテンシー」のドラフト一覧が意見募集のために公開されました。その意見募集期間中に寄せられたフィードバックと、ワークショップおよびその他の場で行われた関係者との対話は、次の開発段階に反映され、この新しいアプローチをより明確に理解できるようになりました。その結果、本書で説明する現在の「コンピテンシー領域」へと、「コンピテンシー」から移行しました。コンピテンシー領域の全体的な目的は変わりませんが、この新しい表現は、単一のタスクを完了する際の習熟度とは異なり、定義された領域で能力を発揮するために必要な知識とスキルを広く定義するアプローチをよりよく示しています。コンピテンシー領域の一覧そのものは、以前の取り組みに由来し、それに基づいていますが、その取り組みを発展させたものであり、変化するサイバーセキュリティ環境に応じて、今後も更新・調整されていきます。<sup>5</sup></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0010-b0005" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> Note that Ability statements were removed in the 2020 revision of the NICE Framework.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> 能力（Ability）の記述は、NICE フレームワークの 2020 年改訂版で削除されています。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0010-b0005-s1" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>3</sup> Berry, J. (2011, February 16). U.S. Office of Personnel Management Memorandum. Competency model for cybersecurity. Retrieved February 11, 2021, from https://www.chcoc.gov/content/competency-model-cybersecurity [4]<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>3</sup> Berry, J. (2011, February 16). U.S. Office of Personnel Management Memorandum. Competency model for cybersecurity. Retrieved February 11, 2021, from https://www.chcoc.gov/content/competency-model-cybersecurity [4]        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0010-b0006" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>4</sup> Two categories—"Collect and Operate” and “Analyze”—related to classified content and thus were not included in that alignment review.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>4</sup> 「Collect and Operate」と「Analyze」の 2 つのカテゴリは、機密指定された内容に関係するため、その対応付けの審査には含まれていません。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Defining Competency Areas</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. コンピテンシー領域の定義</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas offer a high-level perspective to defined areas of cybersecurity work and support an inclusive, assessment-based approach to determine capabilities. An assessment-based approach allows applicant pools to be broadened and to identify candidates more successfully, particularly in areas such as emerging and rapidly evolving technologies. They can also be used to identify career paths, to determine current and future workforce demands, and when developing education, training, or other learning experiences to meet defined needs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、定義されたサイバーセキュリティ業務の領域に対する高次の視点を提供し、能力を判断するための、評価に基づく包摂的なアプローチを支えます。評価に基づくアプローチにより、特に新興技術や急速に進化する技術などの分野で、応募者の母集団を広げ、候補者をより適切に見極めることができます。また、キャリアパスの特定、現在および将来の人材需要の把握、定義されたニーズを満たす教育、訓練、その他の学習経験の開発にも使えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Competency Area:</b> A cluster of related Knowledge and Skill statements that correlates with one’s capability to perform Tasks in a particular domain. Competency Areas can help learners discover areas of interest, inform career planning and development, identify gaps for knowledge and skills development, and provide a means of assessing or demonstrating a learner’s capabilities in the domain.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8355/p0011-table-01.png" alt="原本 PDF p.11 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>コンピテンシー領域:</b> 特定の領域でタスクを遂行する能力と相関する、関連する知識記述とスキル記述のまとまり。コンピテンシー領域は、学習者が関心のある分野を見つけ、キャリアの計画と開発に役立て、知識とスキルの開発におけるギャップを特定し、その領域での学習者の能力を評価または実証する手段を提供するのに役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas consist of a name, description of the area, and group of associated TKS statements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、名称、領域の説明、および関連する TKS 記述のグループで構成されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Accordingly, instead of specifying only the work to be done (Tasks) or what is needed to do the work (Knowledge and Skills), it’s about determining a learner’s overall capability for that area of cybersecurity work.<sup>6</sup> Competency Areas offer an opportunity to increase alignment and coordination between employers, learners, and education, training, and certification providers (see Fig. 1. NICE Framework Competency Area Stakeholders).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>したがって、行うべき業務（タスク）や、その業務を行うために必要なもの（知識とスキル）だけを指定するのではなく、そのサイバーセキュリティ業務の領域に対する学習者の総合的な能力を判断することが重要になります。<sup>6</sup> コンピテンシー領域は、雇用主、学習者、および教育・訓練・認定の提供者の間の整合と調整を高める機会を提供します（図 1「NICE フレームワークのコンピテンシー領域の関係者」を参照）。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0011-b0006" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>5</sup> The creation and maintenance of NICE Framework Competency Areas follows NIST practices of engaging with stakeholders in an open, transparent, and collaborative process that includes workshops and other opportunities to provide input. Information on how to engage with the NICE Framework, the revision process, and the current List of Competency Areas can be found in the NICE Framework Resource Center: https://www.nist.gov/nice/framework.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>5</sup> NICE フレームワークのコンピテンシー領域の作成と維持は、ワークショップやその他の意見提供の機会を含む、オープンで透明性があり協働的なプロセスで関係者と関わるという NIST の慣行に従っています。NICE フレームワークへの関わり方、改訂プロセス、および現在のコンピテンシー領域の一覧に関する情報は、NICE Framework Resource Center（https://www.nist.gov/nice/framework）で確認できます。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0011-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>6</sup> See also the 2022 NICE Report to Congress, <em>Measuring Cybersecurity Workforce Capabilities: Defining a Proficiency Scale for the NICE Framework</em>. This report discusses proficiency levels broadly, points to existing models, summarizes findings regarding efforts to assess workforce proficiency, and provides recommendations for effective methods for measuring the cybersecurity proficiency of learners.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>6</sup> 2022 年の NICE 議会報告書 <em>Measuring Cybersecurity Workforce Capabilities: Defining a Proficiency Scale for the NICE Framework</em> も参照してください。この報告書は、習熟度のレベルを広く論じ、既存のモデルを示し、人材の習熟度を評価する取り組みに関する調査結果をまとめ、学習者のサイバーセキュリティの習熟度を測定する効果的な方法についての推奨事項を示しています。        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0012-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8355/p0012-figure-01.png" alt="Diagram of NICE Framework Competency Area stakeholders. Three boxes across the top: “Employers” (Identify, Assess), “Learners” (Possess • Acquire, Develop • Demonstrate), and “Educators” (Teach, Evidence). Below them, a box “NICE Framework” (Define). Dashed arrows run from Learners toward Employers and toward Educators, and from Employers and Educators down to the NICE Framework box; dotted arrows run from the NICE Framework box up to Employers, Learners, and Educators."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE Framework の Competency Area の関係者を示す図です。上段に3つの箱が並びます。「Employers」（Identify、Assess）、「Learners」（Possess • Acquire、Develop • Demonstrate）、「Educators」（Teach、Evidence）です。その下に「NICE Framework」（Define）の箱があります。破線の矢印が Learners から Employers と Educators へ、また Employers と Educators から NICE Framework の箱へ向かいます。点線の矢印が NICE Framework の箱から Employers、Learners、Educators へ向かいます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 1. NICE Framework Competency Area Stakeholders</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. NICE フレームワークのコンピテンシー領域の関係者</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. Competency Areas and Work Roles</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. コンピテンシー領域と職務ロール</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Framework Competency Areas and Work Roles are complementary and may be used together or separately. However, there are differences. While Work Roles focus on the work to be done (Task statements), Competency Areas focus on what a learner must know or be able to do (Knowledge and Skill statements) to complete that work (see Fig. 2. TKS Statements, Competency Areas, and Work Roles).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークのコンピテンシー領域と職務ロールは相互に補完的であり、組み合わせても、別々に使ってもよいです。ただし、違いもあります。職務ロールは行うべき業務（タスク記述）に焦点を当てますが、コンピテンシー領域は、その業務を完了するために学習者が知っていなければならないこと、またはできなければならないこと（知識記述とスキル記述）に焦点を当てます（図 2「TKS 記述、コンピテンシー領域、および職務ロール」を参照）。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0012-b0005" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8355/p0012-figure-03.png" alt="Diagram of TKS statements, Competency Areas, and Work Roles. A box labeled “Task” (containing dashed cross and triangle shapes) sits above a dashed horizontal line; below the line, stacked triangles labeled “Skill” and stacked cross shapes labeled “Knowledge” connect upward to the Task box with an arrow. An arrow labeled “Work Roles focus on” points to the Task level, and an arrow labeled “Competency Areas focus on” points to the Knowledge and Skill level."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TKS ステートメント、Competency Area、Work Role の関係を示す図です。「Task」の箱（破線の十字と三角形を含む）が破線の水平線の上にあります。線の下には「Skill」と書かれた重なった三角形と「Knowledge」と書かれた重なった十字形があり、矢印で上の Task の箱につながります。「Work Roles focus on」の矢印が Task の段を指し、「Competency Areas focus on」の矢印が Knowledge と Skill の段を指します。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 2. TKS Statements, Competency Areas, and Work Roles</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2. TKS 記述、コンピテンシー領域、および職務ロール</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas help address employers’ capability needs more broadly, while Work Roles are used when defining specific positions and responsibilities. Finally, assessment is typically based on the Competency Area as a whole, whereas assessment for Work Roles typically occurs at the Task level.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、雇用主の能力に関するニーズに、より広く対応するのに役立ちます。一方、職務ロールは、特定の職位と責任を定義するときに使われます。最後に、評価は通常、コンピテンシー領域全体に基づいて行われるのに対し、職務ロールの評価は通常、タスクのレベルで行われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. NICE Framework Competency Areas vs. Work Roles</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1. NICE フレームワークのコンピテンシー領域と職務ロールの比較</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Competency Areas</th><th>Work Roles</th></tr></thead><tbody><tr><td>Learner focused</td><td>Work focused</td></tr><tr><td>Help address employer needs</td><td>Help define positions and responsibilities</td></tr><tr><td>Assessment is typically based on a Competency Area as a whole</td><td>Assessment typically occurs at the Task level</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>コンピテンシー領域</th><th>職務ロール</th></tr></thead><tbody><tr><td>学習者に焦点</td><td>業務に焦点</td></tr><tr><td>雇用主のニーズへの対応に役立つ</td><td>職位と責任の定義に役立つ</td></tr><tr><td>評価は通常、コンピテンシー領域全体に基づく</td><td>評価は通常、タスクのレベルで行われる</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Work Roles represent a defined area of work that is commonly agreed upon in many different types of organizations and sectors. Competency Areas, however, may represent emerging areas that aren’t yet broadly incorporated into defined Work Roles, capability that pulls from multiple Work Roles, and fundamental areas of expertise in cybersecurity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>職務ロールは、さまざまな種類の組織や分野で広く合意されている、定義された業務の領域を表します。一方、コンピテンシー領域は、まだ定義された職務ロールに広く取り込まれていない新興の領域、複数の職務ロールから集めた能力、およびサイバーセキュリティにおける専門性の基本的な領域を表す場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Competency Area Development</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. コンピテンシー領域の策定</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following guidelines are used for the development of individual Competency Areas as part of the NICE Framework. Competency Areas:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークの一部として個々のコンピテンシー領域を策定する際には、次のガイドラインを使います。コンピテンシー領域は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">May used <b>independently</b> of Work Roles</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">職務ロールとは<b>独立して</b>使ってもよい</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">May be <b>additive</b> to or overlaid onto one or more Work Roles</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">1 つ以上の職務ロールに<b>追加</b>したり、重ねて適用したりしてもよい</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">May <b>span</b> multiple Work Roles (i.e., incorporate Knowledge and Skill statements from multiple Work Roles)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">複数の職務ロールに<b>またがって</b>もよい（すなわち、複数の職務ロールの知識記述とスキル記述を取り込む）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">May represent <b>emerging domains</b> that do not yet have established Work Roles</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">まだ職務ロールが確立されていない<b>新興の領域</b>を表してもよい</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In addition, Competency Areas:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、コンピテンシー領域は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Do not duplicate</b> existing Work Roles</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">既存の職務ロールと<b>重複しない</b></span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Areas are made up of the following components:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピテンシー領域は、次の構成要素からなります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><b>Competency Area Title:</b> The name of the Competency Area; the title clearly signals to all stakeholders the area that will be described.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><b>コンピテンシー領域のタイトル:</b> コンピテンシー領域の名称。タイトルは、記述される領域をすべての関係者に明確に示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><b>Competency Area Description:</b> The description should:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><b>コンピテンシー領域の説明:</b> 説明は次のようにします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body"><b>Begin with “This Competency Area describes a learner’s capabilities related to….”</b> Using the same standard language to introduce each description serves as a signpost for readers that it is a Competency Area description while focusing the competency onto the learner at the onset.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body"><b>「This Competency Area describes a learner’s capabilities related to…」で始めます。</b> 各説明の冒頭に同じ標準的な表現を使うことで、それがコンピテンシー領域の説明であることを読者に示す目印となり、コンピテンシーの焦点を最初から学習者に合わせます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0016-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body"><b>Define the Competency Area simply and clearly.</b> The Competency Areas should be defined using plain language. Anyone reading the description should be able to quickly and easily understand the scope and meaning of the Competency Area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body"><b>コンピテンシー領域を簡潔かつ明確に定義します。</b> コンピテンシー領域は平易な言葉で定義すべきです。説明を読む人は誰でも、そのコンピテンシー領域の範囲と意味を素早く簡単に理解できなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0016-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body"><b>Reflect content from TKS statements.</b> The description may echo language from Task, Skill, or Knowledge statements that are associated with the Competency Area, though it should not wholly duplicate that language.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body"><b>TKS 記述の内容を反映します。</b> 説明には、そのコンピテンシー領域に関連するタスク記述、スキル記述、知識記述の表現を取り入れてもよいですが、その表現をそのまま全面的に複製すべきではありません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0016-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body"><b>Balance specificity with broad application.</b> A goal of a NICE Framework Competency Area is to provide flexibility of application; the description should be detailed enough to clearly define its scope and meaning, but not so narrow as to restrict use by multiple stakeholders or time-date the competency (e.g., by referencing a particular computer program or coding language).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body"><b>具体性と広い適用性のバランスをとります。</b> NICE フレームワークのコンピテンシー領域の目標の 1 つは、適用の柔軟性を提供することです。説明は、範囲と意味を明確に定義できるだけの詳細さを備えるべきですが、複数の関係者による使用を制限したり、コンピテンシーを時代遅れにしたりするほど狭くあってはなりません（たとえば、特定のコンピュータプログラムやコーディング言語に言及することによって）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0016-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">e.</span><span class="list-body"><b>Omit unnecessary qualifiers.</b> Qualifiers (e.g., “thorough knowledge,” “considerable skill,” or “basic understanding”) and other proficiency level indicators should not be included in the Competency description. By omitting these, Competency Areas can be used for multiple proficiency levels.<sup>7</sup></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">e.</span><span class="list-body"><b>不要な修飾語を省きます。</b> 「thorough knowledge」「considerable skill」「basic understanding」などの修飾語やその他の習熟度レベルを示す表現は、コンピテンシーの説明に含めるべきではありません。これらを省くことで、コンピテンシー領域を複数の習熟度レベルで使うことができます。<sup>7</sup></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><b>Associated TKS Statements:</b> Each Competency Area will be associated with a defined group of NICE Framework Task, Knowledge, and Skill statements that provide a more detailed view of the Competency Area. Note that individual statements may be associated with more than one Competency Area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><b>関連する TKS 記述:</b> 各コンピテンシー領域は、そのコンピテンシー領域をより詳細に示す、NICE フレームワークのタスク記述、知識記述、スキル記述の定義されたグループに関連付けられます。個々の記述が複数のコンピテンシー領域に関連付けられる場合がある点に注意してください。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Example Uses</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 使用例</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NICE Framework enables rapid adaptation to change while accounting for organizations’ unique operating contexts. At the same time, by establishing common language and approach, a consistent exchange of cybersecurity workforce information is possible across an organization, among multiple organizations, and sector wide. The Competency Areas extend the NICE Framework’s attributes of agility, flexibility, interoperability, and modularity, which is reflected in the multiple ways that they could be applied by its various stakeholders. There’s no one-size-fits-all; they can be used in a variety of ways, including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE フレームワークは、組織固有の運用状況を考慮しながら、変化への迅速な適応を可能にします。同時に、共通の言語とアプローチを確立することで、サイバーセキュリティ人材に関する情報を、組織内、複数の組織間、および分野全体で一貫して交換できるようになります。コンピテンシー領域は、NICE フレームワークの俊敏性、柔軟性、相互運用性、モジュール性という特性を拡張するものであり、その特性は、さまざまな関係者がコンピテンシー領域を適用できる多様な方法に表れています。万能の方法はなく、次を含むさまざまな方法で使うことができます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Overlaid on Work Role(s):</b> Additional capabilities may be necessary to effectively fulfill one or more Work Roles. A position responsible for more than one Work Role may need the Competency Area across those roles. Example: Cloud Cybersecurity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>職務ロールへの重ね合わせ:</b> 1 つ以上の職務ロールを効果的に果たすために、追加の能力が必要になる場合があります。複数の職務ロールを担う職位では、それらのロールにまたがるコンピテンシー領域が必要になる場合があります。例: クラウドサイバーセキュリティ。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Common Ground:</b> A Competency Area can define unique cybersecurity capabilities needed by cybersecurity practitioners and other organizational staff to mitigate risks. In these cases, it serves as a common ground for communication and coordination. Example: Operational Technology (OT) Cybersecurity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>共通の基盤:</b> コンピテンシー領域は、リスクを低減するためにサイバーセキュリティ実務者やその他の組織職員が必要とする独自のサイバーセキュリティ能力を定義できます。この場合、コンピテンシー領域は、コミュニケーションと調整のための共通の基盤として機能します。例: 運用技術（OT）のサイバーセキュリティ。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0014-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>7</sup> NICE also intends to develop a proficiency scale to be used with Competency Areas and Work Roles, per a recommendation of the 2022 report, <em>Measuring Cybersecurity Workforce Capabilities: Defining a Proficiency Scale for the NICE Framework</em>.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=14">原本 PDF p.14</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>7</sup> NICE はまた、2022 年の報告書 <em>Measuring Cybersecurity Workforce Capabilities: Defining a Proficiency Scale for the NICE Framework</em> の推奨事項に従い、コンピテンシー領域と職務ロールで使う習熟度スケールの策定を計画しています。        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Learning:</b> For students, job seekers, or employees, Competency Areas can serve as a starting place for learning or a way to develop higher-level expertise in an area. Example: Secure Programming.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>学習:</b> 学生、求職者、従業員にとって、コンピテンシー領域は、学習の出発点となったり、ある領域でより高度な専門性を身につける手段となったりします。例: セキュアプログラミング。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Employer Perspective</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. 雇用主の視点</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>From an employer perspective, NICE Framework Competency Areas can be used to support workforce hiring, development, and assessment in multiple ways, including to :</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>雇用主の視点では、NICE フレームワークのコンピテンシー領域を、人材の採用、育成、評価を支援するために、次を含む複数の方法で使うことができます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Describe a given job</b>: Specific Competency Areas can be used when developing a job description or when defining a new role in an organization.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>特定の職務を記述する</b>: 職務記述書を作成するとき、または組織内で新しい役割を定義するときに、特定のコンピテンシー領域を使えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Track workforce capabilities</b>: Competency Areas can be used to broadly describe and track an organization’s cybersecurity workforce capabilities, or an employer might look at a grouping of Task, Knowledge, and Skills and define a custom Competency Area for their unique needs.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>人材の能力を追跡する</b>: コンピテンシー領域を使って、組織のサイバーセキュリティ人材の能力を広く記述し追跡できます。あるいは、雇用主がタスク、知識、スキルのまとまりに着目し、独自のニーズに合わせたカスタムのコンピテンシー領域を定義することもできます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Specify team requirements</b>: At times, a team needs to be formed before the individual tasks the team will complete are defined. In these cases, knowing the broader Competency Areas needed by the team to solve the challenge can help identify team members, who will then determine the specific work to be done.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>チームの要件を指定する</b>: チームが完了する個々のタスクが定義される前に、チームを編成する必要がある場合があります。そのような場合、課題を解決するためにチームに必要な、より広いコンピテンシー領域を把握しておくと、チームのメンバーを特定するのに役立ち、そのメンバーが行うべき具体的な業務を決めることになります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Assess individual learner capabilities</b>: Learners can be assessed against Competency Areas at various or multiple stages, including as part of an interview, a work-based learning evaluation, a promotion process, or career development.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>個々の学習者の能力を評価する</b>: 学習者は、面接、実務に基づく学習の評価、昇進の過程、キャリア開発の一環など、さまざまな、または複数の段階で、コンピテンシー領域に照らして評価できます。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Education, Training, or Credential Provider Perspective</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. 教育・訓練・資格認定の提供者の視点</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>From an education, training, or credential provider perspective, NICE Framework Competency Areas can similarly be used to support multiple processes, including to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>教育・訓練・資格認定の提供者の視点でも、NICE フレームワークのコンピテンシー領域を同様に、次を含む複数のプロセスを支援するために使うことができます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Develop programs</b>: Providers can use a set of Competency Areas to develop a learning program—bundling together related areas—or to differentiate levels of proficiency within an individual Competency Area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>プログラムを開発する</b>: 提供者は、一連のコンピテンシー領域を使って、関連する領域をまとめた学習プログラムを開発したり、個々のコンピテンシー領域内の習熟度のレベルを区別したりできます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Develop courses</b>: Instructors might select specific Knowledge and Skill statements in a Competency Area to emphasize those statements in the learning process.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>コースを開発する</b>: 講師は、学習の過程でそれらの記述を重視するために、コンピテンシー領域の中から特定の知識記述とスキル記述を選ぶことができます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Assess students</b>: Providers can gauge whether a learner has achieved a defined degree of capability in a Competency Area before awarding a credential.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>学生を評価する</b>: 提供者は、資格を授与する前に、学習者がコンピテンシー領域で定義された程度の能力に達したかどうかを判断できます。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3. Learner Perspective</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3. 学習者の視点</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Finally, from the learner’s perspective, NICE Framework Competency Areas can be used at various stages and in various ways, including to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最後に、学習者の視点では、NICE フレームワークのコンピテンシー領域を、さまざまな段階でさまざまな方法で、次を含めて使うことができます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Assess one’s capabilities</b>: For example, to determine one’s overall capability in a defined Competency Area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>自分の能力を評価する</b>: たとえば、定義されたコンピテンシー領域における自分の総合的な能力を判断します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Identify areas that may need development</b>: This can be done through assessment or by using the Competency Area to self-identify areas that require further learning.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>開発が必要な可能性のある領域を特定する</b>: これは評価によって行うことも、コンピテンシー領域を使ってさらなる学習が必要な領域を自分で見つけることによって行うこともできます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Learn about a defined area of expertise</b>: Competency Areas can offer a bird’s-eye view for anyone interested in cybersecurity to help them understand needed expertise that may be outside of defined Work Roles, as well as to connect a learner with details via the associated TKS statements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>定義された専門領域について学ぶ</b>: コンピテンシー領域は、サイバーセキュリティに関心のある人に全体像を示し、定義された職務ロールの外にあるかもしれない必要な専門性を理解するのに役立ちます。また、関連する TKS 記述を通じて、学習者を詳細な情報に結びつけます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Navigate and choose career paths:</b> Understanding ones’ capabilities in defined Competency Areas can help learners to identify and progress towards related Work Roles and jobs.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>キャリアパスを探索し、選択する:</b> 定義されたコンピテンシー領域における自分の能力を理解することは、学習者が関連する職務ロールや職を見極め、それに向けて進むのに役立ちます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>Understand an organization’s workforce needs</b>: For learners who are looking for a new job, in a current job but wanting to make a shift, or are planning their career path, Competency Areas can give insight into an organization’s specific cybersecurity workforce needs.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><b>組織の人材ニーズを理解する</b>: 新しい仕事を探している学習者、現在の仕事に就いているが転向を望んでいる学習者、またはキャリアパスを計画している学習者にとって、コンピテンシー領域は、組織固有のサイバーセキュリティ人材のニーズを知る手がかりとなります。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. List of NICE Framework Competency Areas</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. NICE フレームワークのコンピテンシー領域の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Framework resources, including the latest list of Competency Areas, are available in the NICE Framework Resource Center. NIST is maintaining the Competency Areas list separate from this document and from the NICE Framework publication to allow for regular review and updates. The NICE Framework Resource Center also includes information on how to engage in and keep informed on updates and development of the NICE Framework and supporting resources.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最新のコンピテンシー領域の一覧を含む NICE フレームワークの資料は、NICE Framework Resource Center で入手できます。NIST は、定期的な見直しと更新ができるよう、コンピテンシー領域の一覧を、本書および NICE フレームワークの刊行物とは別に維持しています。NICE Framework Resource Center には、NICE フレームワークと支援資料の更新や開発に関わり、最新情報を得る方法に関する情報も含まれています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Petersen R, Santos D, Wetzel K, Smith M, Witte G (2020) Workforce Framework for Cybersecurity (NICE Framework). (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-181, Rev. 1. https://doi.org/10.6028/NIST.SP.800-181r1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Petersen R, Santos D, Wetzel K, Smith M, Witte G (2020) Workforce Framework for Cybersecurity (NICE Framework). (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-181, Rev. 1. https://doi.org/10.6028/NIST.SP.800-181r1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] National Institute of Standards and Technology (2021) <em>NICE Framework Resource Center.</em> Available at https://www.nist.gov/itl/applied-cybersecurity/nice/resources</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] National Institute of Standards and Technology (2021) <em>NICE Framework Resource Center.</em> 入手先: https://www.nist.gov/itl/applied-cybersecurity/nice/resources</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Berry J (2011) <em>Competency Model for Cybersecurity</em>. (U.S. Office of Personnel Management, Washington, DC), U.S. Office of Personnel Management Memorandum, February 16, 2011. Available at https://www.chcoc.gov/content/competency-model-cybersecurity</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Berry J (2011) <em>Competency Model for Cybersecurity</em>. (U.S. Office of Personnel Management, Washington, DC), U.S. Office of Personnel Management Memorandum, February 16, 2011. 入手先: https://www.chcoc.gov/content/competency-model-cybersecurity</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. List of Symbols, Abbreviations, and Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A. 記号、略語、頭字語の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CIO Chief Information Officer</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CIO Chief Information Officer（最高情報責任者）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ITL Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ITL Information Technology Laboratory（情報技術研究所）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>KSA Knowledge, Skill, and Ability statements</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>KSA Knowledge, Skill, and Ability statements（知識・スキル・能力の記述）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NICE Previously ‘National Initiative for Cybersecurity Education’, NICE now only goes by its acronym</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NICE 以前は「National Initiative for Cybersecurity Education」。現在は NICE という略称のみを使用</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST National Institute of Standards and Technology（米国国立標準技術研究所）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OPM Office of Personnel Management</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OPM Office of Personnel Management（人事管理局）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TKS Task, Knowledge, and Skill statements</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TKS Task, Knowledge, and Skill statements（タスク・知識・スキルの記述）</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B. Glossary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B. 用語集</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following identifies terms used in the NICE Framework and presents definitions in that context. For a complete glossary of terminology used in NIST’s cybersecurity and privacy standards and guidelines, please visit https://csrc.nist.gov/glossary.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下は、NICE フレームワークで使われる用語を特定し、その文脈での定義を示します。NIST のサイバーセキュリティおよびプライバシーに関する標準とガイドラインで使われる用語の完全な用語集については、https://csrc.nist.gov/glossary を参照してください。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Capability A person’s potential to accomplish something.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Capability 何かを成し遂げる人の潜在的な力。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Competency Area A cluster of related Knowledge and Skill statements that correlates with one’s capability to perform Tasks in a particular domain. Competency Areas can help learners discover areas of interest, inform career planning and development, identify gaps for knowledge and skills development, and provide a means of assessing or demonstrating a learner’s capabilities in the domain.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Competency Area 特定の領域でタスクを遂行する能力と相関する、関連する知識記述とスキル記述のまとまり。コンピテンシー領域は、学習者が関心のある分野を見つけ、キャリアの計画と開発に役立て、知識とスキルの開発におけるギャップを特定し、その領域での学習者の能力を評価または実証する手段を提供するのに役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Knowledge A retrievable set of concepts within memory.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Knowledge 記憶の中にある、取り出し可能な概念の集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Learners Individuals who perform cybersecurity work, including students, job seekers, and employees.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Learners 学生、求職者、従業員を含む、サイバーセキュリティ業務を行う個人。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Skill The capacity to perform an observable action.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Skill 観察可能な行動を実行する能力。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Task An activity that is directed toward the achievement of organizational objectives.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Task 組織の目標の達成に向けられた活動。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Work Role A grouping of work for which an individual or team is responsible or accountable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Work Role 個人またはチームが責任または説明責任を負う業務のまとまり。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2023/NIST.IR.8355.pdf">National Institute of Standards and Technology, IR 8355</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8355";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

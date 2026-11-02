@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8537 は、NIST が 2024年6月20日から21日にメリーランド州ロックビルの国立サイバーセキュリティ卓越センターで開催した、アコーディオン暗号モードの要件に関するワークショップの報告書です。ワークショップの目的は、AES の新しいアコーディオンモード（基盤となるブロック暗号のセキュリティへの帰着証明を伴う、tweak 可能な可変入力長の強擬似ランダム置換）の開発について議論することでした。NIST は産業界と政府から要件に関するフィードバックを収集し、ワークショップに先立ち、提案される要件の暫定的なセットを記載した議論用ドラフトを公開しました。本報告書は、このイベントで議論された参加者のフィードバック、主要な要点、今後の方向性をまとめています。">
+  <title>アコーディオン暗号モードの要件に関する NIST ワークショップ 2024：ワークショップ報告書 | NIST IR 8537 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="NIST Workshop on the Requirements for an Accordion Cipher Mode 2024" data-search="アコーディオン暗号モードの要件に関する nist ワークショップ 2024 nist workshop on the requirements for an accordion cipher mode 2024">アコーディオン暗号モードの要件に関する NIST ワークショップ 2024</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="NIST Workshop on the Requirements for an Accordion Cipher Mode 2024" data-search="アコーディオン暗号モードの要件に関する nist ワークショップ 2024 nist workshop on the requirements for an accordion cipher mode 2024">アコーディオン暗号モードの要件に関する NIST ワークショップ 2024</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="要旨 abstract">要旨</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0006" title="1.1. Background" data-search="1.1. 背景 1.1. background">1.1. 背景</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0004" title="2. Workshop Topics and Discussion" data-search="2. ワークショップのトピックと議論 2. workshop topics and discussion">2. ワークショップのトピックと議論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0005" title="2.1. Opening Talks" data-search="2.1. 開会講演 2.1. opening talks">2.1. 開会講演</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0009" title="2.2. Accordion Mode Features and Requirements" data-search="2.2. アコーディオンモードの機能と要件 2.2. accordion mode features and requirements">2.2. アコーディオンモードの機能と要件</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0006" title="2.3. Panel Discussion on Adoption Perspectives" data-search="2.3. 採用の観点に関するパネルディスカッション 2.3. panel discussion on adoption perspectives">2.3. 採用の観点に関するパネルディスカッション</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0005" title="2.4. Authenticated Encryption" data-search="2.4. 認証付き暗号 2.4. authenticated encryption">2.4. 認証付き暗号</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0002" title="2.5. Design Approaches" data-search="2.5. 設計アプローチ 2.5. design approaches">2.5. 設計アプローチ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0008" title="2.6. Potential Security Properties" data-search="2.6. 想定されるセキュリティ特性 2.6. potential security properties">2.6. 想定されるセキュリティ特性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0005" title="2.7. Next Steps" data-search="2.7. 今後の進め方 2.7. next steps">2.7. 今後の進め方</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="3. Summary of Feedback on Key Topics" data-search="3. 主要トピックに関するフィードバックの概要 3. summary of feedback on key topics">3. 主要トピックに関するフィードバックの概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="Appendix A. Agenda" data-search="付録 a. 議事次第 appendix a. agenda">付録 A. 議事次第</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="Appendix B. List of Accepted Presentations" data-search="付録 b. 採択された発表の一覧 appendix b. list of accepted presentations">付録 B. 採択された発表の一覧</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8537 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">NIST Workshop on the Requirements for an Accordion Cipher Mode 2024: Workshop Report</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>アコーディオン暗号モードの要件に関する NIST ワークショップ 2024：ワークショップ報告書</strong></span><br><span class="doc-panel-item">公開日 : 2024-11-21</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8537/final">https://csrc.nist.gov/pubs/ir/8537/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 143 / 143 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8537 は、NIST が 2024年6月20日から21日にメリーランド州ロックビルの国立サイバーセキュリティ卓越センターで開催した、アコーディオン暗号モードの要件に関するワークショップの報告書です。ワークショップの目的は、AES の新しいアコーディオンモード（基盤となるブロック暗号のセキュリティへの帰着証明を伴う、tweak 可能な可変入力長の強擬似ランダム置換）の開発について議論することでした。NIST は産業界と政府から要件に関するフィードバックを収集し、ワークショップに先立ち、提案される要件の暫定的なセットを記載した議論用ドラフトを公開しました。本報告書は、このイベントで議論された参加者のフィードバック、主要な要点、今後の方向性をまとめています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 省庁間報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8537</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8537</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Workshop on the Requirements for an Accordion Cipher Mode 2024</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+アコーディオン暗号モードの要件に関する NIST ワークショップ 2024</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Workshop Report</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>ワークショップ報告書</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Alyssa Thompson Meltem Sönmez Turan</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Alyssa Thompson Meltem Sönmez Turan</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8537</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本資料は次の場所から無償で入手できます: https://doi.org/10.6028/NIST.IR.8537</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 省庁間報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8537</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8537</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NIST Workshop on the Requirements for an Accordion Cipher Mode 2024</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+アコーディオン暗号モードの要件に関する NIST ワークショップ 2024</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Workshop Report</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>ワークショップ報告書</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Alyssa Thompson</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Alyssa Thompson</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>National Security Agency</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>国家安全保障局</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Guest Researcher, Computer Security Division Information Technology Laboratory</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>情報技術研究所コンピュータセキュリティ部門 客員研究員</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Meltem Sönmez Turan</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Meltem Sönmez Turan</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Computer Security Division Information Technology Laboratory</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>コンピュータセキュリティ部門 情報技術研究所</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8537</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本資料は次の場所から無償で入手できます: https://doi.org/10.6028/NIST.IR.8537</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>November 2024</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2024年11月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce <i>Gina M. Raimondo, Secretary</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 <i>Gina M. Raimondo 長官</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Laurie E. Locascio, NIST Director and Under Secretary of Commerce for Standards and Technology</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>Laurie E. Locascio、NIST 所長、商務次官（標準・技術担当）</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿では、実験手順を適切に特定するために、特定の装置、機器、ソフトウェア、材料（商用か非商用かを問わない）に言及している場合があります。こうした特定は、NIST がいかなる製品やサービスも推奨または支持していることを意味せず、特定された材料や装置がその目的にとって必ずしも最良のものであることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本資料では、NIST が割り当てられた法定責務に従って現在策定中の他の資料に言及している場合があります。概念や方法論を含む本資料の情報は、そうした関連資料の完成前であっても、連邦政府機関が利用する場合があります。したがって、各資料が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト資料を確認し、NIST にフィードバックを提供することが奨励されています。上記以外の NIST のサイバーセキュリティ関連資料の多くは、https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>NIST Technical Series Policies</b> Copyright, Use, and Licensing Statements NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>NIST 技術シリーズのポリシー</b> 著作権、使用、ライセンスに関する声明 NIST 技術シリーズ刊行物の識別子の構文</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Publication History</b> Approved by the NIST Editorial Review Board on 2024-11-08</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>刊行履歴</b> 2024-11-08 に NIST 編集審査委員会が承認</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>How to cite this NIST Technical Series Publication</b> Thompson A, Sönmez Turan M (2024) NIST Workshop on the Requirements for an Accordion Cipher Mode 2024: Workshop Report. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8537. https://doi.org/10.6028/NIST.IR.8537</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>本 NIST 技術シリーズ刊行物の引用方法</b> Thompson A, Sönmez Turan M (2024) NIST Workshop on the Requirements for an Accordion Cipher Mode 2024: Workshop Report. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) NIST IR 8537. https://doi.org/10.6028/NIST.IR.8537</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Author ORCID iDs</b> Alyssa Thompson: 0009-0009-8137-2589 Meltem Sönmez Turan: 0000-0002-1950-7130</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>著者の ORCID iD</b> Alyssa Thompson: 0009-0009-8137-2589 Meltem Sönmez Turan: 0000-0002-1950-7130</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Contact Information</b> ciphermodes@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>連絡先</b> ciphermodes@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Additional Information</b> Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8537/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>追加情報</b> 本資料に関する追加情報は https://csrc.nist.gov/pubs/ir/8537/final で入手できます。関連コンテンツ、更新の可能性、文書の履歴も掲載されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>All comments are subject to release under the Freedom of Information Act (FOIA).</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</b></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+要旨</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST hosted the <i>NIST Workshop on the Requirements for an Accordion Cipher Mode 2024</i> on June 20–21, 2024, at the National Cybersecurity Center of Excellence in Rockville, Maryland. This report summarizes the participant feedback, key takeaways, and future directions discussed during the event.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、2024年6月20日から21日にかけて、メリーランド州ロックビルの国立サイバーセキュリティ卓越センターで、<i>アコーディオン暗号モードの要件に関する NIST ワークショップ 2024</i> を開催しました。本報告書は、このイベントで議論された参加者のフィードバック、主要な要点、今後の方向性をまとめたものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>accordion mode; block ciphers; cryptography; performance; standardization.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アコーディオンモード、ブロック暗号、暗号技術、性能、標準化。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準インフラに関する技術的リーダーシップを提供することで、米国経済と公共の福祉の増進に貢献しています。ITL は、情報技術の発展と生産的な利用を促進するため、テスト、テスト手法、参照データ、概念実証実装、技術分析を開発しています。ITL の責務には、連邦政府情報システムにおける、国家安全保障に関するもの以外の情報について、費用対効果の高いセキュリティとプライバシーを実現するための、管理・運営・技術・物理面の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.1. Background</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.1. 背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">2. Workshop Topics and Discussion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0004">2. ワークショップのトピックと議論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">2.1. Opening Talks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">2.1. 開会講演</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0009">2.2. Accordion Mode Features and Requirements</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0009">2.2. アコーディオンモードの機能と要件</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.3. Panel Discussion on Adoption Perspectives</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.3. 採用の観点に関するパネルディスカッション</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0005">2.4. Authenticated Encryption</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0005">2.4. 認証付き暗号</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">2.5. Design Approaches</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">2.5. 設計アプローチ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0008">2.6. Potential Security Properties</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0008">2.6. 想定されるセキュリティ特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">2.7. Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0005">2.7. 今後の進め方</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">3. Summary of Feedback on Key Topics</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">3. 主要トピックに関するフィードバックの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">Appendix A. Agenda</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">付録 A. 議事次第</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">Appendix B. List of Accepted Presentations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">付録 B. 採択された発表の一覧</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors thank Drew Bowerman (NSA), Donghoon Chang, Yu Long Chen, Morris Dworkin, Jim Foti, Sara Kerman, Yu Sasaki, and Isabel Van Wyk for the valuable feedback they provided during the development of this document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者らは、本書の作成中に貴重なフィードバックを提供してくださった Drew Bowerman（NSA）、Donghoon Chang、Yu Long Chen、Morris Dworkin、Jim Foti、Sara Kerman、Yu Sasaki、Isabel Van Wyk の各氏に感謝します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On June 20–21, 2024, the National Institute of Standards and Technology (NIST) held an in-person Workshop on the Requirements for an Accordion Cipher Mode [1] at the National Cybersecurity Center of Excellence (NCCoE) in Rockville, Maryland. The event brought together 43 participants representing diverse perspectives from government, industry, and academia.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2024年6月20日から21日にかけて、米国国立標準技術研究所（NIST）は、メリーランド州ロックビルの国立サイバーセキュリティ卓越センター（NCCoE）で、アコーディオン暗号モードの要件に関するワークショップ [1] を対面で開催しました。このイベントには、政府、産業界、学術界のさまざまな立場を代表する 43 人が参加しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The purpose of the workshop was to discuss the development of a new <i>accordion</i> mode of the Advanced Encryption Standard (AES) that is a tweakable variable-input-length-strong pseudorandom permutation (VIL-SPRP) with a reduction proof to the security of the underlying block cipher. NIST also collected feedback on requirements from industry and government and initiated a discussion on the development of an accordion mode. Prior to the workshop, NIST published a discussion draft [2] with a preliminary set of proposed requirements for an accordion mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの目的は、Advanced Encryption Standard（AES）の新しい<i>アコーディオン</i>モードの開発について議論することでした。これは、tweak 可能な可変入力長の強擬似ランダム置換（VIL-SPRP）であり、基盤となるブロック暗号のセキュリティへの帰着証明を伴います。NIST はまた、産業界と政府から要件に関するフィードバックを収集し、アコーディオンモードの開発に関する議論を開始しました。ワークショップに先立ち、NIST は、アコーディオンモードに対して提案される要件の暫定的なセットを記載した議論用ドラフト [2] を公開しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Topics of interest included the parameter sizes of the accordion mode, requirements and features for the main use cases, security notions under consideration, performance requirements, and the development and standardization process. Specific topics for which NIST requested feedback included multi-user security, key/context commitment, nonce hiding, and key-dependent input (KDI) security.<sup>1</sup> A summary of key takeaways is included in Sec. 3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>関心のあったトピックには、アコーディオンモードのパラメータサイズ、主要なユースケースの要件と機能、検討中のセキュリティ概念、性能要件、開発と標準化のプロセスが含まれます。NIST がフィードバックを求めた具体的なトピックには、マルチユーザーセキュリティ、鍵/コンテキストコミットメント、ナンス秘匿、鍵依存入力（KDI）セキュリティがありました。<sup>1</sup> 主要な要点の概要は第 3 節に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop consisted of nine sessions scheduled over two days. The first day included introductory material from NIST researchers, presentations and an open discussion about the requirements and features of the accordion mode, and a panel discussion on adoption perspectives. The second day included presentations and open discussions on authenticated encryption designs, accordion design approaches, and potential security properties. The schedule on day two reserved time for lightning talks, but this was dropped since no requests for lightning talks were received. The workshop concluded with a session on the development process and next steps, including a preliminary NIST proposal for the process and open discussion. The full workshop agenda is available in Appendix A, and videos of the talks are available on the workshop website [1].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップは、2 日間にわたって予定された 9 つのセッションで構成されました。初日には、NIST 研究者による導入的な内容、アコーディオンモードの要件と機能に関する発表と自由討論、採用の観点に関するパネルディスカッションが含まれました。2 日目には、認証付き暗号の設計、アコーディオンの設計アプローチ、想定されるセキュリティ特性に関する発表と自由討論が含まれました。2 日目の予定ではライトニングトークの時間を確保していましたが、ライトニングトークの申し込みがなかったため、これは取りやめました。ワークショップは、プロセスに関する NIST の暫定的な提案と自由討論を含む、開発プロセスと今後の進め方に関するセッションで締めくくられました。ワークショップの議事次第の全体は付録 A に、講演の動画はワークショップのウェブサイト [1] に掲載されています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. Background</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. 背景</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Two topics of particular interest were the number of variants of the accordion mode that would be needed and the related projects that would be required as a result. This was largely influenced by the need for higher data limits and for crypto agility. Variants of the accordion mode might emerge from providing options for birthday bound security and beyond-birthday bound (BBB) security or from operating on different underlying primitives. Related projects that could result from these decisions include specifying a new underlying primitive or considering a stopgap solution that could be standardized quickly while in-depth techniques for the accordion are developed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特に関心を集めた 2 つのトピックは、必要となるアコーディオンモードの派生形の数と、その結果として必要になる関連プロジェクトでした。これは、より高いデータ上限の必要性と暗号アジリティの必要性に大きく影響されました。アコーディオンモードの派生形は、誕生日限界（birthday bound）のセキュリティと誕生日限界を超える（BBB）セキュリティの選択肢を提供すること、または異なる基盤プリミティブで動作させることから生まれる可能性があります。これらの判断から生じ得る関連プロジェクトには、新しい基盤プリミティブの仕様策定や、アコーディオンの詳細な技術を開発している間に迅速に標準化できる暫定的な解決策の検討があります。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0008" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup>For more information, refer to the workshop announcement and the call for abstracts [1].<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup>詳細については、ワークショップの告知と要旨募集 [1] を参照してください。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While BBB techniques would increase the data limits of the accordion mode, they would result in various trade-offs, including reduced performance and a more complicated security proof. An alternative approach that would also increase the data limits of the accordion mode is to specify a block cipher with a larger block size. An example with a 256-bit block size and a 256-bit key that could be considered is Rijndael-256-256, which was part of the original AES submission to NIST [3]. This approach would also provide an increased measure of crypto-agility, as would a Keccak-based encryption scheme as an underlying primitive. However, both options may result in a delay while the new primitive is standardized and deployed. In this scenario, standardizing a stopgap measure (e.g., AES-GCM-SIV [4]) could provide a mode of operation with improved security as quickly as possible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BBB の技術はアコーディオンモードのデータ上限を引き上げますが、性能の低下やセキュリティ証明の複雑化など、さまざまなトレードオフが生じます。アコーディオンモードのデータ上限を引き上げるもう 1 つの方法は、より大きなブロックサイズを持つブロック暗号を規定することです。検討し得る例として、256 ビットのブロックサイズと 256 ビットの鍵を持つ Rijndael-256-256 があり、これは NIST への当初の AES の応募案の一部でした [3]。この方法は、基盤プリミティブとして Keccak ベースの暗号化方式を用いる場合と同様に、暗号アジリティも高めます。ただし、どちらの選択肢も、新しいプリミティブが標準化されて展開されるまで遅れが生じる可能性があります。このような場合、暫定的な措置（AES-GCM-SIV [4] など）を標準化することで、セキュリティを改善した動作モードをできるだけ早く提供できる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These decisions depend on one another, and the answers will determine a base direction for the project. NIST collected feedback on these topics throughout the workshop, and the panel discussion explored many of these ideas (see Sec. 2.3).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの判断は互いに依存しており、その答えがプロジェクトの基本的な方向を決めることになります。NIST はワークショップを通じてこれらのトピックに関するフィードバックを収集し、パネルディスカッションではこれらの考えの多くが検討されました（2.3 節を参照）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Workshop Topics and Discussion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. ワークショップのトピックと議論</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. Opening Talks</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. 開会講演</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST initiated the workshop with a set of introductory talks. During the opening session, Matthew Scholl, the Chief of the Computer Security Division (CSD) in NIST’s Information Technology Laboratory (ITL), welcomed the workshop participants. The workshop featured three talks by NIST-affiliated speakers:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、一連の導入講演でワークショップを開始しました。開会セッションでは、NIST の情報技術研究所（ITL）のコンピュータセキュリティ部門（CSD）の部長である Matthew Scholl が、ワークショップの参加者を歓迎しました。ワークショップでは、NIST に所属する講演者による 3 つの講演が行われました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">In “Overview of the NIST Block Cipher Modes Project,” Meltem Sönmez Turan briefly explained the development of NIST-approved block cipher modes, provided a timeline of the project starting from the 1980s, and gave a status update on reviews of the NIST Special Publication (SP) 800-38 series [5–11].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「Overview of the NIST Block Cipher Modes Project」において、Meltem Sönmez Turan は、NIST 承認のブロック暗号モードの開発経緯を簡潔に説明し、1980年代に始まるプロジェクトの年表を示すとともに、NIST 特別刊行物（SP）800-38 シリーズ [5–11] の見直しの状況を報告しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">In “Introduction to the Accordion Mode and Derived Functions,” Alyssa Thompson explained the parameters of the accordion mode (including the block size, tweak size, granularity, message size, etc.) and provided a formal definition for it. The presentation introduced the derived functions, including authenticated encryption with associated data (AEAD), tweakable encryption, and deterministic authenticated encryption. It also explained the layered structure of the accordion (see Fig. 1).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「Introduction to the Accordion Mode and Derived Functions」において、Alyssa Thompson は、アコーディオンモードのパラメータ（ブロックサイズ、tweak サイズ、粒度、メッセージサイズなど）を説明し、その形式的な定義を示しました。この発表では、関連データ付き認証付き暗号（AEAD）、tweak 可能な暗号化、決定論的認証付き暗号などの派生関数が紹介されました。また、アコーディオンの階層構造についても説明されました（図 1 を参照）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">In “Toward a New Block Cipher Mode Standard: Reasoning About Requirements Featuring the NECST Framework,” Nicky Mouha discussed the proposed requirements for an accordion mode that NIST published in [2] and provided a framework called <i>New features, Efficiency, Compatibility, Security and Technical reason</i> (NECST) for evaluating and making decisions on the requirements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「Toward a New Block Cipher Mode Standard: Reasoning About Requirements Featuring the NECST Framework」において、Nicky Mouha は、NIST が [2] で公開したアコーディオンモードの提案要件について議論し、要件を評価して判断を下すための、<i>New features, Efficiency, Compatibility, Security and Technical reason</i>（NECST）と呼ばれるフレームワークを示しました。</span></p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0009-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8537/p0009-drawing-01.png" alt="Three nested boxes. The outer box is labeled &quot;Derived functions (AEAD, Tweakable encryption, DAE, etc.)&quot;; inside it is a box labeled &quot;Accordion mode (using tweak)&quot;, and inside that a box labeled &quot;Block Cipher&quot;. The innermost box contains a circle marked &quot;E&quot; with input X entering from above, output Y leaving below, and &quot;Key&quot; entering from the left."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3重の入れ子の箱の図です。外側の箱には「Derived functions (AEAD, Tweakable encryption, DAE, etc.)」（派生関数：AEAD、調整可能な暗号化、DAE など）、その内側の箱には「Accordion mode (using tweak)」（tweak を使うアコーディオンモード）、さらに内側の箱には「Block Cipher」（ブロック暗号）と書かれています。最も内側の箱には「E」と書かれた円があり、上から入力 X が入り、下へ出力 Y が出て、左から「Key」（鍵）が入ります。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1. Layered structure of the accordion mode and derived functions</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. アコーディオンモードと派生関数の階層構造</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Accordion Mode Features and Requirements</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. アコーディオンモードの機能と要件</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop included four talks on the features and requirements of the accordion mode:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップでは、アコーディオンモードの機能と要件に関する 4 つの講演が行われました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">John Preuß Mattsson presented “Comments on NIST Requirements for an Accordion Cipher Mode,” which was joint work with Ben Smeets and Erik Thormarker. The presentation included support for NIST’s proposal to standardize an accordion mode and derived functions and then responded to the feedback requested by NIST. The feedback emphasized a need for several accordions built on different primitives to support crypto-agility, in addition to an accordion built on Rijndael-256-256. Comments on parameter sizes included a strong preference for a granularity of \(\leq 8\), 256-bit keys, variable-length tweaks of \(\geq 256\) bits, a minimum plaintext size of 16 or 32 bytes, and a maximum plaintext size of \(2^{48}\) or \(2^{64}\) bytes. The preferred security goals included nonce hiding, replay protection, nonce misuse resistance, and robust authenticated encryption (RAE) or release of unverified plaintext (RUP) security. There was also a recommendation to drop the deterministic authenticated encryption derived function and instead use an AEAD as a “hedged” authenticated encryption.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">John Preuß Mattsson は、Ben Smeets および Erik Thormarker との共同研究である「Comments on NIST Requirements for an Accordion Cipher Mode」を発表しました。この発表には、アコーディオンモードと派生関数を標準化するという NIST の提案への支持が含まれ、そのうえで NIST が求めたフィードバックに応答していました。フィードバックでは、Rijndael-256-256 に基づくアコーディオンに加えて、暗号アジリティを支えるために異なるプリミティブに基づく複数のアコーディオンが必要であることが強調されました。パラメータサイズに関するコメントには、\(\leq 8\) の粒度、256 ビットの鍵、\(\geq 256\) ビットの可変長 tweak、最小平文サイズ 16 または 32 バイト、最大平文サイズ \(2^{48}\) または \(2^{64}\) バイトへの強い選好が含まれていました。望ましいセキュリティ目標には、ナンス秘匿、リプレイ防止、ナンス誤用耐性、頑健な認証付き暗号（RAE）または未検証平文の公開（RUP）に対するセキュリティが含まれていました。また、決定論的認証付き暗号の派生関数を廃止し、代わりに AEAD を「ヘッジ型」の認証付き暗号として使用するという推奨もありました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Guy B. from the U.K. National Cyber Security Centre (NCSC) gave two talks titled “Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security” and “Requirements for an Accordion Mode,” which were joint work with John H. and Charlotte S. Both talks highlighted how the NCSC prioritizes high-security requirements. The first talk stated the need for strong RUP security and beyond-birthday bounds that are practical and secure for multi-user environments. In the second talk, Guy B. emphasized the need for a solution in the near-term while also looking ahead for a long-term solution. Some of NCSC’s highest priorities included simple security analysis, compatibility with AES, misuse-resistant authenticated encryption and RUP security, and BBB data limits.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">英国国家サイバーセキュリティセンター（NCSC）の Guy B. は、John H. および Charlotte S. との共同研究である「Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security」と「Requirements for an Accordion Mode」の 2 件の講演を行いました。どちらの講演も、NCSC が高いセキュリティ要件をどのように優先しているかを強調していました。最初の講演では、強力な RUP セキュリティと、マルチユーザー環境で実用的かつ安全な、誕生日限界を超える安全性境界の必要性が述べられました。2 件目の講演では、Guy B. は、近い将来に向けた解決策の必要性を強調しつつ、長期的な解決策も見据える必要があることを述べました。NCSC の最優先事項には、簡潔なセキュリティ分析、AES との互換性、誤用耐性のある認証付き暗号と RUP セキュリティ、BBB のデータ上限などが含まれていました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Tushar Patel presented “Accordion Cipher-mode Preferable Features,” which included recommendations to support a 256-bit block cipher, variable-length tweaks that are a multiple of 128 bits, as much parallelism as possible, and key commitment. Some additional implementation features to consider were proposed, including fast drop tags, padding attack prevention, and ciphertext segmentation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Tushar Patel は「Accordion Cipher-mode Preferable Features」を発表し、256 ビットのブロック暗号、128 ビットの倍数となる可変長 tweak、可能な限りの並列性、鍵コミットメントに対応することを推奨しました。検討すべき追加の実装機能として、高速なタグ破棄、パディング攻撃の防止、暗号文のセグメント化などが提案されました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Open discussion.</b> The “Accordion Mode Requirements/Features” topic concluded with a one-hour open discussion. Rijndael-256-256 under a birthday bound accordion mode and AES under a BBB accordion mode were discussed first. While standardizing a 256-bit block cipher was generally supported by workshop participants, most also accepted that this might not be a straightforward transition and could take additional time. The solution of a BBB accordion mode using AES-256 had mixed support. There was some concern that this would lead to a more complex mode, although others maintained that a nonce-based key derivation for AEAD is achievable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>自由討論。</b>「アコーディオンモードの要件/機能」のトピックは、1 時間の自由討論で締めくくられました。誕生日限界のアコーディオンモードの下での Rijndael-256-256 と、BBB のアコーディオンモードの下での AES が最初に議論されました。256 ビットのブロック暗号を標準化することはワークショップの参加者に概ね支持されましたが、ほとんどの参加者は、これが容易な移行とはならず、追加の時間を要する可能性があることも認めました。AES-256 を用いた BBB アコーディオンモードという解決策への支持は分かれました。これによってモードがより複雑になるという懸念がある一方で、AEAD のためのナンスベースの鍵導出は実現可能であると主張する参加者もいました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The next topic discussed was granularity (denoted as \(g\)), or coarseness of the allowed plaintext sizes [2]. The discussion centered on the value of supporting \(g &lt; 8\), including which use cases require it and how complicated it would be to support. Although several participants and speakers proposed a granularity of \(g = 1\) or \(g = 8\), there was agreement during the open discussion that \(g = 1\) would be more difficult to support, and no one provided a concrete requirement for it. However, Chris Celi from the Security Testing, Validation and Measurement Group at NIST pointed out that while it is more complicated, bit-level testing is used by some and is typically available for hashes and some AES testing. It was unclear why bit-level testing was supported in the past and whether those using it today have a requirement for it.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次に議論されたトピックは、粒度（\(g\) と表記）、すなわち許容される平文サイズの粗さでした [2]。議論は、\(g &lt; 8\) に対応する価値、それを必要とするユースケース、対応することの複雑さを中心に進みました。複数の参加者と講演者が \(g = 1\) または \(g = 8\) の粒度を提案しましたが、自由討論の中で、\(g = 1\) は対応がより難しくなるという合意があり、これに関する具体的な要件を示した者はいませんでした。ただし、NIST のセキュリティテスト・検証・測定グループの Chris Celi は、より複雑ではあるものの、ビットレベルのテストは一部で使われており、通常はハッシュや一部の AES テストで利用可能であると指摘しました。過去にビットレベルのテストが対応されていた理由と、現在それを使用している者がそれを要件としているかどうかは不明でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The open discussion concluded with some brief comments on the minimum plaintext size and variable-length tweaks. It was noted that the AEAD derived function will need variable-length tweaks. The group also generally agreed that a minimum plaintext size smaller than the block size adds complexity and, if needed, a padding scheme could be specified in an additional derived function.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>自由討論は、最小平文サイズと可変長 tweak に関する簡潔なコメントで締めくくられました。AEAD の派生関数には可変長 tweak が必要になることが指摘されました。また、ブロックサイズより小さい最小平文サイズは複雑さを増し、必要であれば追加の派生関数でパディング方式を規定できるという点でも、グループは概ね一致しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. Panel Discussion on Adoption Perspectives</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. 採用の観点に関するパネルディスカッション</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Andrew Regenscheid, Group Leader of the Cryptographic Technology Group at NIST, moderated a panel called “Adoption Perspectives.” The panelists were Shai Halevi (AWS), Paul Crowley (Google), Matthew Simpson (NSA), and Krystian Matusiewicz (Intel). The discussion was related to the requirements and features topic and also included approaches to increasing the usage bounds.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の暗号技術グループのグループリーダーである Andrew Regenscheid が、「Adoption Perspectives」と題したパネルの司会を務めました。パネリストは、Shai Halevi（AWS）、Paul Crowley（Google）、Matthew Simpson（NSA）、Krystian Matusiewicz（Intel）でした。議論は、要件と機能のトピックに関連しており、使用上限を引き上げる方法も含んでいました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Shai Halevi asserted that it is urgent to get a wider block cipher for “the mountains of data that need to be moved” and that a BBB accordion mode would be too slow for practical use and not worth the extra effort. The development of a wider block cipher should consider the trade-offs between new techniques and Rijndael-256-256. Shai Halevi prioritized key commitment and performance of the accordion mode, expected that a small number of accordion modes will be needed, and preferred availability as soon as possible, suggesting that around four years might be realistic.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Shai Halevi は、「移動する必要のある膨大なデータ」のために、より幅の広いブロック暗号を得ることが急務であり、BBB のアコーディオンモードは実用には遅すぎて、追加の労力に見合わないと主張しました。より幅の広いブロック暗号の開発では、新しい技術と Rijndael-256-256 とのトレードオフを考慮すべきです。Shai Halevi は、鍵コミットメントとアコーディオンモードの性能を優先し、必要となるアコーディオンモードの数は少ないと予想し、できるだけ早い提供を望んでおり、約 4 年が現実的かもしれないと示唆しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Paul Crowley emphasized that Google is moving petabytes of data with a single key, and a quick solution to increased usage bounds should be prioritized. Rijndael-256-256 without modification would be the quickest way to achieve this. Having three primitives for the accordion mode to operate on — AES-256, Rijndael-256-256, and TurboSHAKE — may be worthwhile. Paul Crowley also prioritized nonce misuse resistance and suggested a small granularity \((g = 1)\) but is not convinced that key commitment or KDI security are needed. There are several applications, including storage encryption on Android, that will be unable to use an accordion because they require a streaming mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Paul Crowley は、Google が単一の鍵でペタバイト規模のデータを移動していることを強調し、使用上限を引き上げる迅速な解決策を優先すべきだと述べました。そのための最も迅速な方法は、Rijndael-256-256 を変更せずに使用することです。アコーディオンモードが動作する基盤プリミティブとして、AES-256、Rijndael-256-256、TurboSHAKE の 3 つを用意することには価値があるかもしれません。Paul Crowley はまた、ナンス誤用耐性を優先し、小さな粒度 \((g = 1)\) を提案しましたが、鍵コミットメントや KDI セキュリティが必要かどうかについては確信していません。Android でのストレージ暗号化を含め、ストリーミングモードを必要とするため、アコーディオンを使用できないアプリケーションがいくつかあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Matthew Simpson stated that the highest priority for national security systems is an authenticated encryption with nonce misuse resistance that operates over AES, preferably available in the near term. In addition, the derived functions are essential to using the accordion mode and will be needed at the same time as the accordion. Some additional features that would be nice to have are larger maximum plaintext sizes, RUP security, multi-user security and BBB security. Matthew Simpson also pointed out that performance goals should be practical and that a small granularity would cover the most use cases. In addition, having too many variants of the accordion may create interoperability issues. A wider block cipher could slow down deployment, but having this as a second option or version seems reasonable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Matthew Simpson は、国家安全保障システムにとって最優先事項は、AES 上で動作するナンス誤用耐性を持つ認証付き暗号であり、できれば近い将来に提供されるべきだと述べました。さらに、派生関数はアコーディオンモードを使用するうえで不可欠であり、アコーディオンと同時に必要になります。あると望ましい追加の機能には、より大きな最大平文サイズ、RUP セキュリティ、マルチユーザーセキュリティ、BBB セキュリティがあります。Matthew Simpson はまた、性能目標は実用的であるべきであり、小さな粒度でほとんどのユースケースを網羅できると指摘しました。加えて、アコーディオンの派生形が多すぎると、相互運用性の問題が生じる可能性があります。より幅の広いブロック暗号は展開を遅らせる可能性がありますが、これを第 2 の選択肢またはバージョンとして用意することは妥当と思われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Krystian Matusiewicz spoke on the importance of robustness and graceful degradation, and on the difficulty of balancing performance versus high-assurance security. There is significant value in producing a standard soon, but there are also benefits in taking the time to produce a new wide block cipher. Krystian Matusiewicz also suggested a granularity equal to the block size to optimize performance and a small number of accordion variants tailored to different use cases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Krystian Matusiewicz は、堅牢性と段階的な縮退の重要性と、性能と高保証のセキュリティとのバランスをとることの難しさについて話しました。早期に標準を作成することには大きな価値がありますが、時間をかけて新しい幅の広いブロック暗号を作成することにも利点があります。Krystian Matusiewicz はまた、性能を最適化するためにブロックサイズに等しい粒度とすること、および異なるユースケースに合わせた少数のアコーディオンの派生形を用意することを提案しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4. Authenticated Encryption</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4. 認証付き暗号</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The session on “Authenticated Encryption” included two talks with proposals for achieving authenticated encryption over Galois/Counter Mode (GCM). The proposals related to some stopgap measures that could be considered while the accordion mode is developed and standardized.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「Authenticated Encryption」のセッションでは、Galois/Counter Mode（GCM）上で認証付き暗号を実現するための提案を含む 2 件の講演が行われました。これらの提案は、アコーディオンモードが開発・標準化される間に検討し得る、いくつかの暫定的な措置に関連していました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Scott Arcizewski presented “Galois Extended Mode,” which modifies GCM to support increased usage bounds, longer messages, key commitment, and short tags.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Scott Arcizewski は「Galois Extended Mode」を発表しました。これは、使用上限の引き上げ、より長いメッセージ、鍵コミットメント、短いタグに対応するよう GCM を修正するものです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Shay Gueron presented “Double-Nonce-Derive-Key-GCM (DNDK-GCM) General Design Paradigms and Application,” which uses a nonce-based key derivation wrapped around GCM to achieve increased usage bounds, good performance, and optional key commitment. This method is designed to use the existing GCM standard.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Shay Gueron は「Double-Nonce-Derive-Key-GCM (DNDK-GCM) General Design Paradigms and Application」を発表しました。これは、GCM をラップするナンスベースの鍵導出を使用して、使用上限の引き上げ、良好な性能、任意の鍵コミットメントを実現するものです。この方法は、既存の GCM 標準を使用するように設計されています。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.5. Design Approaches</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.5. 設計アプローチ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The session on “Design Approaches” included three talks. followed by 20 minutes of open discussion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「Design Approaches」のセッションでは 3 件の講演が行われ、その後に 20 分間の自由討論が続きました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Christoph Dobraunig presented “Efficient Instances of Docked Double Decker with AES, and Application to Authenticated Encryption,” which was joint work with Krystian Matusiewicz, Bart Mennink, and Alexander Tereschenko. This work included three variants of a docked-double-decker accordion mode over AES, each with different features (i.e., birthday bound, BBB, and variable-length tweaks).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Christoph Dobraunig は、Krystian Matusiewicz、Bart Mennink、Alexander Tereschenko との共同研究である「Efficient Instances of Docked Double Decker with AES, and Application to Authenticated Encryption」を発表しました。この研究には、AES 上の docked-double-decker アコーディオンモードの 3 つの派生形が含まれ、それぞれ異なる機能（誕生日限界、BBB、可変長 tweak）を持っています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Jean Paul Degabriele presented “Universal Hash Designs for an Accordion Mode,” which was a joint work with Jan Gilcher, Jérôme Govinden, and Kenneth G. Paterson. This presentation reasoned that a good universal hash function is essential in the design of an accordion mode, particularly when using a hash-encrypt-hash approach, and included five new candidates for universal hash functions that offer good performance and higher security compared to Poly1305.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Jean Paul Degabriele は、Jan Gilcher、Jérôme Govinden、Kenneth G. Paterson との共同研究である「Universal Hash Designs for an Accordion Mode」を発表しました。この発表は、特にハッシュ・暗号化・ハッシュのアプローチを用いる場合に、優れたユニバーサルハッシュ関数がアコーディオンモードの設計に不可欠であると論じ、Poly1305 と比べて良好な性能と高いセキュリティを提供する、ユニバーサルハッシュ関数の 5 つの新しい候補を含んでいました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Pablo Garcia Fernandez presented “Accordion mode based on Hash-Encrypt-Hash,” which was a joint work with Hieu Nguyen Duy, Aleksei Udovenko, and Alex Biryukov. In this proposal, three keys are derived and then used in an HCTR-like construction to achieve variable-length tweaks, multi-key security, context commitment, and larger maximum plaintext size.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Pablo Garcia Fernandez は、Hieu Nguyen Duy、Aleksei Udovenko、Alex Biryukov との共同研究である「Accordion mode based on Hash-Encrypt-Hash」を発表しました。この提案では、3 つの鍵を導出し、HCTR に類似した構成でそれらを用いて、可変長 tweak、マルチ鍵セキュリティ、コンテキストコミットメント、より大きな最大平文サイズを実現します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Open Discussion.</b> During the short open discussion, workshop participants expressed support for a hash-encrypt-hash approach over an encrypt-mix-encrypt approach, although KDI security may be infeasible using this technique. Support for a wider block cipher was reiterated, and it was noted that a BBB accordion mode over a <i>tweakable</i> block cipher would be simpler to design than one over AES.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>自由討論。</b>短時間の自由討論の中で、ワークショップの参加者は、暗号化・混合・暗号化のアプローチよりもハッシュ・暗号化・ハッシュのアプローチへの支持を表明しましたが、この手法では KDI セキュリティが実現できない可能性があります。より幅の広いブロック暗号への支持が改めて示され、<i>tweak 可能な</i>ブロック暗号上の BBB アコーディオンモードは、AES 上のものよりも設計が簡単であることが指摘されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.6. Potential Security Properties</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.6. 想定されるセキュリティ特性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The session on “Potential Security Properties” included three presentations followed by 20 minutes of open discussion.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「Potential Security Properties」のセッションでは 3 件の発表が行われ、その後に 20 分間の自由討論が続きました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Yusuke Naito presented “Committing Wide Encryption Mode with Minimum Ciphertext Expansion,” which was a joint work with Yu Sasaki and Takeshi Sugawara. This presentation introduced a technique to achieve authenticated encryption on a wide encryption cipher by using a Feistel structure with a keyed hash function. The resulting properties are context commitment, RAE security, and minimal ciphertext expansion.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Yusuke Naito は、Yu Sasaki および Takeshi Sugawara との共同研究である「Committing Wide Encryption Mode with Minimum Ciphertext Expansion」を発表しました。この発表では、鍵付きハッシュ関数を用いた Feistel 構造により、幅の広い暗号上で認証付き暗号を実現する手法が紹介されました。その結果得られる特性は、コンテキストコミットメント、RAE セキュリティ、最小限の暗号文拡張です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Byeonghak Lee presented “A BBB Secure Accordion Mode from HCTR,” which proposed a modified HCTR that uses a hash and underlying encryption function with a \(2n\)-bit state size to achieve BBB security.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Byeonghak Lee は「A BBB Secure Accordion Mode from HCTR」を発表しました。これは、BBB セキュリティを実現するために、\(2n\) ビットの状態サイズを持つハッシュと基盤の暗号化関数を使用する、修正版の HCTR を提案するものです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Yu Long Chen presented “Information-theoretic Security with Asymmetries,” which was a joint work with Tim Beyne. This work introduced power bounds as an alternative security measurement to the traditional advantage bound and included methods to convert single-user power bounds to multi-user power bounds.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Yu Long Chen は、Tim Beyne との共同研究である「Information-theoretic Security with Asymmetries」を発表しました。この研究では、従来のアドバンテージ限界に代わるセキュリティの尺度としてパワー限界が導入され、単一ユーザーのパワー限界をマルチユーザーのパワー限界に変換する方法が含まれていました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Open Discussion.</b> The session concluded with a short open discussion that focused on key commitment. It was noted that application- and protocol-level designers often assume that an algorithm has security properties that are not there or have not been considered, and this is how the idea of key commitment came about. Some suggested making a list of properties of an algorithm for protocol designers. Others suggested that protocol designers should provide a list of the properties that they require (or assume). However, it was also recognized that neither approach truly bridges the communication gap between cryptographic and protocol-level designers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>自由討論。</b>このセッションは、鍵コミットメントに焦点を当てた短時間の自由討論で締めくくられました。アプリケーションレベルやプロトコルレベルの設計者は、アルゴリズムが実際には備えていない、あるいは考慮されていないセキュリティ特性を備えていると想定することが多く、そこから鍵コミットメントの考え方が生まれたことが指摘されました。プロトコル設計者向けにアルゴリズムの特性の一覧を作成することを提案する意見がありました。一方、プロトコル設計者が必要とする（または想定する）特性の一覧を提示すべきだとする意見もありました。ただし、どちらの方法も暗号の設計者とプロトコルレベルの設計者の間のコミュニケーションの隔たりを本当には埋めないことも認識されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.7. Next Steps</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.7. 今後の進め方</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The last session of the workshop, “Next Steps,” focused on creating a high-level plan for the project and the process to standardization.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの最後のセッションである「Next Steps」は、プロジェクトの高レベルな計画と標準化に向けたプロセスの作成に焦点を当てました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Morris Dworkin presented “Preliminary NIST Proposal for a Development Process,” which highlighted three potential paths to standardization: a competition, a NIST design, or a NIST-led collaboration. Morris indicated a preference for the last option, which would begin with a request for information on design approaches. After collecting public input, NIST would propose a few design options around mid-2025. Time for public comments and a workshop would follow, after which NIST would finalize the design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Morris Dworkin は「Preliminary NIST Proposal for a Development Process」を発表し、標準化に向けた 3 つの考えられる道筋、すなわちコンペティション、NIST による設計、NIST 主導の協働を示しました。Morris は最後の選択肢を支持しており、それは設計アプローチに関する情報提供依頼から始まります。パブリックコメントを集めた後、NIST は 2025年半ば頃にいくつかの設計案を提案する予定です。その後、パブリックコメントの期間とワークショップが続き、そのあとで NIST が設計を確定します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In general, this option was well-received by the workshop participants. A few comments were voiced to reiterate that the derived functions should be developed concurrently. It was pointed out that it is difficult to verify the correctness of security proofs and there is little incentive to do the verification. A suggestion was made to form a committee of experts to analyze the security proof and write a report. A request was also made for the NIST modes team to interact more with the public community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一般に、この選択肢はワークショップの参加者に好意的に受け止められました。派生関数を並行して開発すべきであることを改めて述べるコメントがいくつかありました。セキュリティ証明の正しさを検証することは困難であり、その検証を行う動機がほとんどないことも指摘されました。専門家の委員会を設置して、セキュリティ証明を分析し報告書を作成することが提案されました。また、NIST のモードチームが一般のコミュニティともっと交流するよう求める要望もありました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>After the presentation, Meltem Sönmez Turan opened a discussion period and presented some possible paths for the project. These paths included an accordion over AES, an accordion over a new block cipher (e.g., Rijndael-256-256), a Keccak-based AEAD, and a stopgap measure (e.g., AES-GCM-SIV). Following this, the workshop participants offered some suggestions for how NIST might interact with the community more, including informal discussions on the mailing list and virtual meetings. The question of how many accordion variants will be needed was also discussed, and opinions on this were mixed. One participant pointed out that a Rijndael-256-256-based accordion and a BBB accordion over AES are competing options. Another pointed out that an AES-based mode is needed, so both of these options should be pursued. Finally, there was a comment that applications that would use AES-GCM-SIV have some overlap with those of the accordion and it could be considered as an alternative to a BBB accordion. There was also a question raised on whether the existing modes in the SP 800-38 series would be extended to support a 256-bit block cipher, should it be standardized. Overall, the comments in the open discussion were supportive of the accordion mode project and the collaborative process that NIST proposed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>講演の後、Meltem Sönmez Turan は討論の時間を設け、プロジェクトの考えられる進め方をいくつか示しました。それらには、AES 上のアコーディオン、新しいブロック暗号（Rijndael-256-256 など）上のアコーディオン、Keccak ベースの AEAD、暫定的な措置（AES-GCM-SIV など）が含まれていました。これに続いて、ワークショップの参加者は、メーリングリストでの非公式な議論やバーチャル会議など、NIST がコミュニティとより多く交流する方法についていくつか提案を行いました。必要となるアコーディオンの派生形の数という問題も議論され、これについては意見が分かれました。ある参加者は、Rijndael-256-256 ベースのアコーディオンと AES 上の BBB アコーディオンは競合する選択肢であると指摘しました。別の参加者は、AES ベースのモードが必要であるため、これらの選択肢はどちらも追求すべきだと指摘しました。最後に、AES-GCM-SIV を使用するアプリケーションにはアコーディオンを使用するアプリケーションと重なる部分があり、BBB アコーディオンの代替案として検討できるというコメントがありました。また、256 ビットのブロック暗号が標準化された場合に、SP 800-38 シリーズの既存のモードがそれに対応するよう拡張されるのかという質問も出されました。全体として、自由討論でのコメントは、アコーディオンモードのプロジェクトと、NIST が提案した協働プロセスに好意的でした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Summary of Feedback on Key Topics</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 主要トピックに関するフィードバックの概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following is a summary of the key points discussed during the workshop presentations, open discussions, and panel discussion. They represent a summary of feedback and an aggregation of recurrent comments received throughout the workshop rather than formal statements or individual positions of workshop participants. Furthermore, these are not statements of NIST’s intentions but are in the form of requests or recommendations made to NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下は、ワークショップの発表、自由討論、パネルディスカッションで議論された主要な論点の要約です。これらは、ワークショップを通じて寄せられたフィードバックの要約と繰り返し出たコメントの集約であり、ワークショップ参加者の公式な見解や個人の立場ではありません。さらに、これらは NIST の意図を述べたものではなく、NIST に対する要望または推奨の形をとっています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 1.</b> <i>Development Process:</i> A NIST-led collaborative development process is appropriate for the accordion mode, with the derived functions developed concurrently. NIST should interact frequently with the community and form a committee of experts to verify the security proof.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 1。</b> <i>開発プロセス:</i> 派生関数を並行して開発する、NIST 主導の協働による開発プロセスが、アコーディオンモードには適切です。NIST はコミュニティと頻繁に交流し、セキュリティ証明を検証するための専門家の委員会を設置すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 2.</b> <i>Parameters:</i> Of the accordion parameters discussed, there was significant support for variable-length tweaks, a large maximum plaintext size, and a granularity of \(g = 8\). A value of \(g &lt; 8\) should also be considered, but there are trade-offs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 2。</b> <i>パラメータ:</i> 議論されたアコーディオンのパラメータのうち、可変長 tweak、大きな最大平文サイズ、\(g = 8\) の粒度には大きな支持がありました。\(g &lt; 8\) の値も検討すべきですが、トレードオフがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 3.</b> <i>Security Features:</i> In NIST’s example AEAD derived function, nonce misuse resistance and RUP security are automatically achieved. These are important security properties that should be explicitly listed in the requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 3。</b> <i>セキュリティ機能:</i> NIST の AEAD 派生関数の例では、ナンス誤用耐性と RUP セキュリティが自動的に達成されます。これらは重要なセキュリティ特性であり、要件に明示的に列挙すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 4.</b> <i>Additional Features:</i> KDI security is considered unnecessary and may even be infeasible. Key and context commitment are not needed by all, although there is some support for key commitment, possibly as an optional feature. The limited discussion of nonce hiding may indicate low interest, but the comments received were in favor.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 4。</b> <i>追加機能:</i> KDI セキュリティは不要であり、実現不可能でさえある可能性があるとされています。鍵コミットメントとコンテキストコミットメントは、すべての人に必要なわけではありませんが、鍵コミットメントについては、オプション機能とする可能性も含め、一定の支持があります。ナンス秘匿に関する議論は限られており、関心が低い可能性がありますが、寄せられたコメントは賛成でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 5.</b> <i>Performance:</i> Performance and parallelization should be prioritized without sacrificing security. Concrete performance requirements were not received, and regardless of priorities, the accordion may be impractical in some cases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 5。</b> <i>性能:</i> 性能と並列化は、セキュリティを犠牲にすることなく優先すべきです。具体的な性能要件は寄せられておらず、優先順位にかかわらず、アコーディオンが実用的でない場合もあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 6.</b> <i>Larger Block Size:</i> The accordion should support AES-256 and a 256-bit block cipher. Rijndael-256-256 without modification is a promising candidate for the larger block cipher, but trade-offs to pursuing a modified Rijndael-256-256 or an all-new cipher should be considered.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 6。</b> <i>より大きなブロックサイズ:</i> アコーディオンは、AES-256 と 256 ビットのブロック暗号に対応すべきです。変更を加えない Rijndael-256-256 は、より大きなブロック暗号の有望な候補ですが、修正した Rijndael-256-256 や全く新しい暗号を追求することのトレードオフを検討すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 7.</b> <i>Stopgap Solution:</i> A BBB solution over AES is a priority for some and will be needed in the short term. There is no clear direction on whether a BBB accordion, a stopgap measure (e.g., AES-GCM-SIV), or both are preferred.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 7。</b> <i>暫定的な解決策:</i> AES 上の BBB の解決策は、一部の人にとって優先事項であり、短期的に必要になります。BBB アコーディオン、暫定的な措置（AES-GCM-SIV など）、またはその両方のうち、どれが望ましいかについて、明確な方向性はありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Takeaway 8.</b> <i>Crypto-Agility:</i> A small number of accordions that operate over different underlying primitives should be supported for crypto-agility. In addition to AES-256 and a 256-bit block cipher, a Keccak-based primitive could be considered.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>要点 8。</b> <i>暗号アジリティ:</i> 暗号アジリティのために、異なる基盤プリミティブ上で動作する少数のアコーディオンに対応すべきです。AES-256 と 256 ビットのブロック暗号に加えて、Keccak ベースのプリミティブも検討できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] NIST Workshop on the Requirements for an Accordion Cipher Mode 2024 (2024). Available at https://csrc.nist.gov/Events/2024/accordion-cipher-mode-workshop-2024.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] NIST Workshop on the Requirements for an Accordion Cipher Mode 2024 (2024). 入手先: https://csrc.nist.gov/Events/2024/accordion-cipher-mode-workshop-2024.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Chen YL, Davidson M, Dworkin M, Kang J, Kelsey J, Sasaki Y, Sönmez Turan M, Chang D, Mouha N, Thompson A (2024) Proposal of Requirements for an Accordion Mode, National Institute of Standards and Technology, Workshop Discussion Draft. Available at https://csrc.nist.gov/files/pubs/other/2024/04/10/proposal-of-requirements-for-an-accordion-mode-dis/iprd/docs/proposal-of-requirements-for-an-accordion-mode-discussion-draft.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Chen YL, Davidson M, Dworkin M, Kang J, Kelsey J, Sasaki Y, Sönmez Turan M, Chang D, Mouha N, Thompson A (2024) Proposal of Requirements for an Accordion Mode, National Institute of Standards and Technology, Workshop Discussion Draft. 入手先: https://csrc.nist.gov/files/pubs/other/2024/04/10/proposal-of-requirements-for-an-accordion-mode-dis/iprd/docs/proposal-of-requirements-for-an-accordion-mode-discussion-draft.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Daemen J, Rijmen V (1999) AES Proposal: Rijndael, AES Algorithm Submission. Available at https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/aes-development/Rijndael-ammended.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Daemen J, Rijmen V (1999) AES Proposal: Rijndael, AES Algorithm Submission. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/aes-development/Rijndael-ammended.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Gueron S, Langley A, Lindell Y (2019) AES-GCM-SIV: Nonce Misuse-Resistant Authenticated Encryption, RFC 8452. DOI:10.17487/RFC8452. Available at https://www.rfc-editor.org/info/rfc8452</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Gueron S, Langley A, Lindell Y (2019) AES-GCM-SIV: Nonce Misuse-Resistant Authenticated Encryption, RFC 8452. DOI:10.17487/RFC8452. 入手先: https://www.rfc-editor.org/info/rfc8452</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Dworkin M (2001) Recommendation for Block Cipher Modes of Operation: Methods and Techniques, NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Dworkin M (2001) Recommendation for Block Cipher Modes of Operation: Methods and Techniques, NIST SP 800-38A. https://doi.org/10.6028/NIST.SP.800-38A.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Dworkin M (2005) Recommendation for Block Cipher Modes of Operation: The CMAC Mode for Authentication, NIST SP 800-38B. https://doi.org/10.6028/NIST.SP.800-38B.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Dworkin M (2005) Recommendation for Block Cipher Modes of Operation: The CMAC Mode for Authentication, NIST SP 800-38B. https://doi.org/10.6028/NIST.SP.800-38B.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] Dworkin M (2004) Recommendation for Block Cipher Modes of Operation: The CCM Mode for Authentication and Confidentiality, NIST SP 800-38C. https://doi.org/10.6028/NIST.SP.800-38C.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] Dworkin M (2004) Recommendation for Block Cipher Modes of Operation: The CCM Mode for Authentication and Confidentiality, NIST SP 800-38C. https://doi.org/10.6028/NIST.SP.800-38C.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Dworkin M (2007) Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC, NIST SP 800-38D. https://doi.org/10.6028/NIST.SP.800-38D.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Dworkin M (2007) Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC, NIST SP 800-38D. https://doi.org/10.6028/NIST.SP.800-38D.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: The XTS-AES Mode for Confidentiality on Storage Devices, NIST SP 800-38E. https://doi.org/10.6028/NIST.SP.800-38E.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] Dworkin M (2010) Recommendation for Block Cipher Modes of Operation: The XTS-AES Mode for Confidentiality on Storage Devices, NIST SP 800-38E. https://doi.org/10.6028/NIST.SP.800-38E.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] Dworkin M (2012) Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping, NIST SP 800-38F. https://doi.org/10.6028/NIST.SP.800-38F.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] Dworkin M (2012) Recommendation for Block Cipher Modes of Operation: Methods for Key Wrapping, NIST SP 800-38F. https://doi.org/10.6028/NIST.SP.800-38F.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] Dworkin M (2016) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G. https://doi.org/10.6028/NIST.SP.800-38G.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] Dworkin M (2016) Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption, NIST SP 800-38G. https://doi.org/10.6028/NIST.SP.800-38G.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. Agenda</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A. 議事次第</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th colspan="2">Thursday, June 20, 2024</th></tr></thead><tbody><tr><td>8:15</td><td>Shuttle Departs Courtyard Gaithersburg Washingtonian Center</td></tr><tr><td>8:30 – 9:00</td><td>Arrival/<wbr/>Badging/<wbr/>Continental breakfast.</td></tr><tr><td colspan="2"><b>Session I – Opening</b> <i>Session Chair: Morris Dworkin</i></td></tr><tr><td>9:00 – 9:10</td><td>Welcome<br/><i>Matthew Scholl</i></td></tr><tr><td>9:10 – 9:35</td><td>Overview of the NIST Block Cipher Modes Project<br/><i>Meltem Sönmez Turan</i></td></tr><tr><td>9:35 – 10:00</td><td>Introduction to the Accordion Mode and Derived Functions<br/><i>Alyssa Thompson</i></td></tr><tr><td>10:00 – 10:30</td><td>Break</td></tr><tr><td colspan="2"><b>Session II – Accordion Mode Requirements/Features (I)</b> <i>Session Chair: Yu Long Chen</i></td></tr><tr><td>10:30 – 11:20</td><td>Preliminary NIST Proposals and the NECST Evaluation Framework<br/><i>Nicky Mouha</i></td></tr><tr><td>11:20 – 11:40</td><td>Comments on NIST Requirements for an Accordion Cipher Mode<br/><i>John Preuß Mattsson</i></td></tr><tr><td>11:40 – 12:00</td><td>Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security<br/><i>Guy B.</i></td></tr><tr><td>12:00 – 1:20</td><td>Lunch</td></tr><tr><td colspan="2"><b>Session III – Use Cases</b> <i>Session Chair: Andrew Regenscheid</i></td></tr><tr><td>1:20 – 1:30</td><td>NIST Options for Supporting Larger Usage Bounds<br/><i>Andrew Regenscheid</i></td></tr><tr><td>1:30 – 2:30</td><td>Panel Discussion: Adoption Perspectives<br/><i>Paul Crowley, Shai Halevi, Krystian Matusiewicz, Matthew Simpson</i><br/>Moderator: <i>Andrew Regenscheid</i></td></tr><tr><td>2:30 – 3:00</td><td>Break</td></tr><tr><td colspan="2"><b>Session IV – Accordion Mode Requirements/ Features (II)</b> <i>Session Chair: Nicky Mouha</i></td></tr><tr><td>3:00-3:20</td><td>Accordion Cipher-mode Preferable Features<br/><i>Tushar Patel</i></td></tr><tr><td>3:20-3:40</td><td>Requirements for an Accordion Mode<br/><i>Guy B.</i></td></tr><tr><td>3:40-4:40</td><td>Open Discussion</td></tr><tr><td>4:45</td><td>Shuttle Departs NCCoE to Return to Hotel</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th colspan="2">2024年6月20日（木）</th></tr></thead><tbody><tr><td>8:15</td><td>Courtyard Gaithersburg Washingtonian Center からシャトル出発</td></tr><tr><td>8:30 – 9:00</td><td>到着/受付/軽朝食。</td></tr><tr><td colspan="2"><b>セッション I – 開会</b> <i>セッション座長: Morris Dworkin</i></td></tr><tr><td>9:00 – 9:10</td><td>歓迎の挨拶<br><i>Matthew Scholl</i></td></tr><tr><td>9:10 – 9:35</td><td>Overview of the NIST Block Cipher Modes Project<br><i>Meltem Sönmez Turan</i></td></tr><tr><td>9:35 – 10:00</td><td>Introduction to the Accordion Mode and Derived Functions<br><i>Alyssa Thompson</i></td></tr><tr><td>10:00 – 10:30</td><td>休憩</td></tr><tr><td colspan="2"><b>セッション II – アコーディオンモードの要件/機能 (I)</b> <i>セッション座長: Yu Long Chen</i></td></tr><tr><td>10:30 – 11:20</td><td>Preliminary NIST Proposals and the NECST Evaluation Framework<br><i>Nicky Mouha</i></td></tr><tr><td>11:20 – 11:40</td><td>Comments on NIST Requirements for an Accordion Cipher Mode<br><i>John Preuß Mattsson</i></td></tr><tr><td>11:40 – 12:00</td><td>Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security<br><i>Guy B.</i></td></tr><tr><td>12:00 – 1:20</td><td>昼食</td></tr><tr><td colspan="2"><b>セッション III – ユースケース</b> <i>セッション座長: Andrew Regenscheid</i></td></tr><tr><td>1:20 – 1:30</td><td>NIST Options for Supporting Larger Usage Bounds<br><i>Andrew Regenscheid</i></td></tr><tr><td>1:30 – 2:30</td><td>Panel Discussion: Adoption Perspectives<br><i>Paul Crowley, Shai Halevi, Krystian Matusiewicz, Matthew Simpson</i><br>モデレーター: <i>Andrew Regenscheid</i></td></tr><tr><td>2:30 – 3:00</td><td>休憩</td></tr><tr><td colspan="2"><b>セッション IV – アコーディオンモードの要件/機能 (II)</b> <i>セッション座長: Nicky Mouha</i></td></tr><tr><td>3:00-3:20</td><td>Accordion Cipher-mode Preferable Features<br><i>Tushar Patel</i></td></tr><tr><td>3:20-3:40</td><td>Requirements for an Accordion Mode<br><i>Guy B.</i></td></tr><tr><td>3:40-4:40</td><td>自由討論</td></tr><tr><td>4:45</td><td>NCCoE からホテルへ戻るシャトル出発</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th colspan="2">Friday, June 21, 2024</th></tr></thead><tbody><tr><td>8:15</td><td>Shuttle Departs Courtyard Gaithersburg Washingtonian Center</td></tr><tr><td>8:30 – 9:00</td><td>Arrival/<wbr/>Badging/<wbr/>Continental breakfast.</td></tr><tr><td colspan="2"><b>Session V – Lightning Talks</b> <i>Session Chair: Alyssa Thompson</i></td></tr><tr><td>9:00 – 9:20</td><td><i>Talks will be recorded. By presenting, you acknowledge and consent to being recorded.</i></td></tr><tr><td colspan="2"><b>Session VI – Authenticated Encryption</b> <i>Session Chair: Alyssa Thompson</i></td></tr><tr><td>9:20 – 9:40</td><td>Galois Extended Mode<br/><i>Scott Arciszewski</i></td></tr><tr><td>9:40 – 10:00</td><td>Double-Nonce-Derive-Key-GCM (DNDK-GCM) General Design Paradigms and Application<br/><i>Shay Gueron</i></td></tr><tr><td>10:00 – 10:30</td><td>Break</td></tr><tr><td colspan="2"><b>Session VII – Design Approaches</b> <i>Session Chair: Yu Sasaki</i></td></tr><tr><td>10:30 – 10:50</td><td>Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption<br/><i>Christoph Dobraunig</i></td></tr><tr><td>10:50 – 11:10</td><td>Universal Hash Designs for an Accordion Mode<br/><i>Jean Paul Degabriele</i></td></tr><tr><td>11:10 – 11:30</td><td>Accordion mode based on Hash-Encrypt-Hash<br/><i>Pablo Garcia Fernandez</i></td></tr><tr><td>11:30 – 11:50</td><td>Open Discussion</td></tr><tr><td>11:50 – 1:20</td><td>Lunch</td></tr><tr><td colspan="2"><b>Session VIII – Potential Security Properties</b> <i>Session Chair: Donghoon Chang</i></td></tr><tr><td>1:20 – 1:40</td><td>Committing Wide Encryption Mode with Minimum Ciphertext Expansion<br/><i>Yusuke Naito</i></td></tr><tr><td>1:40 – 2:00</td><td>A BBB Secure Accordion Mode from HCTR<br/><i>Byeonghak Lee</i></td></tr><tr><td>2:00 – 2:20</td><td>Information-theoretic Security with Asymmetries<br/><i>Yu Long Chen</i></td></tr><tr><td>2:20 – 2:40</td><td>Open Discussion</td></tr><tr><td>2:40 – 3:10</td><td>Break</td></tr><tr><td colspan="2"><b>Session IX – Next Steps</b> <i>Session Chair: Meltem Sönmez Turan</i></td></tr><tr><td>3:10 – 3:30</td><td>Preliminary NIST Proposal for a Development Process<br/><i>Morris Dworkin</i></td></tr><tr><td>3:30 – 4:30</td><td>Open Discussion</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th colspan="2">2024年6月21日（金）</th></tr></thead><tbody><tr><td>8:15</td><td>Courtyard Gaithersburg Washingtonian Center からシャトル出発</td></tr><tr><td>8:30 – 9:00</td><td>到着/受付/軽朝食。</td></tr><tr><td colspan="2"><b>セッション V – ライトニングトーク</b> <i>セッション座長: Alyssa Thompson</i></td></tr><tr><td>9:00 – 9:20</td><td><i>講演は録画されます。発表することにより、録画されることを了承し、同意したものとみなされます。</i></td></tr><tr><td colspan="2"><b>セッション VI – 認証付き暗号</b> <i>セッション座長: Alyssa Thompson</i></td></tr><tr><td>9:20 – 9:40</td><td>Galois Extended Mode<br><i>Scott Arciszewski</i></td></tr><tr><td>9:40 – 10:00</td><td>Double-Nonce-Derive-Key-GCM (DNDK-GCM) General Design Paradigms and Application<br><i>Shay Gueron</i></td></tr><tr><td>10:00 – 10:30</td><td>休憩</td></tr><tr><td colspan="2"><b>セッション VII – 設計アプローチ</b> <i>セッション座長: Yu Sasaki</i></td></tr><tr><td>10:30 – 10:50</td><td>Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption<br><i>Christoph Dobraunig</i></td></tr><tr><td>10:50 – 11:10</td><td>Universal Hash Designs for an Accordion Mode<br><i>Jean Paul Degabriele</i></td></tr><tr><td>11:10 – 11:30</td><td>Accordion mode based on Hash-Encrypt-Hash<br><i>Pablo Garcia Fernandez</i></td></tr><tr><td>11:30 – 11:50</td><td>自由討論</td></tr><tr><td>11:50 – 1:20</td><td>昼食</td></tr><tr><td colspan="2"><b>セッション VIII – 想定されるセキュリティ特性</b> <i>セッション座長: Donghoon Chang</i></td></tr><tr><td>1:20 – 1:40</td><td>Committing Wide Encryption Mode with Minimum Ciphertext Expansion<br><i>Yusuke Naito</i></td></tr><tr><td>1:40 – 2:00</td><td>A BBB Secure Accordion Mode from HCTR<br><i>Byeonghak Lee</i></td></tr><tr><td>2:00 – 2:20</td><td>Information-theoretic Security with Asymmetries<br><i>Yu Long Chen</i></td></tr><tr><td>2:20 – 2:40</td><td>自由討論</td></tr><tr><td>2:40 – 3:10</td><td>休憩</td></tr><tr><td colspan="2"><b>セッション IX – 今後の進め方</b> <i>セッション座長: Meltem Sönmez Turan</i></td></tr><tr><td>3:10 – 3:30</td><td>Preliminary NIST Proposal for a Development Process<br><i>Morris Dworkin</i></td></tr><tr><td>3:30 – 4:30</td><td>自由討論</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B. List of Accepted Presentations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B. 採択された発表の一覧</h3>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><i>Accordion Cipher-mode Preferable Features</i>, Tushar Patel (Atna-cipher LLC)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><i>Accordion Cipher-mode Preferable Features</i>, Tushar Patel (Atna-cipher LLC)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><i>Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption</i>, Christoph Dobraunig (Intel Labs), Krystian Matusiewicz (Intel Corporation), Bart Mennink (Radboud University), and Alexander Tereschenko (Intel Corporation)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><i>Efficient Instances of Docked Double Decker With AES, and Application to Authenticated Encryption</i>, Christoph Dobraunig (Intel Labs), Krystian Matusiewicz (Intel Corporation), Bart Mennink (Radboud University), and Alexander Tereschenko (Intel Corporation)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><i>Universal Hash Designs for an Accordion Mode</i>, Jean Paul Degabriele (Technology Innovation Institute), Jan Gilcher (ETH Zurich), Jérôme Govinden (TU Darmstadt), and Kenneth G. Paterson (ETH Zurich)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><i>Universal Hash Designs for an Accordion Mode</i>, Jean Paul Degabriele (Technology Innovation Institute), Jan Gilcher (ETH Zurich), Jérôme Govinden (TU Darmstadt), and Kenneth G. Paterson (ETH Zurich)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body"><i>Committing Wide Encryption Mode with Minimum Ciphertext Expansion</i>, Yusuke Naito (Mitsubishi Electric Corporation), Yu Sasaki (NTT Social Informatics Laboratories, NIST), and Takeshi Sugawara (University of Electro-Communications)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body"><i>Committing Wide Encryption Mode with Minimum Ciphertext Expansion</i>, Yusuke Naito (Mitsubishi Electric Corporation), Yu Sasaki (NTT Social Informatics Laboratories, NIST), and Takeshi Sugawara (University of Electro-Communications)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body"><i>Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security</i>, John H. (UK National Cyber Security Centre), Charlotte S. (UK National Cyber Security Centre), and Guy B. (UK National Cyber Security Centre)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body"><i>Security Goals for an Accordion Mode: Release of Unverified Plaintext and Multi-user Security</i>, John H. (UK National Cyber Security Centre), Charlotte S. (UK National Cyber Security Centre), and Guy B. (UK National Cyber Security Centre)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body"><i>Requirements for an Accordion Mode</i>, John H. (UK National Cyber Security Centre), Charlotte S. (UK National Cyber Security Centre), and Guy B. (UK National Cyber Security Centre)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body"><i>Requirements for an Accordion Mode</i>, John H. (UK National Cyber Security Centre), Charlotte S. (UK National Cyber Security Centre), and Guy B. (UK National Cyber Security Centre)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body"><i>Accordion Mode Based on Hash-Encrypt-Hash</i>, Hieu Nguyen Duy (University of Luxembourg), Pablo García Fernández (University of Luxembourg), Aleksei Udovenko (University of Luxembourg), and Alex Biryukov (University of Luxembourg)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body"><i>Accordion Mode Based on Hash-Encrypt-Hash</i>, Hieu Nguyen Duy (University of Luxembourg), Pablo García Fernández (University of Luxembourg), Aleksei Udovenko (University of Luxembourg), and Alex Biryukov (University of Luxembourg)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body"><i>A BBB Secure Accordion Mode from HCTR</i>, Byeonghak Lee (Samsung SDS)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body"><i>A BBB Secure Accordion Mode from HCTR</i>, Byeonghak Lee (Samsung SDS)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body"><i>Galois Extended Mode</i>, Scott Arciszewski (Trail of Bits)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body"><i>Galois Extended Mode</i>, Scott Arciszewski (Trail of Bits)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body"><i>Comments on NIST Requirements for an Accordion Cipher Mode</i>, John Preuß Mattsson (Ericsson), Ben Smeets (Ericsson), and Erik Thormarker (Ericsson)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body"><i>Comments on NIST Requirements for an Accordion Cipher Mode</i>, John Preuß Mattsson (Ericsson), Ben Smeets (Ericsson), and Erik Thormarker (Ericsson)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body"><i>Double-Nonce-Derive-Key-GCM (DNDK-GCM): General Design Paradigms and Application</i>, Shay Gueron (University of Haifa, Meta)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body"><i>Double-Nonce-Derive-Key-GCM (DNDK-GCM): General Design Paradigms and Application</i>, Shay Gueron (University of Haifa, Meta)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body"><i>Information-theoretic Security with Asymmetries</i>, Tim Beyne (imec-COSIC) and Yu Long Chen (imec-COSIC, NIST)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body"><i>Information-theoretic Security with Asymmetries</i>, Tim Beyne (imec-COSIC) and Yu Long Chen (imec-COSIC, NIST)</span></p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8537.pdf">National Institute of Standards and Technology, IR 8537</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8537";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
