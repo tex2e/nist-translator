@@ -52,6 +52,12 @@ def _bounded_bbox(box, page):
     return bounded
 
 
+def _on_page(box, page):
+    """False for a detected box that lies wholly outside the page (stray rules off the crop box)."""
+    x0, top, x1, bottom = box
+    return max(0, x0) < min(page.width, x1) and max(0, top) < min(page.height, bottom)
+
+
 def _size(line):
     sizes = sorted(char["size"] for char in line.get("chars", []) if char.get("upright", True))
     return sizes[len(sizes) // 2] if sizes else 0
@@ -336,7 +342,7 @@ def _page_items(page, page_number, asset_dir, asset_prefix, running_headers=None
                     for line in lines) >= 6)
     tables = ([] if toc_page or reviewed_figure else sorted(
         (table for table in page.find_tables()
-         if not _is_layout_artifact_table(table.bbox, page)),
+         if not _is_layout_artifact_table(table.bbox, page) and _on_page(table.bbox, page)),
         key=lambda table: table.bbox[1]))
     table_details = {}
     for table in tables:
