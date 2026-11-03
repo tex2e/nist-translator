@@ -1,0 +1,1500 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8333 は、2020年10月に開催された NIST の Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices バーチャルワークショップでの議論と知見を要約した報告書です。NIST は、消費者向け家庭用デバイス分野をよりよく理解するために、2019年上半期に入手可能だった多数のデバイスのサイバーセキュリティ機能について観察結果を収集し、ドラフト NISTIR 8267 として公表しました。この情報はワークショップの基礎となり、ワークショップでは、消費者向け家庭用 IoT デバイスのサイバーセキュリティに関する懸念について、コミュニティからさらに意見が集められました。報告書は、概要と主な要点、今後の取り組み、附属書として参加者の投票結果を示しています。">
+  <title>「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書 | NIST IR 8333 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NISTIR 8333" data-search="nistir 8333 nistir 8333">NISTIR 8333</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Workshop Summary Report for “Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices” Virtual Workshop" data-search="「cybersecurity risks in consumer home internet of things (iot) devices」バーチャルワークショップ概要報告書 workshop summary report for “cybersecurity risks in consumer home internet of things (iot) devices” virtual workshop">「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NISTIR 8333" data-search="nistir 8333 nistir 8333">NISTIR 8333</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="Workshop Summary Report for “Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices” Virtual Workshop" data-search="「cybersecurity risks in consumer home internet of things (iot) devices」バーチャルワークショップ概要報告書 workshop summary report for “cybersecurity risks in consumer home internet of things (iot) devices” virtual workshop">「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0007" title="Audience" data-search="想定読者 audience">想定読者</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0009" title="List of Appendices" data-search="附属書の一覧 list of appendices">附属書の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0004" title="1.1 About the NIST Cybersecurity for IoT Program" data-search="1.1 nist の iot サイバーセキュリティプログラムについて 1.1 about the nist cybersecurity for iot program">1.1 NIST の IoT サイバーセキュリティプログラムについて</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0006" title="1.2 About the Cybersecurity Risks in Consumer Home IoT Devices Virtual Workshop" data-search="1.2 cybersecurity risks in consumer home iot devices バーチャルワークショップについて 1.2 about the cybersecurity risks in consumer home iot devices virtual workshop">1.2 Cybersecurity Risks in Consumer Home IoT Devices バーチャルワークショップについて</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="2 Summary and Key Takeaways" data-search="2 概要と主な要点 2 summary and key takeaways">2 概要と主な要点</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="3 Next Steps" data-search="3 今後の取り組み 3 next steps">3 今後の取り組み</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0001" title="Appendix A—Poll Results" data-search="附属書 a—投票結果 appendix a—poll results">附属書 A—投票結果</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0005" title="A.1 Ultimate Demand Driver for Security in Home IoT" data-search="a.1 家庭用 iot のセキュリティに対する最終的な需要を生み出す要因 a.1 ultimate demand driver for security in home iot">A.1 家庭用 IoT のセキュリティに対する最終的な需要を生み出す要因</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="A.2 Willingness to Pay More for Security in Low-Cost IoT Devices" data-search="a.2 低価格の iot デバイスのセキュリティにより多く支払う意思 a.2 willingness to pay more for security in low-cost iot devices">A.2 低価格の IoT デバイスのセキュリティにより多く支払う意思</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0004" title="A.3 Primary Responsibility for Home IoT Device Security" data-search="a.3 家庭用 iot デバイスのセキュリティに対する第一義的な責任 a.3 primary responsibility for home iot device security">A.3 家庭用 IoT デバイスのセキュリティに対する第一義的な責任</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0001" title="A.4 Reason for Interest in Home IoT Cybersecurity" data-search="a.4 家庭用 iot のサイバーセキュリティに関心を持つ理由 a.4 reason for interest in home iot cybersecurity">A.4 家庭用 IoT のサイバーセキュリティに関心を持つ理由</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0021-b0004" title="A.5 Biggest Cybersecurity Challenge for IoT Devices for Home Customers" data-search="a.5 家庭向け顧客の iot デバイスにおける最大のサイバーセキュリティ上の課題 a.5 biggest cybersecurity challenge for iot devices for home customers">A.5 家庭向け顧客の IoT デバイスにおける最大のサイバーセキュリティ上の課題</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0001" title="A.6 Biggest and Most Impactful Force for Change" data-search="a.6 変化をもたらす最大かつ最も影響力のある力 a.6 biggest and most impactful force for change">A.6 変化をもたらす最大かつ最も影響力のある力</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0023-b0001" title="Appendix B—Acronyms" data-search="附属書 b—頭字語 appendix b—acronyms">附属書 B—頭字語</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8333 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Workshop Summary Report for “Cybersecurity Risks in Consumer Home Internet of Things (IoT) Products” Virtual Workshop</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書</strong></span><br><span class="doc-panel-item">公開日 : 2021-03-29</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8333/final">https://csrc.nist.gov/pubs/ir/8333/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 160 / 160 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8333 は、2020年10月に開催された NIST の Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices バーチャルワークショップでの議論と知見を要約した報告書です。NIST は、消費者向け家庭用デバイス分野をよりよく理解するために、2019年上半期に入手可能だった多数のデバイスのサイバーセキュリティ機能について観察結果を収集し、ドラフト NISTIR 8267 として公表しました。この情報はワークショップの基礎となり、ワークショップでは、消費者向け家庭用 IoT デバイスのサイバーセキュリティに関する懸念について、コミュニティからさらに意見が集められました。報告書は、概要と主な要点、今後の取り組み、附属書として参加者の投票結果を示しています。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NISTIR 8333</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NISTIR 8333</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop Summary Report for “Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices” Virtual Workshop</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas<br>Michael Fagan<br>Barbara Cuthill<br>Mary Raguso<br>John Wiltberger</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas<br>Michael Fagan<br>Barbara Cuthill<br>Mary Raguso<br>John Wiltberger</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8333</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます:<br>https://doi.org/10.6028/NIST.IR.8333</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NISTIR 8333</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NISTIR 8333</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Workshop Summary Report for “Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices” Virtual Workshop</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+「Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices」バーチャルワークショップ概要報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Katerina N. Megas<br>Michael Fagan<br>Barbara Cuthill<br>Applied Cybersecurity Division<br>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Katerina N. Megas<br>Michael Fagan<br>Barbara Cuthill<br>応用サイバーセキュリティ部門<br>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mary Raguso<br>John Wiltberger<br>The MITRE Corporation<br>McLean, VA</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Mary Raguso<br>John Wiltberger<br>The MITRE Corporation<br>McLean, VA</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8333</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます:<br>https://doi.org/10.6028/NIST.IR.8333</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>March 2021</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2021年3月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Gina Raimondo, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Gina Raimondo 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>James K. Olthoff, Performing the Non-Exclusive Functions and Duties of the Under Secretary of Commerce for Standards and Technology &amp; Director, National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>James K. Olthoff、商務次官（標準・技術担当）兼国立標準技術研究所所長の非専属的な職務および任務を代行</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency or Internal Report 8333<br>23 pages (March 2021)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 省庁間報告書または内部報告書 8333（National Institute of Standards and Technology Interagency or Internal Report 8333）<br>23 ページ（2021年3月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8333</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます:<br>https://doi.org/10.6028/NIST.IR.8333</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0003-table-01.png" alt="原本 PDF p.3 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順や概念を適切に説明するために、特定の商業的な事業体、機器、資材に言及している場合があります。そのような言及は、NIST による推奨や推薦を意味するものではなく、それらの事業体、資材、機器がその目的に必ずしも最適であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令で定められた責務に従って策定中の他の刊行物への言及が含まれている場合があります。概念や方法論を含め、本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関が利用してかまいません。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合は、引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各組織は、パブリックコメントの期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外の NIST のサイバーセキュリティ関連刊行物の多くは、https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Comments on this publication may be submitted to:<br>National Institute of Standards and Technology<br>Attn: Applied Cybersecurity Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000<br>Email: iotsecurity@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物へのコメントは、次の宛先に提出できます:<br>National Institute of Standards and Technology<br>Attn: Applied Cybersecurity Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000<br>Email: iotsecurity@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準のインフラストラクチャに技術的なリーダーシップを提供することにより、米国の経済と公共の福祉を促進しています。ITL は、情報技術の発展と生産的な利用を推進するため、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障に関連しない情報について、費用対効果の高いセキュリティおよびプライバシーを確保するための、管理上、運用上、技術上、物理上の標準およびガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report provides a summary of the discussion and findings from the NIST Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices virtual workshop in October 2020. NIST Interagency Report (NISTIR) 8259, Foundational Cybersecurity Activities for IoT Device Manufacturers, and NISTIR 8259A, IoT Device Cybersecurity Capability Core Baseline, provide general guidance on how manufacturers can approach their role of fulfilling their customers’ cybersecurity needs and capabilities. As discussed in those documents, particular sectors and use cases may require more specific guidance than what is included in NISTIR 8259A’s core baseline for Internet of Things (IoT) devices. To better understand the consumer home device sector, NIST collected observations on the cybersecurity device capabilities in a number of devices available in the first half of 2019. These observations were published in Draft NISTIR 8267, Security Review of Consumer Home Internet of Things (IoT) Products. The information in Draft NISTIR 8267 was foundational for the NIST Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices virtual workshop. The workshop gathered further community input on the concerns with consumer home IoT device cybersecurity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、2020年10月に開催された NIST の Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices バーチャルワークショップでの議論と知見を要約したものです。NIST 省庁間報告書（NISTIR）8259、Foundational Cybersecurity Activities for IoT Device Manufacturers と、NISTIR 8259A、IoT Device Cybersecurity Capability Core Baseline は、製造者が顧客のサイバーセキュリティのニーズと機能を満たすという自らの役割にどう取り組めるかについて、一般的なガイダンスを示しています。これらの文書で論じられているとおり、特定の分野やユースケースでは、NISTIR 8259A のモノのインターネット（IoT）デバイス向けコアベースラインに含まれるものよりも具体的なガイダンスが必要になる場合があります。NIST は、消費者向け家庭用デバイス分野をよりよく理解するために、2019年上半期に入手可能だった多数のデバイスのサイバーセキュリティ機能について、観察結果を収集しました。これらの観察結果は、ドラフト NISTIR 8267、Security Review of Consumer Home Internet of Things (IoT) Products として公表されました。ドラフト NISTIR 8267 の情報は、NIST の Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices バーチャルワークショップの基礎となりました。このワークショップでは、消費者向け家庭用 IoT デバイスのサイバーセキュリティに関する懸念について、コミュニティからさらに意見を集めました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>consumer home devices; cybersecurity baseline; Internet of Things (IoT); privacy; securable computing devices; security requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>消費者向け家庭用デバイス、サイバーセキュリティベースライン、モノのインターネット（IoT）、プライバシー、セキュリティ保護可能なコンピューティングデバイス、セキュリティ要件。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Audience</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+想定読者</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The main audiences for this publication are IoT device manufacturers, consumer organizations, and other stakeholders in the consumer home IoT market. This publication may also help IoT device customers or integrators who are incorporating IoT devices intended for the home market into their residence or business, especially small business networks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物の主な想定読者は、IoT デバイスの製造者、消費者団体、および消費者向け家庭用 IoT 市場のその他の利害関係者です。また、家庭市場向けの IoT デバイスを自宅や事業所（特に小規模事業者のネットワーク）に導入する、IoT デバイスの顧客やインテグレーターにも、役立つ場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors wish to thank all contributors to this publication, including the participants in this workshop and other interactive sessions; the individuals and organizations from the public and private sectors, including manufacturers for various sectors and several manufacturer trade organizations who provided feedback on the preliminary public content; and colleagues at NIST, The MITRE Corporation, and Scarfone Cybersecurity who offered invaluable input and expertise.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者は、本刊行物に貢献したすべての方々に感謝します。これには、本ワークショップやその他の対話形式のセッションの参加者、予備的な公開内容にフィードバックを寄せてくださった、さまざまな分野の製造者や複数の製造者団体を含む官民の個人および組織、そして貴重な意見と専門知識を提供してくださった NIST、The MITRE Corporation、Scarfone Cybersecurity の同僚が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0004">1.1 About the NIST Cybersecurity for IoT Program</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0004">1.1 NIST の IoT サイバーセキュリティプログラムについて</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.2 About the Cybersecurity Risks in Consumer Home IoT Devices Virtual Workshop</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">1.2 Cybersecurity Risks in Consumer Home IoT Devices バーチャルワークショップについて</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2 Summary and Key Takeaways</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2 概要と主な要点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">3 Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">3 今後の取り組み</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Appendices</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+附属書の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">Appendix A— Poll Results</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">附属書 A— 投票結果</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0005">A.1 Ultimate Demand Driver for Security in Home IoT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0005">A.1 家庭用 IoT のセキュリティに対する究極の需要の要因</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">A.2 Willingness to Pay More for Security in Low-Cost IoT Devices</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">A.2 低価格の IoT デバイスのセキュリティにより多く支払う意思</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0004">A.3 Primary Responsibility for Home IoT Device Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0004">A.3 家庭用 IoT デバイスのセキュリティに対する第一義的な責任</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">A.4 Reason for Interest in Home IoT Cybersecurity</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">A.4 家庭用 IoT のサイバーセキュリティに関心を持つ理由</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">A.5 Biggest Cybersecurity Challenge for IoT Devices for Home Customers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">A.5 家庭向け顧客の IoT デバイスにおける最大のサイバーセキュリティ上の課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0022-b0001">A.6 Biggest and Most Impactful Force for Change</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0022-b0001">A.6 変化をもたらす最大かつ最も影響力のある力</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">Appendix B— Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0023-b0001">附属書 B— 頭字語</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1 はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To better understand the consumer home Internet of Things (IoT) device sector, the National Institute of Standards and Technology (NIST) collected observations on the cybersecurity capabilities in a number of devices available in the first half of 2019. These technical observations were based on approaches to implementing the cybersecurity capabilities described in NIST Interagency Report (NISTIR) 8259A, IoT Device Cybersecurity Capability Core Baseline [1]. The observations were published in Draft NISTIR 8267, Security Review of Consumer Home Internet of Things (IoT) Products [2].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）は、消費者向け家庭用のモノのインターネット（IoT）デバイス分野をよりよく理解するために、2019年上半期に入手可能だった多数のデバイスのサイバーセキュリティ機能について、観察結果を収集しました。これらの技術的な観察は、NIST 省庁間報告書（NISTIR）8259A、IoT Device Cybersecurity Capability Core Baseline [1] に記載されたサイバーセキュリティ機能の実装方法に基づいています。観察結果は、ドラフト NISTIR 8267、Security Review of Consumer Home Internet of Things (IoT) Products [2] として公表されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The information in Draft NISTIR 8267 and comments received during the public comment period were foundational for NIST’s October 22, 2020 virtual workshop titled Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices. This workshop gathered further community input on the concerns with consumer home IoT device cybersecurity. It included stakeholders from industry, trade associations, consumer advocacy groups, international bodies, and academia. The purpose of this workshop was to obtain stakeholder feedback on topics related to future directions for NIST, including its National Cybersecurity Center of Excellence’s (NCCoE) work in the consumer home IoT space, and to identify and discuss critical issues and barriers to implementing the core baseline in NISTIR 8259A, IoT Device Cybersecurity Capability Core Baseline [1], in consumer IoT products.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ドラフト NISTIR 8267 の情報と、パブリックコメント期間中に寄せられたコメントは、2020年10月22日に NIST が開催した、Cybersecurity Risks in Consumer Home Internet of Things (IoT) Devices と題するバーチャルワークショップの基礎となりました。このワークショップでは、消費者向け家庭用 IoT デバイスのサイバーセキュリティに関する懸念について、コミュニティからさらに意見を集めました。参加したのは、産業界、業界団体、消費者擁護団体、国際機関、学界の利害関係者です。このワークショップの目的は、NIST の今後の方向性（国立サイバーセキュリティ・センター・オブ・エクセレンス（NCCoE）の消費者向け家庭用 IoT 分野での取り組みを含む）に関連するトピックについて、利害関係者からのフィードバックを得るとともに、NISTIR 8259A、IoT Device Cybersecurity Capability Core Baseline [1] のコアベースラインを消費者向け IoT 製品に実装する際の重大な問題と障壁を特定し、議論することでした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1 About the NIST Cybersecurity for IoT Program</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1 NIST の IoT サイバーセキュリティプログラムについて</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The mission of the NIST Cybersecurity for IoT program [3] is to cultivate trust in IoT and foster an environment that enables innovation on a global scale through standards, guidance, and related tools. The Cybersecurity for IoT program supports the development and application of standards, guidelines, and related tools to improve the cybersecurity of connected devices and the environments in which they are deployed. By collaborating with stakeholders across government, industry, consumer advocacy groups, international bodies, and academia, the program aims to fulfil this mission and foster an environment that sparks innovation on a global scale.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の IoT サイバーセキュリティプログラム [3] の使命は、標準、ガイダンス、関連ツールを通じて、IoT への信頼を醸成し、世界規模でのイノベーションを可能にする環境を育むことです。IoT サイバーセキュリティプログラムは、接続されたデバイスおよびそれらが配備される環境のサイバーセキュリティを向上させるために、標準、ガイドライン、関連ツールの策定と適用を支援します。政府、産業界、消費者擁護団体、国際機関、学界の利害関係者と協力することで、プログラムはこの使命を果たし、世界規模でイノベーションを促す環境を育むことを目指しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2 About the Cybersecurity Risks in Consumer Home IoT Devices Virtual Workshop</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2 Cybersecurity Risks in Consumer Home IoT Devices バーチャルワークショップについて</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The free, publicly available virtual workshop featured an overview of NIST’s Cybersecurity for IoT Program and panels that highlighted the many considerations impacting the cybersecurity of home IoT products. These considerations include unique cybersecurity challenges associated with home IoT products and unique barriers to implementing the core baseline in NISTIR 8259A, IoT Device Cybersecurity Capability Core Baseline [1] in consumer IoT products. After the panels, attendees broke into small groups for facilitated discussions about the most critical issues impacting the implementation of stronger cybersecurity in consumer IoT devices. The workshop concluded with attendees reassembling to hear reports from each breakout facilitator—tying together any overriding themes and/or issues for future exploration.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>無料で一般に公開されたこのバーチャルワークショップでは、NIST の IoT サイバーセキュリティプログラムの概要紹介と、家庭用 IoT 製品のサイバーセキュリティに影響する多くの考慮事項に焦点を当てたパネルが行われました。これらの考慮事項には、家庭用 IoT 製品に特有のサイバーセキュリティ上の課題と、NISTIR 8259A、IoT Device Cybersecurity Capability Core Baseline [1] のコアベースラインを消費者向け IoT 製品に実装する際の特有の障壁が含まれます。パネルの後、出席者は少人数のグループに分かれ、消費者向け IoT デバイスにより強力なサイバーセキュリティを実装するうえで最も重大な問題について、進行役つきの議論を行いました。ワークショップは、出席者が再び集まって各分科会の進行役からの報告を聞き、今後の検討に向けた全体を貫くテーマや問題をまとめて終了しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop agenda is presented in Table 1 and on the NIST event information page [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップのアジェンダは、表 1 および NIST のイベント情報ページ [4] に示されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1: Workshop Agenda</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1: ワークショップのアジェンダ</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Time</th><th>Activity and Presenters</th></tr></thead><tbody><tr><td>12:00 – 12:20 PM</td><td>Welcome and introduction:<br>Kat Megas, Program Manager, NIST Cybersecurity for IoT Program<br>Mike Fagan, Technical Lead, NIST Cybersecurity for IoT Program<ul><li>Overview of NIST IoT Cybersecurity program, core baseline and profiling work</li><li>Overview of NCCoE work related to Consumer IoT Cybersecurity</li></ul></td></tr><tr><td>12:20 – 1:20 PM</td><td>Panel 1: What makes a consumer IoT device different?<ul><li>Moderator: Barbara Cuthill, Deputy Program Manager, Cybersecurity for IoT Program (NIST)</li><li>Maarten Bron, Managing Director, Riscure</li><li>L. Jean Camp, Professor, Indiana University Bloomington</li><li>Mark Haney, Laboratory for Telecommunication Sciences, University of Maryland</li><li>Rebecca Herold, The Privacy Professor Consultancy</li><li>Andrew Tierney, IoT Security Consultant, Pen Test Partners</li></ul></td></tr><tr><td>1:20 – 1:30 PM</td><td>Break</td></tr><tr><td>1:30 – 2:30 PM</td><td>Panel 2: What barriers exist to meeting the baseline in NISTIR 8259A IoT device Cybersecurity Capability Core Baseline in Consumer Devices?<ul><li>Moderator: Mike Fagan, Technical Lead, NIST Cybersecurity for IoT Program</li><li>Mike Bergman, Vice President of Technology and Standards, Consumer Technology Association</li><li>Julie Haney, Computer Scientist, Visualization and Usability Group, NIST</li><li>Michelle Richardson, Director of the Data and Privacy Project, Center for Democracy and Technology</li><li>David Thaler, Partner Software Architect, Microsoft</li></ul></td></tr><tr><td>2:30 – 2:45 PM</td><td>Break<br>Transition to Plenary Session</td></tr><tr><td>2:45 – 3:45 PM</td><td>Breakout Sessions<br>Facilitated discussions on what tools and guidance are needed to build and support more secure consumer home IoT devices</td></tr><tr><td>3:45 – 4:00 PM</td><td>Break<br>Transition to Plenary Session</td></tr><tr><td>4:00 – 4:20 PM</td><td>Readout from Breakout Sessions<br>Facilitator Panel</td></tr><tr><td>4:20 – 4:30 PM</td><td>Concluding Remarks: Kat Megas, Program Manager, NIST Cybersecurity for IoT Program</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>時間</th><th>内容と発表者</th></tr></thead><tbody><tr><td>12:00 – 12:20 PM</td><td>歓迎の挨拶と紹介:<br>Kat Megas, Program Manager, NIST Cybersecurity for IoT Program<br>Mike Fagan, Technical Lead, NIST Cybersecurity for IoT Program<ul><li>NIST の IoT サイバーセキュリティプログラム、コアベースライン、プロファイリングの取り組みの概要</li><li>消費者向け IoT サイバーセキュリティに関する NCCoE の取り組みの概要</li></ul></td></tr><tr><td>12:20 – 1:20 PM</td><td>パネル 1: 消費者向け IoT デバイスを特徴づける違いとは何か<ul><li>司会: Barbara Cuthill, Deputy Program Manager, Cybersecurity for IoT Program (NIST)</li><li>Maarten Bron, Managing Director, Riscure</li><li>L. Jean Camp, Professor, Indiana University Bloomington</li><li>Mark Haney, Laboratory for Telecommunication Sciences, University of Maryland</li><li>Rebecca Herold, The Privacy Professor Consultancy</li><li>Andrew Tierney, IoT Security Consultant, Pen Test Partners</li></ul></td></tr><tr><td>1:20 – 1:30 PM</td><td>休憩</td></tr><tr><td>1:30 – 2:30 PM</td><td>パネル 2: 消費者向けデバイスで NISTIR 8259A IoT device Cybersecurity Capability Core Baseline のベースラインを満たすうえで、どのような障壁があるか<ul><li>司会: Mike Fagan, Technical Lead, NIST Cybersecurity for IoT Program</li><li>Mike Bergman, Vice President of Technology and Standards, Consumer Technology Association</li><li>Julie Haney, Computer Scientist, Visualization and Usability Group, NIST</li><li>Michelle Richardson, Director of the Data and Privacy Project, Center for Democracy and Technology</li><li>David Thaler, Partner Software Architect, Microsoft</li></ul></td></tr><tr><td>2:30 – 2:45 PM</td><td>休憩<br>全体セッションへの移行</td></tr><tr><td>2:45 – 3:45 PM</td><td>分科会<br>より安全な消費者向け家庭用 IoT デバイスを構築・支援するために、どのようなツールとガイダンスが必要かについての、進行役つきの議論</td></tr><tr><td>3:45 – 4:00 PM</td><td>休憩<br>全体セッションへの移行</td></tr><tr><td>4:00 – 4:20 PM</td><td>分科会の報告<br>進行役によるパネル</td></tr><tr><td>4:20 – 4:30 PM</td><td>閉会の挨拶: Kat Megas, Program Manager, NIST Cybersecurity for IoT Program</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop drew approximately 338 participants, including attendees, panelists, and moderators, from 13 countries. These participants came from many types of organizations, including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップには、13 か国から、出席者、パネリスト、司会者を合わせて約 338 人が参加しました。参加者は、次のようなさまざまな種類の組織から来ていました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Fourteen academic institutions from across the country</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">全国の 14 の学術機関</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Nine non-profit organizations, including consumer electronics and engineering, and business/trade associations</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者向け電子機器・エンジニアリング関連、およびビジネス／業界団体を含む 9 つの非営利組織</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Approximately 60 private sector businesses, including major corporations, IoT device manufacturers, small businesses, and high-technology firms</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">大企業、IoT デバイスの製造者、中小企業、ハイテク企業を含む、約 60 の民間企業</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Fourteen management consulting firms</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">14 の経営コンサルティング会社</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Sixteen federal, state, and local government organizations, including civil, defense, and intelligence agencies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">文民機関、国防機関、情報機関を含む、16 の連邦・州・地方政府組織</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST sought a wide range of workshop attendees involved in the consumer home IoT market to hear their views. Consumers have a broad range of technical expertise, but most are much less familiar with cybersecurity than the specialists employed by businesses and government. On the other hand, the market is exploding with new consumer IoT devices that incorporate a variety of ideas and approaches to implementing device functionality and cybersecurity. The NIST Cybersecurity for IoT program is attempting to identify the critical elements of this complex market that will make a substantial difference in the cybersecurity capabilities available in consumer home IoT devices.<sup>1</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、消費者向け家庭用 IoT 市場に関わる幅広いワークショップ出席者を求め、その意見を聞きました。消費者の技術的な専門知識の幅は広いものの、そのほとんどは、企業や政府に勤務する専門家に比べて、サイバーセキュリティにはるかになじみがありません。一方で、市場には、デバイスの機能とサイバーセキュリティを実装するための多様なアイデアや手法を取り入れた、新しい消費者向け IoT デバイスが爆発的に増えています。NIST の IoT サイバーセキュリティプログラムは、消費者向け家庭用 IoT デバイスで利用できるサイバーセキュリティ機能に大きな違いをもたらす、この複雑な市場の重要な要素を特定しようとしています。<sup>1</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>During the workshop panels, participants submitted questions and participated in a series of six polls as a mechanism to share feedback and influence the focus of panel discussions. The poll questions and results are presented in Appendix A. Since workshop attendees created a by-definition, self-selected survey group and poll responses were entirely voluntary, poll results should be not viewed as providing generalizable results for their questions. During the workshop breakouts, which consisted of significantly smaller groups of participants, facilitated discussions encouraged open conversation and the exchange of ideas.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップのパネルの間、参加者は質問を提出し、フィードバックを共有してパネルディスカッションの焦点に影響を与える仕組みとして、6 件の一連の投票に参加しました。投票の質問と結果は附属書 A に示します。ワークショップの出席者は、定義上、自己選択による調査グループを形成しており、投票への回答はまったく任意であったため、投票結果を、各質問について一般化できる結果とみなすべきではありません。参加者の人数がはるかに少ない分科会では、進行役つきの議論が、率直な対話と意見交換を促しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Videos of each workshop segment are available on the event web page [4]. Based on the participant presentations and stakeholder feedback collected, this report provides a summary of key points, common themes, and a general discussion of possible follow-on activities for NIST’s IoT program.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの各セグメントの動画は、イベントのウェブページ [4] で入手できます。本報告書は、参加者の発表と収集した利害関係者のフィードバックに基づいて、要点、共通のテーマの要約と、NIST の IoT プログラムの今後の活動の可能性に関する全般的な議論を示します。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0009-b0006" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> The catalog of technical cybersecurity capabilities and non-technical supporting capabilities can be viewed on GitHub at https://pages.nist.gov/FederalProfile-8259A [5]. Feedback can be submitted by submitting issues to the repository at https://github.com/usnistgov/FederalProfile-8259A.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> 技術的なサイバーセキュリティ機能と、技術以外の補助的な機能のカタログは、GitHub の https://pages.nist.gov/FederalProfile-8259A [5] で閲覧できます。フィードバックは、リポジトリ https://github.com/usnistgov/FederalProfile-8259A に issue を提出することで送付できます。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2 Summary and Key Takeaways</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2 概要と主な要点</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following takeaways are the ideas, observations, and suggestions that NIST heard from workshop participants and that received significant support from attendees and/or panelists. This workshop was not a forum for developing consensus; rather, the takeaways represent recurrent themes which emerged during the event—not formal positions taken by attendees or participants. While this document seeks to thoroughly summarize discussions and viewpoints expressed by panelists and participants, it cannot capture every thought, opinion, and suggestion provided during the sessions. The takeaways do not represent specific NIST recommendations or guidance; rather, they provide important feedback to the program, and serve as a basis for future conversations with the community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の要点は、NIST がワークショップの参加者から聞いた考え、所見、提案であり、出席者やパネリストの大きな支持を得たものです。このワークショップは、合意を形成する場ではありませんでした。要点は、イベントの間に現れた繰り返しのテーマを表すものであり、出席者や参加者が取った正式な立場ではありません。本書は、パネリストと参加者が述べた議論や見解を網羅的に要約しようとするものですが、セッション中に出されたすべての考え、意見、提案を網羅できるわけではありません。要点は、NIST の特定の推奨事項やガイダンスを表すものではなく、プログラムへの重要なフィードバックとなり、コミュニティとの今後の対話の基礎となるものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 1: Creating a more secure IoT ecosystem for consumer devices can benefit all manufacturers and the “common good.”</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0010-table-01.png" alt="原本 PDF p.10 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 1: 消費者向けデバイスについて、より安全な IoT エコシステムを作り出すことは、すべての製造者と「公共の利益」にとって有益となりえます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants expressed their support for creating a more secure ecosystem for home IoT devices and believe this can benefit the “common good.” Panelist Michelle Richardson said, “We encourage people to design for the masses. We need people to accept that security is a common good.”</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、家庭用 IoT デバイスのより安全なエコシステムを作り出すことを支持する考えを示し、これが「公共の利益」にとって有益となりうると考えています。パネリストの Michelle Richardson は、「私たちは、大衆のために設計することを奨励します。セキュリティが公共の利益であることを、みなさんに受け入れていただく必要があります」と述べました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants discussed some key issues and challenges with defining what this ecosystem might look like, such as:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、このエコシステムがどのようなものになりうるかを定義するうえでの、いくつかの主な問題と課題について議論しました。たとえば、次のようなものです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The Magnitude of the Home IoT Ecosystem—Participants agreed that the sheer size of the home IoT ecosystem is a challenge in and of itself. Panelist Mark Haney explained, “A device may have security, but the host may be vulnerable. Many times, the host is a critical part of the IoT ecosystem. And that ecosystem is vast.” Panelist Maarten Bron added, “When you compare consumer IoT to industrial IoT, the main difference is the sheer size of it. With such a large attack surface, the number of devices increases along with the potential for an attack…attackers study vulnerabilities…Once one device is hacked, it opens up attacks to others.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">家庭用 IoT エコシステムの規模—参加者は、家庭用 IoT エコシステムの規模の大きさそのものが課題であるという点で一致しました。パネリストの Mark Haney は、「デバイスにセキュリティがあっても、ホストが脆弱である場合があります。ホストは、IoT エコシステムの重要な一部であることが多くあります。そして、そのエコシステムは広大です」と説明しました。パネリストの Maarten Bron は、「消費者向け IoT と産業用 IoT を比べると、主な違いはその規模の大きさです。これほど大きな攻撃対象領域では、デバイスの数が増えるにつれて、攻撃の可能性も高まります……攻撃者は脆弱性を研究しています……一つのデバイスが侵害されると、他のデバイスへの攻撃への道が開かれます」と付け加えました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Managing Security Breaches—Mark Haney said, “Devices installed in homes rely on an ecosystem to collect information and make decisions about things in your home. A breach can result in a loss of consumer confidence in a company or technology.” Haney cited self-driving cars as an example of this phenomenon, where the entire industry—not just the individual car manufacturer—experienced a loss in consumer confidence as reports questioning the safety of the technology began to surface. Michelle Richardson added, “There is a lack of consequences for poor design; that is changing. Find problems in systems before there’s an actual breach and enforce against them.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティ侵害の管理—Mark Haney は、「家庭に設置されたデバイスは、情報を収集し、家庭内のことについて判断を下すために、エコシステムに依存しています。侵害によって、企業や技術に対する消費者の信頼が失われる場合があります」と述べました。Haney は、この現象の例として自動運転車を挙げました。この技術の安全性に疑問を呈する報告が出始めると、個々の自動車メーカーだけでなく、業界全体で消費者の信頼が失われました。Michelle Richardson は、「不十分な設計に対する結果責任がない状況がありますが、それは変わりつつあります。実際に侵害が起きる前にシステムの問題を見つけ、それらに対する措置を講じてください」と付け加えました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Meeting the Core Baseline—Panelist Mike Bergman said the baseline “is a strong foundational document to build on—not something you live in...engineers need detailed technical requirements.” Workshop participants agreed that having examples of, and more information about how different IoT devices can work together in the home IoT ecosystem is beneficial, and that customers (retailers, enterprises, consumers) need assurances that a home IoT product meets NIST’s core baseline.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">コアベースラインの充足—パネリストの Mike Bergman は、このベースラインは「その上に構築していくための強力な基礎となる文書であり、そこで暮らすようなものではありません……エンジニアには、詳細な技術要件が必要です」と述べました。ワークショップの参加者は、異なる IoT デバイスが家庭用 IoT エコシステム内でどのように連携できるかについて、事例やより多くの情報があることは有益であり、顧客（小売業者、エンタープライズ、消費者）には、家庭用 IoT 製品が NIST のコアベースラインを満たしているという保証が必要であるという点で一致しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Varying Degrees of Knowledge—The home IoT ecosystem is impacted by the fact that manufacturers have different degrees of in-house cybersecurity expertise, skills, and capabilities that can influence how much cybersecurity they are capable of building into home IoT devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">知識の程度の差—製造者によって、社内のサイバーセキュリティに関する専門知識、スキル、能力の程度が異なり、それが家庭用 IoT デバイスにどの程度のサイバーセキュリティを組み込めるかに影響することで、家庭用 IoT エコシステムは影響を受けます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 2: Manufacturers are challenged by balancing the design and functionality of consumer IoT devices against maintaining a viable cost structure for their target market.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0011-table-01.png" alt="原本 PDF p.11 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 2: 製造者は、消費者向け IoT デバイスの設計および機能と、対象市場に見合った採算の取れるコスト構造の維持との間で、バランスを取ることに苦慮しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Manufacturers are in the business of creating products that meet their customers’ needs and goals, which are constantly shifting against a backdrop of perceptions and realities that influence the home IoT market, including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製造者の事業は、顧客のニーズや目標を満たす製品を作ることですが、それらは、家庭用 IoT 市場に影響する認識や現実を背景に、絶えず変化しています。たとえば、次のようなものです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">There is a widely held perception among manufacturers that consumers place a higher value on the design/functionality/aesthetics/usability of home IoT devices and a lesser value on security. As a result, manufacturers have invested more resources into creating designs that are feature-rich and user-friendly and less on cybersecurity. Maarten Bron said, “Some research indicates that in general, consumers perceive value in functions/features of a device. For manufacturers, cybersecurity is knowledge/resource intense.” Panelist Rebecca Herold observed that “manufacturers invest more into making the device look good and easy to use.” Bron said that manufacturers do not know where to start in terms of “baking security” into home IoT devices, and cited NISTIRs and other European government agency documents as helpful references for manufacturers.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者の間では、消費者は家庭用 IoT デバイスの設計／機能／美観／使いやすさをより高く評価し、セキュリティはそれほど評価していないという認識が広く持たれています。その結果、製造者は、サイバーセキュリティよりも、機能が豊富でユーザーフレンドリーな設計を作り出すことに、より多くのリソースを投じてきました。Maarten Bron は、「一部の研究によれば、一般に消費者はデバイスの機能や特徴に価値を見出しています。製造者にとって、サイバーセキュリティは知識とリソースを大量に必要とするものです」と述べました。パネリストの Rebecca Herold は、「製造者は、デバイスの見栄えを良くし、使いやすくすることにより多くを投資している」と指摘しました。Bron は、製造者が家庭用 IoT デバイスに「セキュリティを組み込む」うえで、どこから始めればよいか分からないでいると述べ、製造者にとって役立つ参考資料として、NISTIR や欧州の政府機関の他の文書を挙げました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Some workshop participants challenged the perception that consumers do not value security as much as they do usability and features. Panelist Jean Camp said, “We’re asking consumers to evaluate risk with no basis to do so. If you give people a default that offers privacy and security, they will choose to pay more. One study showed that consumers will pay on average $17 more for a lightbulb that’s private and secure.” Panelist Rebecca Herold added, “Manufacturers assume that consumers don’t care if security isn’t built in because if they wanted it, they would ask for it. The problem with that belief is that most consumers assume security is already built in and turned on by default.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">一部のワークショップ参加者は、消費者がセキュリティを、使いやすさや機能ほど重視していないという認識に異議を唱えました。パネリストの Jean Camp は、「私たちは、消費者に、評価する根拠もないままリスクを評価するよう求めています。プライバシーとセキュリティを備えたものを初期設定として提供すれば、人々はより多く支払うことを選びます。ある調査では、プライバシーとセキュリティが確保された電球に対して、消費者は平均して 17 ドル多く支払うことが示されました」と述べました。パネリストの Rebecca Herold は、「製造者は、セキュリティが組み込まれていなくても、欲しければ消費者が求めるはずだから、消費者は気にしていないと考えています。この考え方の問題は、ほとんどの消費者が、セキュリティはすでに組み込まれていて、初期設定で有効になっていると思い込んでいることです」と付け加えました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Manufacturers’ delays in adding security features (encryption, adding more powerful processors, locked down interfaces, strong password usage) to home IoT devices may result in increased costs, design changes, or have an impact on functionality. Mark Haney gave an example of having to charge a smart watch battery daily versus weekly. Panelist Andrew Tierney gave another example using multi-factor authentication (MFA): “MFA represents a massive security improvement and stops password phishing. However, because consumers don’t want barriers, some companies are hurt by deploying MFA. Consumers will go elsewhere.” These examples illustrate what can occur when manufacturers add cybersecurity device capabilities that consume substantially more power, and how that can create usability issues.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者が家庭用 IoT デバイスにセキュリティ機能（暗号化、より強力なプロセッサの追加、ロックダウンされたインタフェース、強力なパスワードの使用）を追加するのが遅れると、コストの増加、設計変更、機能への影響が生じる場合があります。Mark Haney は、スマートウォッチのバッテリーを毎週ではなく毎日充電しなければならなくなる例を挙げました。パネリストの Andrew Tierney は、多要素認証（MFA）を使った別の例を挙げました。「MFA はセキュリティを大幅に向上させ、パスワードのフィッシングを防ぎます。しかし、消費者は障壁を望まないため、MFA を導入したことで打撃を受ける企業もあります。消費者は他の企業に移ってしまいます」。これらの例は、製造者が、消費電力が大幅に増えるサイバーセキュリティのデバイス機能を追加した場合に何が起こりうるか、またそれがどのように使いやすさの問題を生じさせるかを示しています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Manufacturers must ensure they have adequate hardware to accommodate the customer’s needs, with the understanding that maintaining cybersecurity is an ongoing effort that requires them to supply hardware/software and other infrastructure. Panelist Rob Coombs commented that consumers should be informed how long a manufacturer intends to provide software updates for their devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者は、サイバーセキュリティの維持が、ハードウェア／ソフトウェアやその他のインフラストラクチャを供給し続けることを求める継続的な取り組みであることを理解したうえで、顧客のニーズに対応する十分なハードウェアを確保しなければなりません。パネリストの Rob Coombs は、製造者がデバイスのソフトウェア更新をいつまで提供するつもりかを、消費者に知らせるべきだとコメントしました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Manufacturers must perpetually weigh the benefits of added security with the costs to implement these features and the effect that additional security features can have on device usability and aesthetics. Because manufacturers have gained many insights into their customers’ preferences and behaviors over the years, they are better positioned to meet this challenge.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製造者は、セキュリティを強化することの利点と、これらの機能を実装するコスト、およびセキュリティ機能の追加がデバイスの使いやすさや美観に及ぼしうる影響とを、絶えず比較検討しなければなりません。製造者は長年にわたり、顧客の好みや行動について多くの洞察を得てきたため、この課題に取り組むうえでより有利な立場にあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 3: Manufacturers can benefit by having a recognized business model around a “connected device lifecycle” that covers the mechanical and information technology (IT) components of a home IoT device.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0012-table-01.png" alt="原本 PDF p.12 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 3: 家庭用 IoT デバイスの機械的な構成要素と情報技術（IT）の構成要素の両方を対象とする「接続されたデバイスのライフサイクル」に関する、認知されたビジネスモデルを持つことは、製造者にとって有益となりえます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants discussed some of the key challenges with creating a standard business model or connected device lifecycle that addresses the distinct lifecycles for both the mechanical and IT components of a home IoT device, as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、家庭用 IoT デバイスの機械的な構成要素と IT の構成要素の、それぞれ異なるライフサイクルに対応する、標準的なビジネスモデルまたは接続されたデバイスのライフサイクルを作成するうえでの、主な課題のいくつかについて議論しました。内容は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Because some home IoT devices’ mechanical components have longer lifecycles compared to their IT components, this results in a gap between the expected useful life of the mechanical components compared to the IT components within the same device.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">家庭用 IoT デバイスによっては、機械的な構成要素のライフサイクルが IT の構成要素よりも長いため、同じデバイス内で、機械的な構成要素と IT の構成要素の想定耐用年数に差が生じます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Because mechanical components often outlive their IT counterparts, manufacturers often drop IT infrastructures (how secure is it, how long will it last, who provides updates, who performs updates, etc.) because they do not have the technical expertise. Therefore, the IT becomes obsolete, and/or the costs become prohibitively expensive over time. Panelist Mike Bergman said, “Manufacturers don’t have a business model to support a device that lasts 20 years…infrastructures get dropped because manufacturers can’t maintain them.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">機械的な構成要素は IT の構成要素よりも長持ちすることが多いため、製造者は、技術的な専門知識を持たないという理由で、IT インフラストラクチャ（それはどの程度安全か、どのくらい持続するか、誰が更新を提供するか、誰が更新を実施するか、など）を切り捨てることがよくあります。その結果、IT が陳腐化したり、時間の経過とともにコストが法外に高くなったりします。パネリストの Mike Bergman は、「製造者には、20 年持続するデバイスを支えるビジネスモデルがありません……製造者は維持できないので、インフラストラクチャが切り捨てられます」と述べました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mark Haney observed that companies struggle to maintain their host environments, and said, “You don’t hear a lot about abandoned infrastructure. For instance, a $49 smart night light is no longer IoT capable because its infrastructure was orphaned. Over time, you lose functionality.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mark Haney は、企業が自社のホスト環境を維持するのに苦労していると指摘し、「放棄されたインフラストラクチャについては、あまり耳にしません。たとえば、49 ドルのスマート常夜灯は、インフラストラクチャが見捨てられたために、もう IoT として使えません。時間がたつと、機能が失われていきます」と述べました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Participants raised the issue of making subscriptions available to consumers. Mike Bergman explained that manufacturers have started to experiment with subscription models to enable more functionality and to extend the life of the IT infrastructure, but more work is needed in this area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">参加者は、消費者がサブスクリプションを利用できるようにするという問題を提起しました。Mike Bergman は、製造者がより多くの機能を提供し、IT インフラストラクチャの寿命を延ばすために、サブスクリプションモデルを試し始めているものの、この分野ではさらなる取り組みが必要だと説明しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers are developing more familiarity with maintenance of IT components across their lifecycle. This familiarity will help consumers understand what is required for a viable IT infrastructure. This may be more aspirational at this point. Ideally, this will result in informed consumers valuing the maintenance of a device’s IT infrastructure as they do the maintenance of mechanical components.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者は、ライフサイクル全体にわたる IT の構成要素の保守について、理解を深めつつあります。この理解は、消費者が、実現可能な IT インフラストラクチャに何が必要かを理解するのに役立ちます。これは、現時点ではどちらかといえば願望に近いかもしれません。理想的には、これにより、情報を得た消費者が、機械的な構成要素の保守を重視するのと同じように、デバイスの IT インフラストラクチャの保守を重視するようになります。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 4: Consumers cannot bear the sole responsibility of maintaining cybersecurity on IoT devices.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0013-table-01.png" alt="原本 PDF p.13 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 4: 消費者は、IoT デバイスのサイバーセキュリティを維持する責任を、単独で負うことはできません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants generally agreed that consumers are being overwhelmed with maintaining security for IoT devices. Participants shared their diverse views around their perceptions of the consumer’s role in maintaining cybersecurity for their home IoT devices, including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、消費者が IoT デバイスのセキュリティを維持することに圧倒されているという点で、おおむね一致しました。参加者は、家庭用 IoT デバイスのサイバーセキュリティを維持するうえでの消費者の役割に対する認識について、次のものを含むさまざまな見解を共有しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cybersecurity should fall on manufacturers and integrators rather than consumers. Jean Camp said, “Seventy-one percent of IoT medical devices suffer ransomware infections that are caused by the user. People are incapable of making an informed decision without information, but they get blamed when an attack happens.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サイバーセキュリティの責任は、消費者ではなく、製造者とインテグレーターが負うべきです。Jean Camp は、「IoT 医療機器の 71 パーセントが、ユーザーに起因するランサムウェア感染を受けています。人々は、情報がなければ十分な情報に基づく判断を下すことができませんが、攻撃が起きると非難されます」と述べました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Associations, manufacturers, integrators, and other stakeholders can create minimum security standards that IoT devices should meet before coming to market.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">業界団体、製造者、インテグレーター、その他の利害関係者は、IoT デバイスが市場に出る前に満たすべき最低限のセキュリティ標準を作成できます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers expect retailers to sell home IoT devices that meet a minimum cybersecurity standard.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者は、小売業者が、最低限のサイバーセキュリティ標準を満たす家庭用 IoT デバイスを販売することを期待しています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mike Bergman stated that the continued availability of resources such as NISTIR 8259A can improve the cybersecurity of home IoT devices. While the situation has improved over the past five years, more resources and guidance are needed to strengthen the cybersecurity of home IoT devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mike Bergman は、NISTIR 8259A のようなリソースが引き続き利用できることで、家庭用 IoT デバイスのサイバーセキュリティを向上させられると述べました。状況は過去 5 年間で改善しましたが、家庭用 IoT デバイスのサイバーセキュリティを強化するには、さらに多くのリソースとガイダンスが必要です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Manufacturers can build security into IoT devices that conforms to a detailed baseline. Dave Thaler noted that consumers do not view security as a feature for most devices and that if manufacturers are meeting the core baseline, they should convey the benefits of doing so to the consumer in terms the consumer can understand.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者は、詳細なベースラインに適合するセキュリティを IoT デバイスに組み込むことができます。Dave Thaler は、消費者はほとんどのデバイスでセキュリティを機能の一つとはみなしておらず、製造者がコアベースラインを満たしている場合は、そのことによる利点を、消費者が理解できる言葉で消費者に伝えるべきだと指摘しました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 5: Software and patch updates are critical to maintaining security, but a consumer’s ability to deploy them is limited.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0013-table-02.png" alt="原本 PDF p.13 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 5: ソフトウェアとパッチの更新はセキュリティの維持に不可欠ですが、消費者がそれらを展開する能力には限りがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In a home environment, the consumer is responsible for deploying software updates and patches. These deployments are at the core of home IoT cybersecurity and are critical since unpatched known vulnerabilities remain a common root cause of cybersecurity incidents.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>家庭環境では、ソフトウェアの更新とパッチを展開する責任は消費者にあります。これらの展開は、家庭用 IoT サイバーセキュリティの中核であり、パッチが適用されていない既知の脆弱性は、サイバーセキュリティインシデントの一般的な根本原因であり続けているため、極めて重要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants agreed that the typical customer’s ability to securely configure and launch updates/patches for a device is limited and shared these observations:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、一般的な顧客が、デバイスの更新／パッチを安全に構成して開始する能力には限りがあるという点で一致し、次の所見を共有しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers often do not understand the benefit of conducting updates or do not recognize the urgency. Jean Camp said, “We can’t blame people for making decisions about security when there’s no information about privacy and security provided to them.” And as Julie Haney pointed out, “Personal responsibility doesn’t always involve taking action. A consumer who buys an IoT device hopes or assumes that it is secure.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者は、更新を行うことの利点を理解していないか、その緊急性を認識していないことが多くあります。Jean Camp は、「プライバシーとセキュリティに関する情報が提供されていないのに、人々がセキュリティについて下す判断を責めることはできません」と述べました。また、Julie Haney は、「個人の責任は、必ずしも行動を取ることを意味しません。IoT デバイスを購入した消費者は、それが安全であることを期待し、あるいは安全だと思い込んでいます」と指摘しました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants agreed that more education can help consumers understand why updates/patches are important to maintaining the cybersecurity of a device, and the relationship among security, safety, and privacy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、教育を拡充することで、更新／パッチがデバイスのサイバーセキュリティの維持になぜ重要なのか、またセキュリティ、安全、プライバシーの関係を、消費者が理解するのに役立つという点で一致しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Even if a consumer is informed about cybersecurity, they may not be able to act on a manufacturer’s recommendation to secure a device for a variety of reasons (e.g., lack of technical ability, unwilling to spend time on making updates, complexity of varied schedules and methods for updates, etc.) Julie Haney said, “We found that people have a fair number of concerns around security…even if the owners want to do something, they don’t know how to go about it.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者がサイバーセキュリティについて十分な情報を得ていても、さまざまな理由（たとえば、技術的な能力の不足、更新に時間をかけたくない、更新のスケジュールや方法が多様で複雑であることなど）から、デバイスを保護するという製造者の推奨に従って行動できない場合があります。Julie Haney は、「人々はセキュリティについてかなりの数の懸念を持っていることが分かりました……所有者が何かをしたいと思っても、どう進めればよいか分からないのです」と述べました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">From a manufacturer’s perspective, because of the complexity and size of the home IoT space, they each handle software updates differently. As a result, consumers are having inconsistent experiences with deploying updates, which may explain why consumers express confusion or ambivalence around patching. One solution is for manufacturers to push updates directly to a home IoT device—shifting the burden from consumers by automating software updates/patches.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者の観点からは、家庭用 IoT 分野は複雑で規模が大きいため、各社がソフトウェアの更新を異なる方法で扱っています。その結果、消費者は更新の展開で一貫しない体験をしており、これがパッチ適用について消費者が混乱や迷いを示す理由かもしれません。解決策の一つは、製造者が家庭用 IoT デバイスに直接更新をプッシュすることで、ソフトウェアの更新／パッチを自動化し、消費者の負担を軽減することです。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 6: Privacy plays a role in the manufacture and consumption of home IoT devices but is not well understood by consumers.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0014-table-01.png" alt="原本 PDF p.14 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 6: プライバシーは、家庭用 IoT デバイスの製造と消費において一定の役割を果たしていますが、消費者にはよく理解されていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Consumers value privacy; however, workshop respondents agreed that they lack awareness around how their privacy is impacted when an IoT device is deployed in their homes. Moreover, workshop participants agreed that consumers can better understand the issues around privacy and how it affects them more than they can cybersecurity. Jean Camp said, “Consumers are willing to pay more for security/privacy, but they need information about security/privacy to make informed decisions.” Consumers are also more concerned with infringements on their privacy, but do not feel empowered or know what actions to take to protect themselves. Julie Haney put it simply: “People don’t trust manufacturers to respect their privacy.” All combined, these factors give consumers a sense of discomfort around home IoT devices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>消費者はプライバシーを重視していますが、ワークショップの回答者は、自宅に IoT デバイスを導入したときに自分のプライバシーがどう影響を受けるかについての認識が、消費者に欠けているという点で一致しました。さらに、ワークショップの参加者は、消費者はサイバーセキュリティよりも、プライバシーに関する問題とそれが自分にどう影響するかのほうを、よく理解できるという点で一致しました。Jean Camp は、「消費者はセキュリティ／プライバシーのためにより多く支払う意思がありますが、十分な情報に基づく判断をするには、セキュリティ／プライバシーに関する情報が必要です」と述べました。消費者は、自分のプライバシーの侵害にもより強い懸念を抱いていますが、力を与えられているとは感じておらず、自分を守るために取るべき行動も分かりません。Julie Haney は、「人々は、製造者が自分のプライバシーを尊重してくれるとは信頼していません」と簡潔に述べました。これらすべての要因が重なり、消費者は家庭用 IoT デバイスに対して不安を感じています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop participants identified some key issues pertaining to privacy and home IoT devices as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、プライバシーと家庭用 IoT デバイスに関する主な問題をいくつか特定しました。内容は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Third Parties—Manufacturers may not routinely include a privacy policy explaining to consumers how their data is collected from their IoT devices and then shared with third parties. Privacy policies that are provided tend not to be easy to find or in plain language. As a result, consumers are left unaware and uninformed about the role of third parties and how much access they have to their information. Workshop participants generally supported greater disclosure, as Rebecca Herold explained: “Consumer IoT devices collect a massive amount of data that is rarely stored within the device, but in a cloud server. That data is shared downstream with other third parties. Consumers don’t know how many third parties have this data because a privacy policy is not presented with details on how the device is used. Privacy is an afterthought, not an integral part of the design.” Maarten Bron shared this caveat: “When it comes to data—if you can’t protect it, don’t collect it.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第三者—製造者は、消費者向け IoT デバイスからデータがどのように収集され、第三者と共有されるかを消費者に説明するプライバシーポリシーを、日常的に含めているとは限りません。提供されているプライバシーポリシーも、見つけにくかったり、平易な言葉で書かれていなかったりする傾向があります。その結果、消費者は、第三者の役割や、第三者が自分の情報にどの程度アクセスできるかを知らされず、把握していません。ワークショップの参加者は、Rebecca Herold が説明したように、情報開示の拡充をおおむね支持しました。「消費者向け IoT デバイスは膨大な量のデータを収集しますが、そのデータがデバイス内に保存されることはまれで、クラウドサーバーに保存されます。そのデータは、下流で他の第三者と共有されます。デバイスの使われ方の詳細を示すプライバシーポリシーが提示されないため、消費者は、どれだけの数の第三者がこのデータを持っているかを知りません。プライバシーは設計に不可欠な要素ではなく、後回しにされています」。Maarten Bron は、「データに関しては、保護できないなら収集しないことです」という注意点を共有しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Information—As part of the process of setting up an IoT device, consumers will share personal information such as name, home address, and email address. Participants touched on what might happen to this information should the infrastructure be abandoned but could not reach any conclusions. At the present time, there is no single, predictable model for what happens to that information.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">情報—IoT デバイスの設定の過程で、消費者は氏名、自宅住所、メールアドレスなどの個人情報を共有します。参加者は、インフラストラクチャが放棄された場合にこの情報がどうなるかに触れましたが、結論には至りませんでした。現時点では、その情報がどうなるかについて、単一の予測可能なモデルはありません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Takeaway 7: Consumer education about home IoT cybersecurity should be an ongoing, shared responsibility among stakeholders.</p><details class="source-image"><summary>原本PDFの抜粋画像</summary><img src="assets/ir-8333/p0015-table-01.png" alt="原本 PDF p.15 の画像抜粋"></details><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要点 7: 家庭用 IoT のサイバーセキュリティに関する消費者教育は、利害関係者が継続的に共有して担う責任であるべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the home IoT market, consumers have a range of expectations, assumptions, and levels of awareness around the cybersecurity of these devices. Workshop participants examined some of the challenges around consumer education and home IoT device cybersecurity, which echoed some of the key points raised throughout the workshop discussions, including:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>家庭用 IoT 市場では、消費者は、これらのデバイスのサイバーセキュリティについて、さまざまな期待、思い込み、認識の度合いを持っています。ワークショップの参加者は、消費者教育と家庭用 IoT デバイスのサイバーセキュリティをめぐる課題をいくつか検討しました。それらは、ワークショップの議論全体で提起された主な論点のいくつかと呼応するものであり、次のものを含みます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">As the IoT devices market matures and consumers become more familiar with IoT devices, they may start demanding that manufacturers make security a higher priority.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IoT デバイス市場が成熟し、消費者が IoT デバイスに慣れるにつれて、消費者は、製造者にセキュリティをより高い優先事項とするよう求め始めるかもしれません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers are being asked to evaluate risk without enough information to make informed decisions. This needs to change.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者は、十分な情報に基づく判断をするための十分な情報がないまま、リスクを評価するよう求められています。これは変える必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers assume that security is built into an IoT device, but that is not always the case. In addition, there is an unreasonable expectation for consumers to secure devices when they may not have the ability or enough information from the manufacturer to perform this function.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者は、セキュリティが IoT デバイスに組み込まれていると思い込んでいますが、そうとは限りません。加えて、消費者がデバイスを保護する能力を持たない、あるいは製造者からこの機能を果たすための十分な情報を得られないにもかかわらず、保護することを求めるのは、不合理な期待です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">When manufacturers supply consumers with information about a device’s security and privacy risks, consumers are better positioned to make informed decisions on whether or not to make the purchase and what is required of them.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者がデバイスのセキュリティおよびプライバシーのリスクに関する情報を消費者に提供すれば、消費者は、購入するかどうか、また自分に何が求められるかについて、十分な情報に基づいて判断しやすくなります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers need more information on what security features to look for when shopping for a home IoT device.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者には、家庭用 IoT デバイスを買う際にどのセキュリティ機能に注目すべきかについて、より多くの情報が必要です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Manufacturers support the notion of consumer education but face challenges such as servicing a diverse customer base with varying abilities and motivations to process technical information.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者は消費者教育という考え方を支持していますが、技術的な情報を処理する能力や意欲がさまざまな、多様な顧客層にサービスを提供するといった課題に直面しています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">For maximum effectiveness, information about a home IoT device’s security should be clear, easy to implement, and visible—similar to how information is displayed on a nutrition label.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">効果を最大にするには、家庭用 IoT デバイスのセキュリティに関する情報は、栄養成分表示ラベルでの情報の表示方法と同様に、明確で、実装しやすく、目に見えるものにすべきです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">If manufacturers build in a certain security standard by default, consumers should have information that is easy to understand and explains how to configure a device to their liking, e.g., turning certain functions on/off or opting in/out of certain settings.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">製造者が特定のセキュリティ標準を初期設定で組み込む場合、消費者には、デバイスを好みに合わせて構成する方法（たとえば、特定の機能のオン／オフの切り替えや、特定の設定のオプトイン／オプトアウト）を説明した、分かりやすい情報を提供すべきです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Some studies reveal that when consumers have information about security, they are willing to pay more for a device. Conversely, manufacturers will need to weigh how much building security in will cost and if their target market is willing to make the tradeoff (higher costs for more security).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">いくつかの研究では、消費者がセキュリティに関する情報を持っていると、デバイスにより多く支払う意思があることが示されています。反対に、製造者は、セキュリティを組み込むのにどれだけのコストがかかるか、また対象市場がそのトレードオフ（より高いセキュリティのためのより高いコスト）を受け入れる意思があるかを、比較検討する必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consumers do not have a mechanism for recognizing which devices meet security baselines and which do not. Customers expect devices to be initially secure, but confidence mechanisms for establishing that security are not available.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">消費者には、どのデバイスがセキュリティベースラインを満たし、どのデバイスが満たしていないかを見分ける仕組みがありません。顧客は、デバイスが最初から安全であることを期待していますが、そのセキュリティを確立するための信頼の仕組みは利用できません。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3 Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3 今後の取り組み</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NIST Cybersecurity for IoT program has identified the following next steps taking into account the takeaways from the workshop, the feedback on draft NISTIR 8267, and ongoing efforts:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の IoT サイバーセキュリティプログラムは、ワークショップの要点、ドラフト NISTIR 8267 に対するフィードバック、継続中の取り組みを考慮して、次の取り組みを特定しました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Survey the Options for Confidence Mechanisms for IoT Devices. NIST should work with consumer groups, industry, standards bodies, and other stakeholders to survey options for confidence mechanisms that enable identification of cybersecurity device capabilities in consumer home IoT devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">IoT デバイスの信頼の仕組みの選択肢を調査します。NIST は、消費者団体、産業界、標準化団体、その他の利害関係者と協力して、消費者向け家庭用 IoT デバイスのサイバーセキュリティ機能を識別できるようにする信頼の仕組みの選択肢を、調査すべきです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Address Software Update and Patching Complexity. NIST could explore ways to work with consumer groups, industry, academia, and other interested stakeholders to address the complexity of software updating/patching and the limits of consumers’ ability to manage updates/patches.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">ソフトウェアの更新とパッチ適用の複雑さに対処します。NIST は、消費者団体、産業界、学界、その他の関心を持つ利害関係者と協力して、ソフトウェアの更新／パッチ適用の複雑さと、消費者による更新／パッチの管理能力の限界に対処する方法を、探ることができます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Consider a Consumer Home IoT Device Profile. NIST could consider how a consumer home IoT device profile of the core baseline might be structured to address the specific concerns of this market.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">消費者向け家庭用 IoT デバイスのプロファイルを検討します。NIST は、この市場に特有の懸念に対処するために、コアベースラインの消費者向け家庭用 IoT デバイスプロファイルをどう構成できるかを検討することができます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Perform an Analysis of the Available Guidance for Consumer IoT Cybersecurity. NIST could conduct an analysis to identify the standards, guidance, and tools currently available; how the standards and guidance overlap and where any critical gaps exist; and what would best support consumer IoT device manufacturers in implementing better security in IoT devices.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">消費者向け IoT サイバーセキュリティのために利用可能なガイダンスの分析を行います。NIST は、現在利用可能な標準、ガイダンス、ツール、標準やガイダンスがどのように重複し、重大なギャップがどこにあるか、そして消費者向け IoT デバイスの製造者が IoT デバイスにより優れたセキュリティを実装するうえで何が最も役立つかを特定する分析を行うことができます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">Determine appropriate revisions for the Product Security Survey. NIST should consider revising NISTIR 8267, Security Survey of Consumer Home Internet of Things (IoT) Products with comments from the workshop.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">製品セキュリティ調査の適切な改訂を決定します。NIST は、ワークショップで寄せられたコメントを踏まえて、NISTIR 8267、Security Survey of Consumer Home Internet of Things (IoT) Products の改訂を検討すべきです。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Fagan MJ, Megas KN, Scarfone KA, Smith M (2020) IoT Device Cybersecurity Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8259A. https://doi.org/10.6028/NIST.IR.8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Fagan MJ, Megas KN, Scarfone KA, Smith M (2020) IoT Device Cybersecurity Capability Core Baseline. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8259A. https://doi.org/10.6028/NIST.IR.8259A</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Fagan M, Yang M, Tan A, Randolph L, Scarfone K (2019) Security Review of Consumer Home Internet of Things (IoT) Products. (National Institute of Standards and Technology, Gaithersburg, MD), Draft NIST Interagency or Internal Report (IR) 8267. https://doi.org/10.6028/NIST.IR.8267-draft</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Fagan M, Yang M, Tan A, Randolph L, Scarfone K (2019) Security Review of Consumer Home Internet of Things (IoT) Products. (National Institute of Standards and Technology, Gaithersburg, MD), Draft NIST Interagency or Internal Report (IR) 8267. https://doi.org/10.6028/NIST.IR.8267-draft</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] National Institute of Standards and Technology (2020) NIST Cybersecurity for IoT Program. Available at https://www.nist.gov/programs-projects/nist-cybersecurity-iot-program</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] National Institute of Standards and Technology (2020) NIST Cybersecurity for IoT Program. 入手先: https://www.nist.gov/programs-projects/nist-cybersecurity-iot-program</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] National Institute of Standards and Technology (2020) Workshop on Cybersecurity Risks in Consumer Home IoT Products. Available at https://www.nist.gov/news-events/events/2020/10/workshop-cybersecurity-risks-consumer-home-iot-products</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] National Institute of Standards and Technology (2020) Workshop on Cybersecurity Risks in Consumer Home IoT Products. 入手先: https://www.nist.gov/news-events/events/2020/10/workshop-cybersecurity-risks-consumer-home-iot-products</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] National Institute of Standards and Technology (2020) Next Steps for the Cybersecurity for IoT Program in the Development of a Federal Profile of NISTIR 8259A. Available at https://pages.nist.gov/FederalProfile-8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] National Institute of Standards and Technology (2020) Next Steps for the Cybersecurity for IoT Program in the Development of a Federal Profile of NISTIR 8259A. 入手先: https://pages.nist.gov/FederalProfile-8259A</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—Poll Results</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+附属書 A—投票結果</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Six online polls were conducted during the workshop. The polls gathered participant viewpoints on a variety of topics related to the challenges of cybersecurity risks for consumer home IoT devices. Since workshop attendees created a by-definition, self-selected survey group and poll responses were entirely voluntary, poll results should be not viewed as providing generalizable results for their questions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップ中に 6 件のオンライン投票を実施しました。投票では、消費者向け家庭用 IoT デバイスのサイバーセキュリティリスクの課題に関連するさまざまなトピックについて、参加者の見解を集めました。ワークショップの出席者は定義上、自己選択による調査グループを形成しており、投票への回答はすべて任意であったため、投票結果を各質問について一般化できる結果とみなすべきではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note: the most popular result for each poll is highlighted in green and the shading provides a visual depiction of how popular each selection was.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>注: 各投票で最も多かった結果は緑色で強調表示され、網掛けは各選択肢がどれだけ多く選ばれたかを視覚的に表しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Poll questions and results are provided below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票の質問と結果を以下に示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.1 Ultimate Demand Driver for Security in Home IoT</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.1 家庭用 IoT のセキュリティに対する最終的な需要を生み出す要因</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0019-b0007" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0019-figure-01.png" alt="Poll result screenshot. Header: “00:51 pm (8 mins)”. Question: “What is the ultimate demand driver for security in home IoT?” Options, percentage (votes): Consumers 40% (46), highlighted in green as the most popular; Regulators 19% (22); Large scale breach event 25% (29); Market forces 10% (12); Retailers 5% (6). Each row is shaded in proportion to its share. TOTAL VOTES 115."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=19">原本 PDF p.19</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「00:51 pm (8 mins)」、質問は「家庭用IoTのセキュリティに対する最終的な需要を生み出す要因は何か」です。選択肢と割合（票数）は、消費者 40%（46）（最多として緑で強調）、規制当局 19%（22）、大規模な侵害事件 25%（29）、市場の力 10%（12）、小売業者 5%（6）です。各行は割合に応じて塗られています。総投票数は115です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.2 Willingness to Pay More for Security in Low-Cost IoT Devices</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.2 低価格の IoT デバイスのセキュリティにより多く支払う意思</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0020-b0003" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0020-figure-01.png" alt="Poll result screenshot. Header: “01:05 pm (7 mins)”. Question: “For a low cost IoT device, how much more would you be willing to pay for security?” Options, percentage (votes): No more 11% (11); About 10% more 47% (45), highlighted in green as the most popular; About 20% more 28% (27); About 30% more 12% (12). Each row is shaded in proportion to its share. TOTAL VOTES 95."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=20">原本 PDF p.20</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「01:05 pm (7 mins)」、質問は「低価格のIoTデバイスで、セキュリティのためにどれだけ多く支払ってもよいか」です。選択肢と割合（票数）は、これ以上は払わない 11%（11）、約10%増し 47%（45）（最多として緑で強調）、約20%増し 28%（27）、約30%増し 12%（12）です。各行は割合に応じて塗られています。総投票数は95です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.3 Primary Responsibility for Home IoT Device Security</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.3 家庭用 IoT デバイスのセキュリティに対する第一義的な責任</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0020-b0006" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0020-figure-02.png" alt="Poll result screenshot. Header: “01:13 pm (8 mins)”. Question: “Who has the primary responsibility for making sure that a home IoT device is secure?” Options, percentage (votes): Manufacturer 42% (51); User 3% (4); Combination of both 53% (64), highlighted in green as the most popular. Each row is shaded in proportion to its share. TOTAL VOTES 119."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=20">原本 PDF p.20</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「01:13 pm (8 mins)」、質問は「家庭用IoTデバイスが安全であることを確保する主な責任は誰にあるか」です。選択肢と割合（票数）は、製造業者 42%（51）、利用者 3%（4）、両者の組み合わせ 53%（64）（最多として緑で強調）です。各行は割合に応じて塗られています。総投票数は119です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.4 Reason for Interest in Home IoT Cybersecurity</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.4 家庭用 IoT のサイバーセキュリティに関心を持つ理由</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0021-b0003" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0021-figure-02.png" alt="Poll result screenshot. Header: “01:33 pm (10 mins)”. Question: “What is your interest in Home IoT cybersecurity?” Options, percentage (votes): I or my organization create home IoT devices/applications 18% (15); I or my organization support home IoT devices/applications 30% (25); I or my organization use home IoT devices/applications 51% (42), highlighted in green as the most popular. Each row is shaded in proportion to its share. TOTAL VOTES 82."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=21">原本 PDF p.21</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「01:33 pm (10 mins)」、質問は「家庭用IoTのサイバーセキュリティへの関心は何か」です。選択肢と割合（票数）は、自分または自組織が家庭用IoTデバイス・アプリケーションを作る 18%（15）、支援する 30%（25）、使用する 51%（42）（最多として緑で強調）です。各行は割合に応じて塗られています。総投票数は82です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.5 Biggest Cybersecurity Challenge for IoT Devices for Home Customers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.5 家庭向け顧客の IoT デバイスにおける最大のサイバーセキュリティ上の課題</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0021-b0006" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0021-figure-01.png" alt="Poll result screenshot. Header: “01:54 pm (19 mins)”. Question: “What is the biggest cybersecurity challenge around IoT devices for home customers?” Options, percentage (votes): Identifying IoT devices on the network 2% (2); Adequately configuring IoT devices 21% (19); Protecting data on or being transmitted from IoT devices 34% (30), highlighted in green as the most popular; Controlling access to the IoT device’s interfaces 10% (9); Updating IoT device software 9% (8); Being aware of cybersecurity events on or related to the IoT device 21% (19). Each row is shaded in proportion to its share. TOTAL VOTES 87."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=21">原本 PDF p.21</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「01:54 pm (19 mins)」、質問は「家庭の利用者にとって、IoTデバイスをめぐる最大のサイバーセキュリティ上の課題は何か」です。選択肢と割合（票数）は、ネットワーク上のIoTデバイスの識別 2%（2）、IoTデバイスの適切な設定 21%（19）、IoTデバイス上のデータ・IoTデバイスから送信されるデータの保護 34%（30）（最多として緑で強調）、IoTデバイスのインタフェースへのアクセス制御 10%（9）、IoTデバイスのソフトウェアの更新 9%（8）、IoTデバイスに関するサイバーセキュリティ事象の把握 21%（19）です。各行は割合に応じて塗られています。総投票数は87です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.6 Biggest and Most Impactful Force for Change</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.6 変化をもたらす最大かつ最も影響力のある力</h4>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0022-b0003" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8333/p0022-figure-01.png" alt="Poll result screenshot. Header: “02:28 pm (5 mins)”. Question: “What would lead to the biggest change? Most impact”. Options, percentage (votes): Legal (e.g., robust enforcement of current law and regulation or new laws) 65% (46), highlighted in green as the most popular; Certification 8% (6); International Standards 15% (11); Open Source Tools 10% (7). Each row is shaded in proportion to its share. TOTAL VOTES 70."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=22">原本 PDF p.22</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>投票結果の画面です。見出しは「02:28 pm (5 mins)」、質問は「最大の変化をもたらすものは何か（最も影響が大きいもの）」です。選択肢と割合（票数）は、法的措置（現行の法規制の厳格な執行や新法など）65%（46）（最多として緑で強調）、認証 8%（6）、国際標準 15%（11）、オープンソースのツール 10%（7）です。各行は割合に応じて塗られています。総投票数は70です。</p>
+        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+附属書 B—頭字語</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Selected acronyms and abbreviations used in this paper are defined below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書で使用している主な頭字語と略語を、以下に定義します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CTA<br>Consumer Technology Association</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CTA<br>Consumer Technology Association</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FOIA<br>Freedom of Information Act</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FOIA<br>情報自由法</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IoT<br>Internet of Things</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IoT<br>モノのインターネット</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IT<br>Information Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IT<br>情報技術</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ITL<br>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ITL<br>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>MFA<br>Multi-Factor Authentication</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MFA<br>多要素認証</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NCCoE<br>National Cybersecurity Center of Excellence</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NCCoE<br>国家サイバーセキュリティ・センター・オブ・エクセレンス</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST<br>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST<br>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR<br>National Institute of Standards and Technology Interagency or Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR<br>米国国立標準技術研究所省庁間・内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SP<br>Special Publication</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP<br>特別刊行物</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2021/NIST.IR.8333.pdf">National Institute of Standards and Technology, IR 8333</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8333";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
