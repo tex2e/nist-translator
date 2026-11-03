@@ -259,6 +259,10 @@ def main():
             block = take(op["id"])
             set_text(block, op["html"], note)
             block["html_ja"], block["status"] = "", "untranslated"
+            if block["kind"] != "math":   # a math block may be laid out as a table on purpose
+                block["kind"] = "table"
+                for key in ("level", "ordered", "ordinal", "depth"):
+                    block.pop(key, None)
             for key in ("source_image", "image_authoritative"):
                 block.pop(key, None)
             if op.get("bbox"):
