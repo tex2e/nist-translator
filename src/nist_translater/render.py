@@ -170,6 +170,8 @@ def build_site(document, meta, template_path, output_path):
         if excerpt:
             # Text another party owns, reprinted by NIST with permission: the data keeps
             # no text, and the page shows a note that points to the original page.
+            if visible and visible[-1].get("third_party_excerpt") == excerpt:
+                continue  # one note for a withheld run of the same section
             item = dict(block)
             item["english_html"] = Markup(
                 '<span class="withheld-mark">[Excerpt from %s, © %s — not reproduced on this unofficial site]</span>'
