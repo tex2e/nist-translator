@@ -8,7 +8,7 @@ OPS_JSON: {"document": "sp800-130", "pdf_sha256": "...", "evidence_directory": "
 - {"op": "verify", "id", "note", optional "html", "kind", "level", "ordered", "ordinal",
    "depth", "source_page"}: the block matches the original (after the given corrections).
 - {"op": "retire", "id", "note"}: a duplicate, fragment or false record; removed from contents.
-- {"op": "merge", "into", "from": [ids], "html", "note"}: "into" gets the whole text,
+- {"op": "merge", "into", "from": [ids], "html", "note", optional "kind", "level", ...}: "into" gets the whole text,
    the "from" blocks are retired.
 - {"op": "split", "id", "parts": [{"kind", "html", optional "html_ja", ...}], "note"}: the first
    part keeps the id. A part's "html_ja" (the old translation cut at the same place) is kept
@@ -193,6 +193,9 @@ def main():
             retired.append(block)
         elif kind == "merge":
             block = take(op["into"])
+            for key in ATTRS:   # a merge may also correct the kind, level, list attributes
+                if key in op:
+                    block[key] = op[key]
             for key in op["from"]:
                 retired.append(take(key))
                 block["source_refs"] = block.get("source_refs", []) + blocks[key].get("source_refs", [])

@@ -22,7 +22,11 @@
   - 要約: codex が 10 件を指摘し、Opus が 5 件を採用・5 件を keep（本文に記述があるもの、指摘の誤り）。
   - 訳語の統一: attestation = アテステーション、measured launch = 計測済み起動、provenance = 来歴、IoT の capability = 能力、"Hardware-Enabled Security" = ハードウェア支援セキュリティ（`work-in-progress/ir-glossary.md`）。
   - 表紙裏の商務長官・NIST 所長の行を、全 IR で「米国商務省 氏名 長官」「氏名、NIST 所長兼商務次官（標準・技術担当）」などの形にそろえた（英語のまま残っていた行も訳した。129 行）。
-- 残り: 第 4 陣以降（210 件）は未着手。
+- 第 4 陣（作業中、2026-11-07 時点）: 次の 30 件（2017〜2020 年、2,254 ページ、`work-in-progress/ir-batch4.txt`）。
+  - 原本照合: 29 件を適用済み。ir-8196 は全ページを画像で見たかの確認中。ir-7511r5・8176・8240 は画像を見られなかったページを目視で再照合中（ir-8183av1 は再照合済み）。図の文字の図化と非掲載（334 図）は、この 4 件を除いて実行済み。図の説明が仮のもの 19 図、ir-8179 p18 の凡例（抽出漏れ）が未対応。
+  - ir-8294（EVSE のシンポジウム）の付録 B の発表スライドのうち、Sandia・Virginia Tech・INL・ABB・EPRI の 5 件を節ごと非掲載にした（`scripts/withhold_sections.py`、題だけ残し注記を 1 つ出す）。運輸省 Volpe の 2 件は政府の著作物なので掲載。ir-8200 の 5.5 節（NDIA 提供の内容）も非掲載。
+  - 翻訳は未着手。**索引の再生成・`build_all.py` はまだしない**（未翻訳の IR が一覧に出る）。
+- `scripts/apply_repair_ops.py` の op `merge` が kind・level などを無視していた不具合を直し、影響していた 39 ブロック（ir-8536・8539・8441・8409・sp800-209 など）を直した。
 - `scripts/apply_repair_ops.py` の op `table` が kind を table にしていなかった不具合を直した（kind math はそのまま）。IR の 6 ブロックを直し、表のブロックに残っていた level を除いた。
 
 ## 2026-10-31 訳文の文体（です・ます調）
