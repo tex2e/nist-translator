@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8259A は、モノのインターネット（IoT）デバイスのサイバーセキュリティ能力のコアベースラインを定義する報告書です。コアベースラインは、デバイスとそのデータ、システム、エコシステムを保護する一般的なサイバーセキュリティ管理策をサポートするために、一般に必要となるデバイス能力の集合とされています。表 1 では、能力ごとに共通の要素、その能力を含める根拠、既存のガイダンスに見られる IoT の参考例を示しています。組織が製造、統合、または調達する新しい IoT デバイスに求める能力を特定する際の出発点を提供することを目的としており、NIST IR 8259 と併せて使用できるとされています。">
+  <title>IoT デバイスのサイバーセキュリティ能力のコアベースライン | NIST IR 8259A | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="NISTIR 8259A" data-search="nistir 8259a nistir 8259a">NISTIR 8259A</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="IoT Device Cybersecurity Capability Core Baseline" data-search="iot デバイスのサイバーセキュリティ能力のコアベースライン iot device cybersecurity capability core baseline">IoT デバイスのサイバーセキュリティ能力のコアベースライン</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="NISTIR 8259A" data-search="nistir 8259a nistir 8259a">NISTIR 8259A</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="IoT Device Cybersecurity Capability Core Baseline" data-search="iot デバイスのサイバーセキュリティ能力のコアベースライン iot device cybersecurity capability core baseline">IoT デバイスのサイバーセキュリティ能力のコアベースライン</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0007" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0009" title="Audience" data-search="想定読者 audience">想定読者</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Patent Disclosure Notice" data-search="特許開示に関する通知 patent disclosure notice">特許開示に関する通知</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2 IoT Device Cybersecurity Capability Core Baseline Definition" data-search="2 iot デバイスのサイバーセキュリティ能力のコアベースラインの定義 2 iot device cybersecurity capability core baseline definition">2 IoT デバイスのサイバーセキュリティ能力のコアベースラインの定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="Appendix A—Understanding the IoT Device Cybersecurity Capability Core Baseline in the Context of Customer Needs and Goals" data-search="付録 a—顧客のニーズと目標の文脈における iot デバイスのサイバーセキュリティ能力のコアベースラインの理解 appendix a—understanding the iot device cybersecurity capability core baseline in the context of customer needs and goals">付録 A—顧客のニーズと目標の文脈における IoT デバイスのサイバーセキュリティ能力のコアベースラインの理解</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0001" title="Appendix B—Glossary" data-search="付録 b—用語集 appendix b—glossary">付録 B—用語集</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8259A 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">IoT Device Cybersecurity Capability Core Baseline</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>IoT デバイスのサイバーセキュリティ能力のコアベースライン</strong></span><br><span class="doc-panel-item">公開日 : 2020-05-29</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8259/a/final">https://csrc.nist.gov/pubs/ir/8259/a/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 109 / 109 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8259A は、モノのインターネット（IoT）デバイスのサイバーセキュリティ能力のコアベースラインを定義する報告書です。コアベースラインは、デバイスとそのデータ、システム、エコシステムを保護する一般的なサイバーセキュリティ管理策をサポートするために、一般に必要となるデバイス能力の集合とされています。表 1 では、能力ごとに共通の要素、その能力を含める根拠、既存のガイダンスに見られる IoT の参考例を示しています。組織が製造、統合、または調達する新しい IoT デバイスに求める能力を特定する際の出発点を提供することを目的としており、NIST IR 8259 と併せて使用できるとされています。</p></div>
+      </div>
+
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NISTIR 8259A</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NISTIR 8259A</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>IoT Device Cybersecurity Capability Core Baseline</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+IoT デバイスのサイバーセキュリティ能力のコアベースライン</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael Fagan Katerina N. Megas Karen Scarfone Matthew Smith</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael Fagan Katerina N. Megas Karen Scarfone Matthew Smith</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次のサイトから無料で入手できます: https://doi.org/10.6028/NIST.IR.8259A</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>NISTIR 8259A</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NISTIR 8259A</h2>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>IoT Device Cybersecurity Capability Core Baseline</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+IoT デバイスのサイバーセキュリティ能力のコアベースライン</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael Fagan Katerina N. Megas <em>Applied Cybersecurity Division Information Technology Laboratory</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael Fagan Katerina N. Megas <em>応用サイバーセキュリティ部門 情報技術研究所</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Karen Scarfone <em>Scarfone Cybersecurity Clifton, VA</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Karen Scarfone <em>Scarfone Cybersecurity Clifton, VA</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Matthew Smith <em>Huntington Ingalls Industries Annapolis Junction, MD</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Matthew Smith <em>Huntington Ingalls Industries Annapolis Junction, MD</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次のサイトから無料で入手できます: https://doi.org/10.6028/NIST.IR.8259A</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>May 2020</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2020 年 5 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce <em>Wilbur L. Ross, Jr., Secretary</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 <em>Wilbur L. Ross, Jr. 長官</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Walter Copan, NIST Director and Under Secretary of Commerce for Standards and Technology</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Walter Copan、NIST 所長兼商務次官（標準・技術担当）</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency or Internal Report 8259A 23 pages (May 2020)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Interagency or Internal Report 8259A 23 ページ（2020 年 5 月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8259A</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次のサイトから無料で入手できます: https://doi.org/10.6028/NIST.IR.8259A</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実験の手順や概念を適切に説明するため、この文書では特定の商業団体、機器、資材が示されている場合があります。こうした記載は、NIST による推奨や承認を意味するものではなく、それらの団体、資材、機器が当該目的に最適であると意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物では、NIST が法令上の責務に従って現在策定中の他の刊行物が参照されている場合があります。連邦機関は、そうした関連刊行物の完成前であっても、この刊行物の情報（概念や方法論を含む）を利用してかまいません。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されます。上記以外にも、NIST の多くのサイバーセキュリティ関連刊行物が https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Comments on this publication may be submitted to:</strong></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>この刊行物に対するコメントは、次の宛先に提出できます。</strong></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000 Email: iotsecurity@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Attn: Applied Cybersecurity Division, Information Technology Laboratory 100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000 Email: iotsecurity@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づいて公開される場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、米国の測定・標準インフラに技術面でのリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるため、テスト、テスト方法、参照データ、概念実証実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティとプライバシーを実現するための、管理面・行政面・技術面・物理面の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Device cybersecurity capabilities are cybersecurity features or functions that computing devices provide through their own technical means (i.e., device hardware and software). This publication defines an Internet of Things (IoT) device cybersecurity capability core baseline, which is a set of device capabilities generally needed to support common cybersecurity controls that protect an organization’s devices as well as device data, systems, and ecosystems. The purpose of this publication is to provide organizations a starting point to use in identifying the device cybersecurity capabilities for new IoT devices they will manufacture, integrate, or acquire. This publication can be used in conjunction with NISTIR 8259, <em>Foundational Cybersecurity Activities for IoT Device Manufacturers</em>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>デバイスのサイバーセキュリティ能力とは、コンピューティングデバイスが自らの技術的手段（すなわち、デバイスのハードウェアとソフトウェア）によって提供する、サイバーセキュリティの特徴または機能です。この刊行物は、モノのインターネット（IoT）デバイスのサイバーセキュリティ能力のコアベースラインを定義します。これは、組織のデバイスに加え、デバイスのデータ、システム、エコシステムを保護する一般的なサイバーセキュリティ管理策をサポートするために、一般に必要となるデバイス能力の集合です。この刊行物の目的は、組織が、製造、統合、または調達する新しい IoT デバイスに求めるデバイスのサイバーセキュリティ能力を特定する際に使える、出発点を提供することです。この刊行物は、NISTIR 8259, <em>Foundational Cybersecurity Activities for IoT Device Manufacturers</em> と併せて使用できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>cybersecurity baseline; Internet of Things (IoT); securable computing devices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サイバーセキュリティのベースライン；モノのインターネット（IoT）；セキュリティ確保可能なコンピューティングデバイス。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors wish to thank all contributors to this publication, including the participants in workshops and other interactive sessions; the individuals and organizations from the public and private sectors, including manufacturers from various sectors as well as several manufacturer trade organizations, who provided feedback on the preliminary essay and the public comment drafts; and colleagues at NIST who offered invaluable inputs and feedback. Special thanks to Cybersecurity for IoT Program team members Barbara Cuthill and Jeff Marron and the NIST FISMA Implementation Project team for their extensive help in copy editing.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者は、この刊行物に貢献したすべての方々に感謝します。これには、ワークショップやその他の対話型セッションの参加者、予備的なエッセイとパブリックコメント用ドラフトにフィードバックを寄せた、さまざまな分野の製造者や複数の製造者業界団体を含む官民の個人および組織、ならびに貴重な意見とフィードバックを提供してくれた NIST の同僚が含まれます。特に、Cybersecurity for IoT Program のチームメンバーである Barbara Cuthill と Jeff Marron、および NIST FISMA Implementation Project チームには、文書の校正で多大な助力をいただいたことに感謝します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Audience</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+想定読者</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The main audience for this publication is IoT device manufacturers. This publication may also help IoT device customers or integrators.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物の主な想定読者は、IoT デバイスの製造者です。この刊行物は、IoT デバイスの顧客やインテグレーターにも役立つ場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 IoT Device Cybersecurity Capability Core Baseline Definition</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 IoT デバイスのサイバーセキュリティ能力のコアベースラインの定義</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">Appendix A— Understanding the IoT Device Cybersecurity Capability Core Baseline in the Context of Customer Needs and Goals</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">付録 A— 顧客のニーズと目標の文脈における IoT デバイスのサイバーセキュリティ能力のコアベースラインの理解</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0022-b0001">Appendix B— Glossary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0022-b0001">付録 B— 用語集</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Patent Disclosure Notice</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+特許開示に関する通知</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>NOTICE: ITL has requested that holders of patent claims whose use may be required for compliance with the guidance or requirements of this publication disclose such patent claims to ITL. However, holders of patents are not obligated to respond to ITL calls for patents and ITL has not undertaken a patent search in order to identify which, if any, patents may apply to this publication.</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>通知: ITL は、この刊行物のガイダンスまたは要件への準拠に使用が必要となる可能性のある特許請求項の保有者に対し、そのような特許請求項を ITL に開示するよう求めています。ただし、特許の保有者には ITL の特許の募集に応答する義務はなく、ITL は、この刊行物に適用される特許があるとして、それがどの特許であるかを特定するための特許調査を行っていません。</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>As of the date of publication and following call(s) for the identification of patent claims whose use may be required for compliance with the guidance or requirements of this publication, no such patent claims have been identified to ITL.</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>発行日の時点において、この刊行物のガイダンスまたは要件への準拠に使用が必要となる可能性のある特許請求の範囲の特定を求めた募集を経て、そのような特許請求の範囲は ITL に対して特定されていません。</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>No representation is made or implied by ITL that licenses are not required to avoid patent infringement in the use of this publication.</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>この刊行物の使用において特許侵害を避けるためにライセンスが不要であるとの表明を、ITL は明示的にも黙示的にも行っていません。</em></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1 はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computing devices that integrate physical and/or sensing capabilities and network interface capabilities are being designed, developed, and deployed at an ever-increasing pace. These devices are fulfilling customer needs in all sectors of the economy. Many of these computing devices are connected to the internet. A novel characteristic of these devices is the combination of connectivity and the ability to sense and/or affect the physical world. As devices become smaller and more complex, with an increasing number of features, the security of those devices also becomes more complex. This publication defines a baseline set of device cybersecurity capabilities that organizations should consider when confronting the challenge of the Internet of Things (IoT).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>物理的な機能やセンシング機能、およびネットワークインターフェース機能を統合したコンピューティングデバイスが、かつてない速さで設計、開発、配備されています。これらのデバイスは、経済のあらゆる分野で顧客のニーズを満たしています。これらのコンピューティングデバイスの多くは、インターネットに接続されています。これらのデバイスの新しい特徴は、接続性と、物理世界を感知する、または物理世界に作用する能力の組み合わせです。デバイスが小型化・複雑化し、機能の数が増えるにつれて、それらのデバイスのセキュリティも複雑になります。この刊行物は、組織がモノのインターネット（IoT）という課題に向き合う際に検討すべき、デバイスのサイバーセキュリティ能力のベースラインの集合を定義します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Device cybersecurity capabilities</em> are cybersecurity features or functions that computing devices provide through their own technical means (i.e., device hardware and software). The IoT device cybersecurity capability core baseline (<em>core baseline</em>)<sup>1</sup> defined in this publication is a set of device capabilities generally needed to support commonly used cybersecurity controls that protect devices as well as device data, systems, and ecosystems. The concept of a baseline in any context requires careful consideration; security capabilities for IoT devices are no exception.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>デバイスのサイバーセキュリティ能力</em>とは、コンピューティングデバイスが自らの技術的手段（すなわち、デバイスのハードウェアとソフトウェア）によって提供する、サイバーセキュリティの特徴または機能です。この刊行物で定義する IoT デバイスのサイバーセキュリティ能力のコアベースライン（<em>コアベースライン</em>）<sup>1</sup>は、デバイスに加え、デバイスのデータ、システム、エコシステムを保護する、一般的に使われているサイバーセキュリティ管理策をサポートするために、一般に必要となるデバイス能力の集合です。どのような文脈でもベースラインという概念には慎重な検討が必要であり、IoT デバイスのセキュリティ能力も例外ではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The core baseline has been derived from researching common cybersecurity risk management approaches and commonly used capabilities for addressing cybersecurity risks to IoT devices, which were refined and validated using a collaborative public-private process to incorporate all viewpoints. Multiple requests for comment were issued, and multiple workshops and roundtables were held. NIST is committed to an open and transparent process that facilitates stakeholder feedback and iterative improvement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コアベースラインは、一般的なサイバーセキュリティリスクマネジメントのアプローチと、IoT デバイスに対するサイバーセキュリティリスクに対処するために一般的に使われている能力を調査して導き出され、あらゆる観点を取り入れるために、官民が協力するプロセスを使って洗練され、検証されました。複数回の意見募集が行われ、複数のワークショップと円卓会議が開催されました。NIST は、ステークホルダーのフィードバックと反復的な改善を促す、公開で透明なプロセスに取り組んでいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These capabilities were developed in the context of NISTIR 8259, <em>Foundational Cybersecurity Activities for IoT Device Manufacturers</em> [2], which discusses considerations for manufacturers to help guide them in choosing and implementing the device cybersecurity capabilities their IoT devices will provide. NISTIR 8259 also defines terminology and concepts that provide critical context for understanding device cybersecurity capabilities as one part of the entire IoT cybersecurity ecosystem. Thus, though both NISTIR 8259 and this publication have manufacturers as the intended audience, the considerations and capabilities discussed across the two publications can be used by manufacturers, integrators, or consumers. For more information on how these capabilities can be incorporated into a manufacturer’s development processes, see NISTIR 8259. Other organizations can use the core baseline in the context that is available and appropriate to them.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの能力は、NISTIR 8259, <em>Foundational Cybersecurity Activities for IoT Device Manufacturers</em> [2] の文脈で策定されました。この文書は、製造者が、自らの IoT デバイスが提供するデバイスのサイバーセキュリティ能力を選択し実装する際の指針となる考慮事項を論じています。NISTIR 8259 はまた、デバイスのサイバーセキュリティ能力を、IoT サイバーセキュリティエコシステム全体の一部として理解するために重要な文脈となる、用語と概念も定義しています。したがって、NISTIR 8259 とこの刊行物はどちらも製造者を想定読者としていますが、2 つの刊行物で論じられている考慮事項と能力は、製造者、インテグレーター、消費者が使用できます。これらの能力を製造者の開発プロセスに組み込む方法について詳しくは、NISTIR 8259 を参照してください。他の組織は、自らが利用でき、自らに適した文脈で、コアベースラインを使用できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Regardless of an organization’s role, this baseline is intended to give all organizations a starting point for IoT device cybersecurity risk management, but the implementation of all capabilities is not considered mandatory. The individual capabilities in the baseline may be implemented in full, in part, or not at all. It is left to the implementing organization to understand the unique risk context in which it operates and what is appropriate for its given circumstance. For more information on how to conduct a risk assessment, see NIST Special Publication 800-30, <em>Guide for Conducting Risk Assessments</em> [3].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織の役割にかかわらず、このベースラインは、すべての組織に IoT デバイスのサイバーセキュリティリスクマネジメントの出発点を与えることを意図したものですが、すべての能力を実装することは必須とは見なされません。ベースラインの個々の能力は、完全に実装しても、部分的に実装しても、まったく実装しなくてもかまいません。自らが事業を行っている固有のリスクの文脈と、自らの状況に適したものが何であるかを理解することは、実装する組織に委ねられています。リスクアセスメントの実施方法について詳しくは、NIST Special Publication 800-30, <em>Guide for Conducting Risk Assessments</em> [3] を参照してください。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> The usage of the term “baseline” in this publication should not be confused with the low-, moderate-, and high-impact system control baselines set forth in NIST Special Publication (SP) 800-53 [1] to help federal agencies meet their obligations under the Federal Information Security Modernization Act (FISMA) and other federal policies. In that context, the low-, moderate-, and high-impact control baselines apply to an information system, which may include multiple components, including devices. In this publication, “baseline” is used in the generic sense to refer to a set of foundational requirements or recommendations, and the <em>core baseline</em> described is meant to apply to individual IoT devices.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> この刊行物での「ベースライン」という用語の使い方を、連邦機関が連邦情報セキュリティ近代化法（FISMA）などの連邦の方針に基づく義務を果たすのを助けるために NIST Special Publication（SP）800-53 [1] に定められている、低・中・高影響度のシステムの管理策ベースラインと混同すべきではありません。その文脈では、低・中・高影響度の管理策ベースラインは、デバイスを含む複数の構成要素を含みうる情報システムに適用されます。この刊行物では、「ベースライン」は、基礎となる要件または推奨事項の集合を指す一般的な意味で使われており、ここで説明する<em>コアベースライン</em>は、個々の IoT デバイスに適用することを意図しています。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Furthermore, this baseline is not the only set of capabilities that exist. This baseline represents a coordinated effort to produce a definition of common capabilities, not an exhaustive list. Therefore, an implementing organization may define capabilities that better suit their organization. Using these additional capabilities to support IoT device cybersecurity risk management is encouraged. For more information on IoT device security and privacy considerations, see NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、このベースラインは、存在する能力の集合の唯一のものではありません。このベースラインは、共通の能力の定義を作成するための協調的な取り組みを表すものであり、網羅的な一覧ではありません。したがって、実装する組織は、自らの組織により適した能力を定義してもかまいません。IoT デバイスのサイバーセキュリティリスクマネジメントを支援するために、これらの追加の能力を使用することが奨励されます。IoT デバイスのセキュリティとプライバシーに関する考慮事項について詳しくは、NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [4] を参照してください。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2 IoT Device Cybersecurity Capability Core Baseline Definition</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2 IoT デバイスのサイバーセキュリティ能力のコアベースラインの定義</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 defines the IoT device cybersecurity capability core baseline. The core baseline’s role is as a default for minimally securable devices. However, device cybersecurity capabilities will often need to be added or removed from an IoT device’s design, integration, or acquisition to best address an organization’s common cybersecurity risks. The core baseline does not specify how the device cybersecurity capabilities are to be achieved, so organizations who choose to adopt the core baseline for any of the IoT devices they produce, integrate, or acquire have considerable flexibility in implementing it to effectively address needs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 は、IoT デバイスのサイバーセキュリティ能力のコアベースラインを定義します。コアベースラインの役割は、最低限のセキュリティ対策が可能なデバイスの既定値となることです。ただし、組織に共通するサイバーセキュリティリスクに最も適切に対処するため、IoT デバイスの設計、統合、または調達に際して、デバイスのサイバーセキュリティ能力を追加または削除する必要が生じることがよくあります。コアベースラインは、デバイスのサイバーセキュリティ能力をどのように実現するかを規定していないため、自らが製造、統合、または調達する IoT デバイスのいずれかにコアベースラインを採用する組織は、ニーズに効果的に対処する実装方法について、かなりの柔軟性を持ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each row in Table 1 covers one of the device cybersecurity capabilities in the core baseline:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 の各行は、コアベースラインにおけるデバイスのサイバーセキュリティ能力の 1 つを扱います。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The first column defines the capability. Note that Figure 1, which is located in Appendix A, indicates how the capability relates to the risk mitigation areas and challenges defined in NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [3].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">最初の列は、その能力を定義します。付録 A にある図 1 は、その能力が、NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [3] で定義されているリスク軽減の領域および課題とどのように関連しているかを示しています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The second column provides a numbered list of <em>common elements</em> of that capability—elements an organization seeking to implement the core baseline often (but not always) would use in order to achieve the capability. (Note: the elements are not intended to be comprehensive, nor are they in any particular order.)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2 番目の列は、その能力の<em>共通の要素</em>を番号付きの一覧で示します。これは、コアベースラインを実装しようとする組織が、その能力を実現するために（常にではありませんが）よく使う要素です。（注: これらの要素は網羅的であることを意図したものではなく、特定の順序でもありません。）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The third column explains the rationale for needing the capability and its common elements to be included in the core baseline.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">3 番目の列は、その能力とその共通の要素をコアベースラインに含める必要がある理由を説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The last column lists IoT reference examples that indicate existing sources of IoT device cybersecurity guidance specifying a similar or related capability. Because the table only covers the basics of the capabilities, the references can be invaluable for understanding each capability in more detail and learning how to implement each capability in a reasonable manner. The following are the references used in Table 1:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">最後の列は、類似した、または関連する能力を規定している、IoT デバイスのサイバーセキュリティに関する既存のガイダンスの情報源を示す、IoT の参考例を挙げます。この表は能力の基本的な部分しか扱っていないため、これらの参考文献は、各能力をより詳しく理解し、各能力を合理的な方法で実装する方法を学ぶうえで非常に役立ちます。表 1 で使われている参考文献は、次のとおりです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>AGELIGHT</strong>: AgeLight Digital Trust Advisory Group, “IoT Safety Architecture &amp; Risk Toolkit (IoTSA) v3.1” [5]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>AGELIGHT</strong>: AgeLight Digital Trust Advisory Group, “IoT Safety Architecture &amp; Risk Toolkit (IoTSA) v3.1” [5]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>BITAG</strong>: Broadband Internet Technical Advisory Group (BITAG), “Internet of Things (IoT) Security and Privacy Recommendations” [6]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>BITAG</strong>: Broadband Internet Technical Advisory Group (BITAG), “Internet of Things (IoT) Security and Privacy Recommendations” [6]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0008-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CSA</strong>: Cloud Security Alliance (CSA) IoT Working Group, “Identity and Access Management for the Internet of Things” [7]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CSA</strong>: Cloud Security Alliance (CSA) IoT Working Group, “Identity and Access Management for the Internet of Things” [7]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0008-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CSDE</strong>: Council to Secure the Digital Economy (CSDE), “The C2 Consensus on IoT Device Security Baseline Capabilities” [8]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CSDE</strong>: Council to Secure the Digital Economy (CSDE), “The C2 Consensus on IoT Device Security Baseline Capabilities” [8]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0008-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CTIA</strong>: CTIA, “CTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1” [9]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>CTIA</strong>: CTIA, “CTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1” [9]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ENISA</strong>: European Union Agency for Network and Information Security (ENISA), “Baseline Security Recommendations for IoT in the context of Critical Information Infrastructures” [10]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ENISA</strong>: European Union Agency for Network and Information Security (ENISA), “Baseline Security Recommendations for IoT in the context of Critical Information Infrastructures” [10]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ETSI</strong>: European Telecommunications Standards Institute (ETSI), “Cyber Security for Consumer Internet of Things” [11]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ETSI</strong>: European Telecommunications Standards Institute (ETSI), “Cyber Security for Consumer Internet of Things” [11]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>GSMA</strong>: Groupe Spéciale Mobile Association (GSMA), “GSMA IoT Security Assessment” [12]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>GSMA</strong>: Groupe Spéciale Mobile Association (GSMA), “GSMA IoT Security Assessment” [12]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IEC</strong>: International Electrotechnical Commission (IEC), “IEC 62443-4-2, Edition 1.0, Security for industrial automation and control systems – Part 4-2: Technical security requirements for IACS components” [13]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IEC</strong>: International Electrotechnical Commission (IEC), “IEC 62443-4-2, Edition 1.0, Security for industrial automation and control systems – Part 4-2: Technical security requirements for IACS components” [13]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IIC</strong>: Industrial Internet Consortium (IIC), “Industrial Internet of Things Volume G4: Security Framework” [14]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IIC</strong>: Industrial Internet Consortium (IIC), “Industrial Internet of Things Volume G4: Security Framework” [14]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IoTSF</strong>: IoT Security Foundation (IoTSF), “IoT Security Compliance Framework, Release 2” [15]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>IoTSF</strong>: IoT Security Foundation (IoTSF), “IoT Security Compliance Framework, Release 2” [15]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ISOC/OTA</strong>: Internet Society/Online Trust Alliance (OTA), “IoT Security &amp; Privacy Trust Framework v2.5” [16]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ISOC/OTA</strong>: Internet Society/Online Trust Alliance (OTA), “IoT Security &amp; Privacy Trust Framework v2.5” [16]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>NEMA</strong>: National Electrical Manufacturers Association (NEMA), “Cyber Hygiene Best Practices” [17]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>NEMA</strong>: National Electrical Manufacturers Association (NEMA), “Cyber Hygiene Best Practices” [17]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>OCF</strong>: Open Connectivity Foundation (OCF) “OCF Security Specification Version 2.1.2” [18]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>OCF</strong>: Open Connectivity Foundation (OCF) “OCF Security Specification Version 2.1.2” [18]</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>PSA</strong>: Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members, “PSA Certified™ Level I Questionnaire, Version 2.0 Beta” [19]</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>PSA</strong>: Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members, “PSA Certified™ Level I Questionnaire, Version 2.0 Beta” [19]</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Appendix B provides the definitions for the underlined terms in Table 1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>付録 B は、表 1 の下線付きの用語の定義を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1: The Device Cybersecurity Capability Core Baseline for Securable IoT Devices</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1: セキュリティ保護可能な IoT デバイスのためのデバイスのサイバーセキュリティ能力のコアベースライン</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Device Cybersecurity Capability</th><th>Common Elements</th><th>Rationale</th><th>IoT Reference Examples</th></tr></thead><tbody><tr><td><strong>Device Identification</strong>: The IoT device can be uniquely identified logically and physically.</td><td><ol><li>A unique <u>logical identifier</u></li><li>A unique <u>physical identifier</u> at an external or internal location on the device <u>authorized entities</u> can access</li></ol>Note: the physical and logical identifiers may represent the same value, but they do not have to.</td><td><ul><li>This capability supports asset management, which in turn supports vulnerability management, access management, data protection, and incident detection.</li><li>The unique logical identifier can be used to distinguish the device from all others, usually for automated device management and monitoring. This may require that it be immutable to allow for consistent identification using the identifier. The unique logical identifier may also be used for device authentication, but consideration should be made to select an appropriate identifier for the purpose.</li><li>The unique physical identifier can be used to distinguish the device from all others whenever the unique logical identifier is unavailable, such as during device deployment and decommissioning, or after a device failure.</li><li>The capability may also need an additional logical identifier that will not necessarily be unique which is used for more specific purposes such as device intent signaling.</li></ul></td><td><ul><li><strong>CSA</strong>: 1</li><li><strong>CSDE</strong>: 5.1.1</li><li><strong>CTIA</strong>: 4.13</li><li><strong>ENISA</strong>: GP-PS-10</li><li><strong>GSMA</strong>: CLP13_6.6.2, 6.8.1, 6.20.1</li><li><strong>IEC</strong>: CR 1.2</li><li><strong>IIC</strong>: 7.3, 8.5, 11.7, 11.8</li><li><strong>IoTSF</strong>: 2.4.8.1, 2.4.14.3, 2.4.14.4</li><li><strong>OCF</strong>: 7.1.1</li><li><strong>PSA</strong>: C1.4, R2.1</li></ul></td></tr><tr><td><strong>Device Configuration</strong>: The <u>configuration</u> of the IoT device’s <u>software</u> can be changed, and such changes can be performed by authorized entities only.</td><td><ol><li>The ability to change the device’s software configuration settings</li><li>The ability to restrict configuration changes to authorized entities only</li><li>The ability for authorized entities to restore the device to a secure configuration defined by an authorized entity</li></ol></td><td><ul><li>This capability supports vulnerability management, access management, data protection, and incident detection.</li><li>An authorized entity may want to alter a device’s configuration for a variety of reasons, including cybersecurity, interoperability, privacy, and usability. Without a device configuration capability, an authorized entity cannot customize a device to meet its needs, integrate the device into the authorized entity's environment, etc.</li><li>Most cybersecurity capabilities are at least somewhat dependent on the presence of a device configuration capability.</li><li>Unauthorized entities may want to change a device's configuration for many reasons, such as gaining unauthorized access, causing the device to malfunction, or secretly monitoring the device's environment.</li><li>The ability to restore a secure configuration for a device is helpful when the current configuration contains errors, has been damaged or corrupted, or is otherwise no longer thought to be trustworthy.</li></ul></td><td><ul><li><strong>BITAG</strong>: 7.1</li><li><strong>CSA</strong>: 22</li><li><strong>ENISA</strong>: GP-TM-06</li><li><strong>IEC</strong>: CR 7.4, CR 7.6</li><li><strong>IIC</strong>: 7.3, 7.6, 8.10, 11.5</li><li><strong>IoTSF</strong>: 2.4.8.17, 2.4.15</li><li><strong>ISOC/OTA</strong>: 26</li><li><strong>OCF</strong>: 5.3.3, 8.2, 12, 13.3.1</li><li><strong>PSA</strong>: C2.3, R6.1, R7.1</li></ul></td></tr><tr><td><strong>Data Protection</strong>: The IoT device can protect the data it stores and transmits from unauthorized access and modification.</td><td><ol><li>The ability to use demonstrably secure cryptographic modules for standardized cryptographic algorithms (e.g., encryption with authentication, cryptographic hashes, digital signature validation) to prevent the confidentiality and integrity of the device’s stored and transmitted data from being compromised</li><li>The ability for authorized entities to render all data on the device inaccessible by all entities, whether previously authorized or not (e.g., through a wipe of internal storage, destruction of cryptographic keys for encrypted data)</li><li>Configuration settings for use with the <strong>Device Configuration</strong> capability including, but not limited to, the ability for authorized entities to configure the cryptography use itself, such as choosing a key length</li></ol></td><td><ul><li>This capability supports access management, data protection, and incident detection.</li><li>Authorized entities (e.g, customers, administrators, users) often want the confidentiality of their data protected so unauthorized entities cannot access their data and misuse it.</li><li>Authorized entities often want the integrity of their data protected so it is not inadvertently or intentionally changed, which could have a variety of adverse consequences (e.g., issuing the wrong command to a piece of equipment, concealing malicious activity).</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 5, 7, 18, 24, 25, 34</li><li><strong>BITAG</strong>: 7.2, 7.10</li><li><strong>CSDE</strong>: 5.1.3, 5.1.4, 5.1.5, 5.1.8, 5.1.10</li><li><strong>CTIA</strong>: 4.8, 5.14, 5.15</li><li><strong>ENISA</strong>: GP-OP-04, GP-TM-02, GP-TM-04, GP-TM-14, GP-TM-24, GP-TM-32, GP-TM-34, GP-TM-35, GP-TM-39, GP-TM-40</li><li><strong>ETSI</strong>: 4.4-1, 4.5-1, 4.5-2, 4.11-1, 4.11-2, 4.11-3</li><li><strong>GSMA</strong>: CLP13_6.4.1.1, 6.11, 6.12.1.1, 6.19, 7.6.1, 8.10.1.1, 8.11.1</li><li><strong>IEC</strong>: CR 3.1, CR 3.4, CR 4.1, CR 4.2, CR 4.3</li><li><strong>IIC</strong>: 7.3, 7.4, 7.6, 7.7, 8.8, 8.11, 8.13, 9.1, 10.4, 11.9</li><li><strong>IoTSF</strong>: 2.4.6.5, 2.4.7, 2.4.8.8, 2.4.8.16, 2.4.9, 2.4.12.2, 2.4.16.1, 2.4.16.2</li><li><strong>ISOC/OTA</strong>: 2, 17, 33</li><li><strong>OCF</strong>: 8.2, 11.2.1, 11.3, 14.2.2</li><li><strong>PSA</strong>: C1.1, C1.4, C2.4, D5.2, R2.2, R2.3, R6.1, R7.1</li></ul></td></tr><tr><td><strong>Logical Access to Interfaces</strong>: The IoT device can restrict logical access to its <u>local</u> and <u>network interfaces</u>, and the protocols and services used by those interfaces, to authorized entities only.</td><td><ol><li>The ability to logically or physically disable any local and network interfaces that are not necessary for the core functionality of the device</li><li>The ability to logically restrict access to each network interface to only authorized entities (e.g., device authentication, user authentication)</li><li>Configuration settings for use with the <strong>Device Configuration</strong> capability including, but not limited to, the ability to enable, disable, and adjust thresholds for any ability the device might have to lock or disable an account or to delay additional authentication attempts after too many failed authentication attempts</li></ol></td><td><ul><li>This capability supports vulnerability management, access management, data protection, and incident detection.</li><li>Limiting access to interfaces reduces the attack surface of the device, giving attackers fewer opportunities to compromise it. For example, unrestricted network access to an IoT device enables attackers to directly interact with the device, which significantly increases the likelihood of the device being compromised.</li><li>Access to interfaces may be partially or completely limited based on the device’s state. For example, if a device has not been provisioned with proper network credentials, all access to/from network interfaces would be limited if using a secure on-boarding scheme.</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 10, 13, 14, 15, 16, 19</li><li><strong>BITAG</strong>: 7.1, 7.2, 7.3, 7.6</li><li><strong>CSA</strong>: 2, 4, 20</li><li><strong>CSDE</strong>: 5.1.2</li><li><strong>CTIA</strong>: 3.2, 3.3, 3.4, 4.2, 4.3, 4.9, 5.2</li><li><strong>ENISA</strong>: GP-TM-08, GP-TM-09, GP-TM-21, GP-TM-22, GP-TM-25, GP-TM-27, GP-TM-29, GP-TM-33, GP-TM-42, GP-TM-44, GP-TM-45</li><li><strong>ETSI</strong>: 4.1-1, 4.4-1, 4.6-1, 4.6-2</li><li><strong>GSMA</strong>: CLP13_6.9.1, 6.12.1, 6.20.1, 7.6.1, 8.2.1, 8.4.1</li><li><strong>IEC</strong>: CR 1.1, CR 1.2, CR 1.5, CR 1.7, CR 1.11, CR 2.1, CR 2.2, CR 2.13, CR 7.7, EDR 2.13</li><li><strong>IIC</strong>: 7.3, 7.4, 8.3, 8.6, 11.7</li><li><strong>IoTSF</strong>: 2.4.4.5, 2.4.4.9, 2.4.5.5, 2.4.6.3, 2.4.6.4, 2.4.7, 2.4.8</li><li><strong>ISOC/OTA</strong>: 3, 12, 13, 14, 15, 16</li><li><strong>NEMA</strong>: Segmenting Networks, User Management, Hardening Devices</li><li><strong>OCF</strong>: 5.1, 5.2, 10, 12</li><li><strong>PSA</strong>: C2.3, D2.1, D2.2, D2.3, D2.4, D3.1 D3.3, R3.1, R3.2, R3.3, R4.2, R4.5 R6.1</li></ul></td></tr><tr><td><strong>Software Update</strong>: The IoT device’s software can be <u>updated</u> by authorized entities only using a secure and configurable mechanism.</td><td><ol><li>The ability to update the device’s software through remote (e.g., network download) and/or local means (e.g., removable media)</li><li>The ability to verify and authenticate any update before installing it</li><li>The ability for authorized entities to roll back updated software to a previous version</li><li>The ability to restrict updating actions to authorized entities only</li><li>The ability to enable or disable updating</li><li>Configuration settings for use with the <strong>Device Configuration</strong> capability including, but not limited to:<ol type="a"><li>The ability to configure any remote update mechanisms to be either automatically or manually initiated for update downloads and installations</li><li>The ability to enable or disable notification when an update is available and specify who or what is to be notified</li></ol></li></ol></td><td><ul><li>This capability supports vulnerability management.</li><li>Updates can remove vulnerabilities from an IoT device, which lowers the likelihood of an attacker compromising the device.</li><li>Updates can correct IoT device operational problems, which can improve device availability, reliability, performance, and other aspects of device operation.</li><li>Some authorized entities will need automatic update capabilities to meet their cybersecurity goals and needs, while others would prefer or need more direct control over updates and their application.</li><li>Some organizations may want a rollback capability in the event that an update inadvertently impacts critical applications or integration with other systems, while other organizations may prefer to eliminate the risk of someone intentionally or inadvertently rolling software back to a vulnerable version.</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 1, 2, 4</li><li><strong>BITAG</strong>: 7.1</li><li><strong>CSDE</strong>: 5.1.9</li><li><strong>CTIA</strong>: 3.5, 3.6, 4.5, 4.6, 5.5, 5.6</li><li><strong>ENISA</strong>: GP-TM-05, GP-TM-06, GP-TM-18, GP-TM-19</li><li><strong>ETSI</strong>: 4.3-1, 4.3-2, 4.3-7</li><li><strong>GSMA</strong>: 7.5.1</li><li><strong>IEC</strong>: CR 3.4, EDR 3.10</li><li><strong>IIC</strong>: 7.3, 11.5.1</li><li><strong>IoTSF</strong>: 2.4.5.1, 2.4.5.2, 2.4.5.3, 2.4.5.4, 2.4.5.8, 2.4.6.1</li><li><strong>ISOC/OTA</strong>: 1, 6, 8</li><li><strong>NEMA</strong>: Updating Devices</li><li><strong>OCF</strong>: 14.5</li><li><strong>PSA</strong>: C2.1, C2.2, R1.1, R1.2, R6.1</li></ul></td></tr><tr><td><strong>Cybersecurity State Awareness</strong>: The IoT device can report on its <u>cybersecurity state</u> and make that information accessible to authorized entities only.</td><td><ol><li>The ability to report the device’s cybersecurity state</li><li>The ability to differentiate between when a device will likely operate as expected from when it may be in a <u>degraded cybersecurity state</u></li><li>The ability to restrict access to the state indicator so only authorized entities can view it</li><li>The ability to prevent any entities (authorized or unauthorized) from editing the state except for those entities that are responsible for maintaining the device’s state information</li><li>The ability to make the state information available to a service on another device, such as an event/state log server</li></ol></td><td><ul><li>This capability supports vulnerability management and incident detection.</li><li>Cybersecurity state awareness helps enable investigating compromises, identifying misuse, and troubleshooting certain operational problems.</li><li>How the device makes other entities aware of a cybersecurity state will vary based on context-specific needs and goals, but may include capturing and logging information about events in a persistent record that may have to be stored off the device, sending signals to a monitoring system to be handled externally, or alerting via an interface on the IoT device itself.</li></ul></td><td><ul><li><strong>CSDE</strong>: 5.1.7</li><li><strong>CTIA</strong>: 4.7, 4.12, 5.7, 5.16</li><li><strong>ENISA</strong>: GP-TM-55, GP-TM-56</li><li><strong>ETSI</strong>: 4.7-2, 4.10-1</li><li><strong>GSMA</strong>: CLP13_6.13.1, 7.2.1, 9.1.1.2</li><li><strong>IEC</strong>: CR 2.8, CR 3.9, CR 6.1, CR 6.2</li><li><strong>IIC</strong>: 7.3, 7.5, 7.7, 8.9, 10.3, 10.4</li><li><strong>IoTSF</strong>: 2.4.7.5</li><li><strong>NEMA</strong>: Monitoring Devices and Systems</li><li><strong>OCF</strong>: 5.1, 5.7, 8.6, 12, 13.8, 13.16</li><li><strong>PSA</strong>: C1.3, D1.1, D3.2, D3.4, D3.5, D5.1, R4.1, R4.3, R4.4</li></ul></td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>デバイスのサイバーセキュリティ能力</th><th>共通の要素</th><th>根拠</th><th>IoT の参考例</th></tr></thead><tbody><tr><td><strong>デバイス識別</strong>: IoT デバイスを、論理的にも物理的にも一意に識別できます。</td><td><ol><li>一意の<u>論理識別子</u></li><li><u>認可されたエンティティ</u>がアクセスできる、デバイスの外部または内部の場所にある一意の<u>物理識別子</u></li></ol>注: 物理識別子と論理識別子は同じ値を表してもかまいませんが、同じである必要はありません。</td><td><ul><li>この能力は、資産管理をサポートし、資産管理は、脆弱性管理、アクセス管理、データ保護、インシデント検知をサポートします。</li><li>一意の論理識別子は、通常は自動化されたデバイス管理と監視のために、そのデバイスを他のすべてのデバイスと区別するために使えます。識別子を使って一貫した識別を可能にするため、不変である必要がある場合があります。一意の論理識別子はデバイス認証にも使えますが、その目的に適した識別子を選ぶよう考慮すべきです。</li><li>一意の物理識別子は、デバイスの配備や廃棄の際、あるいはデバイスの故障後など、一意の論理識別子が利用できないときに、そのデバイスを他のすべてのデバイスと区別するために使えます。</li><li>この能力には、デバイスの意図の通知など、より具体的な目的に使われる、必ずしも一意ではない追加の論理識別子も必要になる場合があります。</li></ul></td><td><ul><li><strong>CSA</strong>: 1</li><li><strong>CSDE</strong>: 5.1.1</li><li><strong>CTIA</strong>: 4.13</li><li><strong>ENISA</strong>: GP-PS-10</li><li><strong>GSMA</strong>: CLP13_6.6.2, 6.8.1, 6.20.1</li><li><strong>IEC</strong>: CR 1.2</li><li><strong>IIC</strong>: 7.3, 8.5, 11.7, 11.8</li><li><strong>IoTSF</strong>: 2.4.8.1, 2.4.14.3, 2.4.14.4</li><li><strong>OCF</strong>: 7.1.1</li><li><strong>PSA</strong>: C1.4, R2.1</li></ul></td></tr><tr><td><strong>デバイス構成</strong>: IoT デバイスの<u>ソフトウェア</u>の<u>構成</u>を変更でき、そのような変更を行えるのは認可されたエンティティのみです。</td><td><ol><li>デバイスのソフトウェアの構成設定を変更できる能力</li><li>構成の変更を認可されたエンティティのみに制限できる能力</li><li>認可されたエンティティが、認可されたエンティティによって定義された安全な構成にデバイスを復元できる能力</li></ol></td><td><ul><li>この能力は、脆弱性管理、アクセス管理、データ保護、インシデント検知をサポートします。</li><li>認可されたエンティティは、サイバーセキュリティ、相互運用性、プライバシー、使いやすさなど、さまざまな理由でデバイスの構成を変更したいと考える場合があります。デバイス構成の能力がなければ、認可されたエンティティは、自らのニーズに合わせてデバイスをカスタマイズしたり、そのデバイスを認可されたエンティティの環境に統合したりすることなどができません。</li><li>ほとんどのサイバーセキュリティ能力は、少なくともある程度は、デバイス構成の能力があることに依存しています。</li><li>認可されていないエンティティは、不正アクセスの獲得、デバイスの誤動作の誘発、デバイスの環境の秘密裏の監視など、多くの理由でデバイスの構成を変更したいと考える場合があります。</li><li>デバイスの安全な構成を復元できる能力は、現在の構成に誤りがある場合、損傷または破損している場合、あるいはそれ以外の理由で信頼できると考えられなくなった場合に役立ちます。</li></ul></td><td><ul><li><strong>BITAG</strong>: 7.1</li><li><strong>CSA</strong>: 22</li><li><strong>ENISA</strong>: GP-TM-06</li><li><strong>IEC</strong>: CR 7.4, CR 7.6</li><li><strong>IIC</strong>: 7.3, 7.6, 8.10, 11.5</li><li><strong>IoTSF</strong>: 2.4.8.17, 2.4.15</li><li><strong>ISOC/OTA</strong>: 26</li><li><strong>OCF</strong>: 5.3.3, 8.2, 12, 13.3.1</li><li><strong>PSA</strong>: C2.3, R6.1, R7.1</li></ul></td></tr><tr><td><strong>データ保護</strong>: IoT デバイスは、自らが保存し送信するデータを、不正アクセスおよび改変から保護できます。</td><td><ol><li>標準化された暗号アルゴリズム（たとえば、認証付き暗号化、暗号学的ハッシュ、デジタル署名の検証）を用いる、セキュリティが実証された暗号モジュールを利用して、デバイスが保存・送信するデータの機密性および完全性が侵害されないようにする能力</li><li>認可されたエンティティが、以前に認可されていたかどうかを問わず、すべてのエンティティからデバイス上のすべてのデータにアクセスできない状態にする能力（たとえば、内部ストレージの消去、暗号化されたデータの暗号鍵の破棄による）</li><li><strong>デバイス構成</strong>の能力とともに使用するための構成設定。これには、鍵長を選択するなど、認可されたエンティティが暗号の使用自体を構成できる機能が含まれますが、これに限りません。</li></ol></td><td><ul><li>この能力は、アクセス管理、データ保護、インシデント検知をサポートします。</li><li>認可されたエンティティ（たとえば、顧客、管理者、ユーザー）は、認可されていないエンティティが自らのデータにアクセスして悪用できないように、データの機密性が保護されることを望むことがよくあります。</li><li>認可されたエンティティは、データが不注意または意図的に変更されないように、データの完全性が保護されることを望むことがよくあります。変更されると、機器に誤ったコマンドを発行する、悪意ある活動を隠蔽するなど、さまざまな悪影響が生じる可能性があります。</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 5, 7, 18, 24, 25, 34</li><li><strong>BITAG</strong>: 7.2, 7.10</li><li><strong>CSDE</strong>: 5.1.3, 5.1.4, 5.1.5, 5.1.8, 5.1.10</li><li><strong>CTIA</strong>: 4.8, 5.14, 5.15</li><li><strong>ENISA</strong>: GP-OP-04, GP-TM-02, GP-TM-04, GP-TM-14, GP-TM-24, GP-TM-32, GP-TM-34, GP-TM-35, GP-TM-39, GP-TM-40</li><li><strong>ETSI</strong>: 4.4-1, 4.5-1, 4.5-2, 4.11-1, 4.11-2, 4.11-3</li><li><strong>GSMA</strong>: CLP13_6.4.1.1, 6.11, 6.12.1.1, 6.19, 7.6.1, 8.10.1.1, 8.11.1</li><li><strong>IEC</strong>: CR 3.1, CR 3.4, CR 4.1, CR 4.2, CR 4.3</li><li><strong>IIC</strong>: 7.3, 7.4, 7.6, 7.7, 8.8, 8.11, 8.13, 9.1, 10.4, 11.9</li><li><strong>IoTSF</strong>: 2.4.6.5, 2.4.7, 2.4.8.8, 2.4.8.16, 2.4.9, 2.4.12.2, 2.4.16.1, 2.4.16.2</li><li><strong>ISOC/OTA</strong>: 2, 17, 33</li><li><strong>OCF</strong>: 8.2, 11.2.1, 11.3, 14.2.2</li><li><strong>PSA</strong>: C1.1, C1.4, C2.4, D5.2, R2.2, R2.3, R6.1, R7.1</li></ul></td></tr><tr><td><strong>インターフェースへの論理アクセス</strong>: IoT デバイスは、その<u>ローカル</u>インターフェースおよび<u>ネットワークインターフェース</u>、ならびにそれらのインターフェースが使うプロトコルとサービスへの論理アクセスを、認可されたエンティティのみに制限できます。</td><td><ol><li>デバイスの中核機能に必要のないローカルインターフェースおよびネットワークインターフェースを、論理的または物理的に無効化できる能力</li><li>各ネットワークインターフェースへのアクセスを、認可されたエンティティのみに論理的に制限できる能力（たとえば、デバイス認証、ユーザー認証）</li><li><strong>デバイス構成</strong>の能力とともに使用するための構成設定。これには、認証の失敗が多すぎた後に、デバイスが持つ可能性のある、アカウントのロックや無効化、あるいは追加の認証試行の遅延を行う能力を、有効化、無効化し、そのしきい値を調整できる能力が含まれますが、これに限りません</li></ol></td><td><ul><li>この能力は、脆弱性管理、アクセス管理、データ保護、インシデント検知をサポートします。</li><li>インターフェースへのアクセスを制限すると、デバイスの攻撃対象領域が縮小し、攻撃者がデバイスを危殆化させる機会が減ります。たとえば、IoT デバイスへの制限のないネットワークアクセスは、攻撃者がデバイスと直接やり取りすることを可能にし、デバイスが危殆化される可能性を大幅に高めます。</li><li>インターフェースへのアクセスは、デバイスの状態に基づいて、部分的に、または完全に制限される場合があります。たとえば、デバイスに適切なネットワーク認証情報がプロビジョニングされていない場合、安全なオンボーディング方式を使っていれば、ネットワークインターフェースとの間のすべてのアクセスが制限されます。</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 10, 13, 14, 15, 16, 19</li><li><strong>BITAG</strong>: 7.1, 7.2, 7.3, 7.6</li><li><strong>CSA</strong>: 2, 4, 20</li><li><strong>CSDE</strong>: 5.1.2</li><li><strong>CTIA</strong>: 3.2, 3.3, 3.4, 4.2, 4.3, 4.9, 5.2</li><li><strong>ENISA</strong>: GP-TM-08, GP-TM-09, GP-TM-21, GP-TM-22, GP-TM-25, GP-TM-27, GP-TM-29, GP-TM-33, GP-TM-42, GP-TM-44, GP-TM-45</li><li><strong>ETSI</strong>: 4.1-1, 4.4-1, 4.6-1, 4.6-2</li><li><strong>GSMA</strong>: CLP13_6.9.1, 6.12.1, 6.20.1, 7.6.1, 8.2.1, 8.4.1</li><li><strong>IEC</strong>: CR 1.1, CR 1.2, CR 1.5, CR 1.7, CR 1.11, CR 2.1, CR 2.2, CR 2.13, CR 7.7, EDR 2.13</li><li><strong>IIC</strong>: 7.3, 7.4, 8.3, 8.6, 11.7</li><li><strong>IoTSF</strong>: 2.4.4.5, 2.4.4.9, 2.4.5.5, 2.4.6.3, 2.4.6.4, 2.4.7, 2.4.8</li><li><strong>ISOC/OTA</strong>: 3, 12, 13, 14, 15, 16</li><li><strong>NEMA</strong>: Segmenting Networks, User Management, Hardening Devices</li><li><strong>OCF</strong>: 5.1, 5.2, 10, 12</li><li><strong>PSA</strong>: C2.3, D2.1, D2.2, D2.3, D2.4, D3.1 D3.3, R3.1, R3.2, R3.3, R4.2, R4.5 R6.1</li></ul></td></tr><tr><td><strong>ソフトウェア更新</strong>: IoT デバイスのソフトウェアを<u>更新</u>できるのは、安全で構成可能な仕組みを使う、認可されたエンティティのみです。</td><td><ol><li>リモート（たとえば、ネットワークからのダウンロード）またはローカルの手段（たとえば、リムーバブルメディア）、あるいはその両方で、デバイスのソフトウェアを更新できる能力</li><li>更新をインストールする前に、その更新を検証し認証できる能力</li><li>認可されたエンティティが、更新されたソフトウェアを以前のバージョンにロールバックできる能力</li><li>更新の操作を認可されたエンティティのみに制限できる能力</li><li>更新を有効化または無効化できる能力</li><li><strong>デバイス構成</strong>の能力とともに使用するための構成設定。これには次のものが含まれますが、これらに限りません。<ol type="a"><li>リモート更新の仕組みを、更新のダウンロードとインストールが自動的に、または手動で開始されるように構成できる能力</li><li>更新が利用可能になったときの通知を有効化または無効化し、誰に、または何に通知するかを指定できる能力</li></ol></li></ol></td><td><ul><li>この能力は、脆弱性管理をサポートします。</li><li>更新によって IoT デバイスから脆弱性を除去でき、攻撃者がデバイスを危殆化させる可能性が低下します。</li><li>更新によって IoT デバイスの運用上の問題を修正でき、デバイスの可用性、信頼性、性能、その他の運用面を改善できます。</li><li>サイバーセキュリティの目標とニーズを満たすために、自動更新の能力を必要とする認可されたエンティティもあれば、更新とその適用をより直接的に制御することを好む、または必要とするエンティティもあります。</li><li>更新が重要なアプリケーションや他のシステムとの統合に意図せず影響を与えた場合に備えて、ロールバックの能力を望む組織もあれば、誰かが意図的または不注意でソフトウェアを脆弱なバージョンにロールバックするリスクをなくすことを好む組織もあります。</li></ul></td><td><ul><li><strong>AGELIGHT</strong>: 1, 2, 4</li><li><strong>BITAG</strong>: 7.1</li><li><strong>CSDE</strong>: 5.1.9</li><li><strong>CTIA</strong>: 3.5, 3.6, 4.5, 4.6, 5.5, 5.6</li><li><strong>ENISA</strong>: GP-TM-05, GP-TM-06, GP-TM-18, GP-TM-19</li><li><strong>ETSI</strong>: 4.3-1, 4.3-2, 4.3-7</li><li><strong>GSMA</strong>: 7.5.1</li><li><strong>IEC</strong>: CR 3.4, EDR 3.10</li><li><strong>IIC</strong>: 7.3, 11.5.1</li><li><strong>IoTSF</strong>: 2.4.5.1, 2.4.5.2, 2.4.5.3, 2.4.5.4, 2.4.5.8, 2.4.6.1</li><li><strong>ISOC/OTA</strong>: 1, 6, 8</li><li><strong>NEMA</strong>: Updating Devices</li><li><strong>OCF</strong>: 14.5</li><li><strong>PSA</strong>: C2.1, C2.2, R1.1, R1.2, R6.1</li></ul></td></tr><tr><td><strong>サイバーセキュリティ状態の把握</strong>: IoT デバイスは、自らの<u>サイバーセキュリティ状態</u>を報告し、その情報を認可されたエンティティのみがアクセスできるようにできます。</td><td><ol><li>デバイスのサイバーセキュリティ状態を報告できる能力</li><li>デバイスが期待どおりに動作する可能性が高い場合と、<u>サイバーセキュリティ状態が低下している</u>可能性がある場合とを区別できる能力</li><li>状態の表示へのアクセスを、認可されたエンティティだけが閲覧できるように制限できる能力</li><li>デバイスの状態情報を維持する責任を負うエンティティを除き、いかなるエンティティ（認可されているか否かを問わず）も状態を編集できないようにできる能力</li><li>イベント／状態ログサーバーなど、別のデバイス上のサービスが状態情報を利用できるようにできる能力</li></ol></td><td><ul><li>この能力は、脆弱性管理とインシデント検知をサポートします。</li><li>サイバーセキュリティ状態の把握は、危殆化の調査、不正使用の特定、特定の運用上の問題のトラブルシューティングを可能にするのに役立ちます。</li><li>デバイスがサイバーセキュリティ状態を他のエンティティに知らせる方法は、文脈に固有のニーズと目標によって異なりますが、デバイスの外部に保存する必要がある場合もある永続的な記録に、イベントに関する情報を取得して記録すること、外部で処理されるよう監視システムに信号を送ること、IoT デバイス自体のインターフェースで警告を出すことなどが含まれる場合があります。</li></ul></td><td><ul><li><strong>CSDE</strong>: 5.1.7</li><li><strong>CTIA</strong>: 4.7, 4.12, 5.7, 5.16</li><li><strong>ENISA</strong>: GP-TM-55, GP-TM-56</li><li><strong>ETSI</strong>: 4.7-2, 4.10-1</li><li><strong>GSMA</strong>: CLP13_6.13.1, 7.2.1, 9.1.1.2</li><li><strong>IEC</strong>: CR 2.8, CR 3.9, CR 6.1, CR 6.2</li><li><strong>IIC</strong>: 7.3, 7.5, 7.7, 8.9, 10.3, 10.4</li><li><strong>IoTSF</strong>: 2.4.7.5</li><li><strong>NEMA</strong>: Monitoring Devices and Systems</li><li><strong>OCF</strong>: 5.1, 5.7, 8.6, 12, 13.8, 13.16</li><li><strong>PSA</strong>: C1.3, D1.1, D3.2, D3.4, D3.5, D5.1, R4.1, R4.3, R4.4</li></ul></td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Joint Task Force Transformation Initiative (2013) Security and Privacy Controls for Federal Information Systems and Organizations. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-53, Rev. 4, Includes updates as of January 22, 2015. https://doi.org/10.6028/NIST.SP.800-53r4</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Joint Task Force Transformation Initiative (2013) Security and Privacy Controls for Federal Information Systems and Organizations. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-53, Rev. 4, Includes updates as of January 22, 2015. https://doi.org/10.6028/NIST.SP.800-53r4</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Fagan M, Megas KN, Scarfone K, Smith M (2020) Foundational Cybersecurity Activities for IoT Device Manufacturers. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8259. https://doi.org/10.6028/NIST.IR.8259</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Fagan M, Megas KN, Scarfone K, Smith M (2020) Foundational Cybersecurity Activities for IoT Device Manufacturers. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8259. https://doi.org/10.6028/NIST.IR.8259</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Joint Task Force Transformation Initiative (2012) Guide for Conducting Risk Assessments. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-30, Rev. 4. https://doi.org/10.6028/NIST.SP.800-30r1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Joint Task Force Transformation Initiative (2012) Guide for Conducting Risk Assessments. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-30, Rev. 4. https://doi.org/10.6028/NIST.SP.800-30r1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Boeckl K, Fagan M, Fisher W, Lefkovitz N, Megas K, Nadeau E, Piccarreta B, Gabel O’Rourke D, Scarfone K (2019) Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8228. https://doi.org/10.6028/NIST.IR.8228</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Boeckl K, Fagan M, Fisher W, Lefkovitz N, Megas K, Nadeau E, Piccarreta B, Gabel O’Rourke D, Scarfone K (2019) Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Interagency or Internal Report (IR) 8228. https://doi.org/10.6028/NIST.IR.8228</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] AgeLight Digital Trust Advisory Group (2019) IoT Safety Architecture &amp; Risk Toolkit (IoTSA) v3.1. (AgeLight Advisory &amp; Research Group, Bellevue, WA). http://agelight.com/iot.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] AgeLight Digital Trust Advisory Group (2019) IoT Safety Architecture &amp; Risk Toolkit (IoTSA) v3.1. (AgeLight Advisory &amp; Research Group, Bellevue, WA). http://agelight.com/iot.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Broadband Internet Technical Advisory Group (BITAG) (2016) Internet of Things (IoT) Security and Privacy Recommendations. (Broadband Internet Technical Advisory Group [BITAG], Denver, CO). https://www.bitag.org/documents/BITAG_Report_-_Internet_of_Things_(IoT)_Security_and_Privacy_Recommendations.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Broadband Internet Technical Advisory Group (BITAG) (2016) Internet of Things (IoT) Security and Privacy Recommendations. (Broadband Internet Technical Advisory Group [BITAG], Denver, CO). https://www.bitag.org/documents/BITAG_Report_-_Internet_of_Things_(IoT)_Security_and_Privacy_Recommendations.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] Cloud Security Alliance (CSA) IoT Working Group (2015) Identity and Access Management for the Internet of Things. (Cloud Security Alliance [CSA]). https://cloudsecurityalliance.org/download/identity-and-access-management-for-the-iot/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] Cloud Security Alliance (CSA) IoT Working Group (2015) Identity and Access Management for the Internet of Things. (Cloud Security Alliance [CSA]). https://cloudsecurityalliance.org/download/identity-and-access-management-for-the-iot/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Council to Secure the Digital Economy (CSDE) (2019) The C2 Consensus on IoT Device Security Baseline Capabilities. (Council to Secure the Digital Economy [CSDE]). https://securingdigitaleconomy.org/wp-content/uploads/2019/09/CSDE_IoT-C2-Consensus-Report_FINAL.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Council to Secure the Digital Economy (CSDE) (2019) The C2 Consensus on IoT Device Security Baseline Capabilities. (Council to Secure the Digital Economy [CSDE]). https://securingdigitaleconomy.org/wp-content/uploads/2019/09/CSDE_IoT-C2-Consensus-Report_FINAL.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] CTIA (2018) CTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1. (CTIA, Washington, DC). https://www.ctia.org/about-ctia/test-plans/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] CTIA (2018) CTIA Cybersecurity Certification Test Plan for IoT Devices, Version 1.0.1. (CTIA, Washington, DC). https://www.ctia.org/about-ctia/test-plans/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] European Union Agency for Network and Information Security (ENISA) (2017) Baseline Security Recommendations for IoT in the context of Critical Information Infrastructures. (European Union Agency for Network and Information Security [ENISA], Athens, Greece). https://www.enisa.europa.eu/publications/baseline-security-recommendations-for-iot</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] European Union Agency for Network and Information Security (ENISA) (2017) Baseline Security Recommendations for IoT in the context of Critical Information Infrastructures. (European Union Agency for Network and Information Security [ENISA], Athens, Greece). https://www.enisa.europa.eu/publications/baseline-security-recommendations-for-iot</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] European Telecommunications Standards Institute (ETSI) (2019) Cyber Security for Consumer Internet of Things. ETSI Technical Specification 103 645 V1.1.1.<sup>2</sup> (European Telecommunications Standards Institute [ETSI], Sophia Antipolis Cedex, France). https://www.etsi.org/deliver/etsi_ts/103600_103699/103645/01.01.01_60/ts_103645v010101p.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] European Telecommunications Standards Institute (ETSI) (2019) Cyber Security for Consumer Internet of Things. ETSI Technical Specification 103 645 V1.1.1.<sup>2</sup> (European Telecommunications Standards Institute [ETSI], Sophia Antipolis Cedex, France). https://www.etsi.org/deliver/etsi_ts/103600_103699/103645/01.01.01_60/ts_103645v010101p.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] Groupe Spéciale Mobile Association (GSMA) (2017) GSMA IoT Security Assessment. (Groupe Spéciale Mobile Association [GSMA], London, UK). https://www.gsma.com/iot/iot-security-assessment/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] Groupe Spéciale Mobile Association (GSMA) (2017) GSMA IoT Security Assessment. (Groupe Spéciale Mobile Association [GSMA], London, UK). https://www.gsma.com/iot/iot-security-assessment/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] International Electrotechnical Commission (IEC) (2019) IEC 62443-4-2, Edition 1.0, Security for industrial automation and control systems, Part 4-2: Technical security requirements for IACS components. (International Electrotechnical Commission [IEC], Geneva, Switzerland). https://webstore.iec.ch/publication/34421</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] International Electrotechnical Commission (IEC) (2019) IEC 62443-4-2, Edition 1.0, Security for industrial automation and control systems, Part 4-2: Technical security requirements for IACS components. (International Electrotechnical Commission [IEC], Geneva, Switzerland). https://webstore.iec.ch/publication/34421</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[14] Industrial Internet Consortium (IIC) (2016) Industrial Internet of Things Volume G4: Security Framework. (Industrial Internet Consortium [IIC], Needham, MA). https://www.iiconsortium.org/IISF.htm</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[14] Industrial Internet Consortium (IIC) (2016) Industrial Internet of Things Volume G4: Security Framework. (Industrial Internet Consortium [IIC], Needham, MA). https://www.iiconsortium.org/IISF.htm</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[15] IoT Security Foundation (IoTSF) (2018) IoT Security Compliance Framework, Release 2. (IoT Security Foundation [IoTSF], Livingston, Scotland). https://www.iotsecurityfoundation.org/best-practice-guidelines/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[15] IoT Security Foundation (IoTSF) (2018) IoT Security Compliance Framework, Release 2. (IoT Security Foundation [IoTSF], Livingston, Scotland). https://www.iotsecurityfoundation.org/best-practice-guidelines/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[16] Online Trust Alliance (OTA) (2017) IoT Security &amp; Privacy Trust Framework v2.5. (Online Trust Alliance [OTA], an Internet Society initiative). https://www.internetsociety.org/resources/doc/2018/iot-trust-framework-v2-5/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[16] Online Trust Alliance (OTA) (2017) IoT Security &amp; Privacy Trust Framework v2.5. (Online Trust Alliance [OTA], an Internet Society initiative). https://www.internetsociety.org/resources/doc/2018/iot-trust-framework-v2-5/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[17] National Electrical Manufacturers Association (NEMA) (2018) Cyber Hygiene Best Practices. (National Electrical Manufacturers Association [NEMA], Rosslyn, VA). https://www.nema.org/Standards/Pages/Cyber-Hygiene-Best-Practices.aspx</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[17] National Electrical Manufacturers Association (NEMA) (2018) Cyber Hygiene Best Practices. (National Electrical Manufacturers Association [NEMA], Rosslyn, VA). https://www.nema.org/Standards/Pages/Cyber-Hygiene-Best-Practices.aspx</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[18] Open Connectivity Foundation (OCF) (2020) OCF Security Specification Version 2.1.2. (Open Connectivity Foundation [OCF], Beaverton, Oregon). https://openconnectivity.org/specs/OCF_Security_Specification_v2.1.2.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[18] Open Connectivity Foundation (OCF) (2020) OCF Security Specification Version 2.1.2. (Open Connectivity Foundation [OCF], Beaverton, Oregon). https://openconnectivity.org/specs/OCF_Security_Specification_v2.1.2.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[19] Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members (2020) PSA Certified™ Level 1 Questionnaire, Version 2.0 Beta. (Arm Limited, Cambridge, United Kingdom). https://www.psacertified.org/security-certification/psa-certified-level-1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[19] Platform Security Architecture (PSA) Joint Stakeholder Agreement (JSA) Members (2020) PSA Certified™ Level 1 Questionnaire, Version 2.0 Beta. (Arm Limited, Cambridge, United Kingdom). https://www.psacertified.org/security-certification/psa-certified-level-1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[20] Johnson A, Dempsey K, Ross R, Gupta S, Bailey D (2011) Guide for Security-Focused Configuration Management of Information Systems. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-128. https://doi.org/10.6028/NIST.SP.800-128</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[20] Johnson A, Dempsey K, Ross R, Gupta S, Bailey D (2011) Guide for Security-Focused Configuration Management of Information Systems. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-128. https://doi.org/10.6028/NIST.SP.800-128</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[21] Barker E, Chen L, Roginsky A, Vassilev A, Davis R (2019) Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-56A, Rev. 3. https://doi.org/10.6028/NIST.SP.800-56Ar3</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[21] Barker E, Chen L, Roginsky A, Vassilev A, Davis R (2019) Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-56A, Rev. 3. https://doi.org/10.6028/NIST.SP.800-56Ar3</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0018-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> ETSI is currently developing ETSI European Standard 303 645, which is similar to but not identical to the 103 645 Technical Specification cited here. The 303 645 version is not used in this publication because it is still a draft.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> ETSI は現在、ETSI European Standard 303 645 を策定中です。これはここで引用している 103 645 Technical Specification に似ていますが、同一ではありません。303 645 版は、まだドラフトであるため、この刊行物では使用していません。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[22] Committee on National Security Systems (2015) Committee on National Security Systems (CNSS) Glossary. (National Security Agency, Ft. Meade, MD), CNSS Instruction (CNSSI) No. 4009.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[22] Committee on National Security Systems (2015) Committee on National Security Systems (CNSS) Glossary. (National Security Agency, Ft. Meade, MD), CNSS Instruction (CNSSI) No. 4009.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[23] Souppaya M, Scarfone K (2013) Guide to Enterprise Patch Management Technologies. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-40, Rev. 3. https://doi.org/10.6028/NIST.SP.800-40r3</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[23] Souppaya M, Scarfone K (2013) Guide to Enterprise Patch Management Technologies. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) 800-40, Rev. 3. https://doi.org/10.6028/NIST.SP.800-40r3</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—Understanding the IoT Device Cybersecurity Capability Core Baseline in the Context of Customer Needs and Goals</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—顧客のニーズと目標の文脈における IoT デバイスのサイバーセキュリティ能力のコアベースラインの理解</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations should keep in mind that the capabilities presented in Table 1 are meant as a starting point to help provide the means stakeholders may need to meet common cybersecurity needs and goals. Risk mitigation areas that customers may pursue is one way to consider cybersecurity needs and goals that may need to be supported by an IoT device through device cybersecurity capabilities. For example, Figure 1 shows the risk mitigation areas and challenges defined in NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [3] that would be supported, in part, by the capabilities defined in Table 1. NISTIR 8228 cites additional challenges that the core device cybersecurity capabilities do not address because those challenges generally apply to relatively few IoT devices compared to the applicability of the core capabilities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、表 1 に示す能力が、ステークホルダーが一般的なサイバーセキュリティのニーズと目標を満たすために必要となる手段を提供する助けとなる、出発点として意図されていることを念頭に置くべきです。顧客が追求しうるリスク軽減領域を考慮することは、IoT デバイスがデバイスのサイバーセキュリティ能力を通じてサポートする必要があるサイバーセキュリティのニーズと目標を検討する一つの方法です。たとえば、図 1 は、NISTIR 8228, <em>Considerations for Managing Internet of Things (IoT) Cybersecurity and Privacy Risks</em> [3] で定義されたリスク軽減領域と課題のうち、表 1 で定義された能力によって一部サポートされるものを示しています。NISTIR 8228 は、コアとなるデバイスのサイバーセキュリティ能力が扱わない追加の課題も挙げています。これらの課題は、コア能力の適用範囲と比べると、一般に該当する IoT デバイスが比較的少ないためです。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0020-b0003" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8259a/p0020-figure-01.png" alt="Six dark blue rounded panels in two columns on a pale yellow grid background, each naming a NISTIR 8228 risk mitigation area, its challenges, and the core capabilities (shown with circular icons) that support it. Left column: “Asset Management – Challenges 1, 2” with a magnifying-glass icon labeled “Device Identification”; “Vulnerability Management – Challenges 8, 9, 10, 11, 13” with a gear-and-wrench icon labeled “Device Identification” and a circular-arrows icon labeled “Software Update”; “Access Management – Challenges 14, 15,16,18,19,21, 22, 23, 24” with a smartphone-and-person icon labeled “Logical Access to Interfaces”. Right column: “Device Security Incident Detection – Challenges 25, 26, 27, 28, 29, 30” and “Data Security Incident Detection – Challenges 25, 26, 27, 28, 29, 30”, which share a document-and-magnifier icon labeled “Cybersecurity State Awareness” placed between them; “Data Protection – Challenges 31, 32, 34, 35” with a badge-and-check-mark icon labeled “Data Protection”."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>薄い黄色の方眼の背景に、紺色の角丸のパネルが2列3段で6つ並んだ図です。各パネルには NISTIR 8228 のリスク軽減領域の名前と課題の番号があり、それを支える中核の能力が丸いアイコンとラベルで示されています。左の列は、「Asset Management（資産管理）– Challenges 1, 2」に虫眼鏡のアイコン「Device Identification（デバイス識別）」、「Vulnerability Management（脆弱性管理）– Challenges 8, 9, 10, 11, 13」に歯車とスパナのアイコン「Device Identification」と循環する矢印のアイコン「Software Update（ソフトウェア更新）」、「Access Management（アクセス管理）– Challenges 14, 15,16,18,19,21, 22, 23, 24」にスマートフォンと人物のアイコン「Logical Access to Interfaces（インターフェースへの論理アクセス）」です。右の列は、「Device Security Incident Detection（デバイスのセキュリティインシデントの検知）– Challenges 25, 26, 27, 28, 29, 30」と「Data Security Incident Detection（データのセキュリティインシデントの検知）– Challenges 25, 26, 27, 28, 29, 30」の2つのパネルの間に、文書と虫眼鏡のアイコン「Cybersecurity State Awareness（サイバーセキュリティ状態の把握）」が共通に置かれています。最後が「Data Protection（データ保護）– Challenges 31, 32, 34, 35」で、チェックマークの付いたバッジのアイコン「Data Protection」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1: NISTIR 8228 Risk Mitigation Areas Supported by Each Core Device Cybersecurity Capability</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1: 各コアデバイスのサイバーセキュリティ能力によってサポートされる NISTIR 8228 のリスク軽減の領域</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1 demonstrates that a broad and common set of risk mitigation areas was considered for the core baseline, which should be understood by manufacturers and other readers using the core baseline as a starting point. Though IoT devices providing the basic device cybersecurity capabilities described in the core baseline may help many customers more easily meet their cybersecurity needs and goals while using IoT devices, in reality, customers will likely target different and more specific risk mitigation areas. Therefore, the six capabilities and common elements in Table 1 should not be considered the universal and complete definition of necessary device cybersecurity capabilities for all customers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 は、コアベースラインについて幅広く一般的なリスク軽減領域が考慮されたことを示しています。これは、コアベースラインを出発点として用いる製造者やその他の読者が理解しておくべきです。コアベースラインに記述された基本的なデバイスのサイバーセキュリティ能力を備える IoT デバイスは、多くの顧客が IoT デバイスを使用する際に、自らのサイバーセキュリティのニーズと目標をより容易に満たす助けとなる場合がありますが、実際には、顧客は異なる、より具体的なリスク軽減領域を対象とする可能性が高いでしょう。したがって、表 1 の 6 つの能力と共通要素を、すべての顧客に必要なデバイスのサイバーセキュリティ能力の普遍的かつ完全な定義と見なすべきではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As described in NISTIR 8259, manufacturers should consider their IoT device’s expected customers and expected use cases to begin to identify the precise device cybersecurity capabilities needed in context. Manufacturers can further define the device cybersecurity capabilities with new or additional elements based on their knowledge and research of their customers. This may mean incorporating device cybersecurity capabilities to support risk mitigations in other areas than what is discussed here (e.g., penetration or other forms of component testing/validation, specific network architectures to reduce risk) or incorporating more unique elements for an IoT device that support less broadly applicable, but in the context of a customer or use case vitally important risk mitigations and other cybersecurity needs and goals. Manufacturers should also keep in mind other considerations in addition to risk mitigations that may impact device cybersecurity and their elements, such as usability considerations based on the customer and use case, roles and responsibility related to cybersecurity and how customers may expect them to be distributed, and societal cybersecurity needs and goals (e.g., protection against the development of botnets) that may not be directly reflected in the customer’s needs and goals, to name a few.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8259 で説明されているように、製造者は、文脈に応じて必要となる正確なデバイスのサイバーセキュリティ能力を特定するため、各 IoT デバイスの想定顧客と想定ユースケースを考慮すべきです。製造者は、顧客に関する知識と調査に基づき、新たな要素または追加要素を用いてデバイスのサイバーセキュリティ能力をさらに定義することができます。これは、ここで論じている領域以外のリスク軽減を支えるデバイスのサイバーセキュリティ能力（たとえば、侵入テストやその他の形態のコンポーネントのテスト／検証、リスクを低減する特定のネットワークアーキテクチャ）を組み込むこと、あるいは、広く適用できるものではないものの、顧客またはユースケースの文脈では極めて重要なリスク軽減やその他のサイバーセキュリティのニーズと目標を支える、IoT デバイス固有の要素をさらに組み込むことを意味する場合があります。製造者はまた、リスク軽減に加えて、デバイスのサイバーセキュリティとその要素に影響しうる他の考慮事項も念頭に置くべきです。例として、顧客とユースケースに基づく使いやすさ、サイバーセキュリティに関する役割と責任、および顧客がそれらの分担方法にどのような期待を持つか、さらに、顧客のニーズと目標には直接反映されない可能性がある社会全体のサイバーセキュリティのニーズと目標（たとえば、ボットネットの開発に対する防御）が挙げられます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Glossary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B—用語集</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Selected terms used in this document are defined below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この文書で使われている主な用語を、以下に定義します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>Authorized Entity</td><td>An entity that has implicitly or explicitly been granted approval to interact with a particular IoT device. The device cybersecurity capabilities in the core baseline do not specify how authorization is implemented for distinguishing authorized and unauthorized entities, but can include identity management and authentication to establish the authorization of entities. It is left to the organization to decide how each device will implement authorization. Also, an entity authorized to interact with an IoT device in one way might not be authorized to interact with the same device in another way.</td></tr><tr><td>Configuration</td><td>“The possible conditions, parameters, and specifications with which an information system or system component can be described or arranged [20].” The Device Configuration capability does not define which configuration settings should exist, simply that a mechanism to manage configuration settings exists.</td></tr><tr><td>Core Baseline</td><td>A set of technical device capabilities needed to support common cybersecurity controls that protect the customer’s devices and device data, systems, and ecosystems.</td></tr><tr><td>Cybersecurity State</td><td>The condition of a device’s cybersecurity expressed in a way that is meaningful and useful to authorized entities. For example, a very simple device might express its state in terms of whether or not it is operating as expected, while a complex device might perform cybersecurity logging, check its integrity at boot and report the results, and examine and report additional aspects of its cybersecurity state.</td></tr><tr><td>Degraded Cybersecurity State</td><td>A cybersecurity state that indicates the device’s cybersecurity has been significantly negatively impacted, such as the device being unable to operate as expected, or the integrity of the device’s software being violated.</td></tr><tr><td>Device Cybersecurity Capability Core Baseline</td><td>See <em>core baseline</em>.</td></tr><tr><td>Device Identifier</td><td>A context-unique value—a value unique within a specific context—that is associated with a device (for example, a string consisting of a network address). (This definition is derived from [21].)</td></tr><tr><td>Entity</td><td>A person, device, service, network, domain, manufacturer, or other party who might interact with an IoT device.</td></tr><tr><td>Interface</td><td>A boundary between the IoT device and entities where interactions take place. (This definition is derived from [22].) There are two types of interfaces: network and local.</td></tr><tr><td>Local Interface</td><td>An interface that can only be accessed physically, such as a port (e.g., USB, audio, video/display, serial, parallel, Thunderbolt) or a removable media drive (e.g., CD/DVD drive, memory card slot).</td></tr><tr><td>Logical Identifier</td><td>A device identifier that is expressed logically by the device’s software. An example is a media access control (MAC) address assigned to a network interface.</td></tr><tr><td>Network Interface</td><td>An interface that connects the IoT device to a network.</td></tr><tr><td>Physical Identifier</td><td>A device identifier that is expressed physically by the device (e.g., printed onto a device’s housing, displayed on a device’s screen).</td></tr><tr><td>Software</td><td>“Computer programs and associated data that may be dynamically written or modified during the device’s execution” (e.g., application code, libraries) [1].</td></tr><tr><td>Update</td><td>A patch, upgrade, or other modification to code that corrects security and/or functionality problems in software. (This definition is derived from [23].)</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>Authorized Entity</td><td>特定の IoT デバイスとやり取りすることについて、暗黙的または明示的に承認を与えられたエンティティ。コアベースラインのデバイスのサイバーセキュリティ能力は、認可されたエンティティと認可されていないエンティティを区別するために認可をどのように実装するかを規定していませんが、エンティティの認可を確立するためのアイデンティティ管理と認証を含めることができます。各デバイスが認可をどのように実装するかは、組織の判断に委ねられています。また、ある方法で IoT デバイスとやり取りすることを認可されたエンティティが、同じデバイスと別の方法でやり取りすることを認可されているとは限りません。</td></tr><tr><td>Configuration</td><td>「情報システムまたはシステムコンポーネントを記述または配置できる、可能な条件、パラメーター、仕様 [20]」。Device Configuration の能力は、どのような構成設定が存在すべきかを定義するものではなく、構成設定を管理する仕組みが存在することだけを定義します。</td></tr><tr><td>Core Baseline</td><td>顧客のデバイスと、デバイスのデータ、システム、エコシステムを保護する一般的なサイバーセキュリティ管理策をサポートするために必要な、技術的なデバイス能力の集合。</td></tr><tr><td>Cybersecurity State</td><td>認可されたエンティティにとって意味があり有用な形で表現された、デバイスのサイバーセキュリティの状態。たとえば、非常に単純なデバイスは、期待どおりに動作しているかどうかという観点で自らの状態を表現するかもしれませんが、複雑なデバイスは、サイバーセキュリティのログ記録を行い、起動時に完全性を確認してその結果を報告し、サイバーセキュリティ状態の追加の側面を調べて報告するかもしれません。</td></tr><tr><td>Degraded Cybersecurity State</td><td>デバイスのサイバーセキュリティが大幅に悪影響を受けたことを示すサイバーセキュリティ状態。たとえば、デバイスが期待どおりに動作できない、あるいはデバイスのソフトウェアの完全性が損なわれている場合などです。</td></tr><tr><td>Device Cybersecurity Capability Core Baseline</td><td><em>core baseline</em> を参照してください。</td></tr><tr><td>Device Identifier</td><td>デバイスに関連付けられた、文脈内で一意の値（特定の文脈内で一意である値）（たとえば、ネットワークアドレスからなる文字列）。（この定義は [21] から派生しています。）</td></tr><tr><td>Entity</td><td>IoT デバイスとやり取りする可能性のある、人、デバイス、サービス、ネットワーク、ドメイン、製造者、その他の当事者。</td></tr><tr><td>Interface</td><td>IoT デバイスとエンティティの間にあり、やり取りが行われる境界。（この定義は [22] から派生しています。）インターフェースには、ネットワークとローカルの 2 種類があります。</td></tr><tr><td>Local Interface</td><td>物理的にしかアクセスできないインターフェース。たとえば、ポート（たとえば、USB、オーディオ、ビデオ／ディスプレイ、シリアル、パラレル、Thunderbolt）やリムーバブルメディアドライブ（たとえば、CD/<wbr/>DVD ドライブ、メモリカードスロット）など。</td></tr><tr><td>Logical Identifier</td><td>デバイスのソフトウェアによって論理的に表現されるデバイス識別子。例は、ネットワークインターフェースに割り当てられたメディアアクセス制御（MAC）アドレスです。</td></tr><tr><td>Network Interface</td><td>IoT デバイスをネットワークに接続するインターフェース。</td></tr><tr><td>Physical Identifier</td><td>デバイスによって物理的に表現されるデバイス識別子（たとえば、デバイスの筐体に印刷されている、デバイスの画面に表示されている）。</td></tr><tr><td>Software</td><td>「デバイスの実行中に動的に書き込まれたり変更されたりしうる、コンピュータープログラムと関連データ」（たとえば、アプリケーションコード、ライブラリ）[1]。</td></tr><tr><td>Update</td><td>ソフトウェアのセキュリティまたは機能の問題を修正する、コードへのパッチ、アップグレード、その他の変更。（この定義は [23] から派生しています。）</td></tr></tbody></table>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2020/NIST.IR.8259A.pdf">National Institute of Standards and Technology, IR 8259A</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8259A";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

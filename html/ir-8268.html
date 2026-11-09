@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8268 は、NIST 軽量暗号標準化プロセスの第 1 ラウンドの状況を報告する文書です。このプロセスは、制約のある環境に適した 1 つ以上の認証付き暗号方式とハッシュ方式を、競争形式の公開プロセスで選定するものです。2019 年 2 月に 57 件の候補アルゴリズムが提出され、そのうち 56 件が第 1 ラウンドの候補として受理されました。本報告書は、公開フィードバックと内部レビューに基づく評価基準と選定プロセスを説明し、第 2 ラウンドに選ばれた 32 件の候補アルゴリズムの一覧を示しています。">
+  <title>NIST 軽量暗号標準化プロセス第 1 ラウンドの状況報告 | NIST IR 8268 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Status Report on the First Round of the NIST Lightweight Cryptography Standardization Process" data-search="nist 軽量暗号標準化プロセス第 1 ラウンドの状況報告 status report on the first round of the nist lightweight cryptography standardization process">NIST 軽量暗号標準化プロセス第 1 ラウンドの状況報告</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0004" title="Comments on this publication may be submitted to:" data-search="本刊行物に関するコメントの提出先 comments on this publication may be submitted to:">本刊行物に関するコメントの提出先</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Supplemental Content" data-search="補足情報 supplemental content">補足情報</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0005" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2 Evaluation Criteria and Selection Process" data-search="2 評価基準と選定プロセス 2 evaluation criteria and selection process">2 評価基準と選定プロセス</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0002" title="2.1 Acceptance of the First-round Candidates" data-search="2.1 第 1 ラウンドの候補の受理 2.1 acceptance of the first-round candidates">2.1 第 1 ラウンドの候補の受理</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0008" title="2.2 Selection of the Second-round Candidates" data-search="2.2 第 2 ラウンドの候補の選定 2.2 selection of the second-round candidates">2.2 第 2 ラウンドの候補の選定</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0012" title="2.2.1 Maturity of the Candidates" data-search="2.2.1 候補の成熟度 2.2.1 maturity of the candidates">2.2.1 候補の成熟度</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0011-b0002" title="2.2.2 Cryptanalysis of the Candidates" data-search="2.2.2 候補の暗号解読 2.2.2 cryptanalysis of the candidates">2.2.2 候補の暗号解読</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001" title="3 Next Steps" data-search="3 今後の予定 3 next steps">3 今後の予定</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0001" title="References" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8268 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Status Report on the First Round of the NIST Lightweight Cryptography Standardization Process</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>NIST 軽量暗号標準化プロセス第 1 ラウンドの状況報告</strong></span><br><span class="doc-panel-item">公開日 : 2019-10-07</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8268/final">https://csrc.nist.gov/pubs/ir/8268/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 173 / 174 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8268 は、NIST 軽量暗号標準化プロセスの第 1 ラウンドの状況を報告する文書です。このプロセスは、制約のある環境に適した 1 つ以上の認証付き暗号方式とハッシュ方式を、競争形式の公開プロセスで選定するものです。2019 年 2 月に 57 件の候補アルゴリズムが提出され、そのうち 56 件が第 1 ラウンドの候補として受理されました。本報告書は、公開フィードバックと内部レビューに基づく評価基準と選定プロセスを説明し、第 2 ラウンドに選ばれた 32 件の候補アルゴリズムの一覧を示しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8268</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8268</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Status Report on the First Round of the NIST Lightweight Cryptography Standardization Process</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+NIST 軽量暗号標準化プロセス第 1 ラウンドの状況報告</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Meltem Sönmez Turan<br>Kerry A. McKay<br>Çağdaş Çalık<br>Donghoon Chang<br>Larry Bassham</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Meltem Sönmez Turan<br>Kerry A. McKay<br>Çağdaş Çalık<br>Donghoon Chang<br>Larry Bassham</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8268</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8268</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0008" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8268</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8268</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Status Report on the First Round of the NIST Lightweight Cryptography Standardization Process</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 軽量暗号標準化プロセス第 1 ラウンドの状況報告</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Meltem Sönmez Turan<br>Kerry A. McKay<br>Çağdaş Çalık<br>Donghoon Chang<br>Larry Bassham<br>Computer Security Division<br>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Meltem Sönmez Turan<br>Kerry A. McKay<br>Çağdaş Çalık<br>Donghoon Chang<br>Larry Bassham<br>コンピュータセキュリティ部門<br>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8268</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8268</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>October 2019</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2019年10月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce Wilbur L. Ross, Jr., Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省 Wilbur L. Ross, Jr. 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Walter Copan, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Walter Copan、NIST 所長兼商務次官（標準・技術担当）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Internal Report 8268 19 pages (October 2019)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所 内部報告書 8268、19 ページ（2019年10月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from: https://doi.org/10.6028/NIST.IR.8268</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物は、次の場所から無料で入手できます: https://doi.org/10.6028/NIST.IR.8268</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験手順や概念を適切に説明するために、特定の商業的な事業体、機器、資材に言及している場合があります。そのような言及は、NIST による推奨や推薦を意味するものではなく、それらの事業体、資材、機器がその目的に利用可能なものの中で必ずしも最良であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST が法令で定められた責務に従って策定中の他の刊行物への言及が含まれている場合があります。概念や方法論を含め、本刊行物の情報は、そうした関連刊行物の完成前であっても、連邦機関によって利用される場合があります。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合には、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各組織は、パブリックコメントの期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されています。上記以外の NIST のサイバーセキュリティ関連の刊行物の多くは、https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Comments on this publication may be submitted to:</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+本刊行物に関するコメントの提出先</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930<br>Email: lightweight-crypto@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930<br>Email: lightweight-crypto@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の測定・標準のインフラストラクチャに技術的なリーダーシップを提供することにより、米国の経済と公共の福祉を促進しています。ITL は、情報技術の発展と生産的な利用を推進するため、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける、国家安全保障に関するもの以外の情報について、費用対効果の高いセキュリティとプライバシーのための、管理面・運用面・技術面・物理面の標準とガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) is in the process of selecting one or more authenticated encryption and hashing schemes suitable for constrained environments through a public, competition-like process. In February 2019, 57 candidate algorithms were submitted to NIST for consideration. Among these, 56 were accepted as first-round candidates in April 2019, marking the beginning of the first round of the NIST Lightweight Cryptography Standardization Process. Due to the large number of submissions and the short timeline of the process, NIST has decided to eliminate some of the algorithms from consideration early in the first evaluation phase in order to focus analysis on the more promising submissions. This report describes the evaluation criteria and selection process based on public feedback and internal review of the first-round candidates and provides the list of 32 candidate algorithms selected for the second round of the evaluation process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）は、競争形式の公開プロセスを通じて、制約のある環境に適した、1 つ以上の認証付き暗号方式とハッシュ方式を選定する作業を進めています。2019年2月に、57 件の候補アルゴリズムが NIST に提出され、検討の対象となりました。このうち 56 件が、2019年4月に第 1 ラウンドの候補として受理され、NIST 軽量暗号標準化プロセスの第 1 ラウンドが始まりました。提出数が多く、プロセスの期間も短いことから、NIST は、より有望な提出物に分析を集中させるため、最初の評価フェーズの早い段階で、一部のアルゴリズムを検討対象から外すことを決定しました。本報告書は、第 1 ラウンドの候補に対する公開フィードバックと内部レビューに基づく評価基準と選定プロセスを説明し、評価プロセスの第 2 ラウンドに選ばれた 32 件の候補アルゴリズムの一覧を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>authenticated encryption; cryptography; hash functions; lightweight cryptography.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証付き暗号、暗号技術、ハッシュ関数、軽量暗号。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Supplemental Content</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+補足情報</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NIST Lightweight Cryptography Standardization Process webpage is available at:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 軽量暗号標準化プロセスの Web ページは、次の場所にあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>https://csrc.nist.gov/projects/lightweight-cryptography</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>https://csrc.nist.gov/projects/lightweight-cryptography</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To join the lwc-forum@list.nist.gov email list, mailto:lwc-forum+subscribe@list.nist.gov.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>メーリングリスト lwc-forum@list.nist.gov に参加するには、mailto:lwc-forum+subscribe@list.nist.gov にメールを送ってください。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is grateful for the efforts of all the submission teams who developed, designed, and analyzed lightweight cryptography submission packages. The cryptographic community’s response of 57 candidate algorithms submitted to the standardization process was very encouraging.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、軽量暗号の提出パッケージを開発、設計、分析したすべての提出チームの努力に感謝します。標準化プロセスに 57 件の候補アルゴリズムが提出されたという暗号コミュニティの反応は、非常に心強いものでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The success of the NIST Lightweight Crypto Standardization Process relies on the efforts of the researchers from the cryptographic community that provide security, implementation, and performance analysis of the candidate algorithms. NIST thanks the cryptographic community that has analyzed the proposals and shared their comments through the forum or published papers on various technical aspects of the candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 軽量暗号標準化プロセスの成功は、候補アルゴリズムのセキュリティ、実装、性能の分析を担う暗号コミュニティの研究者の努力にかかっています。NIST は、提案を分析し、フォーラムや、候補の技術的なさまざまな側面に関する公刊論文を通じて意見を共有してくださった暗号コミュニティに感謝します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors of this internal report acknowledge and appreciate contributions by their colleagues at NIST: Lily Chen, Andrew Regenscheid, Ray Perlner, Dustin Moody, Luís Brandão, Craig Kenney, Richard Williams Jr., John Kelsey, Jacob Alperin-Sheriff, Yi-Kai Liu, and Sara Kerman who reviewed candidate algorithms and public comments, provided technical and administrative support, and participated in meetings to discuss the selection of the second-round candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本内部報告書の著者は、候補アルゴリズムとパブリックコメントを確認し、技術面・運用面の支援を提供し、第 2 ラウンドの候補の選定を議論する会議に参加した、NIST の同僚である Lily Chen、Andrew Regenscheid、Ray Perlner、Dustin Moody、Luís Brandão、Craig Kenney、Richard Williams Jr.、John Kelsey、Jacob Alperin-Sheriff、Yi-Kai Liu、Sara Kerman の貢献に謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1 はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 Evaluation Criteria and Selection Process</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 評価基準と選定プロセス</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">2.1 Acceptance of the First-round Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">2.1 第 1 ラウンドの候補の受理</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0008">2.2 Selection of the Second-round Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0008">2.2 第 2 ラウンドの候補の選定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2.2.1 Maturity of the Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2.2.1 候補の成熟度</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.2.2 Cryptanalysis of the Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.2.2 候補の暗号解読</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">3 Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">3 今後の予定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1 はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) has initiated the Lightweight Cryptography (LWC) standardization process to solicit, evaluate, and standardize lightweight cryptographic algorithms that are suitable to be used in constrained environments (e.g., radio frequency identification, sensor networks) where the performance of current NIST cryptographic standards is not acceptable. The initial focus is on symmetric cryptography, and one or more authenticated encryption and hashing schemes are expected to be selected through a public, competition-like process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）は、現行の NIST 暗号標準の性能では許容できない制約のある環境（たとえば、無線周波数識別、センサーネットワーク）で使用するのに適した軽量暗号アルゴリズムを募集、評価、標準化するため、軽量暗号（LWC）標準化プロセスを開始しました。当初は共通鍵暗号に焦点を当てており、競争形式の公開プロセスを通じて、1 つ以上の認証付き暗号方式とハッシュ方式が選定される見込みです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In July 2015, NIST held the First Lightweight Cryptography Workshop to get public feedback on the constraints and limitations of the target devices and requirements and characteristics of existing and emerging applications of lightweight cryptography. A second workshop was held in October 2016. In March 2017, NIST published NISTIR 8114, <em>Report on Lightweight Cryptography</em> [19] and announced that it has decided to create a portfolio of lightweight algorithms through an open, competition-like process. In April 2017, NIST published the draft whitepaper <em>Profiles for the Lightweight Cryptography Standardization Process</em> [6] to solicit feedback on proposed functionalities for initial inclusion in the portfolio.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2015年7月、NIST は、対象デバイスの制約と限界、および軽量暗号の既存および新たな用途の要件と特性について、公開フィードバックを得るため、第 1 回軽量暗号ワークショップを開催しました。第 2 回のワークショップは、2016年10月に開催されました。2017年3月、NIST は NISTIR 8114, <em>Report on Lightweight Cryptography</em> [19] を公表し、オープンな競争形式のプロセスを通じて軽量アルゴリズムのポートフォリオを作成することを決定したと発表しました。2017年4月、NIST は、ポートフォリオに当初含める機能の提案についてフィードバックを募るため、ホワイトペーパーのドラフト <em>Profiles for the Lightweight Cryptography Standardization Process</em> [6] を公表しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In May 2018, NIST published Federal Register Notice [1], referring to the draft <em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em>, for public comment. The requirements and evaluation criteria were updated based on public feedback. In August 2018, NIST published Federal Register Notice [2], announcing the final <em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> and calling for nominations of cryptographic algorithms that provide authenticated encryption with associated data (AEAD) and optional hashing functionalities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2018年5月、NIST は、パブリックコメントのために、ドラフト <em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> に言及する Federal Register Notice [1] を公表しました。要件と評価基準は、公開フィードバックに基づいて更新されました。2018年8月、NIST は、Federal Register Notice [2] を公表し、最終版の <em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> を発表するとともに、関連データ付き認証付き暗号（AEAD）と、任意のハッシュ機能を提供する暗号アルゴリズムの推薦を募りました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The LWC submission process included an optional early-review process that aimed to increase the quality of submissions. NIST provided feedback to eight submissions that were received by January 4, 2019. By the February 25, 2019, submission deadline, NIST received 57 submission packages to be considered for standardization. The submission teams were allowed to amend their submission packages by March 29, 2019, to reduce the effects of the 35-day U.S. government shutdown when NIST was unable to review submissions or communicate with submitters. Among 57 submissions, 56 were accepted as first-round candidates in April 2019, marking the beginning of the first round of the NIST LWC Standardization Process. Submission packages of the first-round candidates were posted online at the NIST LWC project webpage [28] for public review.<sup>1</sup> The timeline of major events in the NIST LWC Standardization Process is given in Table 1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>LWC の提出プロセスには、提出物の品質を高めることを目的とした、任意の早期レビュープロセスがありました。NIST は、2019年1月4日までに受け取った 8 件の提出物にフィードバックを提供しました。2019年2月25日の提出期限までに、NIST は、標準化の検討対象として 57 件の提出パッケージを受け取りました。提出チームは、NIST が提出物を審査したり提出者と連絡を取ったりできなかった 35 日間の米国政府機関閉鎖の影響を軽減するため、2019年3月29日まで提出パッケージを修正することが認められました。57 件の提出物のうち 56 件が、2019年4月に第 1 ラウンドの候補として受理され、NIST LWC 標準化プロセスの第 1 ラウンドが始まりました。第 1 ラウンドの候補の提出パッケージは、公開レビューのために、NIST LWC プロジェクトの Web ページ [28] にオンラインで掲載されました。<sup>1</sup> NIST LWC 標準化プロセスの主要なイベントのタイムラインを表 1 に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The standardization process has benefited significantly from the knowledge gained during the CAESAR (Competition for Authenticated Encryption: Security, Applicability, and Robustness) contest [7] that aimed to select algorithms that offer advantages over the Advanced Encryption Standard (AES) using the Galois/Counter Mode (GCM). Because of this, the timeline for standardization is planned to be shorter than other similar processes (e.g., five-year Secure Hash Algorithm-3 (SHA-3) competition, four-year AES competition). Spreading limited resources across a large number of submissions reduces the quality of evaluations per submission. It also takes a significantly longer time to have reliable performance analysis for comparison. Hence, NIST has decided to shorten the duration of the first round of the process from 12 months to four months and to reduce the number of candidates from 56 to 32 in order to focus analysis on the more promising candidates. The second-round candidates were announced on August 30, 2019.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>標準化プロセスは、Galois/Counter Mode（GCM）を用いた Advanced Encryption Standard（AES）に対して優位性を持つアルゴリズムの選定を目指した、CAESAR（Competition for Authenticated Encryption: Security, Applicability, and Robustness）コンテスト [7] で得られた知識から大きな恩恵を受けています。このため、標準化のタイムラインは、他の同様のプロセス（たとえば、5 年間の Secure Hash Algorithm-3（SHA-3）コンペティション、4 年間の AES コンペティション）より短くなるよう計画されています。限られた資源を多数の提出物に分散させると、提出物ごとの評価の質が下がります。また、比較のための信頼できる性能分析が得られるまでに、著しく長い時間がかかります。そのため NIST は、より有望な候補に分析を集中させるために、プロセスの第 1 ラウンドの期間を 12 か月から 4 か月に短縮し、候補の数を 56 件から 32 件に減らすことを決定しました。第 2 ラウンドの候補は、2019年8月30日に発表されました。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> NIST made minor updates to the submission packages to add accessibility features and to create a uniform directory structure across all submissions.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> NIST は、アクセシビリティ機能を追加し、すべての提出物で統一されたディレクトリ構造を作成するために、提出パッケージに軽微な更新を加えました。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The purpose of this report is to provide a public record of the first round of the NIST LWC standardization process. This report describes the evaluation criteria and selection process based on public feedback and internal review of the first-round candidates, and summarizes the reasoning for the early elimination of 24 candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の目的は、NIST LWC 標準化プロセスの第 1 ラウンドの公的な記録を提供することです。本報告書は、第 1 ラウンドの候補に対する公開フィードバックと内部レビューに基づく評価基準と選定プロセスを説明し、24 件の候補を早期に除外した理由を要約します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 Timeline of the LWC Standardization Process</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 LWC 標準化プロセスのタイムライン</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody><tr><td>July 20-21, 2015</td><td>First Lightweight Cryptography Workshop at NIST</td></tr><tr><td>August 11, 2016</td><td>(Draft) NISTIR 8114 <em>Report on Lightweight Cryptography</em> [18] is published.</td></tr><tr><td>October 17-18, 2016</td><td>Second Lightweight Cryptography Workshop at NIST</td></tr><tr><td>March 28, 2017</td><td>NISTIR 8114 <em>Report on Lightweight Cryptography</em> [19] is published.</td></tr><tr><td>April 26, 2017</td><td>(Draft) <em>Profiles for Lightweight Cryptography Standardization Process</em> [6] is published.</td></tr><tr><td>May 14, 2018</td><td><em>Federal Register Notice</em> [1] is published.<br>(Draft) <em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> [27] is published.</td></tr><tr><td>August 27, 2018</td><td><em>Federal Register Notice</em> [2] is published.<br><em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> [29] is published.</td></tr><tr><td>February 25, 2019</td><td>Submission deadline</td></tr><tr><td>March 29, 2019</td><td>Amendment deadline</td></tr><tr><td>April 18, 2019</td><td>Announcement of the first-round candidates [17]</td></tr><tr><td>August 30, 2019</td><td>Announcement of the second-round candidates [40]</td></tr><tr><td>November 4-6, 2019</td><td>Third Lightweight Cryptography Workshop</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>日付</th><th>イベント</th></tr></thead><tbody><tr><td>2015年7月20～21日</td><td>NIST での第 1 回軽量暗号ワークショップ</td></tr><tr><td>2016年8月11日</td><td>（ドラフト）NISTIR 8114 <em>Report on Lightweight Cryptography</em> [18] が公表されました。</td></tr><tr><td>2016年10月17～18日</td><td>NIST での第 2 回軽量暗号ワークショップ</td></tr><tr><td>2017年3月28日</td><td>NISTIR 8114 <em>Report on Lightweight Cryptography</em> [19] が公表されました。</td></tr><tr><td>2017年4月26日</td><td>（ドラフト）<em>Profiles for Lightweight Cryptography Standardization Process</em> [6] が公表されました。</td></tr><tr><td>2018年5月14日</td><td><em>Federal Register Notice</em> [1] が公表されました。<br>（ドラフト）<em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> [27] が公表されました。</td></tr><tr><td>2018年8月27日</td><td><em>Federal Register Notice</em> [2] が公表されました。<br><em>Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process</em> [29] が公表されました。</td></tr><tr><td>2019年2月25日</td><td>提出期限</td></tr><tr><td>2019年3月29日</td><td>修正期限</td></tr><tr><td>2019年4月18日</td><td>第 1 ラウンドの候補の発表 [17]</td></tr><tr><td>2019年8月30日</td><td>第 2 ラウンドの候補の発表 [40]</td></tr><tr><td>2019年11月4～6日</td><td>第 3 回軽量暗号ワークショップ</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2 Evaluation Criteria and Selection Process</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2 評価基準と選定プロセス</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Acceptance of the First-round Candidates</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 第 1 ラウンドの候補の受理</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>After receiving 57 submissions to the standardization process, NIST researchers reviewed the submission packages for completeness and properness based on the requirements provided in [29]. These requirements can be summarized as:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>標準化プロセスに 57 件の提出物を受け取った後、NIST の研究者は、[29] に示された要件に基づいて、提出パッケージの完全性と適切性を確認しました。これらの要件は、次のように要約できます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The submission packages shall include a cover sheet, algorithm specifications and supporting documentation, and intellectual property statements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">提出パッケージには、表紙、アルゴリズムの仕様と裏付け文書、知的財産に関する声明を含めなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The submissions shall meet the minimum acceptability requirements on algorithm specification, design rationale, security levels, limits on the message lengths, the number of variants, etc.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">提出物は、アルゴリズムの仕様、設計の根拠、セキュリティレベル、メッセージ長の上限、バリアントの数などに関する最低限の受理要件を満たさなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The submission packages shall include portable reference software implementations in C for all members of the family that comply with the provided application program interface.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">提出パッケージには、ファミリーのすべてのメンバーについて、規定のアプリケーションプログラムインターフェースに準拠した、C 言語によるポータブルなリファレンスソフトウェア実装を含めなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In April 26, 2019, NIST announced 56 submissions as first-round candidates as listed in Table 2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2019年4月26日に、NIST は、表 2 に示す 56 件の提出物を第 1 ラウンドの候補として発表しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Selection of the Second-round Candidates</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 第 2 ラウンドの候補の選定</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The evaluation criteria for the standardization process were provided in the call for submissions [29]. The most important criterion of the process is the cryptographic security of the submissions. The implementation characteristics (in terms of performance and cost) of the submissions in constrained environments is another important criterion. The implementations of the candidates are also expected to lend themselves to countermeasures against side-channel attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>標準化プロセスの評価基準は、提出募集 [29] で示されました。このプロセスで最も重要な基準は、提出物の暗号学的なセキュリティです。制約のある環境における提出物の実装上の特性（性能とコストの観点）も、もう 1 つの重要な基準です。候補の実装は、サイドチャネル攻撃への対策にも適していることが期待されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Selecting the second-round candidates was challenging due to the diversity of candidates in terms of their functionality, underlying components, design approaches, supported key and tag sizes, and features. Table 2 provides a classification of the first-round candidates based on their functionalities and underlying cryptographic components.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>機能、基盤となる構成要素、設計手法、サポートする鍵とタグのサイズ、特徴の面で候補が多様であったため、第 2 ラウンドの候補の選定は困難でした。表 2 は、機能と基盤となる暗号構成要素に基づく、第 1 ラウンドの候補の分類を示しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this round of the project, there were two major selection criteria: maturity of the candidates, and cryptanalysis of the candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロジェクトのこのラウンドでは、候補の成熟度と、候補の暗号解読という 2 つの主要な選定基準がありました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1 Maturity of the Candidates</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1 候補の成熟度</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The submissions with significant third-party analysis or that based their security claims on well-understood design principles were favored for round 2 selection. However, submissions that used designs in such a way that existing analysis is no longer applicable were not considered as strong, nor were submissions that did not provide sufficient analysis to support security claims. NIST observed that the maturity levels of the first-round candidates varied significantly. The submissions that were removed from consideration only due to maturity are given below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第三者による大幅な分析が行われている提出物や、よく理解された設計原則にセキュリティ上の主張の根拠を置いている提出物は、第 2 ラウンドの選定で優先されました。しかし、既存の分析がもはや適用できないような方法で設計を用いた提出物や、セキュリティ上の主張を裏付けるのに十分な分析を示していない提出物は、有力とはみなされませんでした。NIST は、第 1 ラウンドの候補の成熟度に大きなばらつきがあることを確認しました。成熟度のみを理由に検討対象から外された提出物を、以下に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Fountain, Yarará and Coral.</em> There was no public third-party security analysis on these designs prior to submission, and the security analysis within the submission package did not sufficiently support the security claims.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Fountain、Yarará、Coral。</em> これらの設計には、提出前に公開された第三者によるセキュリティ分析がなく、提出パッケージ内のセキュリティ分析は、セキュリティ上の主張を十分に裏付けていませんでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2 Classification of first-round candidates based on their functionalities and underlying cryptographic components</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2 機能と基盤となる暗号構成要素に基づく、第 1 ラウンドの候補の分類</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th><em>Submissions with AEAD and Hashing Functionality</em></th><th><em>Submissions with only AEAD Functionality</em></th></tr></thead><tbody><tr><td><em>Permutation based</em><br>ACE<br>ASCON<br>CLX<br>DryGASCON<br>GAGE and InGAGE<br>Gimli<br>HERN and HERON<br>KNOT<br>ORANGE<br>PHOTON-Beetle<br>Shamash and Shamashash<br>SIV-TEM-PHOTON<br>SNEIK<br>SPARKLE (SCHWAEMM and ESCH)<br>Subterranean 2.0<br>Sycon<br>Xoodyak<br>Yarará and Coral<br><br><em>Block cipher based</em><br>Saturnin<br>SIV-Rijndael<br><br><em>Tweakable block cipher based</em><br>SKINNY-AEAD and SKINNY-HASH<br><br><em>Stream cipher based</em><br>Triad</td><td><em>Permutation based</em><br>CiliPadi<br>Elephant<br>Fountain<br>ISAP<br>Oribatida<br>SPIX<br>SpoC<br>WAGE<br><br><em>Block cipher based</em><br>COMET<br>FlexAEAD<br>GIFT-COFB<br>HyENA<br>LAEM<br>Limdolen<br>mixFeed<br>Pyjamask<br>SAEAES<br>Simple<br>SUNDAE-GIFT<br>TinyJAMBU<br>TRIFLE<br><br><em>Tweakable block cipher based</em><br>ForkAE<br>ESTATE<br>Lilliput-AE<br>LOTUS-AEAD, and LOCUS-AEAD<br>Qameleon<br>Remus<br>Romulus<br>Spook<br>Thank Goodness It’s Friday (TGIF)<br><br><em>Stream cipher based and others</em><br>Bleep64<br>CLAE<br>Grain-128AEAD<br>Quartet</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th><em>AEAD 機能とハッシュ機能を持つ提出物</em></th><th><em>AEAD 機能のみを持つ提出物</em></th></tr></thead><tbody><tr><td><em>置換ベース</em><br>ACE<br>ASCON<br>CLX<br>DryGASCON<br>GAGE and InGAGE<br>Gimli<br>HERN and HERON<br>KNOT<br>ORANGE<br>PHOTON-Beetle<br>Shamash and Shamashash<br>SIV-TEM-PHOTON<br>SNEIK<br>SPARKLE (SCHWAEMM and ESCH)<br>Subterranean 2.0<br>Sycon<br>Xoodyak<br>Yarará and Coral<br><br><em>ブロック暗号ベース</em><br>Saturnin<br>SIV-Rijndael<br><br><em>tweak 可能なブロック暗号ベース</em><br>SKINNY-AEAD and SKINNY-HASH<br><br><em>ストリーム暗号ベース</em><br>Triad</td><td><em>置換ベース</em><br>CiliPadi<br>Elephant<br>Fountain<br>ISAP<br>Oribatida<br>SPIX<br>SpoC<br>WAGE<br><br><em>ブロック暗号ベース</em><br>COMET<br>FlexAEAD<br>GIFT-COFB<br>HyENA<br>LAEM<br>Limdolen<br>mixFeed<br>Pyjamask<br>SAEAES<br>Simple<br>SUNDAE-GIFT<br>TinyJAMBU<br>TRIFLE<br><br><em>tweak 可能なブロック暗号ベース</em><br>ForkAE<br>ESTATE<br>Lilliput-AE<br>LOTUS-AEAD, and LOCUS-AEAD<br>Qameleon<br>Remus<br>Romulus<br>Spook<br>Thank Goodness It’s Friday (TGIF)<br><br><em>ストリーム暗号ベースおよびその他</em><br>Bleep64<br>CLAE<br>Grain-128AEAD<br>Quartet</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Shamash and Shamashash.</em> Although the security analysis of Shamash and Shamashash is claimed to rely on the analysis of ASCON, the specification of Shamash and Shamashash did not sufficiently address the security implications of the differences between the two designs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Shamash と Shamashash</em>。Shamash と Shamashash のセキュリティ分析は ASCON の分析に依拠していると主張されていますが、Shamash と Shamashash の仕様は、両者の設計の違いがセキュリティに与える影響を十分に扱っていませんでした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.2 Cryptanalysis of the Candidates</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.2 候補の暗号解読</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>After the announcement of the first-round candidates, the candidates received various levels of third-party analysis. Table 3 summarizes the third-party analysis that raised security concerns during the first round of the process. The tweaks suggested by designers to eliminate the concerns were not considered during evaluation. Practical attacks (e.g., forgery attacks) due to implementation bugs were not considered to be a reason for elimination. NIST researchers checked implementation updates to verify that they were consistent with the original specifications. It should be noted that NIST did not publish the updated source codes for this round on the official project webpage but encouraged the teams to host websites for their submissions where corrected implementations, additional files, and documents related to their submission could be made available.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 1 ラウンドの候補の発表後、候補はさまざまなレベルの第三者による分析を受けました。表 3 は、プロセスの第 1 ラウンドでセキュリティ上の懸念を生じさせた第三者による分析をまとめたものです。設計者が懸念を解消するために提案した tweak は、評価の際には考慮されませんでした。実装上のバグに起因する実用的な攻撃（たとえば、偽造攻撃）は、除外の理由とはみなされませんでした。NIST の研究者は、実装の更新が元の仕様と整合していることを確認するために、その内容を確認しました。このラウンドについて、NIST は更新されたソースコードを公式プロジェクト Web ページでは公開しませんでしたが、各チームに対し、修正された実装、追加ファイル、提出物関連の文書を掲載するための各提出物の Web サイトを設けるよう促しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 3 Summary of attacks and observations on the first-round candidates</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 3 第 1 ラウンドの候補に対する攻撃と所見のまとめ</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th><em>Attacks &amp; Observations</em></th><th><em>Candidates</em></th></tr></thead><tbody><tr><td><em>Forgery attacks</em></td><td>Bleep64 [5, 41], CLAE [38], FlexAEAD [11, 12], GAGE and InGAGE [4], HERN and HERON [21], Liliput-AE [9, 10], Limdolen [35, 36], Qameleon [13], Quartet [33], Remus [14], Simple [23], SIV-Rijndael256 [8], SIV-TEM-PHOTON [8], SNEIK [15], Sycon [24], TGIF [14], Triad [25]</td></tr><tr><td><em>Length-extension attacks</em></td><td>CiliPadi [3], FlexAEAD [20]</td></tr><tr><td><em>Distinguishing attacks</em></td><td>Limdolen [31]</td></tr><tr><td><em>Undesirable properties</em></td><td>LAEM [22], SNEIK [32, 34], CLX [26], TRIFLE [16, 37, 39]</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th><em>攻撃と所見</em></th><th><em>候補</em></th></tr></thead><tbody><tr><td><em>偽造攻撃</em></td><td>Bleep64 [5, 41], CLAE [38], FlexAEAD [11, 12], GAGE and InGAGE [4], HERN and HERON [21], Liliput-AE [9, 10], Limdolen [35, 36], Qameleon [13], Quartet [33], Remus [14], Simple [23], SIV-Rijndael256 [8], SIV-TEM-PHOTON [8], SNEIK [15], Sycon [24], TGIF [14], Triad [25]</td></tr><tr><td><em>長さ拡張攻撃</em></td><td>CiliPadi [3], FlexAEAD [20]</td></tr><tr><td><em>識別攻撃</em></td><td>Limdolen [31]</td></tr><tr><td><em>望ましくない性質</em></td><td>LAEM [22], SNEIK [32, 34], CLX [26], TRIFLE [16, 37, 39]</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The submissions that were removed from consideration due to third-party analysis are given below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第三者による分析を理由に検討対象から外された提出物を、以下に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Bleep64.</em> Neves [30] observed a weakness in the initialization phase where two related nonce values lead to the same output with high probability. Dobraunig and Rotella [41] found a practical forgery attack by giving signed differences to a previously obtained valid ciphertext block. These results have been extended by Bartlett et al. [5].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Bleep64。</em> Neves [30] は、初期化フェーズに、関連する 2 つのナンス値が高い確率で同じ出力につながるという弱点があることを確認しました。Dobraunig と Rotella [41] は、以前に取得した有効な暗号文ブロックに符号化された差分を与えることで、実用的な偽造攻撃を発見しました。これらの結果は、Bartlett ら [5] によって拡張されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>CiliPadi.</em> Bagheri and Sadeghi [3] showed that CiliPadi is vulnerable against practical length-extension attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>CiliPadi。</em> Bagheri と Sadeghi [3] は、CiliPadi が実用的な長さ拡張攻撃に対して脆弱であることを示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>CLAE.</em> CLAE does not properly handle the padding of short messages which leads to trivial forgeries. Schrottenloher [38] showed additional forgery attacks with colliding ciphertexts.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>CLAE。</em> CLAE は、短いメッセージのパディングを適切に扱っておらず、自明な偽造につながります。Schrottenloher [38] は、暗号文を衝突させる追加の偽造攻撃を示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>CLX.</em> The security of CLX relies on a new permutation that has a sliding property. This property is a cause for concern. Mege [26] described how this property can be used to mount an attack on the primary variant.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>CLX。</em> CLX のセキュリティは、スライド特性を持つ新しい置換に依拠しています。この特性は懸念の原因です。Mege [26] は、この特性を使って、プライマリバリアントに対する攻撃を実行する方法を説明しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>FlexAEAD.</em> Eichlseder et al. [11, 12] showed a forgery attack on FlexAEAD. Additionally, Mege [20] showed that FlexAEAD is vulnerable against length-extension attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>FlexAEAD。</em> Eichlseder ら [11, 12] は、FlexAEAD に対する偽造攻撃を示しました。加えて、Mege [20] は、FlexAEAD が長さ拡張攻撃に対して脆弱であることを示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>GAGE and InGAGE.</em> Bagheri et al. [4] observed that for the primary version with 128-bit tag and 232-bit state, a forgery attack is possible when the remaining 104-bit final output state is correctly guessed. It is trivial to filter out the wrong guesses with any valid input-output pair where the length of ciphertext is at least 104 bits.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>GAGE と InGAGE。</em> Bagheri ら [4] は、128 ビットのタグと 232 ビットの状態を持つプライマリバージョンでは、残りの 104 ビットの最終出力状態を正しく推測すると、偽造攻撃が可能になることを確認しました。暗号文の長さが 104 ビット以上である有効な入出力ペアがあれば、誤った推測を除外することは容易です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>HERN and HERON.</em> Mege [21] found a forgery attack on Hern that exploits weak domain separation between associated data and message. The attack practically demonstrates colliding tag values for different pairs of associated data and message inputs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>HERN と HERON。</em> Mege [21] は、関連データとメッセージの間のドメイン分離が弱いことを悪用する、Hern に対する偽造攻撃を発見しました。この攻撃は、関連データとメッセージの入力の異なる組み合わせに対して、タグ値が衝突することを実際に示しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>LAEM.</em> LAEM does not support empty plaintext as input by design, which prevents it from being used as a Message Authentication Code (MAC) [22]. The algorithm also has an undesirable property of generating ciphertexts where the size is approximately double that of the plaintext.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>LAEM。</em> LAEM は、設計上、空の平文を入力としてサポートしておらず、そのためメッセージ認証コード（MAC）として使用できません [22]。このアルゴリズムには、平文のおよそ 2 倍のサイズの暗号文を生成するという望ましくない性質もあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Liliput-AE.</em> Dunkelman et al. [9, 10] reported a related-tweak differential characteristic for the tweakable block cipher Lilliput-TBC with probability 1. The characteristic can be used to mount a practical forgery attack on the AEAD scheme in the nonce-misuse resistant mode and also allows the construction of valid ciphertext-tag pairs in the nonce-respecting mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Liliput-AE。</em> Dunkelman ら [9, 10] は、tweak 可能なブロック暗号 Lilliput-TBC について、確率 1 の関連 tweak 差分特性を報告しました。この特性を使って、ナンス誤用耐性モードの AEAD 方式に対する実用的な偽造攻撃を実行でき、ナンス遵守モードでも有効な暗号文とタグのペアを構築できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Limdolen.</em> Neves [31] showed a full-round distinguisher for the underlying block cipher of Limdolen. Rohit [35, 36] showed structural weaknesses in Limdolen that lead to practical forgery attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Limdolen。</em> Neves [31] は、Limdolen の基盤となるブロック暗号に対する全ラウンドの識別器を示しました。Rohit [35, 36] は、実用的な偽造攻撃につながる Limdolen の構造的な弱点を示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Qameleon.</em> Jha et al. [13] observed that the tweak value of the last block cipher does not depend on the input size but depends only on the nonce. This observation was used to mount an efficient forgery attack.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Qameleon。</em> Jha ら [13] は、最後のブロック暗号の tweak 値が、入力サイズには依存せず、ナンスのみに依存することを確認しました。この確認結果を使って、効率的な偽造攻撃が実行されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Quartet.</em> Perrin et al. [33] showed that a practical forgery attack with just one forgery attempt is possible with success probability \(2^{-9}\) using a differential characteristic of the underlying permutation with probability \(2^{-6}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Quartet。</em> Perrin ら [33] は、偽造の試行がわずか 1 回で、成功確率 \(2^{-9}\) の実用的な偽造攻撃が、基盤となる置換の確率 \(2^{-6}\) の差分特性を使って可能であることを示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Remus</em> and <em>TGIF.</em> Remus variants N1/M1/N3 and TGIF variants N1/M1 generate a 128-bit one-time secret value \(L\) for each key-nonce pair to perform authenticated encryption. Jha et al. [14] presented an attack to recover \(L\), which leads to forgeries.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Remus</em> と <em>TGIF。</em> Remus のバリアント N1/M1/N3 と TGIF のバリアント N1/M1 は、認証付き暗号を行うために、鍵とナンスのペアごとに 128 ビットのワンタイムのシークレット値 \(L\) を生成します。Jha ら [14] は、\(L\) を復元し、偽造につながる攻撃を示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Simple.</em> Mege [23] demonstrated how the lack of domain separation between processing associated data and plaintext could be used to mount forgery attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Simple。</em> Mege [23] は、関連データと平文の処理の間にドメイン分離がないことを悪用して、偽造攻撃を実行できることを示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>SIV-Rijndael256</em> and <em>SIV-TEM-PHOTON.</em> Datta et al. [8] described a forgery attack that exploits a lack of domain separation between full and partial associated data blocks. In particular, the ciphertexts are identical when two distinct padded associated data strings (one full block and one partial block) are the same and all other parameters are equal.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>SIV-Rijndael256</em> と <em>SIV-TEM-PHOTON。</em> Datta ら [8] は、完全な関連データブロックと部分的な関連データブロックの間のドメイン分離がないことを悪用する偽造攻撃を説明しました。具体的には、パディングされた 2 つの異なる関連データ文字列（完全なブロック 1 つと部分的なブロック 1 つ）が同じで、他のすべてのパラメーターが等しい場合に、暗号文が同一になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>SNEIK.</em> Perrin [32, 34] found a differential characteristic of the SNEIK permutation with probability 1, where all 16 input words and all 16 output words have the same difference, and Khairallah [15] showed how to use the characteristic to mount an efficient forgery attack.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>SNEIK。</em> Perrin [32, 34] は、16 個の入力ワードと 16 個の出力ワードのすべてが同じ差分を持つ、確率 1 の SNEIK 置換の差分特性を発見し、Khairallah [15] は、この特性を使って効率的な偽造攻撃を実行する方法を示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Sycon.</em> Mege [24] showed a forgery attack in AEAD variants due to improper domain separation between associated data and plaintext. The attack demonstrates construction of identical tag values for different message and associated data pairs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Sycon。</em> Mege [24] は、関連データと平文の間のドメイン分離が不適切であることに起因する、AEAD バリアントに対する偽造攻撃を示しました。この攻撃は、異なるメッセージと関連データの組み合わせに対して、同一のタグ値を構築できることを示しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Triad.</em> Mege [25] discovered that Triad-AE is vulnerable to forgery attacks due to the lack of domain separation between the processing of the associated data and plaintext.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Triad。</em> Mege [25] は、関連データと平文の処理の間にドメイン分離がないために、Triad-AE が偽造攻撃に対して脆弱であることを発見しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>TRIFLE.</em> Several observations have been made that highlight undesirable properties in the block cipher TRIFLE-BC. NIST believes that these properties are cause for concern. In particular, the combination of S-box fixed points [37], subspace transitions, ability to decrypt a quarter of the state over two rounds without knowledge of the key, and long single active bit trails [39] could be combined to mount attacks. An iterative differential characteristic on reduced-round TRIFLE-BC that leverages these properties was independently described by Lui and Isobe [16].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>TRIFLE。</em> ブロック暗号 TRIFLE-BC の望ましくない性質を浮き彫りにする所見が、いくつか示されています。NIST は、これらの性質が懸念の原因であると考えています。特に、S-box の不動点 [37]、部分空間遷移、鍵を知らなくても 2 ラウンドにわたって状態の 4 分の 1 を復号できること、長い単一アクティブビットの軌跡 [39] の組み合わせにより、攻撃を実行できる可能性があります。これらの性質を利用する、ラウンド数を減らした TRIFLE-BC に対する反復差分特性は、Lui と Isobe [16] によって独立に説明されました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3 Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3 今後の予定</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On August 30, 2019, NIST announced the second-round candidates [40]. NIST strongly encourages public evaluation of the second-round candidates and publication of the results throughout the process. For the second-round candidates, NIST will give the submission teams the opportunity to provide updated specifications and implementations to correct typos and implementation bugs. The deadline for these updates was September 27, 2019, 11:59PM EDT. NIST will review the proposed modifications and publish the accepted updates shortly afterwards. No design changes are accepted in this phase.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2019年8月30日に、NIST は第 2 ラウンドの候補を発表しました [40]。NIST は、第 2 ラウンドの候補を公開で評価し、プロセス全体を通じてその結果を公表することを強く推奨します。第 2 ラウンドの候補については、NIST は、提出チームに、誤字や実装上のバグを修正するための、更新された仕様と実装を提供する機会を与えます。これらの更新の期限は、2019年9月27日の米国東部夏時間午後 11 時 59 分でした。NIST は、提案された修正を確認し、その後まもなく、受理された更新を公表します。このフェーズでは、設計の変更は受け付けられません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Second Round Candidates</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 ラウンドの候補</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACE</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ASCON</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ASCON</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">COMET</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">COMET</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">DryGASCON</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">DryGASCON</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Elephant</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Elephant</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ESTATE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ESTATE</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ForkAE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ForkAE</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">GIFT-COFB</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">GIFT-COFB</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0029">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gimli</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gimli</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Grain-128AEAD</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Grain-128AEAD</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">HyENA</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">HyENA</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISAP</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISAP</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">KNOT</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">KNOT</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">LOTUS-AEAD &amp; LOCUS-AEAD</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">LOTUS-AEAD &amp; LOCUS-AEAD</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">mixFeed</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">mixFeed</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ORANGE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ORANGE</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oribatida</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oribatida</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PHOTON-Beetle</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PHOTON-Beetle</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Pyjamask</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Pyjamask</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0030">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Romulus</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Romulus</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SAEAES</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SAEAES</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0036">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Saturnin</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Saturnin</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SKINNY-AEAD &amp; SKINNY-HASH</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SKINNY-AEAD &amp; SKINNY-HASH</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SPARKLE (SCHWAEMM and ESCH)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SPARKLE (SCHWAEMM and ESCH)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SPIX</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SPIX</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SpoC</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SpoC</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Spook</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Spook</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Subterranean 2.0</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Subterranean 2.0</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SUNDAE-GIFT</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SUNDAE-GIFT</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0031">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TinyJAMBU</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TinyJAMBU</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0034">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">WAGE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">WAGE</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0037">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Xoodyak</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Xoodyak</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0038">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For the second round, performance will play a larger role in the selection criteria. Submitters are encouraged to provide optimized implementations for a variety of platforms. It is estimated that the second phase of evaluation and review will last approximately 12 months. After the end of the second round, NIST is planning to focus on a small number of candidates for the final round of the selection process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 ラウンドでは、選定基準において性能がより大きな役割を果たします。提出者は、さまざまなプラットフォーム向けに最適化された実装を提供することが推奨されます。評価とレビューの第 2 フェーズは、およそ 12 か月続く見込みです。第 2 ラウンドの終了後、NIST は、選定プロセスの最終ラウンドに向けて、少数の候補に焦点を絞る予定です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0039">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST will host the Third Lightweight Cryptography Workshop in Gaithersburg, MD on November 4-6, 2019, to discuss candidate algorithms, including design strategies, implementations, performance, cryptanalysis, and target applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、設計戦略、実装、性能、暗号解読、対象となる用途を含む候補アルゴリズムを議論するため、2019年11月4～6日に、メリーランド州ゲイサースバーグで第 3 回軽量暗号ワークショップを開催します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] “Announcing Request for Comments on Lightweight Cryptography Requirements and Evaluation Criteria; Notice,” 83 Federal Register 22251 (May 14, 2018), pp 22251-22251. Available at https://www.federalregister.gov/d/2018-10127</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] “Announcing Request for Comments on Lightweight Cryptography Requirements and Evaluation Criteria; Notice,” 83 Federal Register 22251 (May 14, 2018), pp 22251-22251. 入手先: https://www.federalregister.gov/d/2018-10127</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] “Announcing Request for Nominations for Lightweight Cryptographic Algorithms; Notice,” 83 Federal Register 43656 (August 27, 2019), pp 43656-43657. Available at https://www.federalregister.gov/d/2018-18433</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] “Announcing Request for Nominations for Lightweight Cryptographic Algorithms; Notice,” 83 Federal Register 43656 (August 27, 2019), pp 43656-43657. 入手先: https://www.federalregister.gov/d/2018-18433</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Bagheri N (May 25, 2019) OFFICIAL COMMENT: CiliPadi. Official comments received on CiliPadi. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/CiliPadi-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Bagheri N (May 25, 2019) OFFICIAL COMMENT: CiliPadi. Official comments received on CiliPadi. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/CiliPadi-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Bagheri N (May 7, 2019) Re: Official comment:GAGE AEAD. Official comments received on GAGE and InGAGE. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/GAGE-and-InGAGE-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Bagheri N (May 7, 2019) Re: Official comment:GAGE AEAD. Official comments received on GAGE and InGAGE. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/GAGE-and-InGAGE-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Bartlett H (June 19, 2019) OFFICIAL COMMENT: Bleep64. Official comments received on Bleep64. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Bleep64-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Bartlett H (June 19, 2019) OFFICIAL COMMENT: Bleep64. Official comments received on Bleep64. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Bleep64-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Bassham LE, III, Çalık Ç, McKay KA, Mouha N, Sönmez Turan M (April 26, 2017) (Draft) Profiles for the Lightweight Cryptography Standardization Process. National Institute of Standards and Technology Draft Whitepaper. Available at https://csrc.nist.gov/publications/detail/white-paper/2017/04/26/profiles-for-lightweight-cryptography-standardization-process/archive</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Bassham LE, III, Çalık Ç, McKay KA, Mouha N, Sönmez Turan M (April 26, 2017) (Draft) Profiles for the Lightweight Cryptography Standardization Process. National Institute of Standards and Technology Draft Whitepaper. 入手先: https://csrc.nist.gov/publications/detail/white-paper/2017/04/26/profiles-for-lightweight-cryptography-standardization-process/archive</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] CAESAR Committee (2019) CAESAR: Competition for Authenticated Encryption: Security, Applicability, and Robustness. Available at https://competitions.cr.yp.to/caesar.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] CAESAR Committee (2019) CAESAR: Competition for Authenticated Encryption: Security, Applicability, and Robustness. 入手先: https://competitions.cr.yp.to/caesar.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Datta N (April 25, 2019) OFFICIAL COMMENT: Forgery against SIV-Rijndael256-AEAD and SIV-TEM-PHOTON-AEAD. Official comments received on SIV-Rijndael256. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SIV-Rijndael256-AEAD-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Datta N (April 25, 2019) OFFICIAL COMMENT: Forgery against SIV-Rijndael256-AEAD and SIV-TEM-PHOTON-AEAD. Official comments received on SIV-Rijndael256. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SIV-Rijndael256-AEAD-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] Dunkelman O (July 11, 2019) Official comment: Lilliput-AE. Official comments received on Lilliput-AE. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Lilliput-AE-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] Dunkelman O (July 11, 2019) Official comment: Lilliput-AE. Official comments received on Lilliput-AE. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Lilliput-AE-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] Dunkelman O, Keller N, Lambooij E, Sasaki Y (July 25, 2019) A Practical Forgery Attack on Lilliput-AE. Cryptology ePrint Archive: Report 2019/867. Available at https://eprint.iacr.org/2019/867</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] Dunkelman O, Keller N, Lambooij E, Sasaki Y (July 25, 2019) A Practical Forgery Attack on Lilliput-AE. Cryptology ePrint Archive: Report 2019/867. 入手先: https://eprint.iacr.org/2019/867</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] Eichlseder M (April 19, 2019) OFFICIAL COMMENT: FlexAEAD. Official comments received on FlexAEAD. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/FlexAEAD-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] Eichlseder M (April 19, 2019) OFFICIAL COMMENT: FlexAEAD. Official comments received on FlexAEAD. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/FlexAEAD-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] Eichlseder M, Kales D, Schofnegger M (June 7, 2019) Forgery Attacks on FlexAE and FlexAEAD. Cryptology ePrint Archive: Report 2019/679. Available at https://eprint.iacr.org/2019/679</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] Eichlseder M, Kales D, Schofnegger M (June 7, 2019) Forgery Attacks on FlexAE and FlexAEAD. Cryptology ePrint Archive: Report 2019/679. 入手先: https://eprint.iacr.org/2019/679</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] Jha A (June 14, 2019) OFFICIAL COMMENT: Qameleon. Official comments received on Qameleon. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Qameleon-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] Jha A (June 14, 2019) OFFICIAL COMMENT: Qameleon. Official comments received on Qameleon. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Qameleon-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[14] Jha A (July 24, 2019) Re: [lwc-forum] OFFICIAL COMMENT: REMUS [AD-INT]. Official comments received on REMUS. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/REMUS-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[14] Jha A (July 24, 2019) Re: [lwc-forum] OFFICIAL COMMENT: REMUS [AD-INT]. Official comments received on REMUS. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/REMUS-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[15] Khairallah M (April 18, 2019) Forgery Attack on SNEIKEN. Cryptology ePrint Archive: Report 2019/408. Available at https://eprint.iacr.org/2019/408</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[15] Khairallah M (April 18, 2019) Forgery Attack on SNEIKEN. Cryptology ePrint Archive: Report 2019/408. 入手先: https://eprint.iacr.org/2019/408</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[16] Liu F, Isobe T (June 19, 2019) Iterative Differential Characteristic of TRIFLE-BC. Cryptology ePrint Archive: Report 2019/727. Available at https://eprint.iacr.org/2019/727</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[16] Liu F, Isobe T (June 19, 2019) Iterative Differential Characteristic of TRIFLE-BC. Cryptology ePrint Archive: Report 2019/727. 入手先: https://eprint.iacr.org/2019/727</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[17] McKay KA (April 18, 2019) Round 1 Candidates. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/7WewNDzxDeo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[17] McKay KA (April 18, 2019) Round 1 Candidates. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/7WewNDzxDeo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[18] McKay KA, Bassham LE, III, Sönmez Turan M, Mouha N (August 11, 2016) (Draft) Report on Lightweight Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) 8114. Available at https://csrc.nist.gov/publications/detail/nistir/8114/draft</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[18] McKay KA, Bassham LE, III, Sönmez Turan M, Mouha N (August 11, 2016) (Draft) Report on Lightweight Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) 8114. 入手先: https://csrc.nist.gov/publications/detail/nistir/8114/draft</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[19] McKay KA, Bassham LE, III, Sönmez Turan M, Mouha N (March 28, 2017) Report on Lightweight Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) 8114. Available at https://doi.org/10.6028/NIST.IR.8114</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[19] McKay KA, Bassham LE, III, Sönmez Turan M, Mouha N (March 28, 2017) Report on Lightweight Cryptography. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (IR) 8114. 入手先: https://doi.org/10.6028/NIST.IR.8114</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[20] Mege A (June 3, 2019) OFFICIAL COMMENT: FlexAEAD. Official comments received on FlexAEAD. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/FlexAEAD-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[20] Mege A (June 3, 2019) OFFICIAL COMMENT: FlexAEAD. Official comments received on FlexAEAD. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/FlexAEAD-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[21] Mege A (July 12, 2019) OFFICIAL COMMENT: HERN &amp; HERON. Official comments received on HERN &amp; HERON. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/HERN-and-HERON-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[21] Mege A (July 12, 2019) OFFICIAL COMMENT: HERN &amp; HERON. Official comments received on HERN &amp; HERON. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/HERN-and-HERON-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[22] Mege A (June 10, 2019) OFFICIAL COMMENT: LAEM. Official comments received on LAEM. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/LAEM-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[22] Mege A (June 10, 2019) OFFICIAL COMMENT: LAEM. Official comments received on LAEM. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/LAEM-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[23] Mege A (June 10, 2019) OFFICIAL COMMENT: SIMPLE. Official comments received on Simple. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SIMPLE-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[23] Mege A (June 10, 2019) OFFICIAL COMMENT: SIMPLE. Official comments received on Simple. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SIMPLE-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[24] Mege A (June 5, 2019) OFFICIAL COMMENT: Sycon. Official comments received on Sycon. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SYCON-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[24] Mege A (June 5, 2019) OFFICIAL COMMENT: Sycon. Official comments received on Sycon. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/SYCON-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[25] Mege A (July 15, 2019) OFFICIAL COMMENT: Triad. Official comments received on Triad. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Triad-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[25] Mege A (July 15, 2019) OFFICIAL COMMENT: Triad. Official comments received on Triad. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Triad-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[26] Mege A (2019) Slide Attack on CLX-128. Accepted to Lightweight Cryptography Workshop 2019.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[26] Mege A (2019) Slide Attack on CLX-128. Lightweight Cryptography Workshop 2019 に採択されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[27] National Institute of Standards and Technology (May 14, 2019) DRAFT Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/Draft-LWC-Submission-Requirements-April2018.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[27] National Institute of Standards and Technology (May 14, 2019) DRAFT Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/Draft-LWC-Submission-Requirements-April2018.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[28] National Institute of Standards and Technology (2019) Lightweight Cryptography. Available at https://csrc.nist.gov/Projects/lightweight-cryptography</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[28] National Institute of Standards and Technology (2019) Lightweight Cryptography. 入手先: https://csrc.nist.gov/Projects/lightweight-cryptography</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[29] National Institute of Standards and Technology (August 27, 2018) Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/final-lwc-submission-requirements-august2018.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[29] National Institute of Standards and Technology (August 27, 2018) Submission Requirements and Evaluation Criteria for the Lightweight Cryptography Standardization Process. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/final-lwc-submission-requirements-august2018.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[30] Neves S (April 20, 2019) Bleep64: bad initialization. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/O-f-ogbUeTU</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[30] Neves S (April 20, 2019) Bleep64: bad initialization. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/O-f-ogbUeTU</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[31] Neves S (April 18, 2019) Differential distinguisher for the full Limdolen128 blockcipher. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/rHWE52Ay8MU</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[31] Neves S (April 18, 2019) Differential distinguisher for the full Limdolen128 blockcipher. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/rHWE52Ay8MU</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[32] Perrin L (April 19, 2019) Attacks against SNEIK. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/gFlsAbZr_QI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[32] Perrin L (April 19, 2019) Attacks against SNEIK. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/gFlsAbZr_QI</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[33] Perrin L (July 5, 2019) OFFICIAL COMMENT: Quartet. Official comments received on Quartet. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Quartet-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[33] Perrin L (July 5, 2019) OFFICIAL COMMENT: Quartet. Official comments received on Quartet. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Quartet-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[34] Perrin L (April 8, 2019) Probability 1 Iterated Differential in the SNEIK Permutation. Cryptology ePrint Archive: Report 2019/374. Available at https://eprint.iacr.org/2019/374</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[34] Perrin L (April 8, 2019) Probability 1 Iterated Differential in the SNEIK Permutation. Cryptology ePrint Archive: Report 2019/374. 入手先: https://eprint.iacr.org/2019/374</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[35] Rohit R (May 17, 2019) OFFICIAL COMMENT: Limdolen. Official comments received on Limdolen. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Limdolen-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[35] Rohit R (May 17, 2019) OFFICIAL COMMENT: Limdolen. Official comments received on Limdolen. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Limdolen-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[36] Rohit R, Gong G (August 6, 2019) Practical Forgery Attacks on Limdolen and HERN. Cryptology ePrint Archive: Report 2019/907. Available at https://eprint.iacr.org/2019/907</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[36] Rohit R, Gong G (August 6, 2019) Practical Forgery Attacks on Limdolen and HERN. Cryptology ePrint Archive: Report 2019/907. 入手先: https://eprint.iacr.org/2019/907</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[37] Sarkar S (April 25, 2019) Re: TRIFLE S-box has some structural weakness. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/NcMMP7inccg</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[37] Sarkar S (April 25, 2019) Re: TRIFLE S-box has some structural weakness. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/NcMMP7inccg</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[38] Schrottenloher A (June 11, 2019) OFFICIAL COMMENT: CLAE. Official comments received on CLAE. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/CLAE-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[38] Schrottenloher A (June 11, 2019) OFFICIAL COMMENT: CLAE. Official comments received on CLAE. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/CLAE-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[39] Sim SM (June 26, 2019) OFFICIAL COMMENT: TRIFLE. Official comments received on TRIFLE. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/TRIFLE-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[39] Sim SM (June 26, 2019) OFFICIAL COMMENT: TRIFLE. Official comments received on TRIFLE. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/TRIFLE-official-comment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[40] Sönmez Turan M (August 30, 2019) NIST Lightweight Cryptography Project - Second-round candidates. Email to lwc-forum. Available at https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/-G6VEqTN5fg</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[40] Sönmez Turan M (August 30, 2019) NIST Lightweight Cryptography Project - Second-round candidates. メール（宛先: lwc-forum）. 入手先: https://groups.google.com/a/list.nist.gov/forum/?hl=en#!topic/lwc-forum/-G6VEqTN5fg</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[41] Yann R (May 3, 2019) OFFICIAL COMMENT: Bleep64. Official comments received on Bleep64. Available at https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Bleep64-official-comment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[41] Yann R (May 3, 2019) OFFICIAL COMMENT: Bleep64. Official comments received on Bleep64. 入手先: https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/official-comments/Bleep64-official-comment.pdf</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8268.pdf">National Institute of Standards and Technology, IR 8268</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8268";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
