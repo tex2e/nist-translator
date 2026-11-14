@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8188 は、NIST が構築したサイバーセキュリティ技術の性能影響を測るテストベッド（CSMS テストベッド）のうち、プロセス制御システムを対象とした報告書です。このシステムは、Tennessee Eastman チャレンジ問題を化学反応のシミュレーションモデルとし、PLC や産業用ネットワークスイッチを制御ループに用いて、連続化学製造システムを模擬するものと説明されています。システムやそのサブシステムの性能を測る主要業績評価指標（KPI）を定義し、サブシステムごとの測定方法を説明します。KPI は、追加のサイバーセキュリティ対策を実装しないベースライン測定で算出し、対策を実装した後の実験で再び算出して比較することで、性能への影響を分析できるとしています。">
+  <title>プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標 | NIST IR 8188 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Key Performance Indicators for Process Control System Cybersecurity Performance Analysis" data-search="プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標 key performance indicators for process control system cybersecurity performance analysis">プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Contents" data-search="目次 contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0022" title="List of Figures" data-search="図の一覧 list of figures">図の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0028" title="List of Tables" data-search="表の一覧 list of tables">表の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="2. Process Control System" data-search="2. プロセス制御システム 2. process control system">2. プロセス制御システム</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0001" title="2.1. The Chemical Process Model (Plant Simulator)" data-search="2.1. 化学プロセスモデル（プラントシミュレーター） 2.1. the chemical process model (plant simulator)">2.1. 化学プロセスモデル（プラントシミュレーター）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001" title="2.2. Process Control System Operation" data-search="2.2. プロセス制御システムの運用 2.2. process control system operation">2.2. プロセス制御システムの運用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0010" title="2.3. Network Architecture" data-search="2.3. ネットワークアーキテクチャ 2.3. network architecture">2.3. ネットワークアーキテクチャ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0004" title="2.4. Process and Data Flow" data-search="2.4. プロセスとデータの流れ 2.4. process and data flow">2.4. プロセスとデータの流れ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0011-b0004" title="3. Key Performance Indicators" data-search="3. 主要業績評価指標 3. key performance indicators">3. 主要業績評価指標</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0006" title="3.1. Definition" data-search="3.1. 定義 3.1. definition">3.1. 定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0002" title="3.2. Selection Process" data-search="3.2. 選定プロセス 3.2. selection process">3.2. 選定プロセス</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0023" title="4. Measurement Methodologies" data-search="4. 測定方法 4. measurement methodologies">4. 測定方法</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0001" title="4.1. Manufacturing Process Performance" data-search="4.1. 製造プロセスの性能 4.1. manufacturing process performance">4.1. 製造プロセスの性能</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0001" title="4.2. Network Performance" data-search="4.2. ネットワークの性能 4.2. network performance">4.2. ネットワークの性能</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0006" title="4.3. Computing Resources Performance" data-search="4.3. コンピューティング資源の性能 4.3. computing resources performance">4.3. コンピューティング資源の性能</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0005" title="4.4. Industrial Protocol Performance" data-search="4.4. 産業用プロトコルの性能 4.4. industrial protocol performance">4.4. 産業用プロトコルの性能</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0003" title="4.5. OPC Data Exchange Performance" data-search="4.5. opc データ交換の性能 4.5. opc data exchange performance">4.5. OPC データ交換の性能</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0002" title="5. Appendix A -- References" data-search="5. 付録 a -- 参考文献 5. appendix a -- references">5. 付録 A -- 参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0037" title="6. Appendix B – List of Software Tools" data-search="6. 付録 b – ソフトウェアツールの一覧 6. appendix b – list of software tools">6. 付録 B – ソフトウェアツールの一覧</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8188 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Key Performance Indicators for Process Control System Cybersecurity Performance Analysis</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標</strong></span><br><span class="doc-panel-item">公開日 : 2017-08-03</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8188/final">https://csrc.nist.gov/pubs/ir/8188/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 149 / 151 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8188 は、NIST が構築したサイバーセキュリティ技術の性能影響を測るテストベッド（CSMS テストベッド）のうち、プロセス制御システムを対象とした報告書です。このシステムは、Tennessee Eastman チャレンジ問題を化学反応のシミュレーションモデルとし、PLC や産業用ネットワークスイッチを制御ループに用いて、連続化学製造システムを模擬するものと説明されています。システムやそのサブシステムの性能を測る主要業績評価指標（KPI）を定義し、サブシステムごとの測定方法を説明します。KPI は、追加のサイバーセキュリティ対策を実装しないベースライン測定で算出し、対策を実装した後の実験で再び算出して比較することで、性能への影響を分析できるとしています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8188</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8188</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Key Performance Indicators for Process Control System Cybersecurity Performance Analysis</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CheeYee Tang</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CheeYee Tang</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8188</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます:<br>https://doi.org/10.6028/NIST.IR.8188</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0007" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8188</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8188</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Key Performance Indicators for Process Control System Cybersecurity Performance Analysis</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムのサイバーセキュリティ性能分析のための主要業績評価指標</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CheeYee Tang<br><i>Intelligent Systems Division</i><br><i>Engineering Laboratory</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CheeYee Tang<br><i>インテリジェントシステム部門</i><br><i>工学研究所</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8188</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます:<br>https://doi.org/10.6028/NIST.IR.8188</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>August 2017</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2017 年 8 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br><i>Wilbur L. Ross, Jr., Secretary</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br><i>Wilbur L. Ross, Jr. 長官</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br><i>Kent Rochford, Acting NIST Director and Under Secretary of Commerce for Standards and Technology</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br><i>Kent Rochford、NIST 所長代行兼商務次官（標準・技術担当）代行</i></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><span class="ptoc-text">Contents</span></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><span class="ptoc-text">目次</span></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0003-b0022">List of Figures</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0003-b0022">図の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0003-b0028">List of Tables</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0003-b0028">表の一覧</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0004-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0004-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0005-b0001">2. Process Control System</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0005-b0001">2. プロセス制御システム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">2.1. The Chemical Process Model (Plant Simulator)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">2.1. 化学プロセスモデル（プラントシミュレーター）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2.2. Process Control System Operation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2.2. プロセス制御システムの運用</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0010">2.3. Network Architecture</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0010">2.3. ネットワークアーキテクチャ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2.4. Process and Data Flow</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">2.4. プロセスとデータの流れ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">3. Key Performance Indicators</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">3. 主要業績評価指標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">3.1. Definition</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">3.1. 定義</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">3.2. Selection Process</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0002">3.2. 選定プロセス</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0023">4. Measurement Methodologies</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0023">4. 測定方法</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">4.1. Manufacturing Process Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">4.1. 製造プロセスの性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4.2. Network Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4.2. ネットワークの性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0006">4.3. Computing Resources Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0006">4.3. コンピューティング資源の性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0005">4.4. Industrial Protocol Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0005">4.4. 産業用プロトコルの性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0003-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">4.5. OPC Data Exchange Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">4.5. OPC データ交換の性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">5. Appendix A -- References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">5. 付録 A -- 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0037">6. Appendix B – List of Software Tools</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0037">6. 付録 B – ソフトウェアツールの一覧</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Figures</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+図の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0005-b0006">Figure 1 - View of the Process Control System</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0005-b0006">図 1 - プロセス制御システムの外観</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0013">Figure 2 - Tennessee Eastman Process Model</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0013">図 2 - Tennessee Eastman プロセスモデル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">Figure 3 - Network Architecture Diagram</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">図 3 - ネットワークアーキテクチャ図</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0007">Figure 4 - Diagram of the Human Machine Interface (HMI)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0007">図 4 - ヒューマンマシンインターフェース（HMI）の図</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">Figure 5 - Process Dataflow Diagram</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0003">図 5 - プロセスのデータフロー図</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Tables</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+表の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0029">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0003">Table 1 – Manufacturing Process Performance KPI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0003">表 1 – 製造プロセスの性能 KPI</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0030">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">Table 2 - Network Performance KPI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">表 2 - ネットワークの性能 KPI</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0031">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003-s1">Table 3 - Computing Resources Performance KPI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003-s1">表 3 - コンピューティング資源の性能 KPI</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">Table 4 - Industrial Protocol Performance KPI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">表 4 - 産業用プロトコルの性能 KPI</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0003-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0005">Table 5 - OPC Data Exchange Performance KPI</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0005">表 5 - OPC データ交換の性能 KPI</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology has constructed a testbed to measure the performance impact induced by cybersecurity technologies on Industrial Control Systems (ICS) [1]. The Cybersecurity for Smart Manufacturing Systems (CSMS) Testbed emulates real-world manufacturing processes and their industrial control systems by using software simulators and commercial control hardware in the laboratory environment.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所は、サイバーセキュリティ技術が産業用制御システム（ICS）に及ぼす性能への影響を測定するためのテストベッドを構築しました [1]。スマート製造システムのためのサイバーセキュリティ（CSMS）テストベッドは、実験室環境で、ソフトウェアシミュレーターと市販の制御用ハードウェアを使用して、実世界の製造プロセスとその産業用制御システムを模擬します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report focuses on the Process Control System of the Testbed, one of the four systems<sup>1</sup> within the CSMS Testbed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、CSMS テストベッドにある 4 つのシステム<sup>1</sup>の一つである、テストベッドのプロセス制御システムに焦点を当てます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System emulates an industrial continuous manufacturing system, a manufacturing process to produce or process materials continuously, where the materials are moving, going through chemical reactions, or undergoing mechanical or thermal treatment continuously. Continuous manufacturing usually implies a 24x7 operation with infrequent maintenance shutdowns and is contrasted with batch manufacturing. Examples of continuous manufacturing systems include chemical production, oil refining, natural gas processing, and waste water treatment.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムは、産業用の連続製造システムを模擬します。これは、材料を連続的に生産または処理する製造プロセスであり、材料が移動し、化学反応を経て、あるいは機械的または熱的な処理を連続的に受けます。連続製造は、通常、保守のための停止がまれな 24 時間 365 日の運用を意味し、バッチ製造と対比されます。連続製造システムの例には、化学品の生産、石油精製、天然ガス処理、廃水処理があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System uses the Tennessee Eastman challenge problem [2], a real-world industrial chemical manufacturing process, as the simulation model for the chemical reaction. The system integrates the control algorithm developed by Ricker [3] to control the simulated chemical reaction. With the use of widely deployed industrial hardware like programmable logic controllers (PLCs) and industrial network switches as part of the control loop, this system emulates a complete setup of a continuous chemical manufacturing system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムは、化学反応のシミュレーションモデルとして、実世界の産業用化学製造プロセスである Tennessee Eastman チャレンジ問題 [2] を使用します。このシステムは、模擬の化学反応を制御するために、Ricker [3] が開発した制御アルゴリズムを統合しています。プログラマブルロジックコントローラー（PLC）や産業用ネットワークスイッチなど、広く展開されている産業用ハードウェアを制御ループの一部として使用することで、このシステムは、連続化学製造システムの完全な構成を模擬します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This hardware-in-the-loop setup allows the testbed to measure the performance of the manufacturing system using real-world industrial hardware devices, while the chemical manufacturing process is simulated in software.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このハードウェアインザループの構成により、テストベッドは、化学製造プロセスをソフトウェアでシミュレートしながら、実世界の産業用ハードウェア機器を使用して製造システムの性能を測定できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This system employs a modular design which allows a greater flexibility for re-configuration and scalability. The major sub-systems and components are largely independent and have well-defined interfaces, leading to a greater flexibility to change the individual sub-systems, like the continuous manufacturing process simulation, the network topologies, or the industrial communication protocol. This allows the researcher to investigate a wide range of different settings of industrial manufacturing systems, and to study the impacts of the implementation of cybersecurity technologies on the system performance and operation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このシステムはモジュール設計を採用しており、再構成と拡張性の柔軟性が高まります。主要なサブシステムとコンポーネントはほぼ独立しており、明確に定義されたインターフェースを持つため、連続製造プロセスのシミュレーション、ネットワークトポロジー、産業用通信プロトコルなど、個々のサブシステムを変更する柔軟性が高くなります。これにより、研究者は、産業用製造システムのさまざまな設定を幅広く調査し、サイバーセキュリティ技術の実装がシステムの性能と運用に及ぼす影響を研究できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report describes the Key Performance Indicators (KPI) and the measurement methodologies being used to measure the performance of the Process Control System.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、プロセス制御システムの性能を測定するために使用している主要業績評価指標（KPI）と測定方法を説明します。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0004-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> The other three systems are Collaborative Robotic System, Transportation System, and Additive Manufacturing System.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=4">原本 PDF p.4</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> 他の 3 つのシステムは、協働ロボットシステム、輸送システム、積層造形システムです。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Process Control System</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. プロセス制御システム</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System<sup>2</sup> includes a software simulator to emulate the Tennessee Eastman chemical reaction process. The simulator is written in C code and is executed on a Windows 7 based computer. In addition, the system includes a Programmable Logic Controller (PLC), a software controller implemented in MATLAB, a human-machine interface (HMI), an Object Linking and Embedding for Process Control (OPC) Data Access (DA) server, a Data Historian, an engineering workstation, and several virtual Local Area Network (LAN) switches and network routers. The Process Control System is housed in a 19-inch rack system as shown in Figure 1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システム<sup>2</sup>には、Tennessee Eastman 化学反応プロセスを模擬するソフトウェアシミュレーターが含まれます。このシミュレーターは C コードで書かれており、Windows 7 を実行するコンピューター上で動作します。さらに、このシステムには、プログラマブルロジックコントローラー（PLC）、MATLAB で実装されたソフトウェアコントローラー、ヒューマンマシンインターフェース（HMI）、プロセス制御用オブジェクトリンクと埋め込み（OPC）データアクセス（DA）サーバー、データヒストリアン、エンジニアリングワークステーション、および複数の仮想ローカルエリアネットワーク（LAN）スイッチとネットワークルーターが含まれます。プロセス制御システムは、図 1 に示すように 19 インチラックシステムに収容されています。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0005-b0004" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8188/p0005-figure-01.png" alt="Photograph of the Process Control System in the laboratory: a black 19-inch equipment rack holding network switches, controllers, a rack-mounted monitor and computers stands next to a desk with two office chairs, a monitor and a keyboard; a poster hangs on the wall."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=5">原本 PDF p.5</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実験室にあるプロセス制御システムの写真です。黒い19インチのラックにネットワークスイッチ、制御装置、ラックに組み込まれたモニター、コンピューターが収められ、その隣にオフィスチェア2脚、モニター、キーボードを置いた机があります。壁にはポスターが掛かっています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1 - View of the Process Control System</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 - プロセス制御システムの外観</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0005-b0008" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> Disclaimer: No approval or endorsement of any commercial product by the National Institute of Standards and Technology is intended or implied. Certain commercial equipment, instruments, or materials are identified in this paper in order to specify the experimental procedure adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the materials or equipment identified are necessarily the best available for the purpose. This publication was prepared by United States Government employees as part of their official duties and is, therefore, a work of the U.S. Government and not subject to copyright.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=5">原本 PDF p.5</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> 免責事項: 米国国立標準技術研究所による商用製品の承認や推奨は、意図されておらず、示唆されてもいません。本稿では、実験手順を適切に特定するために、特定の商用機器、計器、または資材を挙げています。そのような記載は、米国国立標準技術研究所による推奨や推薦を意味するものではなく、挙げた資材や機器がその目的に最適であると必ずしも意味するものでもありません。本刊行物は、米国政府職員が職務の一環として作成したものであり、したがって米国政府の著作物であって、著作権の対象ではありません。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. The Chemical Process Model (Plant Simulator)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. 化学プロセスモデル（プラントシミュレーター）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System uses the Tennessee Eastman challenge problem as the simulation model. The Tennessee Eastman problem, presented by Downs and Vogel [2], is a well-known process control problem in continuous chemical manufacturing. The model consists of five major units: a reactor, a product condenser, a vapor-liquid separator, a recycle compressor, and a product stripper for producing the desired end products. The model has 12 actuators for control and 41 sensors for monitoring.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムは、シミュレーションモデルとして Tennessee Eastman チャレンジ問題を使用します。Downs と Vogel [2] が示した Tennessee Eastman 問題は、連続化学製造における、よく知られたプロセス制御問題です。このモデルは、目的の最終製品を生産するための 5 つの主要なユニット、すなわち反応器、製品凝縮器、気液分離器、リサイクル圧縮機、製品ストリッパーで構成されます。このモデルには、制御用のアクチュエーターが 12 個、監視用のセンサーが 41 個あります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The model is described in detail in [2], and the process description is summarized as follows: The continuous process produces two products from four input reactants. The process is irreversible and exothermic. The reaction rates of the reactants are a function of the reactor temperature. The gaseous reactants are combined in the reactor to form liquid products. The reactor temperature is cooled using an internal cooling bundle. The reactor product passes through the condenser to the separator. The vapor-liquid separator then separates unreacted gases from the liquid products. The unreacted gases are sent back to the reactor by the recycle compressor. The remaining reactants are removed in a stripping column. The two end products are sent downstream for further refining and separation. The process model is shown in Figure 2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>モデルの詳細は [2] に記載されており、プロセスの説明は次のように要約されます。この連続プロセスは、4 つの入力反応物から 2 つの製品を生産します。このプロセスは不可逆で、発熱を伴います。反応物の反応速度は、反応器の温度の関数です。気体の反応物は反応器で結合して、液体の製品を形成します。反応器の温度は、内部の冷却管束で冷却されます。反応器の生成物は、凝縮器を通って分離器に送られます。次に、気液分離器が、未反応の気体を液体の製品から分離します。未反応の気体は、リサイクル圧縮機によって反応器に送り返されます。残りの反応物は、ストリッピング塔で除去されます。2 つの最終製品は、さらなる精製と分離のために下流に送られます。プロセスモデルを図 2 に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Plant Simulator is implemented in C code, which was based on the Fortran code originally developed by Downs and Vogel.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プラントシミュレーターは C コードで実装されており、これは Downs と Vogel が当初開発した Fortran コードに基づいています。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0006-b0011" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[Image from a third party — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［第三者の画像。第三者の著作物のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2 - Tennessee Eastman Process Model [2]</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2 - Tennessee Eastman プロセスモデル [2]</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. Process Control System Operation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. プロセス制御システムの運用</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Plant Simulator requires a controller to provide a control loop in order to operate continuously. A decentralized controller implemented in Simulink, developed by Ricker [3], is used as the process controller. The Ricker implementation matches the Plant Simulator accurately, and the controller is a separate software process that runs on a separate computer from the Plant Simulator.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プラントシミュレーターは、連続的に動作するために、制御ループを提供するコントローラーを必要とします。プロセスコントローラーとしては、Ricker [3] が開発した、Simulink で実装された分散型コントローラーを使用します。Ricker の実装はプラントシミュレーターと正確に一致し、このコントローラーは、プラントシミュレーターとは別のコンピューター上で動作する、独立したソフトウェアプロセスです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To provide communication between the Plant Simulator and the Controller, a hardware Programmable Logic Controller (PLC) with industrial network protocol capability is used. The industrial protocol is used to communicate between the Plant Simulator and the PLC. The Plant Simulator sends its sensor information to the Controller, and the Controller algorithm uses the sensor inputs to compute the desired values of the actuators and sends them back to the Plant Simulator.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プラントシミュレーターとコントローラーの間の通信を提供するために、産業用ネットワークプロトコルの機能を備えたハードウェアのプログラマブルロジックコントローラー（PLC）を使用します。産業用プロトコルは、プラントシミュレーターと PLC の間の通信に使用されます。プラントシミュレーターはセンサー情報をコントローラーに送り、コントローラーのアルゴリズムは、そのセンサー入力を使ってアクチュエーターの目標値を計算し、プラントシミュレーターに送り返します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the Plant Simulator computer, a multi-node DeviceNet card was installed. DeviceNet is a common industrial protocol used in the automation industry to exchange data between control devices. The multi-node card allows a single hardware device to emulate multiple virtual DeviceNet nodes. In our case, each sensor and actuator point is a dedicated node. Therefore, 53 virtual nodes (41 for sensors and 12 for actuators) were configured in the system. A software interface was developed to send and receive sensor and actuator values between the Plant Simulator and the PLC through DeviceNet.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プラントシミュレーターのコンピューターには、マルチノードの DeviceNet カードを取り付けました。DeviceNet は、オートメーション業界で制御機器間のデータ交換に使われる、一般的な産業用プロトコルです。マルチノードカードにより、1 つのハードウェア機器で複数の仮想 DeviceNet ノードを模擬できます。この構成では、センサーとアクチュエーターの各ポイントが専用のノードです。したがって、システムには 53 個の仮想ノード（センサー用 41 個、アクチュエーター用 12 個）を構成しました。DeviceNet を介してプラントシミュレーターと PLC の間でセンサーとアクチュエーターの値を送受信するために、ソフトウェアインターフェースを開発しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An OPC DA Server is running in a Windows 7 computer, acting as the main data gateway for the PLC. The PLC communicates to the OPC DA server to update and retrieve all the sensor and actuator information, respectively. This sensor and actuator information is also known as a “tag” in PLC terminology. The Controller has a MATLAB Simulink interface that communicates with the OPC DA server directly.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OPC DA サーバーは Windows 7 のコンピューターで動作しており、PLC の主要なデータゲートウェイとして機能します。PLC は OPC DA サーバーと通信して、すべてのセンサーとアクチュエーターの情報をそれぞれ更新し、取得します。このセンサーとアクチュエーターの情報は、PLC の用語では「タグ」としても知られています。コントローラーには、OPC DA サーバーと直接通信する MATLAB Simulink インターフェースがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The communication data flow is described in more detail in Section 2.4.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>通信のデータフローについては、第 2.4 節でさらに詳しく説明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A Human-Machine Interface (HMI) and a Data Historian are implemented in the system. The HMI provides a graphical user interface to present information to an operator or user about the state of the process. The HMI screen is shown in Figure 4. The Data Historian serves as the main database to record all the process sensor and actuator information. Both HMI and Data Historian have built-in interfaces to establish connections to the OPC DA to access all the process information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムには、ヒューマンマシンインターフェース（HMI）とデータヒストリアンが実装されています。HMI は、プロセスの状態に関する情報をオペレーターやユーザーに提示するグラフィカルユーザーインターフェースを提供します。HMI の画面を図 4 に示します。データヒストリアンは、プロセスのすべてのセンサーとアクチュエーターの情報を記録する主要なデータベースとして機能します。HMI とデータヒストリアンはいずれも、すべてのプロセス情報にアクセスするために OPC DA への接続を確立する組み込みのインターフェースを備えています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An engineering workstation is used in the system for engineering support, such as PLC development and control, HMI development and deployment, and Data Historian data retrieval.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムでは、PLC の開発と制御、HMI の開発と展開、データヒストリアンのデータ取得など、エンジニアリング支援のためにエンジニアリングワークステーションを使用します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. Network Architecture</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. ネットワークアーキテクチャ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System network is segmented from the main Testbed network by a boundary router. The router is using a dynamic routing protocol, Open Shortest Path First (OSPF), to communicate with the main tested router. The network architecture is shown in Figure 3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムのネットワークは、境界ルーターによってテストベッドのメインネットワークから分離されています。このルーターは、メインのテストベッドのルーターと通信するために、動的ルーティングプロトコルである Open Shortest Path First（OSPF）を使用しています。ネットワークアーキテクチャを図 3 に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All network traffic needs to go through the boundary router to access the main testbed network.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのネットワークトラフィックは、テストベッドのメインネットワークにアクセスするために、境界ルーターを通過する必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are two virtual network segments in the system. Each network is managed by an Ethernet switch. The HMI and the Controller are in virtual network VLAN-1, while the Plant Simulator, Data Historian, OPC DA Server, and PLC are in virtual network VLAN-2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムには 2 つの仮想ネットワークセグメントがあります。各ネットワークは Ethernet スイッチによって管理されています。HMI とコントローラーは仮想ネットワーク VLAN-1 にあり、プラントシミュレーター、データヒストリアン、OPC DA サーバー、PLC は仮想ネットワーク VLAN-2 にあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>VLAN-1 simulates a central control room environment that the HMI and the controllers are virtually located in the same network segment. VLAN-2 simulates the process operation environment which typically consists of the operating plant, PLCs, OPC server, and the Data Historian.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>VLAN-1 は、HMI とコントローラーが仮想的に同じネットワークセグメントにある、中央制御室の環境を模擬します。VLAN-2 は、通常は稼働中のプラント、PLC、OPC サーバー、データヒストリアンで構成される、プロセス運用の環境を模擬します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These network switches and routers are highly reconfigurable, and therefore, allow the system to implement various network topologies for performance testing.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのネットワークスイッチとルーターは高い再構成能力を備えているため、システムでは、性能試験のためにさまざまなネットワークトポロジーを実装できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A Tofino Xenon security appliance, a firewall specially designed for industrial control system application, is installed to protect the PLC. The firewall rules are configured to only allow certain network nodes and specific protocols to access the PLC, and deny all other traffic.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムでは、PLC を保護するために、産業用制御システム向けに特別に設計されたファイアウォールである Tofino Xenon セキュリティアプライアンスを設置しています。ファイアウォールのルールは、特定のネットワークノードと特定のプロトコルのみが PLC にアクセスできるようにし、それ以外のすべてのトラフィックを拒否するように構成されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All the computer nodes in the system have the Windows firewall enabled. Rules are configured to only allow traffic specific to their applications to access these computers. For example, the firewall of the OPC Server computer only allows a restricted range of Remote Procedure Call (RPC) and Distributed Component Object Model (DCOM) ports for the OPC clients to access, and restricts the source Internet Protocol (IP) address of the OPC clients.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムのすべてのコンピューターノードで、Windows ファイアウォールが有効になっています。ルールは、各コンピューターのアプリケーションに固有のトラフィックのみがこれらのコンピューターにアクセスできるように構成されています。たとえば、OPC サーバーのコンピューターのファイアウォールは、OPC クライアントがアクセスするためのリモートプロシージャコール（RPC）と分散コンポーネントオブジェクトモデル（DCOM）のポートを限られた範囲だけに許可し、OPC クライアントの送信元インターネットプロトコル（IP）アドレスを制限します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The main Testbed network provides a Network Time Protocol (NTP) server. All systems in the Process Control System are synchronized with the Testbed NTP server.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>テストベッドのメインネットワークは、ネットワークタイムプロトコル（NTP）サーバーを提供します。プロセス制御システムのすべてのシステムは、テストベッドの NTP サーバーと同期しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A network packet analyzer tool is installed in all the computers in the system to capture and analyze network packets. Other specialized software tools are also used to monitor the system. For example, an OPC data analyzer is used to monitor OPC data exchange, and DeviceNet logging is used to log DeviceNet level traffic.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ネットワークパケットを捕捉して分析するために、システム内のすべてのコンピューターにネットワークパケットアナライザーツールがインストールされています。システムの監視には、その他の専用ソフトウェアツールも使われます。たとえば、OPC データの交換を監視するために OPC データアナライザーが、DeviceNet レベルのトラフィックを記録するために DeviceNet ロギングが使われます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0009-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8188/p0009-figure-01.png" alt="Network diagram titled &quot;Process Control System Network Diagram&quot;. &quot;System VLAN 1&quot; connects the &quot;HMI Host&quot; and the &quot;Controller&quot; (both &quot;Intel Core i5 Win7&quot;) to a &quot;Layer 2 switch, Allen-Bradley Stratix 5700&quot;. &quot;System VLAN 2&quot; connects the &quot;Plant Simulator&quot;, &quot;Historian&quot; and &quot;OPC DA&quot; (all &quot;Intel Core i5 Win7&quot;) to a second &quot;Layer 2 switch, Allen-Bradley Stratix 5700&quot;, and also connects through an &quot;ICS Firewall, Tofino Xenon&quot; to the &quot;PLC, Allen-Bradley&quot;. A dashed &quot;DeviceNet Connection&quot; links the Plant Simulator and the PLC. Both switches connect to the &quot;System Boundary Router, Allen-Bradley Stratix 8300&quot;, which connects to the &quot;Corporate Router/Firewall, Cisco ASA 5512-X&quot; leading to the &quot;NIST Research Equipment Network&quot; cloud, and to the &quot;Engineering Workstation, HP Z230&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「Process Control System Network Diagram」（プロセス制御システムのネットワーク構成図）と題した図です。「System VLAN 1」には「HMI Host」と「Controller」（いずれも「Intel Core i5 Win7」）がつながり、「Layer 2 switch, Allen-Bradley Stratix 5700」に接続しています。「System VLAN 2」には「Plant Simulator」「Historian」「OPC DA」（いずれも「Intel Core i5 Win7」）がつながって2台目の「Layer 2 switch, Allen-Bradley Stratix 5700」に接続し、さらに「ICS Firewall, Tofino Xenon」を経て「PLC, Allen-Bradley」に接続しています。Plant Simulator と PLC の間は破線の「DeviceNet Connection」で結ばれています。2台のスイッチは「System Boundary Router, Allen-Bradley Stratix 8300」に接続し、このルーターは「Corporate Router/Firewall, Cisco ASA 5512-X」を経て雲形の「NIST Research Equipment Network」に、また「Engineering Workstation, HP Z230」に接続しています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3 - Network Architecture Diagram</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3 - ネットワークアーキテクチャ図</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4. Process and Data Flow</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4. プロセスとデータの流れ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4 shows the HMI view of the Process Control System. The HMI displays the process information in a graphical interface to allow the operator to easily monitor. The HMI can also alert the operator. For example, if the reactor pressure is above the predefined threshold, the reactor icon will flash red.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4 に、プロセス制御システムの HMI の画面を示します。HMI は、オペレーターが容易に監視できるよう、プロセス情報をグラフィカルなインターフェースで表示します。HMI は、オペレーターに警告することもできます。たとえば、反応器の圧力が事前に定義したしきい値を超えると、反応器のアイコンが赤く点滅します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control System is initialized in four stages: Stage one is the initialization of application software. In this stage, the OPC DA server, HMI, Data Historian, and the MATLAB Controller are executed and initialized. Stage two is the initialization of the hardware devices. In this stage, the configuration file of the multi-node DeviceNet card and the PLC are loaded and the devices enter run mode waiting for data input. Stage three is the industrial network activation stage. In this stage, the Plant Simulator is activated and all the sensor and actuator nodes are connected to the PLC. The last stage is the simulation start stage. In this stage, the Plant Simulator and Controller are started and all the sub-systems enter run mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムは、4 つの段階で初期化されます。第 1 段階は、アプリケーションソフトウェアの初期化です。この段階で、OPC DA サーバー、HMI、データヒストリアン、MATLAB コントローラーが実行され、初期化されます。第 2 段階は、ハードウェア機器の初期化です。この段階で、マルチノード DeviceNet カードと PLC の構成ファイルが読み込まれ、機器は実行モードに入ってデータ入力を待ちます。第 3 段階は、産業用ネットワークの有効化の段階です。この段階で、プラントシミュレーターが有効になり、すべてのセンサーとアクチュエーターのノードが PLC に接続されます。最後の段階は、シミュレーションの開始段階です。この段階で、プラントシミュレーターとコントローラーが開始され、すべてのサブシステムが実行モードに入ります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Once in the run mode, the Plant Simulator will start sending and receiving sensor and actuator values to and from the PLC. The OPC server polls the PLC at a data rate of 10Hz to exchange sensor and actuator values. The OPC server will send updated sensor values to the subscribing clients, namely, the Controller, HMI, and Data Historian. The OPC server operates in exception-report mode, meaning it will only send updates to clients when the data changes. When the Controller receives sensor values, it runs through the control algorithm and computes the desired actuator values and sends them back to the OPC server. The OPC server will send the updated actuator values to the PLC during the next poll cycle. The DeviceNet interface will poll the PLC periodically for the latest actuator values and sends them to the Plant Simulator.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実行モードに入ると、プラントシミュレーターは、PLC との間でセンサーとアクチュエーターの値の送受信を開始します。OPC サーバーは、センサーとアクチュエーターの値を交換するために、10Hz のデータレートで PLC をポーリングします。OPC サーバーは、更新されたセンサーの値を、サブスクライブしているクライアント、すなわちコントローラー、HMI、データヒストリアンに送信します。OPC サーバーは例外報告モードで動作します。つまり、データが変化したときだけクライアントに更新を送信します。コントローラーは、センサーの値を受け取ると、制御アルゴリズムを実行してアクチュエーターの目標値を計算し、OPC サーバーに送り返します。OPC サーバーは、更新されたアクチュエーターの値を、次のポーリングサイクルで PLC に送信します。DeviceNet インターフェースは、最新のアクチュエーターの値を得るために PLC を定期的にポーリングし、それらをプラントシミュレーターに送信します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The dataflow diagram in Figure 5 shows the communication path of the system. The Plant Simulator communicates with the PLC through DeviceNet. The PLC communicates with the OPC server using EtherNet/IP as the application layer protocol, which is encapsulated in the Transmission Control Protocol/Internet Protocol (TCP/IP) packet.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5 のデータフロー図は、システムの通信経路を示しています。プラントシミュレーターは、DeviceNet を介して PLC と通信します。PLC は、アプリケーション層プロトコルとして EtherNet/IP を使用して OPC サーバーと通信します。EtherNet/IP は、伝送制御プロトコル／インターネットプロトコル（TCP/IP）のパケットにカプセル化されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Controller, HMI, and Data Historian use the Distributed Component Object Model (DCOM) interface of the Remote Procedure Call (RPC) protocol to communicate with the OPC server to access information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コントローラー、HMI、データヒストリアンは、情報にアクセスするために、リモートプロシージャコール（RPC）プロトコルの分散コンポーネントオブジェクトモデル（DCOM）インターフェースを使用して OPC サーバーと通信します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0010-b0005" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[Image from a third party — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>灰色の背景にテネシー・イーストマン・プロセスを表示したヒューマン・マシン・インターフェースの画面です。弁の付いた原料の配管（「Feed A: 0.26 kscmh」「Feed D: 3636 kg/h」「Feed E: 4418 kg/h」「Feed C: 9.26 kscmh」）、圧力計（「Pressure: 2764 kPa」）・温度（「123 C」）・液位（「Level: 55 %」）を示す反応器、凝縮器（「91 C」）、気液分離器（「Pressure: 2666 kPa」「Level: 70 %」）、圧縮機（「Work: 273 kW」）、製品ストリッパー（「Pressure: 3287 kPa」「Level: 57 %」）、パージの配管（「Purge Rate: 0.25 kscmh」「Valve: 30%」）、mol% 単位の分析計の値（「Analyzer, Reactor Feed」の A〜F、「Analyzer, Purge」の A〜H）、弁と流量の値、「Reactor Trend」と「Separator Trend」のボタン、3本の線を時刻（2017年2月3日金曜日の午後2時5分5秒〜2時10分5秒）に対して描いた「Reactor status」のトレンドグラフが表示されています。 ［第三者の画像。第三者の著作物のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4 - Diagram of the Human Machine Interface (HMI)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4 - ヒューマンマシンインターフェース（HMI）の図</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0011-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8188/p0011-figure-01.png" alt="Diagram titled &quot;Process Dataflow Diagram&quot;. The &quot;Plant Simulator&quot;, flanked by &quot;Sensors&quot; and &quot;Actuators&quot;, exchanges data with the &quot;PLC&quot; over DeviceNet (green arrows: sensors up to the PLC, PLC down to actuators). The PLC exchanges data with &quot;OPC DA&quot; over TCP/IP, with a &quot;Network Delay Injection&quot; point on that link. OPC DA exchanges data over TCP/IP (blue arrows) with the &quot;Controller&quot; (two-way), and sends data to the &quot;HMI Host&quot; and the &quot;Historian&quot;. Legend: blue arrow &quot;TCP/IP&quot;, green arrow &quot;DeviceNet&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「Process Dataflow Diagram」（プロセスのデータの流れ図）と題した図です。「Sensors」と「Actuators」を両側に持つ「Plant Simulator」が、DeviceNet（緑の矢印。センサーから PLC へ、PLC からアクチュエーターへ）で「PLC」とデータをやり取りします。PLC は TCP/IP で「OPC DA」とデータをやり取りし、この経路に「Network Delay Injection」（ネットワーク遅延の注入点）があります。OPC DA は TCP/IP（青の矢印）で「Controller」と双方向にやり取りし、「HMI Host」と「Historian」にデータを送ります。凡例は、青の矢印が「TCP/IP」、緑の矢印が「DeviceNet」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 5 - Process Dataflow Diagram</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5 - プロセスのデータフロー図</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Key Performance Indicators</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 主要業績評価指標</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Key Performance Indicators (KPI) of the Process Control System are used to measure the performance of the system and its sub-systems. These KPIs are calculated in the baseline measurement, in which no additional cybersecurity measures are implemented, to form the basis of the performance of the system. In subsequent experiment runs, different cybersecurity measures are implemented and the KPIs are calculated again and compared to the baseline measurement. Analysis can be performed to understand the performance impact caused by the implementation of the cybersecurity measures.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御システムの主要業績評価指標（KPI）は、システムとそのサブシステムの性能を測定するために使用します。これらの KPI は、追加のサイバーセキュリティ対策を実装しないベースライン測定で算出し、システムの性能の基準を形成します。その後の実験では、異なるサイバーセキュリティ対策を実装して KPI を再び算出し、ベースライン測定と比較します。分析を行うことで、サイバーセキュリティ対策の実装によって生じる性能への影響を把握できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. Definition</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. 定義</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A KPI is defined as a “computable performance assessment, as derived from a combination of metrics.” [4] In other words, a KPI is a computed value based on post-analysis and may utilize one or many primitive values to perform the computation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>KPI は、「メトリクスの組み合わせから導かれる、計算可能な性能評価」[4] と定義されます。言い換えると、KPI は事後分析に基づいて計算される値であり、その計算に 1 つまたは複数のプリミティブな値を利用する場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For example, the Network Utilization KPI in the Industrial Protocol Performance section is a value computed by using primitive information like the message data size, the message overhead size, the data rate, and the message timestamps. These primitives provide a way to compute the total size of the messages on the network in a specified time. The Network Utilization is then computed by dividing it by the maximum capability of the network.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>たとえば、産業用プロトコルの性能の節にあるネットワーク使用率 KPI は、メッセージのデータサイズ、メッセージのオーバーヘッドサイズ、データレート、メッセージのタイムスタンプなどのプリミティブな情報を使って計算される値です。これらのプリミティブにより、指定した時間内のネットワーク上のメッセージの合計サイズを計算できます。ネットワーク使用率は、これをネットワークの最大能力で割って計算します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many popular KPIs are readily available from the measurement tools. For example, the TCP Packet Round Trip Time is a KPI computed by using the timestamps information of a transmitted packet and the corresponding received acknowledgment packet. The TCP Round Trip Time can be easily calculated in the network analyzer tool.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一般的な KPI の多くは、測定ツールから容易に得られます。たとえば、TCP パケットのラウンドトリップ時間は、送信されたパケットと、対応する受信確認パケットのタイムスタンプ情報を使って計算される KPI です。TCP のラウンドトリップ時間は、ネットワークアナライザーツールで容易に計算できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. Selection Process</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. 選定プロセス</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The KPIs are selected based on an examination of the Process Control System to determine which KPIs can be obtained. Literature review for industrial systems, specifically process control systems, was performed to select the KPIs that are most common and representative in the process control industry and could be used to best analyze the process performance.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>KPI は、どの KPI を取得できるかを判断するためにプロセス制御システムを調べた結果に基づいて選定します。プロセス制御業界で最も一般的で代表的であり、プロセスの性能を分析するのに最も適した KPI を選定するため、産業用システム、特にプロセス制御システムに関する文献の調査を行いました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The KPIs selected are divided into five key performance areas:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>選定した KPI は、5 つの主要な性能領域に分けられます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Manufacturing process performance: measures the performance of the continuous manufacturing.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">製造プロセスの性能: 連続製造の性能を測定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Network performance: measures the performance of the underlying TCP/IP network.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">ネットワークの性能: 基盤となる TCP/IP ネットワークの性能を測定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Computing resources performance: measures the performance of the computers, hardware, and software processes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">コンピューティング資源の性能: コンピューター、ハードウェア、ソフトウェアプロセスの性能を測定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Industrial protocol performance: measures the performance of the DeviceNet, an industrial communication protocol.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">産業用プロトコルの性能: 産業用通信プロトコルである DeviceNet の性能を測定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">OPC Data Exchange performance: measures the performance of the data exchange mechanism of the system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">OPC データ交換の性能: システムのデータ交換メカニズムの性能を測定します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Measurements in different areas provide insight of the entire system performance from different perspectives. The manufacturing process performance provides indicators on how well the high-level manufacturing process and overall system perform. However, this may not be able to provide enough detail on the performance of the sub-systems, therefore measurements are also performed at sub-system levels.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>異なる領域での測定により、システム全体の性能を異なる観点から把握できます。製造プロセスの性能は、高水準の製造プロセスと全体的なシステムがどの程度うまく機能しているかの指標を提供します。しかし、これではサブシステムの性能について十分な詳細を提供できない場合があるため、サブシステムのレベルでも測定を行います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0022-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For example, typical chemical continuous manufacturing is a relatively slow process in comparison with computer networking. Therefore, a moderate TCP/IP network delay may not reflect in the measurement of the high-level manufacturing process performance. However, such TCP/IP delay may have significant impact on the sub-systems. The effects will not be reflected in the high-level measurement until significant delays are accumulated in sub-systems. Measurements in multiple levels provide details and in-depth understanding to key performance areas of the entire system. It helps to understand how the aggregate effects will impact the performance. Aggregate effects will be important to the high-level manufacturing performance. For example, if a single ICS firewall adds 1 millisecond delay to the PLC operation, multiple firewalls in series could aggregate the delay, which could have a more significant impact on the manufacturing process performance.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>たとえば、典型的な化学の連続製造は、コンピューターネットワークと比べて比較的ゆっくりとしたプロセスです。そのため、中程度の TCP/IP ネットワーク遅延は、高水準の製造プロセスの性能の測定には反映されない可能性があります。しかし、そのような TCP/IP 遅延は、サブシステムには大きな影響を及ぼす可能性があります。その影響は、サブシステムで大きな遅延が蓄積されるまで、高水準の測定には反映されません。複数のレベルでの測定により、システム全体の主要な性能領域について、詳細で深い理解が得られます。それは、集約的な影響が性能にどのように影響するかを理解する助けになります。集約的な影響は、高水準の製造性能にとって重要になります。たとえば、1 台の ICS ファイアウォールが PLC の動作に 1 ミリ秒の遅延を加える場合、複数のファイアウォールを直列に配置すると遅延が集約され、製造プロセスの性能により大きな影響を及ぼす可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Measurement Methodologies</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 測定方法</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following sections describe the measurement methodology used for each sub-system to collect the KPIs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以降の節では、KPI を収集するために各サブシステムで使用する測定方法を説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1. Manufacturing Process Performance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1. 製造プロセスの性能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Manufacturing process performance measures the performance of the continuous process. Once the process is started, the manufacturing system tends to run continuously. In the Process Control system, a typical experiment lasts from 24 hours to 48 hours. The KPIs are captured over the entire experiment period. Since the Plant Simulator is a software simulation, the KPIs are captured through software applications. The software logger records all the Plant Simulation 41 sensors and 12 actuators values in each simulation cycle. The Data Historian software records the same sensor and actuator values as published from the OPC server. The Data Historian only records when the data changes. A post processing is performed to compute the desired KPIs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製造プロセスの性能は、連続プロセスの性能を測定します。プロセスが開始されると、製造システムは連続的に稼働する傾向があります。プロセス制御システムでは、典型的な実験は 24 時間から 48 時間続きます。KPI は、実験期間全体を通じて取得します。プラントシミュレーターはソフトウェアのシミュレーションであるため、KPI はソフトウェアアプリケーションを通じて取得します。ソフトウェアのロガーは、各シミュレーションサイクルで、プラントシミュレーションの 41 個のセンサーと 12 個のアクチュエーターのすべての値を記録します。データヒストリアンのソフトウェアは、OPC サーバーから公開されたものと同じセンサーとアクチュエーターの値を記録します。データヒストリアンは、データが変化したときだけ記録します。必要な KPI を計算するために、後処理を行います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 – Manufacturing Process Performance KPI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 – 製造プロセスの性能 KPI</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Key Performance Indicator</th><th>Description</th></tr></thead><tbody><tr><td>1.1 Startup Time</td><td>Measures the time to produce the end products from the time input materials are released into the process at the initial startup of the process.</td></tr><tr><td>1.2 Throughput Rate</td><td>Measures the amount of end products produced over a specific amount of time.</td></tr><tr><td>1.3 Input Feed Rate</td><td>Measures the amount of input materials consumed over a specific amount of time.</td></tr><tr><td>1.4 Output Yield</td><td>Measures the percentage of the end product produced at the output of the process.</td></tr><tr><td>1.5 Equipment Availability</td><td>Measures the availability of the critical equipment. The critical equipment in the Process Control System is the Reactor, Separator, and the Product Stripper.</td></tr><tr><td>1.6 Reactor Pressure</td><td>Measures the Reactor pressure.</td></tr><tr><td>1.7 Reactor Level</td><td>Measures the Reactor level.</td></tr><tr><td>1.8 Reactor Temperature</td><td>Measures the Reactor temperature.</td></tr><tr><td>1.9 Separator Level</td><td>Measures the Separator level.</td></tr><tr><td>1.10 Stripper Level</td><td>Measures the Stripper level.</td></tr><tr><td>1.11 Duration of Continuous Operation</td><td>Measures the time when the production starts to the next unplanned stop in production.</td></tr><tr><td>1.12 Number of Unplanned Stops</td><td>Measures the number of times the production stops unexpectedly, including emergency shutdown.</td></tr><tr><td>1.13 Production Effectiveness</td><td>Measures the percentage of time the planned production target is achieved over a specific amount of time.</td></tr><tr><td>1.14 Capacity Utilization</td><td>Measures the percentage of production capacity utilized over a specific amount of time.</td></tr><tr><td>1.15 Unit Cost</td><td>Measures the production cost of the end products.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>主要業績評価指標</th><th>説明</th></tr></thead><tbody><tr><td>1.1 起動時間</td><td>プロセスの最初の起動時に、投入材料がプロセスに投入されてから、最終製品が生産されるまでの時間を測定します。</td></tr><tr><td>1.2 スループット率</td><td>特定の時間内に生産された最終製品の量を測定します。</td></tr><tr><td>1.3 投入供給率</td><td>特定の時間内に消費された投入材料の量を測定します。</td></tr><tr><td>1.4 出力歩留まり</td><td>プロセスの出力で生産された最終製品の割合を測定します。</td></tr><tr><td>1.5 設備稼働率</td><td>重要な設備の稼働率を測定します。プロセス制御システムでの重要な設備は、反応器、分離器、製品ストリッパーです。</td></tr><tr><td>1.6 反応器の圧力</td><td>反応器の圧力を測定します。</td></tr><tr><td>1.7 反応器の液位</td><td>反応器の液位を測定します。</td></tr><tr><td>1.8 反応器の温度</td><td>反応器の温度を測定します。</td></tr><tr><td>1.9 分離器の液位</td><td>分離器の液位を測定します。</td></tr><tr><td>1.10 ストリッパーの液位</td><td>ストリッパーの液位を測定します。</td></tr><tr><td>1.11 連続運転の継続時間</td><td>生産の開始から、次の計画外の生産停止までの時間を測定します。</td></tr><tr><td>1.12 計画外の停止回数</td><td>非常停止を含め、生産が予期せず停止した回数を測定します。</td></tr><tr><td>1.13 生産の有効性</td><td>特定の時間内に計画した生産目標を達成した時間の割合を測定します。</td></tr><tr><td>1.14 設備能力の利用率</td><td>特定の時間内に利用した生産能力の割合を測定します。</td></tr><tr><td>1.15 単位コスト</td><td>最終製品の生産コストを測定します。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2. Network Performance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2. ネットワークの性能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Network performance measures the performance of the underlying TCP/IP network. In the Process Control system, the network is a critical communication link for all sub-systems. All the nodes are connected and communicate through the network connection. As a critical communication channel, any network delay or failure will impact the performance of the entire continuous production system. For example, the Controller relies on real-time sensor information to compute the desired actuator values to maintain stable control. Also the HMI relies on real-time data to display the up-to-date process information for operators. Each computer has a network packet analyzer tool installed to capture all the inbound and outbound network traffic of that computer. Post-processing is performed to compute the desired KPIs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ネットワークの性能は、基盤となる TCP/IP ネットワークの性能を測定します。プロセス制御システムでは、ネットワークはすべてのサブシステムにとって重要な通信リンクです。すべてのノードはネットワーク接続を介して接続され、通信します。重要な通信チャネルであるため、ネットワークの遅延や障害は、連続生産システム全体の性能に影響します。たとえば、コントローラーは、安定した制御を維持するためにアクチュエーターの目標値を計算するのにリアルタイムのセンサー情報に依存しています。また、HMI は、オペレーター向けに最新のプロセス情報を表示するためにリアルタイムのデータに依存しています。各コンピューターには、そのコンピューターのすべての受信および送信ネットワークトラフィックを捕捉するために、ネットワークパケットアナライザーツールがインストールされています。必要な KPI を計算するために、後処理を行います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2 - Network Performance KPI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2 - ネットワークの性能 KPI</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Key Performance Indicator</th><th>Description</th></tr></thead><tbody><tr><td>2.1 Packet Path Delay</td><td>Measures the time delay along the path from transmitter to receiver.</td></tr><tr><td>2.2 Inter-packet Delay</td><td>Measures the difference between the packet path delay of two packets.</td></tr><tr><td>2.3 TCP Packet Round Trip Time</td><td>Measures the amount of time for the source node to receive the acknowledgement of receipt (ACK) from the destination node.</td></tr><tr><td>2.4 Information Ratio</td><td>Measures the percentage of the quantity of process information packets over all packets transmitted.</td></tr><tr><td>2.5 Bit Rate</td><td>Measures the rate of bits transmitted or received over a specific amount of time.</td></tr><tr><td>2.6 Packet Rate</td><td>Measures the rate of packets transmitted and received over a specific amount of time</td></tr><tr><td>2.7 Packet Error Rate</td><td>Measures the rate of packets received with errors over a specific amount of time</td></tr><tr><td>2.8 Proportion of Protocol Type</td><td>Measures the percentage of a unique packet protocol type observed over a specific amount of time.</td></tr><tr><td>2.9 Network Utilization</td><td>Measures the percentage of network capacity utilized over a specific amount of time.</td></tr><tr><td>2.10 Packet Size</td><td>Measures the number of bytes contained in a packet.</td></tr><tr><td>2.11 Packet Loss Rate</td><td>Measures the percentage of packets that failed to reach the destination node over a specific amount of time.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>主要業績評価指標</th><th>説明</th></tr></thead><tbody><tr><td>2.1 パケット経路遅延</td><td>送信側から受信側までの経路に沿った時間遅延を測定します。</td></tr><tr><td>2.2 パケット間遅延</td><td>2 つのパケットのパケット経路遅延の差を測定します。</td></tr><tr><td>2.3 TCP パケットのラウンドトリップ時間</td><td>送信元ノードが宛先ノードから受信確認応答（ACK）を受け取るまでの時間を測定します。</td></tr><tr><td>2.4 情報比率</td><td>送信された全パケットに占める、プロセス情報パケットの量の割合を測定します。</td></tr><tr><td>2.5 ビットレート</td><td>特定の時間内に送信または受信されたビットの速度を測定します。</td></tr><tr><td>2.6 パケットレート</td><td>特定の時間内に送信および受信されたパケットの速度を測定します</td></tr><tr><td>2.7 パケットエラー率</td><td>特定の時間内に、エラーを伴って受信されたパケットの割合を測定します</td></tr><tr><td>2.8 プロトコル種別の比率</td><td>特定の時間内に観測された、固有のパケットプロトコル種別の割合を測定します。</td></tr><tr><td>2.9 ネットワーク使用率</td><td>特定の時間内に利用されたネットワーク容量の割合を測定します。</td></tr><tr><td>2.10 パケットサイズ</td><td>パケットに含まれるバイト数を測定します。</td></tr><tr><td>2.11 パケット損失率</td><td>特定の時間内に、宛先ノードに到達できなかったパケットの割合を測定します。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3. Computing Resources Performance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3. コンピューティング資源の性能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computing resources performance measures the performance of the computing hardware and software. This is especially important for sub-systems that are software intensive, such as the HMI, Data Historian, and the OPC Server. Major functionalities in these sub-systems are implemented in software. For example, the HMI is a software application powered by the Rockwell <i>FactoryTalk</i> software suite. Software applications consume computing resources to execute. Therefore, the availability of computing resources, such as processor time, memory, disk usage, and network access, directly affect the performance of these software applications. A lack of computing resources will delay the execution of the HMI software, which in turn delays the display of the manufacturing process information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピューティング資源の性能は、コンピューティングのハードウェアとソフトウェアの性能を測定します。これは、HMI、データヒストリアン、OPC サーバーなど、ソフトウェアへの依存度が高いサブシステムにとって特に重要です。これらのサブシステムの主要な機能はソフトウェアで実装されています。たとえば、HMI は、Rockwell <i>FactoryTalk</i> ソフトウェアスイートで動作するソフトウェアアプリケーションです。ソフトウェアアプリケーションは、実行のためにコンピューティング資源を消費します。したがって、プロセッサー時間、メモリ、ディスク使用量、ネットワークアクセスなどのコンピューティング資源が利用できるかどうかは、これらのソフトウェアアプリケーションの性能に直接影響します。コンピューティング資源が不足すると、HMI ソフトウェアの実行が遅れ、その結果、製造プロセス情報の表示が遅れます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To measure the performance of the computing resources, the Microsoft Resource Monitor and the Microsoft Performance Monitor are used. These tools are included in the Windows 7 installation and have access to many computing resources and Windows operating system statistics. Another Microsoft tool, TCPView, is used to capture network usage and TCP connections per software application.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピューティング資源の性能を測定するため、Microsoft Resource Monitor と Microsoft Performance Monitor を使用します。これらのツールは Windows 7 のインストールに含まれており、多くのコンピューティング資源と Windows オペレーティングシステムの統計情報にアクセスできます。もう一つの Microsoft のツールである TCPView は、ソフトウェアアプリケーションごとのネットワーク使用状況と TCP 接続を捕捉するために使用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Since each computer has a multi-core processor, the software application being measured is pinned to run in a specific core that has the lightest load. To perform the measurement, a data collection set is first defined in the tools describing which KPI and the specific processor core to record.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各コンピューターにはマルチコアプロセッサーがあるため、測定対象のソフトウェアアプリケーションは、負荷が最も軽い特定のコアで動作するように固定します。測定を行うには、まず、どの KPI と特定のプロセッサーコアを記録するかを記述したデータ収集セットを、ツールで定義します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 3 - Computing Resources Performance KPI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 3 - コンピューティング資源の性能 KPI</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Key Performance Indicator</th><th>Description</th></tr></thead><tbody><tr><td>3.1 CPU Utilization</td><td>Measures the percentage of central processing unit (CPU) utilized over a specific amount of time.</td></tr><tr><td>3.2 Memory Utilization</td><td>Measures the percentage of memory utilized over a specific amount of time.</td></tr><tr><td>3.3 Disk I/O</td><td>Measures the mean rate and standard deviation of read and write operations to the server hard drive per software application.</td></tr><tr><td>3.4 Network Throughput</td><td>Measures the mean rate and standard deviation of packets transmitted and received per software application.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>主要業績評価指標</th><th>説明</th></tr></thead><tbody><tr><td>3.1 CPU 使用率</td><td>特定の時間内に利用された中央処理装置（CPU）の割合を測定します。</td></tr><tr><td>3.2 メモリ使用率</td><td>特定の時間内に利用されたメモリの割合を測定します。</td></tr><tr><td>3.3 ディスク I/O</td><td>ソフトウェアアプリケーションごとの、サーバーのハードドライブに対する読み取りと書き込みの操作の平均レートと標準偏差を測定します。</td></tr><tr><td>3.4 ネットワークスループット</td><td>ソフトウェアアプリケーションごとの、送信および受信されたパケットの平均レートと標準偏差を測定します。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.4. Industrial Protocol Performance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.4. 産業用プロトコルの性能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Industrial protocol performance measures the performance of the industrial communication network. The industrial protocol being used in the Process Control System is DeviceNet, which handles the communication between the Plant Simulator and the PLC. It is based on the Controller Area Network (CAN) protocol, a serial message-based communication protocol, with an additional application and physical layer specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業用プロトコルの性能は、産業用通信ネットワークの性能を測定します。プロセス制御システムで使用している産業用プロトコルは DeviceNet で、プラントシミュレーターと PLC の間の通信を扱います。これは、シリアルのメッセージベースの通信プロトコルである Controller Area Network（CAN）プロトコルに基づき、アプリケーション層と物理層の仕様が追加されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In understanding the performance of the DeviceNet, it helps to better understand the low-level details of the industrial control network, and this information can help to identify the performance impact on the system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DeviceNet の性能を理解するには、産業用制御ネットワークの低レベルの詳細をよりよく理解することが役立ち、この情報は、システムへの性能の影響を特定するのに役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To measure the performance of the industrial protocol, logging capacity is added to the software DeviceNet interface. The interface timestamps and captures all inbound and outbound DeviceNet traffic. A post processing is performed to compute the desired KPIs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業用プロトコルの性能を測定するため、ソフトウェアの DeviceNet インターフェースにロギング機能を追加しました。このインターフェースは、すべての受信および送信の DeviceNet トラフィックにタイムスタンプを付けて捕捉します。必要な KPI を計算するために、後処理を行います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 4 - Industrial Protocol Performance KPI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 4 - 産業用プロトコルの性能 KPI</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Key Performance Indicator</th><th>Description</th></tr></thead><tbody><tr><td>4.1 Network Utilization</td><td>Measures the percentage of network capacity utilized over a specific amount of time.</td></tr><tr><td>4.2 Information Ratio</td><td>Measures the percentage of the quantity of process information packets over all packets transmitted.</td></tr><tr><td>4.3 Packet Path Delay</td><td>Measures the time delay along the path from transmitter to receiver.</td></tr><tr><td>4.4 Packet Rate</td><td>Measures the rate of packets transmitted and received over a specific amount of time</td></tr><tr><td>4.5 Data Size</td><td>Measures the number of application payload data in bytes in a packet.</td></tr><tr><td>4.6 Packet Size</td><td>Measures the number of bytes contained in a DeviceNet packet.</td></tr><tr><td>4.7 DeviceNet Throughput</td><td>Measures the mean rate and standard deviation of packets transmitted and received on DeviceNet.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>主要業績評価指標</th><th>説明</th></tr></thead><tbody><tr><td>4.1 ネットワーク使用率</td><td>特定の時間内に利用されたネットワーク容量の割合を測定します。</td></tr><tr><td>4.2 情報比率</td><td>送信された全パケットに占める、プロセス情報パケットの量の割合を測定します。</td></tr><tr><td>4.3 パケット経路遅延</td><td>送信側から受信側までの経路に沿った時間遅延を測定します。</td></tr><tr><td>4.4 パケットレート</td><td>特定の時間内に送信および受信されたパケットの速度を測定します</td></tr><tr><td>4.5 データサイズ</td><td>パケット内のアプリケーションペイロードデータの量を、バイト数で測定します。</td></tr><tr><td>4.6 パケットサイズ</td><td>DeviceNet パケットに含まれるバイト数を測定します。</td></tr><tr><td>4.7 DeviceNet スループット</td><td>DeviceNet 上で送信および受信されたパケットの平均レートと標準偏差を測定します。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.5. OPC Data Exchange Performance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.5. OPC データ交換の性能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OPC data exchange performance measures the performance of the data exchange process between the PLC and the OPC server, and between the OPC server and the subscribing clients, such as HMI and Data Historian. As the main data gateway, the OPC server is an important sub-system that serves sensor and actuator data to the rest of the system. Any processing delay or failure will impact the performance of the entire system. For example, the Controller relies on real-time sensor information to compute the desired actuator values to maintain a stable control. Also the HMI relies on real-time data to display the up-to-date process information for operators.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OPC データ交換の性能は、PLC と OPC サーバーの間、および OPC サーバーと、HMI やデータヒストリアンなどのサブスクライブしているクライアントとの間の、データ交換プロセスの性能を測定します。主要なデータゲートウェイである OPC サーバーは、システムの他の部分にセンサーとアクチュエーターのデータを提供する重要なサブシステムです。処理の遅延や障害は、システム全体の性能に影響します。たとえば、コントローラーは、安定した制御を維持するためにアクチュエーターの目標値を計算するのにリアルタイムのセンサー情報に依存しています。また、HMI は、オペレーター向けに最新のプロセス情報を表示するためにリアルタイムのデータに依存しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OPC data is sent through the TCP/IP network connection, either encapsulated in EtherNet/IP format (between PLC and OPC DA) or in Windows Remote Procedure Call (RPC/DCOM) format (between clients and OPC DA). The OPC packet can be captured using a network packet analyzer tool. However, a decoding program is required to extract the OPC information from the EtherNet/IP or the RPC/DCOM packets to analyze and compute the KPIs for the performance measurement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OPC データは、EtherNet/IP 形式（PLC と OPC DA の間）または Windows のリモートプロシージャコール（RPC/DCOM）形式（クライアントと OPC DA の間）でカプセル化されて、TCP/IP ネットワーク接続を通じて送信されます。OPC パケットは、ネットワークパケットアナライザーツールを使って捕捉できます。しかし、性能測定のために KPI を分析し計算するには、EtherNet/IP または RPC/DCOM のパケットから OPC の情報を取り出すデコードプログラムが必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A control counter is added to the DeviceNet interface and the PLC. This control counter increments every simulation cycle of the Plant Simulator and in turn updates the PLC through the DeviceNet. By measuring the round trip time of the counter, it serves as a control value for network latency between the Plant Simulator and the Controller.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DeviceNet インターフェースと PLC に、制御カウンターを追加しています。この制御カウンターは、プラントシミュレーターのシミュレーションサイクルごとに増加し、その結果を DeviceNet を介して PLC に更新します。このカウンターのラウンドトリップ時間を測定することで、プラントシミュレーターとコントローラーの間のネットワーク遅延の基準値として機能します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 5 - OPC Data Exchange Performance KPI</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 5 - OPC データ交換の性能 KPI</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Key Performance Indicator</th><th>Description</th></tr></thead><tbody><tr><td>5.1 OPC DA Latency (PLC to OPC)</td><td>Measures the amount of time for the information to be available on the OPC server after the information is sent from the PLC.</td></tr><tr><td>5.2 OPC DA Latency (OPC to PLC)</td><td>Measures the amount of time for the information to be available on the PLC after the information is sent from the OPC client.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>主要業績評価指標</th><th>説明</th></tr></thead><tbody><tr><td>5.1 OPC DA 遅延（PLC から OPC）</td><td>PLC から情報が送信された後、その情報が OPC サーバー上で利用可能になるまでの時間を測定します。</td></tr><tr><td>5.2 OPC DA 遅延（OPC から PLC）</td><td>OPC クライアントから情報が送信された後、その情報が PLC 上で利用可能になるまでの時間を測定します。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Appendix A -- References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 付録 A -- 参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] R. Candell, T. Zimmerman and K. Stouffer, &quot;An Industrial Control System Cybersecurity Performance Testbed, NISTIR 8089,&quot; National Institute of Standards and Technology (NIST), Gaithersburg, MD, 2015.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] R. Candell, T. Zimmerman and K. Stouffer, &quot;An Industrial Control System Cybersecurity Performance Testbed, NISTIR 8089,&quot; National Institute of Standards and Technology (NIST), Gaithersburg, MD, 2015.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] J. J. Downs and E. F. Vogel, &quot;A Plant-Wide Industrial Process Control Problem,&quot; <i>Computers and Chemical Engineering,</i> vol. 17, no. 3, pp. 245-255, 1993.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] J. J. Downs and E. F. Vogel, &quot;A Plant-Wide Industrial Process Control Problem,&quot; <i>Computers and Chemical Engineering,</i> vol. 17, no. 3, pp. 245-255, 1993.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] L. Ricker, &quot;Decentralized control of the Tennessee Eastman Challenge Process,&quot; <i>Journal of Process Control,</i> vol. 6, no. 4, pp. 205-221, 1996.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] L. Ricker, &quot;Decentralized control of the Tennessee Eastman Challenge Process,&quot; <i>Journal of Process Control,</i> vol. 6, no. 4, pp. 205-221, 1996.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] T. Zimmerman, &quot;Metrics and KPI for Robotic Cybersecurity Performance Analysis, NISTIR 8177,&quot; National Institute of Standards and Technology (NIST), Gaithersburg, MD, 2016.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] T. Zimmerman, &quot;Metrics and KPI for Robotic Cybersecurity Performance Analysis, NISTIR 8177,&quot; National Institute of Standards and Technology (NIST), Gaithersburg, MD, 2016.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] I. C. Garretson, M. Mani, S. Leong, K. W. Lyons and K. R. Haapala, &quot;Terminology to support manufacturing process characterization and assessment for sustainable production,&quot; <i>Journal of Cleaner Production,</i> vol. 139, p. 986–1000, 2016.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] I. C. Garretson, M. Mani, S. Leong, K. W. Lyons and K. R. Haapala, &quot;Terminology to support manufacturing process characterization and assessment for sustainable production,&quot; <i>Journal of Cleaner Production,</i> vol. 139, p. 986–1000, 2016.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] F.-L. Lian, J. R. Moyne and D. M. Tilbury, &quot;Performance Evaluation of Control Networks: Ethernet, ControlNet, and DeviceNet,&quot; <i>IEEE Control Systems Magazine,</i> February 2001.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] F.-L. Lian, J. R. Moyne and D. M. Tilbury, &quot;Performance Evaluation of Control Networks: Ethernet, ControlNet, and DeviceNet,&quot; <i>IEEE Control Systems Magazine,</i> February 2001.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] G. Buckbee, &quot;Realtime Metrics for Process Performance,&quot; <i>Chemical Engineering,</i> June 2007.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] G. Buckbee, &quot;Realtime Metrics for Process Performance,&quot; <i>Chemical Engineering,</i> June 2007.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0029">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] M. Newton, &quot;KPIs for Industrial Automation and Process Control,&quot; Opto22, Temecula, CA, 2017.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] M. Newton, &quot;KPIs for Industrial Automation and Process Control,&quot; Opto22, Temecula, CA, 2017.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] M. Davidson, &quot;28 Manufacturing Metrics that Actually Matter,&quot; LNS Research, Cambridge, MA, 2013.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] M. Davidson, &quot;28 Manufacturing Metrics that Actually Matter,&quot; LNS Research, Cambridge, MA, 2013.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0037">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. Appendix B – List of Software Tools</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. 付録 B – ソフトウェアツールの一覧</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0017-b0039">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Software Tool Name</th><th>Description</th></tr></thead><tbody><tr><td>Wireshark</td><td>An open source packet analyzer. https:/<wbr/>/<wbr/>www<wbr/>.wireshark<wbr/>.org/</td></tr><tr><td>Microsoft Resources Monitor</td><td>A Windows utility to provide hardware and software resources usage information.</td></tr><tr><td>Performance Monitor</td><td>A Windows system monitoring program that monitors various activities on the computer.</td></tr><tr><td>Process Explorer</td><td>A Windows program that collects information about software processes running on the system. https:/<wbr/>/<wbr/>technet<wbr/>.microsoft<wbr/>.com/<wbr/>en-us/<wbr/>sysinternals/<wbr/>processexplorer<wbr/>.aspx</td></tr><tr><td>NetBalancer</td><td>An Internet traffic control and monitoring tool. https://netbalancer.com</td></tr><tr><td>TCPView</td><td>A Windows program that shows detailed listings of all Transmission Control Protocol (TCP) and User Datagram Protocol (UDP) endpoints. https:/<wbr/>/<wbr/>technet<wbr/>.microsoft<wbr/>.com/<wbr/>en-us/<wbr/>sysinternals/<wbr/>tcpview<wbr/>.aspx</td></tr><tr><td>Netstat</td><td>A tool to display the networking details of a system.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>ソフトウェアツール名</th><th>説明</th></tr></thead><tbody><tr><td>Wireshark</td><td>オープンソースのパケットアナライザーです。https:/<wbr/>/<wbr/>www<wbr/>.wireshark<wbr/>.org/</td></tr><tr><td>Microsoft Resources Monitor</td><td>ハードウェアとソフトウェアの資源の使用状況に関する情報を提供する Windows のユーティリティです。</td></tr><tr><td>Performance Monitor</td><td>コンピューター上のさまざまな活動を監視する、Windows のシステム監視プログラムです。</td></tr><tr><td>Process Explorer</td><td>システム上で動作しているソフトウェアプロセスに関する情報を収集する Windows のプログラムです。https:/<wbr/>/<wbr/>technet<wbr/>.microsoft<wbr/>.com/<wbr/>en-us/<wbr/>sysinternals/<wbr/>processexplorer<wbr/>.aspx</td></tr><tr><td>NetBalancer</td><td>インターネットトラフィックの制御・監視ツールです。https:/<wbr/>/<wbr/>netbalancer<wbr/>.com</td></tr><tr><td>TCPView</td><td>すべての伝送制御プロトコル（TCP）とユーザーデータグラムプロトコル（UDP）のエンドポイントの詳細な一覧を表示する Windows のプログラムです。https:/<wbr/>/<wbr/>technet<wbr/>.microsoft<wbr/>.com/<wbr/>en-us/<wbr/>sysinternals/<wbr/>tcpview<wbr/>.aspx</td></tr><tr><td>Netstat</td><td>システムのネットワークの詳細を表示するツールです。</td></tr></tbody></table>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2017/NIST.IR.8188.pdf">National Institute of Standards and Technology, IR 8188</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8188";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

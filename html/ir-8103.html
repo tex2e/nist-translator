@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8103 は、2016 年 1 月 12〜13 日に NIST 情報技術研究所の応用サイバーセキュリティ部門が開催した、アイデンティティエコシステムにおける計測科学の適用に関するワークショップの要約です。ワークショップには、公的部門と民間部門の実務者、アイデンティティソリューションの提供者、専門家、政策担当者が集まり、アイデンティティ管理の慣行に指標と計測科学を適用することを議論しました。本書は、そこで示された概念と考えを要約するとともに、議論された主要テーマへの意見を受け付ける場として位置づけられています。構成は、はじめに、ワークショップの要約と主要な論点、今後のステップです。">
+  <title>アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ：要約と今後のステップ | NIST IR 8103 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Advanced Identity Workshop on Applying Measurement Science in the Identity Ecosystem:" data-search="アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ: advanced identity workshop on applying measurement science in the identity ecosystem:">アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ:</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="Advanced Identity Workshop on Applying Measurement Science in the Identity Ecosystem:" data-search="アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ: advanced identity workshop on applying measurement science in the identity ecosystem:">アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ:</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0004" title="Comments on this Publication and the Workshop may be submitted to:" data-search="本刊行物とワークショップへのコメントは、次の宛先に提出できます: comments on this publication and the workshop may be submitted to:">本刊行物とワークショップへのコメントは、次の宛先に提出できます:</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0007" title="Disclaimer" data-search="免責事項 disclaimer">免責事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0009" title="Acknowledgements" data-search="謝辞 acknowledgements">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Introduction" data-search="はじめに introduction">はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0008" title="Workshop Summary and Key Takeaways" data-search="ワークショップの要約と主要な教訓 workshop summary and key takeaways">ワークショップの要約と主要な教訓</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="Overall Observations" data-search="全体的な所見 overall observations">全体的な所見</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0005" title="Strength of Identity Proofing" data-search="本人確認の強度 strength of identity proofing">本人確認の強度</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0002" title="Strength of Authentication" data-search="認証の強度 strength of authentication">認証の強度</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0003" title="Attribute Metadata and Confidence Scoring" data-search="属性メタデータと信頼度スコアリング attribute metadata and confidence scoring">属性メタデータと信頼度スコアリング</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0004" title="Next Steps" data-search="今後のステップ next steps">今後のステップ</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8103 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Advanced Identity Workshop on Applying Measurement Science in the Identity Ecosystem: Summary and Next Steps</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ：要約と今後のステップ</strong></span><br><span class="doc-panel-item">公開日 : 2016-09-19</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8103/final">https://csrc.nist.gov/pubs/ir/8103/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 111 / 112 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8103 は、2016 年 1 月 12〜13 日に NIST 情報技術研究所の応用サイバーセキュリティ部門が開催した、アイデンティティエコシステムにおける計測科学の適用に関するワークショップの要約です。ワークショップには、公的部門と民間部門の実務者、アイデンティティソリューションの提供者、専門家、政策担当者が集まり、アイデンティティ管理の慣行に指標と計測科学を適用することを議論しました。本書は、そこで示された概念と考えを要約するとともに、議論された主要テーマへの意見を受け付ける場として位置づけられています。構成は、はじめに、ワークショップの要約と主要な論点、今後のステップです。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8103</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8103</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Advanced Identity Workshop on Applying Measurement Science in the Identity Ecosystem:</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ:</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Summary and Next Steps</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>要約と今後のステップ</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael E. Garcia<br>Paul A. Grassi</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael E. Garcia<br>Paul A. Grassi</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0008" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 8103</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 8103</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Advanced Identity Workshop on Applying Measurement Science in the Identity Ecosystem:</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+アイデンティティエコシステムにおける計測科学の適用に関する先進アイデンティティワークショップ:</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Summary and Next Steps</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>要約と今後のステップ</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Michael E. Garcia<br>Paul A. Grassi</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Michael E. Garcia<br>Paul A. Grassi</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><em>Applied Cybersecurity Division<br>Information Technology Laboratory</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>応用サイバーセキュリティ部門<br>情報技術研究所</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>September 2016</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2016 年 9 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br><em>Penny Pritzker, Secretary</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br><em>Penny Pritzker 長官</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br><em>Willie May, Under Secretary of Commerce for Standards and Technology and Director</em></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br><em>Willie May、NIST 所長兼商務次官（標準・技術担当）</em></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Internal Report 8103<br>14 pages (September 2016)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 内部報告書 8103<br>14 ページ（2016 年 9 月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます:<br>http://dx.doi.org/10.6028/NIST.IR.8103</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験の手順や概念を適切に説明するために、特定の商業団体、機器、材料に言及している場合があります。そのような言及は、NIST による推奨や推薦を意味するものではなく、それらの団体、材料、機器がその目的に利用可能なもののうち必ずしも最良であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書には、NIST が法令で定められた責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。それらの関連刊行物の完成前であっても、本書の情報（概念および方法論を含む）を連邦機関が使用してもよいです。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合は、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at http://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが奨励されています。上記以外の NIST の多くのサイバーセキュリティ刊行物は、http://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Comments on this Publication and the Workshop may be submitted to:</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+本刊行物とワークショップへのコメントは、次の宛先に提出できます:</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Attn: Applied Cybersecurity Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000<br>Email: NSTICworkshop@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br>宛先: Applied Cybersecurity Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 2000) Gaithersburg, MD 20899-2000<br>電子メール: NSTICworkshop@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラストラクチャに対する技術的なリーダーシップを提供することにより、米国の経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるために、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、費用対効果の高いセキュリティおよびプライバシーを確保するための管理、運営、技術、物理に関する標準およびガイドラインの策定が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On January 12-13, 2016, the Applied Cybersecurity Division (ACD) in the National Institute of Standards and Technology (NIST) Information Technology Laboratory (ITL) hosted “Applying Measurement Science in the Identity Ecosystem”—a workshop to discuss the application of measurement science to digital identity management. This document summarizes the concepts and ideas presented at the workshop and serves as a platform to receive feedback on the major themes discussed at that event.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2016 年 1 月 12〜13 日に、米国国立標準技術研究所（NIST）情報技術研究所（ITL）の応用サイバーセキュリティ部門（ACD）は、デジタルアイデンティティ管理への計測科学の適用を議論するワークショップ「Applying Measurement Science in the Identity Ecosystem」を開催しました。本書は、このワークショップで示された概念とアイデアを要約し、そのイベントで議論された主要なテーマについてのフィードバックを受けるための基盤として機能します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Identity; NSTIC; authentication; biometric authentication; biometrics; identity proofing; attributes; metadata; identity management; cybersecurity; security; information security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アイデンティティ、NSTIC、認証、生体認証、生体情報、本人確認、属性、メタデータ、アイデンティティ管理、サイバーセキュリティ、セキュリティ、情報セキュリティ。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Disclaimer</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+免責事項</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Any mention of commercial products or reference to commercial organizations is for information only; it does not imply recommendation or endorsement by NIST, nor does it imply that the products mentioned are necessarily the best available for the purpose. Content was derived from workshop participant discussions captured by note takers and aggregated for the purposes of summarizing the event. Any misrepresentation of comments or concepts is unintentional. Corrections or clarifications can be provided through the open comment period.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>商用製品への言及や商用組織への参照は、情報提供のみを目的としています。NIST による推奨や推薦を意味するものではなく、言及された製品がその目的に利用可能なもののうち必ずしも最良であることを意味するものでもありません。内容は、記録係が記録したワークショップ参加者の議論から得られ、イベントを要約する目的で集約されたものです。コメントや概念の誤った表現があったとしても、意図的なものではありません。訂正や明確化は、公開のコメント期間を通じて提供できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors would like to thank Ryan Galluzzo and Walter McLean for their contributions to this NISTIR. In addition, we would like to thank panelists Ian Glazer, Kim Little-Sutherland, David Kelts, Dario Berini, Brent Williams, Julian White, Brett McDowell, Stephanie Schuckers, Vance Bjorn, Cathy Tilton, Liz Votaw, LaChelle LeVan, Darran Rolls, Gerry Gebel, Ryan Disraeli, and Robin Wilton and facilitators Kirk Brafford, Mike Wyatt, Roger Cressey, Kiersten Todt, JR Reagan, and Colin Soutar, as well as the workshop participants who provided valuable input to this report. Finally, we would like to thank and acknowledge the efforts of those that developed the workshop white papers, to include Elaine Newton, Kevin Mangold, Mike Garris, Colin Soutar, Ryan Galluzzo, Jim Fenton, Kat Megas, and Justin Richer.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者らは、本 NISTIR への貢献について、Ryan Galluzzo と Walter McLean に感謝します。また、パネリストの Ian Glazer、Kim Little-Sutherland、David Kelts、Dario Berini、Brent Williams、Julian White、Brett McDowell、Stephanie Schuckers、Vance Bjorn、Cathy Tilton、Liz Votaw、LaChelle LeVan、Darran Rolls、Gerry Gebel、Ryan Disraeli、Robin Wilton、ファシリテーターの Kirk Brafford、Mike Wyatt、Roger Cressey、Kiersten Todt、JR Reagan、Colin Soutar、そして本報告書に貴重な意見を寄せてくれたワークショップ参加者にも感謝します。最後に、Elaine Newton、Kevin Mangold、Mike Garris、Colin Soutar、Ryan Galluzzo、Jim Fenton、Kat Megas、Justin Richer を含む、ワークショップのホワイトペーパーを作成した方々の努力に感謝し、謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0008">Workshop Summary and Key Takeaways</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0008">ワークショップの要約と主な知見</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">Overall Observations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">全体的な所見</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">Strength of Identity Proofing</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">本人確認の強度</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0002">Strength of Authentication</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0002">認証の強度</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">Attribute Metadata and Confidence Scoring</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">属性メタデータと信頼度スコアリング</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">今後のステップ</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On January 12 and 13, 2016, the Applied Cybersecurity Division (ACD) in the National Institute of Standards and Technology’s (NIST) Information Technology Laboratory hosted the “Applying Measurement Science in the Identity Ecosystem” workshop in Gaithersburg, Maryland.<sup>1</sup> The two-day workshop brought together security practitioners, identity solution providers, subject matter experts, and policy makers from across the public and private sectors to discuss the application of metrics and measurement science to common identity management practices.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2016 年 1 月 12 日と 13 日に、米国国立標準技術研究所（NIST）情報技術研究所の応用サイバーセキュリティ部門（ACD）は、メリーランド州 Gaithersburg で、「Applying Measurement Science in the Identity Ecosystem」ワークショップを開催しました。<sup>1</sup> この 2 日間のワークショップには、官民のセキュリティ実務者、アイデンティティソリューションの提供者、専門家、政策立案者が集まり、メトリクスと計測科学を一般的なアイデンティティ管理の実務に適用することについて議論しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Identity Ecosystem has matured to the point where it is appropriate to undertake the work of building measurement science for application in the market—a critical step in further aiding expansion and innovation of the Identity Ecosystem. This workshop was held to obtain feedback from stakeholders on the feasibility of, and approaches necessary to, measure and compare three disciplines of digital identity management:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アイデンティティエコシステムは、市場に適用する計測科学を構築する作業に取り組むのが適切な段階に成熟しており、これはアイデンティティエコシステムのさらなる拡大とイノベーションを支援するうえで重要なステップです。このワークショップは、デジタルアイデンティティ管理の 3 つの分野を測定し比較する実現可能性と、そのために必要な手法について、関係者からフィードバックを得るために開催されました:</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Strength of identity proofing;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">本人確認の強度。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Strength of authentication; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">認証の強度。および</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Attribute metadata and confidence scoring.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">属性メタデータと信頼度スコアリング。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST’s ultimate goal is to establish frameworks that enable objective measurement of identity solutions, so that their ability to mitigate risk is more quantitatively measurable, they can more easily be compared, and, ultimately, measured when combined. NIST believes making progress in this space will achieve greater alignment of identity solutions and technology with risk assessment and management practices. This document provides a summary of the proceedings to ensure NIST captured stakeholder feedback accurately as it executes the next steps in its broad effort towards improved digital identity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の最終的なゴールは、アイデンティティソリューションの客観的な測定を可能にする枠組みを確立することです。これにより、そのリスク低減能力がより定量的に測定でき、より容易に比較でき、最終的には組み合わせた場合にも測定できるようになります。NIST は、この領域で前進することが、アイデンティティソリューションと技術を、リスク評価およびリスク管理の実務とより緊密に整合させることになると考えています。本書は、NIST が、デジタルアイデンティティの改善に向けた幅広い取り組みの次のステップを実行するにあたり、関係者のフィードバックを正確に把握していることを確実にするために、議事の要約を提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Workshop Summary and Key Takeaways</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+ワークショップの要約と主要な教訓</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Workshop attendees represented diverse public and private sector stakeholders. In total, 224 people attended the event: 67 % from the private sector, 26 % from government organizations, and 7 % from academia and non-profits. The workshop included moderated panels and facilitated working sessions for each workshop topic. Throughout the event, participants shared risk management practices, security evaluation approaches, and testing processes that they utilized within their organizations. Additionally, participants identified barriers, evaluated solutions, and specified implementation considerations to enable greater quantification of strength within each digital identity management discipline the workshop covered.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの参加者は、官民の多様な関係者を代表していました。このイベントには合計 224 人が参加しました。内訳は、民間部門が 67 %、政府機関が 26 %、学術機関と非営利団体が 7 % でした。ワークショップには、各ワークショップのテーマについて、司会者付きのパネルと、ファシリテーター付きの作業セッションが含まれていました。イベントを通じて、参加者は、それぞれの組織内で利用しているリスク管理の実務、セキュリティ評価の手法、テストのプロセスを共有しました。さらに、参加者は、ワークショップが扱ったデジタルアイデンティティ管理の各分野で強度をより定量化できるようにするために、障壁を特定し、解決策を評価し、実装上の考慮事項を明示しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The summary below identifies takeaways and observations from the event. These do not necessarily indicate items that were unanimously supported by those in attendance, but rather frequently voiced ideas and input among panelists, audience questions, and the breakout teams during the course of workshop.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の要約は、このイベントから得られた教訓と所見を示しています。これらは、出席者全員が一致して支持した項目を必ずしも示すものではなく、ワークショップの期間中に、パネリスト、聴衆からの質問、分科会チームの間で頻繁に出された意見や見解を示しています。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0006-b0011" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> Information about the workshop is available at: https://www.nist.gov/itl/nstic/projects-events.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> ワークショップに関する情報は、https://www.nist.gov/itl/nstic/projects-events で入手できます。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Overall Observations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+全体的な所見</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST heard several recurring themes that transcended the individual workshop topics. These typically involved NIST’s overall effort to apply measurement science to digital identity, the efficacy of measurement within each topic, and how the relationships, or lack thereof, between topics could influence a future direction.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、個々のワークショップのテーマを超えた、いくつかの繰り返し現れるテーマを耳にしました。これらは通常、計測科学をデジタルアイデンティティに適用するという NIST の全体的な取り組み、各テーマ内での測定の有効性、そしてテーマ間の関係の有無が、将来の方向性にどのように影響し得るかに関するものでした。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Application of Metrology to Digital Identity and Access Management.</strong> Many participants saw value in NIST’s effort to establish measurement science to communicating the strength, and ability to mitigate risk, of identity management practices and solutions. Furthermore, most expressed willingness to remain engaged as those efforts develop and mature. Some attendees expressed a view that mandatory metrics and measurements may place an undue burden on vendors. Overall, attendees felt the three focal areas of the workshop were appropriate to evolve and enhance the Identity Ecosystem, and supported NIST’s efforts to produce measurement-based guidance associated with each.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>デジタルアイデンティティおよびアクセス管理への計量学の適用。</strong> 多くの参加者は、アイデンティティ管理の実務とソリューションの強度およびリスク低減能力を伝えるための計測科学を確立するという NIST の取り組みに価値を見いだしました。さらに、ほとんどの参加者は、それらの取り組みが発展し成熟していくなかで、引き続き関与する意欲を示しました。一部の出席者は、義務的なメトリクスと測定がベンダーに過度の負担をかける可能性があるとの見解を示しました。全体として、出席者は、ワークショップの 3 つの重点分野はアイデンティティエコシステムを発展させ強化するうえで適切であると感じ、それぞれに関連する測定に基づくガイダンスを作成する NIST の取り組みを支持しました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While the idea of producing additional guidance regarding measurements and metrics was generally well received, there was no consensus on any specific approach to apply measurement science to digital identity, nor how to develop such approaches. Likewise, there was no consensus on the metrics that should be measured and reported within systems and federations. A few participants felt scoring digital identity processes and technologies was neither feasible nor appropriate.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>測定とメトリクスに関する追加のガイダンスを作成するという考えは、概ね好意的に受け入れられましたが、計測科学をデジタルアイデンティティに適用するための特定の手法についても、そのような手法をどのように策定するかについても、合意はありませんでした。同様に、システムとフェデレーションの中で測定し報告すべきメトリクスについても、合意はありませんでした。一部の参加者は、デジタルアイデンティティのプロセスと技術にスコアを付けることは、実現可能でも適切でもないと感じていました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Improved Transparency and Standardization.</strong> Most participants expressed a desire to see increased transparency and standardization across identity practices—particularly in the realm of remote identity proofing practices. Many attendees expressed a desire to better understand the way identity solutions operate and to overcome a lack of visibility, whether real or perceived, into how proprietary scoring works within existing remote identity proofing solutions. Many participants also saw a need to better understand the processes that contribute to data they leverage and trust to remotely proof identities. Many felt that standardized processes for evaluating solutions and communicating the efficacy of these solutions would provide greater interoperability and trust on a broad scale.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>透明性と標準化の向上。</strong> ほとんどの参加者は、特にリモートでの本人確認の実務の分野で、アイデンティティの実務全体にわたって透明性と標準化が高まることを望むと表明しました。多くの出席者は、アイデンティティソリューションの動作の仕組みをよりよく理解し、既存のリモート本人確認ソリューション内でプロプライエタリなスコアリングがどのように機能するかについての、実際の、または認識上の可視性の欠如を克服したいと表明しました。また、多くの参加者は、アイデンティティをリモートで確認するために活用し信頼しているデータに寄与するプロセスを、よりよく理解する必要があると考えていました。多くの参加者は、ソリューションを評価し、その有効性を伝えるための標準化されたプロセスが、広い規模での相互運用性と信頼性を高めると感じていました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Flexibility and Extensibility.</strong> Participants broadly encouraged NIST to ensure that any future guidance is both flexible and extensible to support the diverse needs of different communities, trust frameworks, and sectors. Notably, most participants wished to ensure that any guidance was reflective of the need to address risks to federal agencies—while also acknowledging the needs and concerns of the private sector. This reflected the view that many, if not all, digital identity solutions will come from the private sector vendor community, so NIST must attempt to develop guidance that does not create an environment where cross-sector solutions will no longer be viable within the Federal Enterprise. Many expressed a strong desire for NIST to craft documentation in a manner that could subsequently be submitted as a work product in open, consensus-based standards development organizations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>柔軟性と拡張性。</strong> 参加者は、将来のガイダンスが、さまざまなコミュニティ、トラストフレームワーク、セクターの多様なニーズをサポートするために、柔軟かつ拡張可能であることを NIST が確実にするよう、広く促しました。特に、ほとんどの参加者は、いかなるガイダンスも、連邦機関のリスクに対処する必要性を反映したものであり、同時に民間部門のニーズと懸念も認めるものであることを確実にしたいと考えていました。これは、すべてではないにしても多くのデジタルアイデンティティソリューションが民間部門のベンダーコミュニティから提供されるため、NIST は、セクターをまたぐソリューションが連邦エンタープライズ内でもはや実行可能でなくなるような環境を作り出さないガイダンスを策定するよう努めなければならない、という見方を反映したものです。多くの参加者は、NIST が、後にオープンでコンセンサスに基づく標準策定組織に作業成果物として提出できる形で、文書を作成することを強く望むと表明しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Topic Area Relationships:</strong> Participants acknowledged the pre-event whitepapers as thoughtful starting points for much of the workshop discussion, but sought greater insight on how the measurement of authenticator strength, remote and in-person identity proofing, and attribute confidence would or could impact each other in future NIST deliverables. Many suggested NIST should explore an overarching model of identity measurement to help clarify the role of measurement science in digital identity and the interplay between these, and potentially other, components.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>テーマ領域間の関係:</strong> 参加者は、イベント前のホワイトペーパーをワークショップの議論の多くにとって有意義な出発点として評価しましたが、認証器の強度、リモートおよび対面の本人確認、属性の信頼度の測定が、将来の NIST の成果物で互いにどのような影響を及ぼし、または及ぼし得るのかについて、より深い洞察を求めました。多くの参加者は、デジタルアイデンティティにおける計測科学の役割と、これらの構成要素、さらにはその他の構成要素との相互作用を明確にするために、NIST がアイデンティティ測定の包括的なモデルを探究すべきであると提案しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Existing Work and Fora:</strong> The digital identity community is one of constant innovation and many complementary efforts. Participants repeatedly sought to ensure that NIST recognize and collaborate with existing initiatives focused on similar outcomes. Participants identified multiple existing efforts as places where NIST could leverage synergies to advance the community’s collective interests. Efforts mentioned include:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>既存の取り組みとフォーラム:</strong> デジタルアイデンティティのコミュニティは、絶え間なくイノベーションが行われ、多くの補完的な取り組みがある分野です。参加者は繰り返し、NIST が同様の成果に焦点を当てた既存のイニシアチブを認識し、それらと協力することを確実にするよう求めました。参加者は、NIST がコミュニティ全体の利益を進めるために相乗効果を活用できる場として、既存の複数の取り組みを挙げました。挙げられた取り組みは次のとおりです:</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UK Cabinet Office and the Good Practices Guides (GPGs) : https://www.gov.uk/government/collections/identity-assurance-enabling-trusted-transactions</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UK Cabinet Office および Good Practices Guides (GPGs): https://www.gov.uk/government/collections/identity-assurance-enabling-trusted-transactions</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The Kantara Initiative Identity Assurance Working Group: https://kantarainitiative.org/confluence/display/idassurance/Home</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Kantara Initiative Identity Assurance Working Group: https://kantarainitiative.org/confluence/display/idassurance/Home</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The IETF Vectors of Trust internet draft: https://tools.ietf.org/html/draft-richer-vectors-of-trust-00</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IETF Vectors of Trust internet draft: https://tools.ietf.org/html/draft-richer-vectors-of-trust-00</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">OASIS Trust Elevation Group: https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=trust-el</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">OASIS Trust Elevation Group: https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=trust-el</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC SC 27 Working Group 5: http://www.iso.org/iso/iso_technical_committee?commid=45306</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC SC 27 Working Group 5: http://www.iso.org/iso/iso_technical_committee?commid=45306</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC SC 37 biometric activities: http://www.iso.org/iso/home/standards_development/list_of_iso_technical_committees/iso_technical_committee.htm?commid=313770</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ISO/IEC SC 37 の生体認証関連の活動: http://www.iso.org/iso/home/standards_development/list_of_iso_technical_committees/iso_technical_committee.htm?commid=313770</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">FIDO Certification Working Group: https://fidoalliance.org/working-groups/</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">FIDO Certification Working Group: https://fidoalliance.org/working-groups/</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">FIDO Biometric Assurance Sub-working Group</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">FIDO Biometric Assurance Sub-working Group</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Strength of Identity Proofing</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+本人確認の強度</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Strength of identity proofing was the first topic of the workshop. Participants discussed existing and potential identity proofing methods and ways to measure strength of each individual process, as well as the establishment of a scoring framework to communicate common results of digital identity proofing for the purposes of risk management. Across the discussion groups, several major themes emerged.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本人確認の強度は、ワークショップの最初のテーマでした。参加者は、既存および潜在的な本人確認の方法と、個々のプロセスそれぞれの強度を測定する方法、ならびにリスク管理の目的でデジタルアイデンティティの本人確認に関する共通の結果を伝えるスコアリングの枠組みの確立について議論しました。議論グループ全体で、いくつかの主要なテーマが浮かび上がりました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Develop a common lexicon</strong>. Many participants identified a lack of standardized terminology regarding identity proofing processes and functions. For example, some attendees used the term “verification” while others preferred “validation” for the same process. For the purposes of NIST’s work, attendees suggested a common vocabulary should be developed to help ensure consistency in the framework and across communities, and that the taxonomy be aligned to the best extent possible with existing schemes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>共通の語彙の策定</strong>。多くの参加者が、本人確認のプロセスと機能に関して標準化された用語が不足していることを指摘しました。たとえば、同じプロセスについて、「検証（verification）」という用語を使う出席者もいれば、「妥当性確認（validation）」を好む出席者もいました。NIST の作業のために、出席者は、枠組みの中とコミュニティ全体で一貫性を確保するために共通の語彙を策定すべきであり、その分類を既存の方式とできる限り整合させるべきであると提案しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Identify functional components of proofing.</strong> Attendees in most sessions came to the conclusion that proofing could be broken down into a set of component functions or actions that could potentially be evaluated to provide a greater understanding of the processes and the results associated with verifying a claimed identity. Each component could potentially serve as the basis for a scoring structure.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>本人確認の機能的な構成要素の特定。</strong> ほとんどのセッションの出席者は、本人確認を一連の構成要素となる機能または行為に分解でき、それらを評価することで、主張されたアイデンティティの検証に関連するプロセスと結果をより深く理解できる可能性があるという結論に達しました。各構成要素は、スコアリング構造の基礎となり得ます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Participants suggested additional functional components that could be added to those currently explored in the whitepapers. Specific suggestions included: ongoing maintenance of an identity (i.e., how a provider manages the identity, updates it, and supports necessary modifications when needed); fraud and compromise detection; document authentication; activity history of an identity; biometric collection to support the binding of proofing to a credential; and processes for binding proofing data to an identity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">参加者は、ホワイトペーパーで現在検討されている構成要素に追加できる、さらなる機能的な構成要素を提案しました。具体的な提案には、アイデンティティの継続的な維持（すなわち、提供者がアイデンティティをどのように管理し、更新し、必要なときに必要な変更をどのようにサポートするか）、不正と危殆化の検知、文書の認証、アイデンティティの活動履歴、本人確認とクレデンシャルとの紐付けをサポートするための生体情報の収集、本人確認データをアイデンティティに紐付けるプロセスが含まれました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Avoid a single score</strong>. Many participants expressed the belief that any scoring of the processes associated with identity proofing should not be aggregated into a single score. Instead, many felt it more appropriate to provide individual scores for the processes that could be considered and weighted by relying parties (RPs) to meet their needs. In some instances, more fine-grained knowledge of the processes an individual underwent to confirm a claim of identity would be just as valuable as a score.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>単一のスコアを避けます</strong>。多くの参加者は、本人確認に関連するプロセスのスコアリングは、単一のスコアに集約すべきではないという考えを表明しました。そうではなく、多くの参加者は、依拠当事者（RP）がそれぞれのニーズに合わせて検討し重み付けできる、個々のプロセスごとのスコアを提供するほうが適切だと考えていました。場合によっては、アイデンティティの主張を確認するために個人が経たプロセスについての、より細かい粒度の知識が、スコアと同じくらい価値を持つことがあります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider existing standards and practices</strong>. Several participants referenced UK GPG 45 as an example of combining high-level scoring with desired outcomes. Participants discussed the potential to draw lessons from the UK GPGs and apply them to a US based identity proofing framework.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>既存の標準と実務を検討します</strong>。複数の参加者が、高水準のスコアリングと望ましい成果を組み合わせた例として、UK GPG 45 に言及しました。参加者は、UK の GPG から教訓を引き出し、米国の本人確認の枠組みに適用する可能性について議論しました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Define scope of proofing</strong>. Participants also discussed the scope of identity proofing, specifically that the goal of identity proofing guidelines should be scoped to proving a valid identity exists. Proofing should not, for example, validate an individual’s rights and privilege to obtain specific entitlements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>本人確認の範囲の定義</strong>。参加者はまた、本人確認の範囲についても議論し、特に、本人確認のガイドラインの目標は、有効なアイデンティティが存在することの証明に限定すべきであるとしました。たとえば、本人確認は、個人が特定の給付を受ける権利や資格を確認すべきではありません。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Determining entitlements and eligibility is an RP decision that goes beyond confirming that and identity is associated with a specific individual.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>給付と適格性の判断は、アイデンティティが特定の個人に関連付けられていることを確認する範囲を超える、RP の判断です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Strength of Authentication</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+認証の強度</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The second workshop session addressed the strength underlying various authentication methods. The session explored measuring mitigation methods of known vulnerabilities to an authentication system as a method to determine an overall score for authenticator performance as well as an overall construct that would enable the assessment and comparison of distinct authentication mechanisms. While the strength of authentication whitepaper identified biometric authentication as a starting point for an overall authentication framework, several of the workshop sessions ended up extensively discussing the broader concept of evaluating various authenticator technologies. While biometrics was selected first due to its increasing consumer and commercial adoption rates, the framework envisioned by NIST would support the evaluation of authentication strength regardless of form or factor, making these broader discussions extremely valuable. Across the groups, several major themes of discussion emerged.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップの 2 番目のセッションでは、さまざまな認証方法の基礎となる強度を扱いました。このセッションでは、認証器の性能の総合スコアを決定する方法として、また異なる認証メカニズムの評価と比較を可能にする総合的な構成として、認証システムに対する既知の脆弱性を緩和する方法の測定を探究しました。認証の強度に関するホワイトペーパーは、認証の総合的な枠組みの出発点として生体認証を挙げていましたが、ワークショップのいくつかのセッションでは、さまざまな認証器技術を評価するという、より広い概念が広範に議論されました。生体認証が最初に選ばれたのは、消費者や商業分野での採用率が高まっていたためですが、NIST が構想する枠組みは、形態や要素にかかわらず認証の強度を評価できるものであり、こうした広範な議論は極めて価値がありました。各グループで、いくつかの主要な議論のテーマが浮かび上がりました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider user experience—or a poor user experience—as a vulnerability</strong> . Most participants felt that user experience with a chosen authentication method is one of the most important factors in selecting technologies that are not only secure, but also likely to be successfully adopted. Many pointed out that the largest driver behind the adoption of mobile biometric solutions is market demand and the ease with which users are able to access services. As a result of this ease-of-use focus by consumers, many participants noted that security may not be the primary objective of many RPs when instituting authentication solutions. Therefore, inclusion of user experience in any evaluation scheme may have a benefit to both security personnel required to assist in risk management and mitigation, and to business decision makers.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ユーザー体験（または不十分なユーザー体験）を脆弱性として検討します</strong>。ほとんどの参加者は、選択した認証方法でのユーザー体験が、安全であるだけでなく、うまく採用される可能性も高い技術を選ぶうえで、最も重要な要因の 1 つであると感じていました。多くの参加者は、モバイル生体認証ソリューションの採用の最大の推進力が、市場の需要と、ユーザーがサービスにアクセスできる容易さであると指摘しました。消費者によるこの使いやすさへの注力の結果として、多くの参加者は、認証ソリューションを導入する際に、セキュリティが多くの RP の主な目的ではないかもしれないと述べました。したがって、あらゆる評価方式にユーザー体験を含めることは、リスク管理と低減を支援する必要のあるセキュリティ担当者と、ビジネス上の意思決定者の双方に利益をもたらす可能性があります。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This led some participants to suggest incorporating a usability score into the framework. Participants also considered the possibility that a poor user experience could be considered a system “vulnerability” and weighted, evaluated, and scored much as the other components of the score. However, poor user experience should not be the only metric. Rather, the result of poor user experience will be the users themselves trying to exploit workarounds to improve their individual experience with the technology. These workarounds would be considered the vulnerability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このことから、一部の参加者は、枠組みにユーザビリティのスコアを組み込むことを提案しました。参加者はまた、不十分なユーザー体験をシステムの「脆弱性」とみなし、スコアの他の構成要素とほぼ同様に、重み付け、評価、スコア付けを行う可能性も検討しました。ただし、不十分なユーザー体験だけを指標とすべきではありません。むしろ、不十分なユーザー体験の結果、ユーザー自身がその技術での個々の体験を改善するために回避策を講じようとします。これらの回避策が脆弱性とみなされます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider framework utility to RPs and its long-term applicability</strong>. In addition to the importance of usability with respect to authentication solutions, many identified a need for any scoring or evaluation framework to be usable as well. Attendees indicated that some RPs struggle to balance the need to deliver cutting edge solutions to the market with the needs of security and privacy. For a measurement based framework to have broad adoption it must enable rapid evaluation of solutions to allow users to maintain pace with markets and customer demands.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>枠組みの RP にとっての有用性と長期的な適用可能性を検討します</strong>。認証ソリューションに関するユーザビリティの重要性に加えて、多くの参加者は、あらゆるスコアリングまたは評価の枠組み自体も使いやすい必要があると指摘しました。出席者は、一部の RP が、最先端のソリューションを市場に提供する必要性と、セキュリティおよびプライバシーのニーズとの均衡を取ることに苦労していると述べました。測定に基づく枠組みが広く採用されるには、ユーザーが市場と顧客の需要に歩調を合わせられるように、ソリューションの迅速な評価を可能にしなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Evaluate the complete authentication system</strong>. Many attendees agreed with the perspective in the whitepaper that a scoring framework should look at the authentication solution as a system, regardless of whether it is deployed as one single system on a local device, or a system of systems distributed across a network and security boundaries. It was a common observation that authentication technologies face many different attack vectors, threats, and vulnerabilities, which target different aspects of the authentication process. The strength of a solution can only be effectively assessed and determined by identifying how the layers of security combine to protect the entire process. While a common practice in the public and private sectors, the fact that locally matched biometrics on a mobile device are often used to unlock a cryptographic token was introduced as an example that a scoring framework cannot just evaluate the performance of the biometric sensor and matching algorithm. The framework also needs to evaluate additional security functions such as the way keys are generated, the algorithms used, how keys are stored, and how keys are transmitted by the device.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>認証システム全体を評価します</strong>。多くの出席者は、スコアリングの枠組みは、ローカルデバイス上の 1 つのシステムとして導入されているか、ネットワークとセキュリティ境界にまたがって分散されたシステムのシステムとして導入されているかにかかわらず、認証ソリューションをシステムとして見るべきであるという、ホワイトペーパーの見方に同意しました。認証技術は、認証プロセスのさまざまな側面を狙う、多くの異なる攻撃ベクトル、脅威、脆弱性に直面しているというのが、共通の見解でした。ソリューションの強度は、セキュリティの層がプロセス全体を保護するためにどのように組み合わさっているかを特定することによってのみ、効果的に評価し決定できます。官民で一般的な実務ですが、モバイルデバイス上でローカルに照合される生体情報が、暗号トークンのロック解除にしばしば使われているという事実が、スコアリングの枠組みは、生体センサと照合アルゴリズムの性能を評価するだけでは足りないことの例として挙げられました。枠組みは、鍵の生成方法、使用されるアルゴリズム、鍵の保管方法、デバイスによる鍵の送信方法など、追加のセキュリティ機能も評価する必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Incorporate consideration of multiple biometric modalities.</strong> Much like the previous comment focused on evaluating the authentication method as a complete system, many attendees expressed the belief that any measurement framework needs to take into account the ability of a biometric authentication schema to incorporate multiple different modalities (e.g., fingerprint, iris, voice) to increase assurance or security of the overall system. There was also discussion of how the layering of biometric modalities could be compared to other authentication methods. For example, some participants asked if the incorporation of more than one modality is comparable to adding more than one factor to an authentication. A measurement framework geared towards biometrics should be able to address multiple modes and support comparison of these modes and how they can be combined to address vulnerabilities as part of a complete authentication system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>複数の生体モダリティの検討を取り入れます。</strong> 認証方法を完全なシステムとして評価することに焦点を当てた前のコメントとよく似て、多くの出席者は、あらゆる測定の枠組みは、システム全体の保証またはセキュリティを高めるために、複数の異なるモダリティ（たとえば、指紋、虹彩、声）を組み込む生体認証スキーマの能力を考慮に入れる必要があるという考えを表明しました。また、生体モダリティの重ね合わせを、他の認証方法とどのように比較できるかについても議論がありました。たとえば、一部の参加者は、複数のモダリティを組み込むことは、認証に複数の要素を追加することに匹敵するかどうかを尋ねました。生体情報に向けた測定の枠組みは、複数のモードに対処し、それらのモードを比較するとともに、完全な認証システムの一部として脆弱性に対処するためにそれらをどのように組み合わせられるかを支援できるべきです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Incorporate liveness (aka presentation attack) detection testing.</strong> Participants expressed the importance of liveness detection testing—the ability for a biometric system to determine if the biometric being presented is from a live authorized person—to understanding the strength of biometric authentication methods. This is a particular challenge in the case of biometrics on consumer-owned mobile devices as the biometric event is unattended. In some venues, such as the FIDO Alliance, there have been some initial discussions of how detection of artefacts (aka spoofs) can be incorporated, tested, and evaluated on mobile devices, but it was suggested that NIST should place particular emphasis on ensuring this is properly incorporated into any measurement framework.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>ライブネス（提示攻撃とも呼ばれます）の検知テストを取り入れます。</strong> 参加者は、生体認証方法の強度を理解するうえで、ライブネス検知テスト、すなわち、提示された生体情報が生身の正規利用者のものかどうかを生体システムが判断する能力が重要であると表明しました。消費者所有のモバイルデバイスで生体情報を扱う場合、生体認証イベントに立ち会う人がいないため、これは特に課題となります。FIDO Alliance などの一部の場では、モバイルデバイス上でアーティファクト（スプーフとも呼ばれます）の検知をどのように組み込み、テストし、評価できるかについて初期の議論が行われましたが、NIST は、これがあらゆる測定の枠組みに適切に組み込まれるよう、特に重点を置くべきであるとの提案がありました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider testing and evaluation</strong>. There was substantial conversation of the challenges associated with testing biometric devices, from the need to understand the difference between a laboratory and operational environments, to the infrastructure needed to support testing, and the challenges of ensuring conformance in a production environment. Many participants saw value, but substantial challenges, associated with standardizing an evaluation process.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>テストと評価を検討します</strong>。生体デバイスのテストに関わる課題について、多くの議論がありました。これには、実験室と運用環境の違いを理解する必要性から、テストを支えるために必要なインフラストラクチャ、本番環境での適合性を確保することの課題までが含まれます。多くの参加者は、評価プロセスの標準化に価値を見いだしましたが、そこに伴う相当な課題も認識していました。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants recommended that any framework to determine strength should consider the requisite testing procedures before being finalized. In other words, if the testing procedures are difficult, costly, and time consuming, the framework itself may be deficient.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>参加者は、強度を決定するあらゆる枠組みについて、確定する前に必要なテスト手順を検討すべきであると提言しました。言い換えると、テスト手順が困難で、費用がかかり、時間を要する場合、枠組み自体に欠陥がある可能性があります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider existing testing models</strong>. Participants raised comparisons to Federal Information Processing Standard (FIPS) 140-2 testing and validation processes, though stakeholders had mixed feelings over the prospect of a similar concept for commercial authentication technologies. While some participants were in favor of an “approved product list” for authenticators to ease acquisition, many others felt that a testing and validation program based on the FIPS 140-2 model would not be agile nor flexible enough to support commercial innovation or maintain pace with emerging threats.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>既存のテストモデルを検討します</strong>。参加者は、Federal Information Processing Standard（FIPS）140-2 のテストと妥当性確認のプロセスとの比較を提起しましたが、商用の認証技術に同様の概念を適用する見通しについては、関係者の間で意見が分かれました。調達を容易にするために、認証器の「承認済み製品リスト」に賛成する参加者もいましたが、他の多くの参加者は、FIPS 140-2 のモデルに基づくテストと妥当性確認のプログラムは、商用のイノベーションを支えたり、新たな脅威に歩調を合わせ続けたりするほど機敏でも柔軟でもないと感じていました。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Attribute Metadata and Confidence Scoring</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+属性メタデータと信頼度スコアリング</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This topic centered on defining standardized attribute metadata to assist RPs in making risk based decisions about the efficacy of using an attribute when evaluating access control policies. In addition, the whitepaper on this topic also proposed a scoring framework for attribute confidence scores based on the metadata. Across the discussion groups, the following major themes emerged.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このテーマは、アクセス制御ポリシーを評価する際に、属性を使うことの有効性についてリスクに基づく判断を RP が行うのを支援する、標準化された属性メタデータの定義を中心としていました。さらに、このテーマに関するホワイトペーパーは、メタデータに基づく属性の信頼度スコアのためのスコアリングの枠組みも提案していました。議論グループ全体で、次の主要なテーマが浮かび上がりました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Consider cost and performance</strong>. Some attendees saw value in the development of standardized metadata to support greater RP understanding of an attribute’s trustworthiness—so long as the development and implementation of this metadata is done in a way that considers the impact to cost of integration and system performance. Participants noted that without careful consideration of these factors, the metadata is unlikely to see broad adoption or achieve its desired impact. The focus should be on metadata in identity assertions, not necessarily the requirement for data storage technologies to adopt attribute metadata confidence schemes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>コストと性能を検討します</strong>。一部の出席者は、属性の信頼性についての RP の理解を深めるために、標準化されたメタデータを策定することに価値を見いだしました。ただし、このメタデータの策定と実装が、統合コストとシステム性能への影響を考慮した形で行われることが条件です。参加者は、これらの要因を慎重に検討しないと、メタデータが広く採用されたり、意図した効果を達成したりする可能性は低いと指摘しました。重点は、アイデンティティアサーション内のメタデータに置くべきであり、データストレージ技術に属性メタデータの信頼度方式を採用させることが必ずしも要件ではありません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Revisit proposed metadata elements</strong>. There was substantial feedback on the individual metadata elements. Examples include:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>提案されたメタデータ要素を見直します</strong>。個々のメタデータ要素について、相当なフィードバックがありました。例としては、次のものがあります:</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Attribute currency and specifically how concepts such as decay rate, freshness, and date since last verification could affect confidence scoring for attributes. Many participants acknowledged that these factors may not apply equally to all attributes, but should be explored in greater detail nonetheless.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">属性の鮮度（currency）、特に減衰率、新しさ、最後の検証からの経過日数などの概念が属性の信頼度スコアリングに及ぼし得る影響。多くの参加者は、これらの要因がすべての属性に等しく当てはまるとは限らないと認めつつも、それでもなお、より詳細に検討すべきであるとしました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Complications around the term consent in “individual consented,” and how privacy enhancing requirements could be better instantiated in the metadata elements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「個人が同意した（individual consented）」における同意（consent）という用語をめぐる複雑さと、プライバシー強化要件をメタデータ要素により適切に具体化する方法。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0005-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Concerns about terminology, particularly with respect to “provenance” and the types of values allowable under “verification.”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">用語に関する懸念。特に、「来歴（provenance）」と、「検証（verification）」のもとで許容される値の種類に関するもの。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Determine when and how metadata is communicated</strong>. Attendees reinforced the need to understand how and where this metadata would fit into transactions. Participants discussed if these details would be agreed to or established through contracts or existing structures such as trust frameworks and federations. Some participants questioned if the metadata would be included in transactions during run-time or sent on a regular, but less frequent basis. There was concern about which elements would be mandatory and which optional.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>メタデータをいつ、どのように伝達するかを決定します</strong>。出席者は、このメタデータが取引の中でどのように、どこに適合するかを理解する必要性を改めて強調しました。参加者は、これらの詳細が、契約や、トラストフレームワークやフェデレーションなどの既存の構造を通じて合意または確立されるかどうかについて議論しました。一部の参加者は、メタデータが実行時に取引に含められるのか、それとも定期的に、ただし頻度を下げて送られるのかについて疑問を呈しました。どの要素が必須で、どの要素が任意となるかについても懸念がありました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Discuss differences between provider and individual attribute scores</strong>. Participants questioned the granularity of the attribute score and if it would be best applied as a single provider score or individual attribute scores. If single provider, steps would need to be in place to ensure which attributes the provider was capable of confidently asserting, or if the provider score would be applicable to any or all of the attributes of which it is a steward.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>提供者ごとの属性スコアと個々の属性スコアの違いを議論します</strong>。参加者は、属性スコアの粒度と、それを単一の提供者スコアとして適用するのがよいのか、個々の属性スコアとして適用するのがよいのかについて疑問を呈しました。単一の提供者スコアとする場合、提供者がどの属性を確信を持って表明できるのか、また、その提供者が管理を担う属性の一部またはすべてに提供者スコアを適用できるのかを明確にする手順を整える必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>Maintain flexibility and extensibility</strong>. A large share of participants stated that any metadata and scoring structure for attributes would need to be flexible and extensible enough to support a broad set of different use cases. A common assertion was that NIST could not plan to produce a single universal scoring structure or metadata standard that addresses every community or potential application. Participants in several breakouts discussed the concept of creating a core framework, which could be tailored or “profiled” to support specific sectors.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><strong>柔軟性と拡張性を維持します</strong>。多くの参加者は、属性に関するあらゆるメタデータとスコアリング構造は、幅広い多様なユースケースをサポートできる程度に柔軟かつ拡張可能である必要があると述べました。共通して主張されたのは、NIST は、あらゆるコミュニティや潜在的なアプリケーションに対応する、単一の普遍的なスコアリング構造やメタデータ標準を作成することを計画できないということでした。複数の分科会の参加者は、特定のセクターをサポートするために調整、すなわち「プロファイル化」できる、コアとなる枠組みを作成するという概念について議論しました。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+今後のステップ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The workshop and this document, designed to present the major themes NIST identified from stakeholder input, are just the first steps in establishing new resources and guidelines for digital identity management.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップと本書は、関係者の意見から NIST が特定した主要なテーマを示すように設計されたものであり、デジタルアイデンティティ管理のための新しい資料とガイドラインを確立するための最初のステップにすぎません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Based on the feedback collected during the workshop and other interactions with stakeholders, NIST intends to further develop documentation to support advancement of the identified topics. In the coming months, NIST will focus on three steps: 1) determining the type of material that will need to be developed to most effectively forward these efforts; 2) establishing new processes to foster greater collaboration, as well as early and frequent community interaction in the development of NIST documents; and 3) determining the best fora for advancing these efforts. Each is essential to ensuring the establishment of viable and broadly accepted framework for employing metrology in the Identity Ecosystem.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップ中および関係者とのその他のやり取りで集めたフィードバックに基づいて、NIST は、特定されたテーマの進展を支援するための文書をさらに策定する意向です。今後数か月、NIST は 3 つのステップに焦点を当てます。1) これらの取り組みを最も効果的に前進させるために策定する必要がある資料の種類を決定すること、2) NIST 文書の策定において、より大きな協力と、コミュニティとの早期かつ頻繁なやり取りを促す新しいプロセスを確立すること、3) これらの取り組みを進めるための最適な場を決定することです。各ステップは、アイデンティティエコシステムで計量学を活用するための、実行可能で広く受け入れられる枠組みを確立するうえで不可欠です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In addition to the general steps listed above, NIST has determined a specific course of action across the three topic areas to make immediate progress and remain transparent in our development activities. NIST will:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上記の一般的なステップに加えて、NIST は、すぐに前進し、策定活動の透明性を保つために、3 つのテーマ領域にわたる具体的な行動方針を決定しました。NIST は次のことを行います:</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Publicly post “project charters” which will outline the goals, objectives, stakeholders, milestones, and development/outreach methods for each topic area.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">各テーマ領域について、ゴール、目的、関係者、マイルストーン、策定・アウトリーチの方法を概説する「プロジェクト憲章」を公開します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Transition the attribute metadata and confidence whitepaper to a NIST Internal Report (NISTIR). This NISTIR will cover metadata only and serve as an “implementer draft” to determine scope of market adoption, identify lessons learned, and determine a path forward post-NISTIR. NIST will research a scoring framework in parallel efforts.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">属性メタデータと信頼度に関するホワイトペーパーを、NIST 内部報告書（NISTIR）へ移行します。この NISTIR はメタデータのみを扱い、市場での採用規模を見極め、得られた教訓を特定し、NISTIR 公開後の進め方を決定するための「実装者向けドラフト」として機能します。NIST は並行してスコアリングの枠組みを研究します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Upon completion of the initial draft of the attribute metadata NISTIR, commence a series of iterative public comment and development periods utilizing GitHub public repositories to manage contributions and comments. This process will follow similar processes in government, such as OMB’s comment period to Circular A-130, Managing Information as a Strategic Resource. NIST will also consider offering traditional methods of submitting comments for those not comfortable or willing to use GitHub. NIST will use these relatively short, iterative public comment periods in lieu of an extended comment period. However, based on NIST feedback to this approach, NIST may also provide an extended comment period.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">属性メタデータ NISTIR の初稿が完成したら、貢献とコメントを管理するため、GitHub の公開リポジトリを利用して、パブリックコメントと策定を反復する期間を一連で開始します。このプロセスは、OMB による Circular A-130（Managing Information as a Strategic Resource）へのコメント期間など、政府内の同様のプロセスに倣います。NIST はまた、GitHub の利用に抵抗がある、または利用を望まない人々のために、従来のコメント提出方法を提供することも検討します。NIST は、長期のコメント期間に代えて、比較的短いパブリックコメント期間を反復して設けます。ただし、このアプローチについて NIST が受け取るフィードバックに基づき、NIST は長期のコメント期間を設ける場合もあります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Solicit stakeholder feedback to determine the scope and path for measuring the strength of identity proofing.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">本人確認の強度を測定するための範囲と進め方を決定するために、関係者のフィードバックを求めます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Expand the strength of authentication whitepaper to a NISTIR focused on a framework for evaluating biometric authentication systems. This document will focus on leveraging the proposed vulnerability based model to better understand how biometric systems can be scored and compared to mitigate authentication risk. As part of this effort, ACD and the Information Access Division (IAD) in ITL will also identify elements of the framework for scoring a biometric authentication system that can be used in future work on other authentication systems.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">認証の強度に関するホワイトペーパーを、生体認証システムを評価する枠組みに焦点を当てた NISTIR に拡張します。この文書では、提案された脆弱性ベースのモデルを活用して、認証リスクを低減するために生体認証システムをどのようにスコア付けし、比較できるかをよりよく理解することに焦点を当てます。この取り組みの一環として、ITL の ACD と情報アクセス部門（IAD）は、他の認証システムに関する今後の作業で利用できる、生体認証システムのスコア付け用枠組みの要素も特定します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Stakeholders who wish to comment on this document, the workshop whitepapers, or provide written contributions to any of the digital identity topics discussed at the workshop can do so by emailing NSTICworkshop@nist.gov. NIST encourages respondents to consider the following questions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書やワークショップのホワイトペーパーにコメントしたい関係者、またはワークショップで議論されたデジタルアイデンティティのテーマについて書面で提言したい関係者は、NSTICworkshop@nist.gov に電子メールを送ることでコメントや提言を提出できます。NIST は、回答者が次の質問を検討することを推奨します:</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Are there other takeaways you heard over the course of the event that have not been captured in this report?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">イベントの間に耳にした、本報告書に記載されていない他の教訓はありますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Are there any additional initiatives, venues, or fora where similar or complementary work is being conducted?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">同様の、または補完的な作業が行われている、追加のイニシアチブ、会場、またはフォーラムはありますか。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">For each topic, is there a recommended development approach that you would like to see NIST undertake?</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">各テーマについて、NIST に取り組んでほしい推奨の策定アプローチはありますか。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tackling the challenges associated with managing digital identities in a privacy preserving, secure, interoperable, user friendly, and economical manner will take time, effort, and cooperation. It requires an adaptable, transparent, and iterative approach capable of driving the innovation necessary to improve and evolve the Identity Ecosystem. NIST believes that this flexibility lies at the nexus of measurement, metrics and risk management, and intends to work with our stakeholder community to establish an improved foundation that aligns each of these within the Identity Ecosystem.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プライバシーを保護しつつ、安全で、相互運用可能で、ユーザーに使いやすく、経済的な方法でデジタルアイデンティティを管理することに伴う課題に取り組むには、時間、労力、協力が必要です。そのためには、アイデンティティエコシステムを改善し、進化させるために必要なイノベーションを推進できる、適応性があり、透明で、反復的なアプローチが必要です。NIST は、この柔軟性が測定、メトリクス、リスク管理の接点にあると考えており、関係者コミュニティと協力して、アイデンティティエコシステムにおいてこれらをそれぞれ整合させる、改善された基盤を確立する意向です。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8103.pdf">National Institute of Standards and Technology, IR 8103</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8103";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
