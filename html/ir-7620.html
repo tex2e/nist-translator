@@ -1,0 +1,1892 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7620 は、SHA-3 暗号学的ハッシュアルゴリズムコンペティションの第 1 ラウンドについて報告する状況報告書です。SHA-3 は、公開コンペティションを通じて選定される新しい暗号学的ハッシュアルゴリズムで、FIPS 180-3 Secure Hash Standard で現在規定されている SHA-2 ハッシュアルゴリズムを補完するものです。2008 年 10 月に提出された 64 件の候補のうち 51 件が最低受入れ基準を満たして第 1 ラウンドの候補となり、本書は、評価基準と選定プロセスを説明したうえで、2009 年 7 月 24 日に第 2 ラウンドに進むと発表された 14 件の候補をまとめます。本書は、候補が次のラウンドに進まなかった理由の詳細な根拠を示すよりも、候補が選ばれた理由に焦点を当てています。">
+  <title>SHA-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書 | NIST IR 7620 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Status Report on the First Round of the SHA-3 Cryptographic Hash Algorithm Competition" data-search="sha-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書 status report on the first round of the sha-3 cryptographic hash algorithm competition">SHA-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0005" title="Acknowledgements" data-search="謝辞 acknowledgements">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0011" title="1.1 Purpose of this Document" data-search="1.1 本文書の目的 1.1 purpose of this document">1.1 本文書の目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0013" title="1.2 Organization of this Document" data-search="1.2 本文書の構成 1.2 organization of this document">1.2 本文書の構成</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="2 Evaluation Criteria and the Selection Process" data-search="2 評価基準と選定プロセス 2 evaluation criteria and the selection process">2 評価基準と選定プロセス</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0002" title="2.1 Acceptance of First Round Candidates" data-search="2.1 第 1 ラウンド候補の受理 2.1 acceptance of first round candidates">2.1 第 1 ラウンド候補の受理</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0056" title="2.2 Evaluation Criteria" data-search="2.2 評価基準 2.2 evaluation criteria">2.2 評価基準</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0001" title="2.2.1 Security" data-search="2.2.1 セキュリティ 2.2.1 security">2.2.1 セキュリティ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0007" title="2.2.2 Cost and Performance" data-search="2.2.2 コストと性能 2.2.2 cost and performance">2.2.2 コストと性能</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0003" title="2.2.3 Algorithm and Implementation Characteristics" data-search="2.2.3 アルゴリズムと実装の特性 2.2.3 algorithm and implementation characteristics">2.2.3 アルゴリズムと実装の特性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0005" title="2.3 Selection of Second Round Candidates" data-search="2.3 第 2 ラウンド候補の選定 2.3 selection of second round candidates">2.3 第 2 ラウンド候補の選定</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001" title="3 Summary of Second Round Candidates" data-search="3 第 2 ラウンド候補の概要 3 summary of second round candidates">3 第 2 ラウンド候補の概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="3.1 BLAKE" data-search="3.1 blake 3.1 blake">3.1 BLAKE</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0007" title="3.2 BLUE MIDNIGHT WISH (BMW)" data-search="3.2 blue midnight wish（bmw） 3.2 blue midnight wish (bmw)">3.2 BLUE MIDNIGHT WISH（BMW）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0011" title="3.3 CubeHash" data-search="3.3 cubehash 3.3 cubehash">3.3 CubeHash</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0006" title="3.4 ECHO" data-search="3.4 echo 3.4 echo">3.4 ECHO</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0010" title="3.5 Fugue" data-search="3.5 fugue 3.5 fugue">3.5 Fugue</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0003" title="3.6 Grøstl" data-search="3.6 grøstl 3.6 grøstl">3.6 Grøstl</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0007" title="3.7 Hamsi" data-search="3.7 hamsi 3.7 hamsi">3.7 Hamsi</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0011" title="3.8 JH" data-search="3.8 jh 3.8 jh">3.8 JH</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0003" title="3.9 Keccak" data-search="3.9 keccak 3.9 keccak">3.9 Keccak</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0007" title="3.10 Luffa" data-search="3.10 luffa 3.10 luffa">3.10 Luffa</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0011" title="3.11 Shabal" data-search="3.11 shabal 3.11 shabal">3.11 Shabal</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0003" title="3.12 SHAvite-3" data-search="3.12 shavite-3 3.12 shavite-3">3.12 SHAvite-3</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0007" title="3.13 SIMD" data-search="3.13 simd 3.13 simd">3.13 SIMD</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0011" title="3.14 Skein" data-search="3.14 skein 3.14 skein">3.14 Skein</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0004" title="4 Conclusion and Next Steps" data-search="4 結論と今後の手順 4 conclusion and next steps">4 結論と今後の手順</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="5 References" data-search="5 参考文献 5 references">5 参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7620 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Status Report on the First Round of the SHA-3 Cryptographic Hash Algorithm Competition</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>SHA-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書</strong></span><br><span class="doc-panel-item">公開日 : 2009-09-23</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7620/final">https://csrc.nist.gov/pubs/ir/7620/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 214 / 215 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7620 は、SHA-3 暗号学的ハッシュアルゴリズムコンペティションの第 1 ラウンドについて報告する状況報告書です。SHA-3 は、公開コンペティションを通じて選定される新しい暗号学的ハッシュアルゴリズムで、FIPS 180-3 Secure Hash Standard で現在規定されている SHA-2 ハッシュアルゴリズムを補完するものです。2008 年 10 月に提出された 64 件の候補のうち 51 件が最低受入れ基準を満たして第 1 ラウンドの候補となり、本書は、評価基準と選定プロセスを説明したうえで、2009 年 7 月 24 日に第 2 ラウンドに進むと発表された 14 件の候補をまとめます。本書は、候補が次のラウンドに進まなかった理由の詳細な根拠を示すよりも、候補が選ばれた理由に焦点を当てています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7620</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7620</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Status Report on the First Round of the SHA-3 Cryptographic Hash Algorithm Competition</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+SHA-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Andrew Regenscheid<br>Ray Perlner<br>Shu-jen Chang<br>John Kelsey<br>Mridul Nandi<br>Souradyuti Paul</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Andrew Regenscheid<br>Ray Perlner<br>Shu-jen Chang<br>John Kelsey<br>Mridul Nandi<br>Souradyuti Paul</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0006" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7620</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7620</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Status Report on the First Round of the SHA-3 Cryptographic Hash Algorithm Competition<br><br>Andrew Regenscheid<br>Ray Perlner<br>Shu-jen Chang<br>John Kelsey<br>Mridul Nandi<br>Souradyuti Paul<br><i>Information Technology Laboratory<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899-8930</i><br><br>September 2009</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHA-3 暗号学的ハッシュアルゴリズムコンペティション 第 1 ラウンド状況報告書<br><br>Andrew Regenscheid<br>Ray Perlner<br>Shu-jen Chang<br>John Kelsey<br>Mridul Nandi<br>Souradyuti Paul<br><i>情報技術研究所<br>国立標準技術研究所<br>Gaithersburg, MD 20899-8930</i><br><br>2009 年 9 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br><i>Gary Locke, Secretary</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br><i>Gary Locke 長官</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br><i>Patrick D. Gallagher, Deputy Director</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br><i>Patrick D. Gallagher、NIST 副所長</i></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology is in the process of selecting a new cryptographic hash algorithm through a public competition. The new hash algorithm will be referred to as “SHA-3” and will complement the SHA-2 hash algorithms currently specified in FIPS 180-3, Secure Hash Standard. In October, 2008, 64 candidate algorithms were submitted to NIST for consideration. Among these, 51 met the minimum acceptance criteria and were accepted as First-Round Candidates on Dec. 10, 2008, marking the beginning of the First Round of the SHA-3 cryptographic hash algorithm competition. This report describes the evaluation criteria and selection process, based on public feedback and internal review of the first-round candidates, and summarizes the 14 candidate algorithms announced on July 24, 2009 for moving forward to the second round of the competition. The 14 Second-Round Candidates are BLAKE, BLUE MIDNIGHT WISH, CubeHash, ECHO, Fugue, Grøstl, Hamsi, JH, Keccak, Luffa, Shabal, SHAvite-3, SIMD, and Skein.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所は、公開コンペティションを通じて、新しい暗号学的ハッシュアルゴリズムを選定している最中です。この新しいハッシュアルゴリズムは「SHA-3」と呼ばれ、FIPS 180-3 Secure Hash Standard で現在規定されている SHA-2 ハッシュアルゴリズムを補完します。2008 年 10 月に、64 件の候補アルゴリズムが NIST に提出されました。このうち 51 件が最低受入れ基準を満たし、2008 年 12 月 10 日に第 1 ラウンドの候補として受理され、SHA-3 暗号学的ハッシュアルゴリズムコンペティションの第 1 ラウンドが始まりました。本報告書は、一般からのフィードバックと第 1 ラウンドの候補に対する内部レビューに基づく評価基準と選定プロセスを説明し、2009 年 7 月 24 日にコンペティションの第 2 ラウンドに進むと発表された 14 件の候補アルゴリズムをまとめます。14 件の第 2 ラウンドの候補は、BLAKE、BLUE MIDNIGHT WISH、CubeHash、ECHO、Fugue、Grøstl、Hamsi、JH、Keccak、Luffa、Shabal、SHAvite-3、SIMD、Skein です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>KEY WORDS:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>キーワード:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SHA-3; cryptographic hash algorithm; cryptographic hash function; cryptography</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHA-3、暗号学的ハッシュアルゴリズム、暗号学的ハッシュ関数、暗号技術</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is grateful for the efforts of all SHA-3 candidate submitters, who developed and analyzed new hash algorithm designs and prepared detailed submission packages describing their algorithms. The cryptographic community’s response of 64 candidate algorithms submitted to the competition was very encouraging. We were also pleased about the graceful and forthright manner with which several of the submitters recognized and accepted the shortcomings of their submissions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、新しいハッシュアルゴリズムの設計を開発して解析し、アルゴリズムを説明する詳細な提出パッケージを用意した、SHA-3 のすべての候補の提出者の努力に感謝します。コンペティションに 64 件の候補アルゴリズムが提出されるという暗号コミュニティの反応は、非常に心強いものでした。また、何人かの提出者が、自らの提出物の欠点を率直に、潔く認めたことにも感銘を受けました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is also grateful for the efforts of those in the cryptographic community that provided security, implementation and performance analysis of the candidate algorithms during the first round, including the e-BASH and SHA-3 Zoo organizers, those involved with papers dealing with the effects of the AES instruction, hardware implementations, and memory requirements, as well as the numerous cryptanalysts that attacked many of the submissions. NIST would not be able to select a new hash algorithm for the SHA-3 standard without the combined efforts of these individuals and the algorithm submitters.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST はまた、第 1 ラウンドの間に候補アルゴリズムのセキュリティ、実装、性能の解析を行った暗号コミュニティの人々の努力にも感謝します。これには、e-BASH と SHA-3 Zoo の主催者、AES 命令、ハードウェア実装、メモリ要件の影響を扱う論文に携わった人々、そして多くの提出物を攻撃した数多くの暗号解析者が含まれます。これらの人々と、アルゴリズムの提出者の共同の努力がなければ、NIST は SHA-3 標準のための新しいハッシュアルゴリズムを選定することはできませんでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors of this report are also appreciative of the efforts by the other members of NIST’s SHA-3 team, who reviewed candidate algorithms, analysis and public comments; performed testing; provided technical and administrative support; and participated in numerous meetings to discuss the selection of the first- and second-round candidates. They are: Elaine Barker, Lawrence Bassham, William Burr, Sara Caswell, Lily Chen, Quynh Dang, Donna Dodson, Morris Dworkin, James Nechvatal, and Rene Peralta.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の著者はまた、候補アルゴリズム、解析、パブリックコメントをレビューし、試験を実施し、技術的・事務的な支援を提供し、第 1 ラウンドと第 2 ラウンドの候補の選定を議論する数多くの会議に参加した、NIST の SHA-3 チームの他のメンバーの努力にも感謝します。彼らは、Elaine Barker、Lawrence Bassham、William Burr、Sara Caswell、Lily Chen、Quynh Dang、Donna Dodson、Morris Dworkin、James Nechvatal、Rene Peralta です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1 Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1 はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0011">1.1 Purpose of this Document</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0011">1.1 本文書の目的</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0013">1.2 Organization of this Document</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0013">1.2 本文書の構成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2 Evaluation Criteria and the Selection Process</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2 評価基準と選定プロセス</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">2.1 Acceptance of First Round Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002">2.1 第 1 ラウンド候補の受理</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0056">2.2 Evaluation Criteria</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0056">2.2 評価基準</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2.2.1 Security</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2.2.1 セキュリティ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0007">2.2.2 Cost and Performance</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0007">2.2.2 コストと性能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.2.3 Algorithm and Implementation Characteristics</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.2.3 アルゴリズムと実装の特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">2.3 Selection of Second Round Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">2.3 第 2 ラウンド候補の選定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">3 Summary of Second Round Candidates</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">3 第 2 ラウンド候補の概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.1 BLAKE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.1 BLAKE</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">3.2 BLUE MIDNIGHT WISH (BMW)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">3.2 BLUE MIDNIGHT WISH (BMW)</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">3.3 CubeHash</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">3.3 CubeHash</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0006">3.4 ECHO</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0006">3.4 ECHO</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0010">3.5 Fugue</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0010">3.5 Fugue</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">3.6 Grøstl</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">3.6 Grøstl</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0007">3.7 Hamsi</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0007">3.7 Hamsi</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0011">3.8 JH</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0011">3.8 JH</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003">3.9 Keccak</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0003">3.9 Keccak</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0007">3.10 Luffa</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0007">3.10 Luffa</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">3.11 Shabal</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">3.11 Shabal</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">3.12 SHAvite-3</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">3.12 SHAvite-3</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0007">3.13 SIMD</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0007">3.13 SIMD</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0011">3.14 Skein</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0011">3.14 Skein</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0004">4 Conclusion and Next Steps</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0004">4 結論と今後の手順</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">5 References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">5 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1 はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) is in the process of selecting a new cryptographic hash algorithm through a public competition. The new hash algorithm will be referred to as “SHA-3” and will complement the SHA-2 hash algorithms currently specified in Federal Information Processing Standard (FIPS) 180-3, Secure Hash Standard [1]. The selected algorithm is intended to be suitable for use by the U.S. government, as well as the private sector and, at the completion of the competition, to be available royalty-free worldwide. The competition will be referred to as the SHA-3 competition hereafter in this document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）は、公開コンペティションを通じて、新しい暗号学的ハッシュアルゴリズムを選定している最中です。この新しいハッシュアルゴリズムは「SHA-3」と呼ばれ、連邦情報処理標準（FIPS）180-3 Secure Hash Standard [1] で現在規定されている SHA-2 ハッシュアルゴリズムを補完します。選定されるアルゴリズムは、米国政府のほか民間部門でも使用するのに適したものとし、コンペティションの完了時には、世界中でロイヤリティフリーで利用できるようにすることを意図しています。以下、本文書では、このコンペティションを SHA-3 コンペティションと呼びます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The competition is NIST’s response to recent advances in the cryptanalysis of hash algorithms, including the government standard SHA-1 hash algorithm [1, 2]. An attack by Xiaoyun Wang, Yiqun Lisa Yin, and Hongbo Yu [3], and extended by many others, has seriously called into question the security of SHA-1’s use in digital signatures and other applications that require collision resistance. While the SHA-2 family [1] of hash algorithms provides an immediate alternative, NIST expects the selected SHA-3 to offer security that is at least as good as the SHA-2 algorithms with significantly improved efficiency or additional features.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このコンペティションは、政府標準の SHA-1 ハッシュアルゴリズム [1, 2] を含む、ハッシュアルゴリズムの暗号解析における最近の進展に対する NIST の対応です。Xiaoyun Wang、Yiqun Lisa Yin、Hongbo Yu による攻撃 [3] と、それを多くの研究者が拡張した攻撃は、デジタル署名や、衝突困難性を必要とするその他の用途での SHA-1 の使用のセキュリティに深刻な疑義を投げかけました。ハッシュアルゴリズムの SHA-2 ファミリー [1] がただちに代替手段となりますが、NIST は、選定される SHA-3 が、SHA-2 アルゴリズムと少なくとも同等のセキュリティを、大幅に向上した効率または追加の機能とともに提供することを期待しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In preparation for the SHA-3 competition, NIST held workshops on October 31-November 1, 2005 [4] and August 24-25, 2006 [5] to discuss the status of hash algorithms and develop a path forward for developing a new hash algorithm standard. As a result, NIST instituted a public competition, similar to that used to select the Advanced Encryption Standard (AES) [6, 7].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHA-3 コンペティションの準備として、NIST は、ハッシュアルゴリズムの現状を議論し、新しいハッシュアルゴリズム標準を開発するための道筋を立てるため、2005 年 10 月 31 日〜11 月 1 日 [4] と 2006 年 8 月 24〜25 日 [5] にワークショップを開催しました。その結果、NIST は、Advanced Encryption Standard（AES）[6, 7] の選定に用いられたものと同様の公開コンペティションを設けました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST published a <i>Draft requirements and evaluation criteria of the SHA-3 algorithm</i> in a Federal Register Notice in January 2007 (FRN-Jan07) for public comment [8]; these requirements and evaluation criteria were updated, based on public feedback, and included in a later, second Federal Register Notice published on Nov. 2, 2007 (FRN-Nov07) [9], which called for a new Cryptographic Hash Algorithm (SHA-3) and marked the start of the competition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、2007 年 1 月に Federal Register Notice（FRN-Jan07）で、<i>Draft requirements and evaluation criteria of the SHA-3 algorithm</i> を公表し、パブリックコメントを募集しました [8]。これらの要件と評価基準は、一般からのフィードバックに基づいて更新され、2007 年 11 月 2 日に公表された後続の第 2 の Federal Register Notice（FRN-Nov07）[9] に含められました。この Notice は、新しい暗号学的ハッシュアルゴリズム（SHA-3）を求め、コンペティションの開始を告げました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Candidate submissions were due on October 31, 2008, at which time NIST received 64 submission packages. This was a great response from the worldwide cryptographic community, which had submitted 21 candidate algorithms for the AES competition in 1998 [10]. Of the 64 submissions, NIST announced the acceptance of 51 First-Round Candidates as meeting the minimum acceptance criteria on Dec. 10, 2008, marking the beginning of the First Round of the SHA-3 competition. Submission packages of the first-round candidates were posted online at www.nist.gov/hash-competition for public review.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>候補の提出期限は 2008 年 10 月 31 日で、その時点で NIST は 64 件の提出パッケージを受け取りました。これは、1998 年の AES コンペティションに 21 件の候補アルゴリズムを提出した世界の暗号コミュニティ [10] からの、大きな反応でした。64 件の提出のうち、NIST は 2008 年 12 月 10 日に、最低受入れ基準を満たす 51 件を第 1 ラウンドの候補として受理したと発表し、SHA-3 コンペティションの第 1 ラウンドが始まりました。第 1 ラウンドの候補の提出パッケージは、一般のレビューのために www.nist.gov/hash-competition でオンライン公開されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST held the First SHA-3 Candidate Conference at K.U. Leuven, Belgium on February 25-28, 2009 [11], where submitters of the accepted first-round candidates were invited to present their algorithms. NIST also discussed the plan to narrow down the first-round candidates to a more manageable number for further studies by the summer of 2009 and start the second round of the competition. Thereafter, NIST received much feedback from the cryptographic community. Based on the public feedback and internal reviews of the first-round candidates, NIST announced the selection of 14 algorithms as Second-Round Candidates on July 24, 2009 to move forward to the second round of the competition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、2009 年 2 月 25〜28 日にベルギーの K.U. Leuven で第 1 回 SHA-3 候補会議 [11] を開催し、受理された第 1 ラウンドの候補の提出者を招いて、アルゴリズムを発表してもらいました。NIST はまた、2009 年夏までに第 1 ラウンドの候補をさらなる研究のためにより扱いやすい数に絞り込み、コンペティションの第 2 ラウンドを開始する計画についても議論しました。その後、NIST は暗号コミュニティから多くのフィードバックを受けました。一般からのフィードバックと第 1 ラウンドの候補に対する内部レビューに基づき、NIST は 2009 年 7 月 24 日に、コンペティションの第 2 ラウンドに進む第 2 ラウンドの候補として 14 件のアルゴリズムを選定したと発表しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Below is a timeline of major events with respect to the SHA-3 competition, up to the close of the first round.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下は、第 1 ラウンドの終了までの SHA-3 コンペティションに関する主な出来事の年表です。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">10/31-11/1/2005 Cryptographic Hash Workshop, NIST, Gaithersburg, MD</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2005 年 10 月 31 日〜11 月 1 日　暗号学的ハッシュワークショップ（NIST、Gaithersburg, MD）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">8/24-8/25/2006 Second Cryptographic Hash Workshop, UCSB, CA</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2006 年 8 月 24〜25 日　第 2 回暗号学的ハッシュワークショップ（UCSB、CA）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">1/23/2007 Federal Register Notice - Announcing the Development of New Hash Algorithm(s) for the Revision of Federal Information Processing Standard (FIPS) 180–2, Secure Hash Standard</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2007 年 1 月 23 日　Federal Register Notice - 連邦情報処理標準（FIPS）180–2 Secure Hash Standard の改訂に向けた新しいハッシュアルゴリズムの開発の告知</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">11/2/2007 Federal Register Notice - Announcing Request for Candidate Algorithm Nominations for a New Cryptographic Hash Algorithm (SHA-3) Family<br>The SHA-3 competition began.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2007 年 11 月 2 日　Federal Register Notice - 新しい暗号学的ハッシュアルゴリズム（SHA-3）ファミリーの候補アルゴリズムの推薦募集の告知<br>SHA-3 コンペティション開始。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">10/31/2008 SHA-3 Submission Deadline</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2008 年 10 月 31 日　SHA-3 提出期限</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">11/1/2008 The First Round of the competition began.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2008 年 11 月 1 日　コンペティションの第 1 ラウンド開始。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">12/10/2008 First-Round Candidates were announced. The public comment period on the first-round candidates began.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2008 年 12 月 10 日　第 1 ラウンドの候補を発表。第 1 ラウンドの候補に対するパブリックコメント期間が開始。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2/25-2/28/2009 First SHA-3 Candidate Conference, KU Leuven, Belgium</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2009 年 2 月 25〜28 日　第 1 回 SHA-3 候補会議（KU Leuven、ベルギー）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">7/24/2009 The First Round ended and the Second Round began. Second-Round Candidates were announced. The public comment period on the second-round candidates began.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">2009 年 7 月 24 日　第 1 ラウンド終了、第 2 ラウンド開始。第 2 ラウンドの候補を発表。第 2 ラウンドの候補に対するパブリックコメント期間が開始。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1 Purpose of this Document</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1 本文書の目的</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The purpose of this document is to report on the <b>first round</b> of the SHA-3 competition. The document explains the evaluation and selection process for the first- and second-round candidates of the competition. This report focuses on the reasons why candidate algorithms were selected, rather than providing detailed justifications for why candidate algorithms were not selected to move to the next round.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書の目的は、SHA-3 コンペティションの<b>第 1 ラウンド</b>について報告することです。本文書は、コンペティションの第 1 ラウンドと第 2 ラウンドの候補の評価と選定のプロセスを説明します。本報告書は、候補アルゴリズムが次のラウンドに進まなかった理由の詳細な根拠を示すよりも、候補アルゴリズムが選ばれた理由に焦点を当てています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2 Organization of this Document</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2 本文書の構成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Section 2 describes the determination of the first-round candidates using the minimum acceptability requirements defined in FRN-Nov07 for all SHA-3 submissions. It then describes the evaluation criteria and selection process used to ultimately select the second-round candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 節では、すべての SHA-3 の提出物に対して FRN-Nov07 で定義された最低受入れ要件を用いた、第 1 ラウンドの候補の決定を説明します。続いて、最終的に第 2 ラウンドの候補を選定するために用いた評価基準と選定プロセスを説明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Section 3 summarizes the 14 selected second-round candidates. For each candidate, we provide a brief description of the algorithm and the properties of the algorithm that interested us, as well as characteristics that caused some concern.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 3 節では、選定された 14 件の第 2 ラウンドの候補をまとめます。各候補について、アルゴリズムの簡単な説明、私たちが関心を持ったアルゴリズムの性質、および懸念を生じさせた特性を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Section 4 describes the next steps in the competition, including provisions for allowable modifications to the second-round candidates and the evaluation process for selecting the SHA-3 finalists.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 4 節では、第 2 ラウンドの候補に対して許される修正の規定や、SHA-3 ファイナリストを選定するための評価プロセスを含む、コンペティションの今後の手順を説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2 Evaluation Criteria and the Selection Process</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2 評価基準と選定プロセス</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Acceptance of First Round Candidates</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 第 1 ラウンド候補の受理</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST received 64 candidate algorithm submission packages by the October 31, 2008 entry deadline for the SHA-3 competition. Of these, NIST accepted 51 first-round candidates as meeting the minimum acceptance criteria for being “complete and proper submissions”, as defined in FRN-Nov07. These criteria included provisions for reference and optimized C code implementations, known-answer tests, a written specification, and required intellectual property statements. In addition, the algorithms were required to be implementable in a wide range of hardware and software platforms, support message digest sizes of 224, 256, 384, 512 bits, and support a maximum message length of at least \(2^{64}-1\) bits.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、SHA-3 コンペティションの応募期限である 2008 年 10 月 31 日までに、64 件の候補アルゴリズム提出パッケージを受け取りました。このうち、NIST は、FRN-Nov07 で定義された「完全かつ適切な提出物」の最低受入れ基準を満たす 51 件を第 1 ラウンドの候補として受理しました。これらの基準には、参照用と最適化された C コードの実装、既知解テスト、文書による仕様、必要な知的財産に関する声明に関する規定が含まれていました。さらに、アルゴリズムには、幅広いハードウェアとソフトウェアのプラットフォームで実装できること、224、256、384、512 ビットのメッセージダイジェストサイズをサポートすること、および少なくとも \(2^{64}-1\) ビットの最大メッセージ長をサポートすることが求められました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>First Round Candidates</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>第 1 ラウンドの候補</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>Abacus</td><td>EnRUPT</td><td>SANDstorm</td></tr><tr><td>ARIRANG</td><td>ESSENCE</td><td>Sarmal</td></tr><tr><td>AURORA</td><td>FSB</td><td>Sgàil</td></tr><tr><td>BLAKE</td><td>Fugue</td><td>Shabal</td></tr><tr><td>Blender</td><td>Grøstl</td><td>SHAMATA</td></tr><tr><td>BLUE MIDNIGHT WISH</td><td>Hamsi</td><td>SHAvite-3</td></tr><tr><td>BOOLE</td><td>JH</td><td>SIMD</td></tr><tr><td>Cheetah</td><td>Keccak</td><td>Skein</td></tr><tr><td>CHI</td><td>Khichidi-1</td><td>Spectral Hash</td></tr><tr><td>CRUNCH</td><td>LANE</td><td>StreamHash</td></tr><tr><td>CubeHash</td><td>Lesamnta</td><td>SWIFFTX</td></tr><tr><td>DCH</td><td>Luffa</td><td>Tangle</td></tr><tr><td>Dynamic SHA</td><td>LUX</td><td>TIB3</td></tr><tr><td>Dynamic SHA2</td><td>MCSSHA-3</td><td>Twister</td></tr><tr><td>ECHO</td><td>MD6</td><td>Vortex</td></tr><tr><td>ECOH</td><td>MeshHash</td><td>WaMM</td></tr><tr><td>EDON-R</td><td>NaSHA</td><td>Waterfall</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>Abacus</td><td>EnRUPT</td><td>SANDstorm</td></tr><tr><td>ARIRANG</td><td>ESSENCE</td><td>Sarmal</td></tr><tr><td>AURORA</td><td>FSB</td><td>Sgàil</td></tr><tr><td>BLAKE</td><td>Fugue</td><td>Shabal</td></tr><tr><td>Blender</td><td>Grøstl</td><td>SHAMATA</td></tr><tr><td>BLUE MIDNIGHT WISH</td><td>Hamsi</td><td>SHAvite-3</td></tr><tr><td>BOOLE</td><td>JH</td><td>SIMD</td></tr><tr><td>Cheetah</td><td>Keccak</td><td>Skein</td></tr><tr><td>CHI</td><td>Khichidi-1</td><td>Spectral Hash</td></tr><tr><td>CRUNCH</td><td>LANE</td><td>StreamHash</td></tr><tr><td>CubeHash</td><td>Lesamnta</td><td>SWIFFTX</td></tr><tr><td>DCH</td><td>Luffa</td><td>Tangle</td></tr><tr><td>Dynamic SHA</td><td>LUX</td><td>TIB3</td></tr><tr><td>Dynamic SHA2</td><td>MCSSHA-3</td><td>Twister</td></tr><tr><td>ECHO</td><td>MD6</td><td>Vortex</td></tr><tr><td>ECOH</td><td>MeshHash</td><td>WaMM</td></tr><tr><td>EDON-R</td><td>NaSHA</td><td>Waterfall</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0055">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These were the sole criteria used to judge the 64 SHA-3 entries. Other factors, such as security, cost, and algorithm and implementation characteristics of the candidates did not enter the review process prior to the first round, nor did cryptanalysis or performance data of a submission impact the acceptance of the first-round candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらが、64 件の SHA-3 応募物を判定するために用いられた唯一の基準でした。セキュリティ、コスト、候補のアルゴリズムと実装の特性といった他の要素は、第 1 ラウンドより前の審査プロセスには入っておらず、提出物の暗号解析や性能データも、第 1 ラウンドの候補の受理に影響しませんでした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0056">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Evaluation Criteria</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 評価基準</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0057">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FRN-Nov07 identified three broad categories of evaluation criteria that will be used to compare candidate algorithms throughout the SHA-3 competition. The three categories are: 1) security, 2) cost and performance, and 3) algorithm and implementation characteristics. These categories are described below, along with a discussion of how they impacted the first- and second-round candidate evaluations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FRN-Nov07 は、SHA-3 コンペティションを通じて候補アルゴリズムを比較するために用いる評価基準の、3 つの大きな区分を示しました。3 つの区分は、1）セキュリティ、2）コストと性能、3）アルゴリズムと実装の特性です。これらの区分を以下で説明し、それらが第 1 ラウンドと第 2 ラウンドの候補の評価にどのように影響したかを論じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1 Security</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1 セキュリティ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As was the case for the AES competition, security is the most important factor when evaluating the candidate hash algorithms. However, there remains significant disagreement within the cryptographic community-at-large over what security definitions should be used to evaluate hash algorithms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>AES コンペティションの場合と同様に、セキュリティは、候補ハッシュアルゴリズムを評価する際の最も重要な要素です。しかし、ハッシュアルゴリズムを評価するためにどのようなセキュリティの定義を用いるべきかについては、暗号コミュニティ全体の中で依然として大きな意見の相違があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While initially proposed for use in digital signatures, cryptographic hash algorithms are used in a wide variety of applications, including message authentication codes, pseudorandom number generators, key derivation, and one-way functions for obfuscating password files. All of these applications have different security requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>暗号学的ハッシュアルゴリズムは、当初はデジタル署名での使用を想定して提案されましたが、メッセージ認証コード、擬似乱数生成器、鍵導出、パスワードファイルを難読化するための一方向関数など、幅広い用途で使用されています。これらの用途のすべてで、セキュリティ要件は異なります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A common security concept that captures the security properties desired of hash algorithms is the random oracle model [12]. It is often the assumption made in security proofs of cryptographic protocols using a hash algorithm. Unfortunately, no real hash algorithm actually acts like a random oracle [13] in all situations. Therefore, the most that could reasonably be demanded of the proposed SHA-3 algorithm is to resemble a random oracle as closely as possible, and that was the security definition, as described in FRN-Jan07, that NIST planned to use in evaluating the SHA-3 candidates. However, this security definition was strongly criticized by the cryptographic community on the grounds that it was highly subjective.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ハッシュアルゴリズムに望まれるセキュリティ特性を捉えた一般的なセキュリティの概念は、ランダムオラクルモデル [12] です。これは、ハッシュアルゴリズムを用いる暗号プロトコルのセキュリティ証明で、しばしば置かれる仮定です。残念ながら、実在するハッシュアルゴリズムで、あらゆる状況でランダムオラクル [13] のように振る舞うものはありません。したがって、提案される SHA-3 アルゴリズムに合理的に要求できるのは、できるだけランダムオラクルに近づけることが精一杯であり、それが、FRN-Jan07 に記載された、NIST が SHA-3 の候補の評価に用いる予定だったセキュリティの定義でした。しかし、このセキュリティの定義は、非常に主観的であるとして、暗号コミュニティから強く批判されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To address this concern, NIST enumerated, in the later FRN-Nov07, a number of more well-defined security properties that it expected the winning SHA-3 candidate to meet. NIST felt these security properties were sufficient to establish the security of almost all applications of cryptographic hash algorithms, and that they could be designed into most hash algorithm constructions at fairly minimal cost. These criteria were not intended as strict requirements for an algorithm to remain in the competition, but rather to give submitters suggested security targets.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この懸念に対処するため、NIST は、後の FRN-Nov07 で、SHA-3 の優勝候補が満たすことを期待する、より明確に定義された複数のセキュリティ特性を列挙しました。NIST は、これらのセキュリティ特性が、暗号学的ハッシュアルゴリズムのほぼすべての用途のセキュリティを確立するのに十分であり、ほとんどのハッシュアルゴリズムの構成に、かなり小さなコストで設計に組み込めると考えました。これらの基準は、アルゴリズムがコンペティションに残るための厳密な要件を意図したものではなく、提出者に推奨されるセキュリティ目標を示すためのものでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>At the First SHA-3 Candidate Conference in Leuven, NIST elaborated on the requirements, commenting on the comparative severity of various types of attacks. In part, the intent of this discussion was to resolve debates that were taking place on the SHA-3 e-mail discussion list, <i>hash-forum@nist.gov</i> [14], regarding how heavily to weigh the memory complexity and parallelizability of an attack in evaluating its severity. An additional intention, however, was to communicate that attacks that were significantly costlier than brute force collision searches might not disqualify a candidate, provided that there is reason to believe that these attacks could not be extended, and provided that other positive features of the algorithm were seen by NIST to outweigh any immediate questions about the algorithm’s security. This was meant to encourage further cryptanalysis of candidates that were wounded, but not clearly broken. These attacks will be reconsidered prior to selecting the SHA-3 finalists during the second round of the competition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Leuven での第 1 回 SHA-3 候補会議で、NIST は、さまざまな種類の攻撃の相対的な深刻度についてコメントしながら、要件を詳しく説明しました。この議論の意図の一部は、攻撃の深刻度を評価する際に、攻撃のメモリ計算量と並列化可能性をどれだけ重視するかについて、SHA-3 の電子メール議論リスト <i>hash-forum@nist.gov</i> [14] で行われていた議論に決着をつけることでした。しかし、もう 1 つの意図は、総当たりの衝突探索よりも大幅にコストの高い攻撃は、それらの攻撃を拡張できないと考えられる理由があり、かつ NIST がそのアルゴリズムの他の肯定的な特徴が、アルゴリズムのセキュリティに関する当面の疑問を上回ると見なす場合には、候補を失格にしない場合があると伝えることでした。これは、傷を負っているが明確に破られてはいない候補に対する暗号解析をさらに促すためのものでした。これらの攻撃は、コンペティションの第 2 ラウンドで SHA-3 ファイナリストを選定する前に、再び検討されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.2 Cost and Performance</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.2 コストと性能</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FRN-Nov07 identified cost as the second-most important criterion when evaluating candidate hash algorithms. In this case, cost includes computational efficiency and memory requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FRN-Nov07 は、候補ハッシュアルゴリズムを評価する際に、コストを 2 番目に重要な基準として示しました。この場合のコストには、計算効率とメモリ要件が含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computational efficiency essentially refers to the speed of an algorithm. NIST expects SHA-3 to offer improved performance over the SHA-2 family of hash algorithms at a given security strength. Memory requirements refer both to code size and random-access memory (RAM) requirements for software implementations, as well as gate counts for hardware implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>計算効率は、本質的にアルゴリズムの速度を指します。NIST は、SHA-3 が、与えられたセキュリティ強度において、SHA-2 ファミリーのハッシュアルゴリズムよりも向上した性能を提供することを期待しています。メモリ要件は、ソフトウェア実装でのコードサイズとランダムアクセスメモリ（RAM）の要件、およびハードウェア実装でのゲート数の両方を指します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FRN-Nov07 required all submitters to include performance estimates on the NIST reference platform, an Intel Core 2 Duo-based system in 32- and 64-bit modes, as well as for 8-bit processors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FRN-Nov07 は、すべての提出者に、NIST の参照プラットフォームである Intel Core 2 Duo ベースのシステムの 32 ビットモードと 64 ビットモード、および 8 ビットプロセッサでの性能の見積りを含めることを求めました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cost is of particular concern for constrained platforms. Several individuals at the First SHA-3 Candidate Conference stressed the need for supporting constrained platforms, including mobile devices, smart cards and radio-frequency identification (RFID) systems. RAM requirements are often the limiting factor on these types of platforms, but power (which usually reduces to computational efficiency) and the area required by a circuit to implement the algorithm may also be limiting factors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コストは、制約のあるプラットフォームでは特に懸念されます。第 1 回 SHA-3 候補会議では、モバイルデバイス、スマートカード、無線周波数識別（RFID）システムを含む、制約のあるプラットフォームをサポートする必要性を、何人かの参加者が強調しました。これらの種類のプラットフォームでは、RAM 要件が制限要因となることが多いですが、電力（通常は計算効率に帰着します）や、アルゴリズムを実装する回路に必要な面積も、制限要因となる場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.3 Algorithm and Implementation Characteristics</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.3 アルゴリズムと実装の特性</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SHA-3 competition has received many candidate algorithms with new and interesting designs, and with unique features that are not present in the SHA-2 family of hash algorithms. Candidate algorithms with greater flexibility may be given preference over other algorithms. This includes algorithms capable of running efficiently on a wide variety of platforms, as well as algorithms that use parallelism or instruction set extensions to achieve higher performance. In addition, simple and elegant designs are preferable, in order to encourage understanding, analysis and design confidence.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHA-3 コンペティションは、新規で興味深い設計を持ち、SHA-2 ファミリーのハッシュアルゴリズムにはない独自の特徴を備えた、多くの候補アルゴリズムを受け取りました。柔軟性のより高い候補アルゴリズムが、他のアルゴリズムより優先される場合があります。これには、多種多様なプラットフォームで効率的に動作できるアルゴリズムや、より高い性能を達成するために並列性や命令セット拡張を利用するアルゴリズムが含まれます。さらに、理解、解析、設計への確信を促すため、単純で洗練された設計が望ましいです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3 Selection of Second Round Candidates</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 第 2 ラウンド候補の選定</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST selected 14 second-round candidates from the 51 first-round candidates using the evaluation criteria specified in FRN-Nov07. In relative order of importance, NIST considered the security, cost and performance, and algorithm and implementation characteristics of a candidate in selecting the second-round candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、FRN-Nov07 で規定された評価基準を用いて、51 件の第 1 ラウンドの候補から 14 件の第 2 ラウンドの候補を選定しました。第 2 ラウンドの候補を選定するにあたり、NIST は、候補のセキュリティ、コストと性能、アルゴリズムと実装の特性を、重要度の高い順に考慮しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For the security evaluation of an algorithm, NIST studied the security arguments presented in the submission package, as well as external cryptanalysis submitted to NIST via e-mail or posted online at websites, such as the ECRYPT SHA-3 Zoo [15]. NIST researchers also conducted internal cryptanalysis.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アルゴリズムのセキュリティ評価のため、NIST は、提出パッケージに示されたセキュリティ上の論拠と、電子メールで NIST に提出された、または ECRYPT SHA-3 Zoo [15] などの Web サイトでオンライン公開された外部の暗号解析を調べました。NIST の研究者も、内部の暗号解析を実施しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST considered not only attacks that directly demonstrated that a SHA-3 candidate fell short of NIST’s stated security targets, but also attacks that have historically been precursors to more severe attacks on legacy hash algorithms. The most prominent examples are pseudo-collision attacks. Pseudo-collisions on compression functions directly violate the security assumption of the Merkle-Damgård hash construction [16, 17], which is the basis for most legacy hash algorithms and many of the SHA-3 candidates. Some designs, particularly sponge-like constructions [18, 19], have trivial pseudo-collisions which are simply implicit in their construction and would have no relevance for the security of the hash functions in question. Since these constructions are already designed to withstand trivial pseudo-collisions, nontrivial pseudo-collisions attacks on the same hash algorithms were considered less severe than similar attacks on constructions based on Merkle-Damgård.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、SHA-3 の候補が NIST の示したセキュリティ目標に届かないことを直接示した攻撃だけでなく、これまでに従来のハッシュアルゴリズムに対するより深刻な攻撃の前兆となってきた攻撃も考慮しました。最も顕著な例は、擬似衝突攻撃です。圧縮関数に対する擬似衝突は、従来のハッシュアルゴリズムの大半と SHA-3 候補の多くの基礎となっている Merkle-Damgård ハッシュ構成 [16, 17] のセキュリティ上の仮定に、直接違反します。一部の設計、特にスポンジに似た構成 [18, 19] は、その構成に暗黙的に含まれているだけの自明な擬似衝突を持っており、当該ハッシュ関数のセキュリティには関係がありません。これらの構成は、すでに自明な擬似衝突に耐えるよう設計されているため、同じハッシュアルゴリズムに対する非自明な擬似衝突攻撃は、Merkle-Damgård に基づく構成に対する同様の攻撃よりも深刻度が低いと考えられました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>After security, performance was the next most important criterion in selecting the second-round candidates. When evaluating the performance of the candidates, NIST considered the performance and memory estimates given by the submitters in their submission documentation and in their presentations at the First SHA-3 Candidate Conference. NIST also performed internal performance benchmarks using the 32- and 64-bit optimized code from the submission packages. In addition, NIST considered the external feedback and performance estimates provided by the cryptographic community, such as those on the eBASH website [20] or on the <i>hash-forum</i> email list. The latter includes an analysis of the memory requirements of the candidate algorithms [21], and an analysis of the impact of the AES instruction on a candidate algorithm’s performance [22].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティに次いで、性能が、第 2 ラウンドの候補を選定するうえで次に重要な基準でした。候補の性能を評価する際、NIST は、提出者が提出文書と第 1 回 SHA-3 候補会議での発表で示した、性能とメモリの見積りを考慮しました。NIST はまた、提出パッケージの 32 ビットおよび 64 ビット最適化コードを用いて、内部で性能ベンチマークも実施しました。さらに NIST は、eBASH の Web サイト [20] や <i>hash-forum</i> のメーリングリストにあるものなど、暗号コミュニティから寄せられた外部のフィードバックと性能の見積りも考慮しました。後者には、候補アルゴリズムのメモリ要件の解析 [21] と、AES 命令が候補アルゴリズムの性能に与える影響の解析 [22] が含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the first round of the competition, NIST focused on the performance of software implementations on high-end platforms, with some consideration given to whether the candidate algorithms appeared to be particularly suitable or unsuitable for hardware implementations or constrained platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンペティションの第 1 ラウンドでは、NIST は、ハイエンドのプラットフォームでのソフトウェア実装の性能に焦点を当て、候補アルゴリズムがハードウェア実装や制約のあるプラットフォームに特に適しているか不向きであるかについても、ある程度考慮しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As was NIST’s stated intention at the Leuven conference, only hash algorithms that could be tuned to a level of performance roughly comparable to or better than that of the SHA-2 family of hash algorithms without compromising security were selected for the second round. In some cases, the submitted variant was too slow or required too much memory, but NIST felt that in some cases, tunable parameters could be adjusted to give acceptable performance without compromising security. In order to accept candidates on these grounds, the tunable parameter needed to be documented by the submitters, the change needed to have a reasonably predictable effect on both the security and performance of the algorithm, and variants of the algorithm with acceptable performance needed to still have enough security margin that they were not on the verge of being broken. Also relevant to performance calculations was the expectation that a number of designs could benefit greatly from features included in the current or next-generation of multi-purpose processors. These features include vector instructions, as well as instructions in upcoming Intel chips designed to optimize the performance of AES. After considering optimized implementations, including 64-bit implementations and implementations using <i>Single Instruction, Multiple Data</i> (SIMD) [23] or AES instructions, all candidate algorithms selected for the second round seem to be capable of offering performance competitive with the SHA-2 family.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Leuven の会議で NIST が表明した意図のとおり、セキュリティを損なうことなく、SHA-2 ファミリーのハッシュアルゴリズムと同程度かそれ以上の性能に調整できるハッシュアルゴリズムだけが、第 2 ラウンドに選ばれました。提出された変種が遅すぎる、または多くのメモリを必要とする場合もありましたが、NIST は、場合によっては、調整可能なパラメータを調整することで、セキュリティを損なうことなく許容できる性能が得られると考えました。こうした理由で候補を受理するためには、調整可能なパラメータが提出者によって文書化されていること、その変更がアルゴリズムのセキュリティと性能の両方に対して、ある程度予測可能な影響を与えること、そして、許容できる性能を持つアルゴリズムの変種が、破られる寸前ではないと言えるだけの十分なセキュリティマージンを依然として持っていることが必要でした。性能の計算に関連して、多くの設計が、現在または次世代の汎用プロセッサに含まれる機能から大きな恩恵を受けられるという期待もありました。これらの機能には、ベクトル命令や、AES の性能を最適化するよう設計された、今後登場する Intel チップの命令が含まれます。64 ビット実装や、<i>Single Instruction, Multiple Data</i>（SIMD）[23] または AES 命令を用いる実装を含む最適化された実装を検討した結果、第 2 ラウンドに選ばれたすべての候補アルゴリズムは、SHA-2 ファミリーに匹敵する性能を提供できると思われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Second Round Candidates</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>第 2 ラウンドの候補</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>BLAKE</td><td>Grøstl</td><td>Shabal</td></tr><tr><td>BLUE MIDNIGHT WISH</td><td>Hamsi</td><td>SHAvite-3</td></tr><tr><td>CubeHash</td><td>JH</td><td>SIMD</td></tr><tr><td>ECHO</td><td>Keccak</td><td>Skein</td></tr><tr><td>Fugue</td><td>Luffa</td><td></td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>BLAKE</td><td>Grøstl</td><td>Shabal</td></tr><tr><td>BLUE MIDNIGHT WISH</td><td>Hamsi</td><td>SHAvite-3</td></tr><tr><td>CubeHash</td><td>JH</td><td>SIMD</td></tr><tr><td>ECHO</td><td>Keccak</td><td>Skein</td></tr><tr><td>Fugue</td><td>Luffa</td><td></td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In a few cases, a submitted design was selected in part for its uniqueness and elegance. NIST generally favored those designs that were based on clear design principles or otherwise illustrative of an innovative idea. NIST feels that the diversity of designs will provide an opportunity for cryptographers and cryptanalysts to expand the scope of ideas in their field, and it will also be less likely that a single type of attack will eliminate the bulk of the candidates remaining in the competition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>いくつかの場合には、提出された設計が、その独自性と洗練さも一因として選ばれました。NIST は、一般に、明確な設計原理に基づく設計や、革新的な考え方を示す設計を好みました。NIST は、設計の多様性が、暗号研究者と暗号解析者に自らの分野の考え方の幅を広げる機会を提供し、また、単一の種類の攻撃でコンペティションに残る候補の大半が排除される可能性も低くなると考えています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3 Summary of Second Round Candidates</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3 第 2 ラウンド候補の概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each of the candidates selected for round two is discussed below, including a summary of the basic design, performance characteristics, and known attacks. In addition, the discussion includes suggested areas that the submitters may wish to address in order to improve their candidate’s chances of surviving into the final round.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 ラウンドに選ばれた各候補について、基本設計、性能特性、既知の攻撃の概要を含め、以下で論じます。さらに、提出者が候補を最終ラウンドに残せる可能性を高めるために取り組むことのできる分野の提案も含まれています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 BLAKE</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 BLAKE</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BLAKE is a HAIFA [24] hash algorithm whose compression function is based on using a keyed permutation in a Davies-Meyer-like construction [25]. The keyed permutation is based on the internals of the ChaCha [26] stream cipher, extended over a large state, and derives its nonlinearity from the overlap of modular addition and XOR operations. The most innovative part of BLAKE is its keyed permutation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BLAKE は HAIFA [24] ハッシュアルゴリズムで、その圧縮関数は、Davies-Meyer に似た構成 [25] における鍵付き置換の使用に基づいています。鍵付き置換は、ChaCha [26] ストリーム暗号の内部に基づき、大きな状態に拡張されたもので、法加算と XOR 演算の重なりから非線形性を得ています。BLAKE の最も革新的な部分は、その鍵付き置換です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BLAKE’s performance is quite good. It has modest memory requirements and appears to be suitable for a wide range of platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BLAKE の性能はかなり良好です。必要なメモリは控えめで、幅広いプラットフォームに適していると思われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most significant cryptanalytic results against BLAKE are those that attacked the reduced round versions [27, 28] and appear to pose no threat to the design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BLAKE に対する最も重要な暗号解析の結果は、ラウンド数を縮小した版を攻撃したもの [27, 28] で、この設計への脅威にはならないと思われます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 BLUE MIDNIGHT WISH (BMW)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 BLUE MIDNIGHT WISH（BMW）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BMW is a wide-pipe Merkle-Damgård hash construction [29] with an unconventional compression function, where the nonlinearity is derived from the overlap of modular addition and XOR operations. The most innovative parts of the design are the compression function construction and the design of the permutations; much of the design is novel and unique amongst the second-round candidates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BMW は、型破りな圧縮関数を持つワイドパイプの Merkle-Damgård ハッシュ構成 [29] で、非線形性は法加算と XOR 演算の重なりから得ています。この設計の最も革新的な部分は、圧縮関数の構成と置換の設計であり、設計の多くは、第 2 ラウンドの候補の中で新規かつ独自のものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BMW has very good performance and appears to be suitable for a wide range of platforms. It has modest memory requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BMW の性能は非常に良好で、幅広いプラットフォームに適していると思われます。必要なメモリは控えめです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most serious cryptanalytic results against BMW are from impractical pseudo-collision attacks, and practical near-collision attacks [30]. These results raise questions about the security of the design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BMW に対する最も深刻な暗号解析の結果は、非現実的な擬似衝突攻撃と、現実的な近衝突攻撃 [30] によるものです。これらの結果は、この設計のセキュリティに疑問を生じさせます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 CubeHash</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 CubeHash</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CubeHash is a sponge-like hash algorithm that is based on a fixed permutation. The permutation is extremely simple and elegant, using only additions, XORs, and rotations in a fixed and simple pattern. All nonlinearity in the hash algorithm is derived from the overlap of modular additions and XOR operations. The novel part of CubeHash is the fixed permutation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CubeHash は、固定置換に基づく、スポンジに似たハッシュアルゴリズムです。この置換は非常に単純で洗練されており、固定された単純なパターンで、加算、XOR、ローテートだけを用いています。このハッシュアルゴリズムのすべての非線形性は、法加算と XOR 演算の重なりから得られます。CubeHash の新規な部分は、固定置換です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CubeHash has two tunable parameters, and its original proposed set of parameters led to extremely poor performance. A consistent problem in evaluating CubeHash has been uncertainty about those parameters. The designer has now proposed a set of parameters (16, 32) which provide very good performance with the use of SIMD instructions. CubeHash has relatively modest memory requirements and appears to be suitable for implementation on a wide range of platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CubeHash には 2 つの調整可能なパラメータがあり、当初提案されたパラメータの組では性能が極めて低くなりました。CubeHash の評価では、これらのパラメータに関する不確実性が一貫して問題でした。設計者は現在、SIMD 命令を使用すると非常に良好な性能を示すパラメータの組（16, 32）を提案しています。CubeHash の必要なメモリは比較的控えめで、幅広いプラットフォームでの実装に適していると思われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CubeHash has received a large amount of external analysis, probably due to the simplicity of its design and the flexibility offered to attackers by the two different tunable parameters. This made a strong argument in favor of advancing CubeHash to the next round—it appeared to be the best-understood of the candidates. The best-known attacks are:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CubeHash は、おそらく設計が単純であることと、2 つの異なる調整可能なパラメータによって攻撃者に与えられる柔軟性のために、多くの外部解析を受けてきました。これは、CubeHash を次のラウンドに進める強い論拠となりました。候補の中で最もよく理解されていると思われたためです。最もよく知られた攻撃は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A generic, completely impractical preimage attack on the 512-bit version, which was described by the designer [31, 32].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">設計者によって説明された、512 ビット版に対する、まったく非現実的な汎用原像攻撃 [31, 32]。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A semi-free-start collision, based on easily-found fixed points in the permutation, and several related results (such as symmetries preserved by the permutation) which raise some questions about the design and might be useful in practical attacks in the future [31].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">置換で容易に見つかる不動点に基づく半自由開始衝突と、（置換によって保存される対称性など）関連するいくつかの結果。これらは、設計に関する疑問を生じさせ、将来の現実的な攻撃で役立つ可能性があります [31]。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A number of reduced-round and increased-input-size attacks, none of which appears to threaten either the currently proposed version or the originally proposed version [33, 34, 35].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ラウンド数を縮小した、または入力サイズを増やした多数の攻撃。いずれも、現在提案されている版にも、当初提案された版にも脅威を与えないと思われます [33, 34, 35]。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Of these, we find the semi-free-start collision and the symmetry properties to be the most troubling at this time. The CubeHash submission package identifies these issues and argues that exploiting these properties, given the large state and relatively small injection of message data before each permutation, is about as hard as a brute-force collision search. Relatively simple tweaks could also remove the symmetry properties from the algorithm.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのうち、現時点で最も懸念されるのは、半自由開始衝突と対称性の性質です。CubeHash の提出パッケージはこれらの問題を指摘しており、大きな状態と、各置換の前に注入されるメッセージデータが比較的少ないことを踏まえると、これらの性質を利用することは、総当たりの衝突探索とほぼ同程度に困難だと論じています。比較的単純な変更によって、アルゴリズムから対称性の性質を取り除くこともできます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4 ECHO</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4 ECHO</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ECHO is a wide-pipe hash algorithm following the HAIFA construction. Its compression function uses a keyed permutation; the counter and salt are used as the key, and the message and chaining value are used as inputs to the permutation. The permutation is quite novel, using a 2048-bit AES-like permutation in which the role of the substitution-box (S-box) [36] is played by a single AES round. The AES S-box provides all nonlinearity in this hash algorithm. By far the most interesting and unique part of this hash algorithm is the super-AES keyed permutation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ECHO は、HAIFA 構成に従うワイドパイプのハッシュアルゴリズムです。その圧縮関数は鍵付き置換を使い、カウンタとソルトが鍵として、メッセージと連鎖値が置換への入力として使われます。この置換はかなり新規なもので、置換ボックス（S-box）[36] の役割を AES の 1 ラウンドが果たす、2048 ビットの AES に似た置換を用います。AES の S-box が、このハッシュアルゴリズムのすべての非線形性を提供します。このハッシュアルゴリズムの、群を抜いて興味深く独自性のある部分は、スーパー AES の鍵付き置換です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ECHO has acceptable performance on current high-end platforms, but requires hardware AES support to achieve impressive performance. ECHO requires a considerable amount of memory, but is expected to be otherwise suited for constrained platforms and hardware implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ECHO は、現在のハイエンドのプラットフォームでは許容できる性能ですが、印象的な性能を達成するにはハードウェアでの AES サポートが必要です。ECHO は相当量のメモリを必要としますが、それ以外の点では、制約のあるプラットフォームやハードウェア実装に適していると見込まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The only known analytical result is a highly impractical distinguishing attack on the underlying permutation of a reduced round (7 out of 8) version of ECHO [37]. This attack appears to pose no threat to the overall ECHO design. We hope that the selection of ECHO as a second-round candidate will lead to more analysis of this unique hash algorithm design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>知られている唯一の解析結果は、ラウンド数を縮小した（8 ラウンド中 7 ラウンドの）版の ECHO の基礎となる置換に対する、極めて非現実的な識別攻撃です [37]。この攻撃は、ECHO の設計全体への脅威にはならないと思われます。ECHO を第 2 ラウンドの候補に選定したことが、この独特なハッシュアルゴリズムの設計のさらなる解析につながることを期待しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5 Fugue</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5 Fugue</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fugue is a variant of a sponge construction. Its compression function is based on a nonlinear shift register, maintaining a large state (thirty 32-bit words for the 256-bit version). The shift register incorporates a strengthened variant of the AES round function; all other operations are linear. Thus, all nonlinearity in this design is derived from the AES S-box. The most novel part of this design is the shift-register-based compression function, for which proofs and bounds on its differential probabilities were provided.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Fugue は、スポンジ構成の変種です。その圧縮関数は非線形シフトレジスタに基づき、大きな状態（256 ビット版では 32 ビットのワード 30 個）を保持します。シフトレジスタには、強化された AES のラウンド関数の変種が組み込まれており、他のすべての演算は線形です。したがって、この設計のすべての非線形性は、AES の S-box から得られます。この設計の最も新規な部分は、シフトレジスタに基づく圧縮関数であり、その差分確率に関する証明と限界が示されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The performance of Fugue is acceptable, although the efficiency of current implementations is not particularly impressive. The use of SIMD instructions could yield better performance, although how much the performance could be improved is unknown at this time. Hardware support for AES may also improve its performance somewhat, but the impact of this will be limited, because of the use of the variant-AES round function. Fugue also maintains a large state, which may make it difficult to implement in constrained platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Fugue の性能は許容できますが、現在の実装の効率は特に印象的ではありません。SIMD 命令を使用すれば性能が向上する可能性がありますが、性能をどの程度改善できるかは現時点では不明です。AES のハードウェアサポートも性能をいくらか向上させる可能性がありますが、AES ラウンド関数の変種を使用しているため、その影響は限定的でしょう。Fugue はまた大きな状態を保持するため、制約のあるプラットフォームへの実装が難しくなる場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>We are aware of no external analysis of Fugue. We hope that its selection as a second-round candidate will lead to more analysis of this interesting hash algorithm.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>私たちは、Fugue に対する外部解析を把握していません。第 2 ラウンドの候補に選定したことが、この興味深いハッシュアルゴリズムのさらなる解析につながることを期待しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.6 Grøstl</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.6 Grøstl</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Grøstl is a wide-pipe Merkle-Damgård hash construction with post-processing. Its compression function is a novel construction, involving two AES-like fixed permutations. All nonlinearity in the design is derived from the AES S-box. The most innovative part of Grøstl’s design is the compression function construction.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Grøstl は、後処理を持つワイドパイプの Merkle-Damgård ハッシュ構成です。その圧縮関数は新規の構成で、AES に似た 2 つの固定置換を用います。この設計のすべての非線形性は、AES の S-box から得られます。Grøstl の設計の最も革新的な部分は、圧縮関数の構成です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Grøstl’s performance is acceptable, but not especially impressive. Performance may be increased using hardware AES support, although the extent of these gains is unknown at this time. It has modest memory requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Grøstl の性能は許容できますが、特に印象的ではありません。ハードウェアでの AES サポートを使用すれば性能が向上する可能性がありますが、その向上の程度は現時点では不明です。必要なメモリは控えめです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most serious attack on Grøstl is a semi-free-start collision attack on a reduced round variant that breaks 7 out of 10 rounds [37]. This attack raises some question about the security margin of the design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Grøstl に対する最も深刻な攻撃は、10 ラウンド中 7 ラウンドを破る、ラウンド数を縮小した変種に対する半自由開始衝突攻撃です [37]。この攻撃は、この設計のセキュリティマージンについて疑問を生じさせます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.7 Hamsi</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.7 Hamsi</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hamsi is a Merkle-Damgård hash construction with post-processing to block length-extension attacks. The compression function is constructed on a fixed permutation; the message is expanded using an error-detecting code to fill half the input block to the permutation, with the other half filled by the hash chaining value. The result is truncated and XORed with the hash chaining input, which is similar to the method used in Snefru. The Hamsi fixed permutation is a substitution-permutation network (SP network) [38], combining a single 4-bit S-box (taken from Serpent, and implemented using bit-slicing) with a linear mixing operation. All nonlinearity in the design is derived from that one S-box. The most innovative part of this design is the compression function construction; this is quite different from any other second-round candidate.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hamsi は、長さ拡張攻撃を阻止するための後処理を持つ Merkle-Damgård ハッシュ構成です。圧縮関数は固定置換上に構成され、メッセージは誤り検出符号を用いて拡張されて置換への入力ブロックの半分を埋め、残りの半分はハッシュの連鎖値で埋められます。その結果は切り詰められ、ハッシュの連鎖入力と XOR されます。これは Snefru で用いられている方法に似ています。Hamsi の固定置換は置換・換字ネットワーク（SP ネットワーク）[38] で、（Serpent から採られ、ビットスライスを用いて実装された）単一の 4 ビット S-box と、線形混合演算を組み合わせています。この設計のすべての非線形性は、その 1 つの S-box から得られます。この設計の最も革新的な部分は圧縮関数の構成であり、これは他のどの第 2 ラウンドの候補ともまったく異なります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hamsi requires the use of SIMD instructions to achieve acceptable performance in software. It has modest memory requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hamsi は、ソフトウェアで許容できる性能を達成するために SIMD 命令の使用を必要とします。必要なメモリは控えめです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The only results on Hamsi of which we are aware at present demonstrate low algebraic degree in the outputs of the compression function; whether this has any security implications for the hash algorithm is unclear.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現時点で私たちが把握している Hamsi に関する唯一の結果は、圧縮関数の出力の代数次数が低いことを示すものです。これがハッシュアルゴリズムにセキュリティ上の影響を与えるかどうかは不明です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.8 JH</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.8 JH</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>JH uses a novel construction, somewhat reminiscent of a sponge construction, to build a hash algorithm out of a single, large, fixed permutation. The fixed permutation is an SP network, combining two 4-bit S-boxes with a set of linear mixing operations and bit permutations. All nonlinearity in this design is derived from the S-boxes. The most innovative part of this design is the compression function construction, which XORs a 512-bit message block into the left half of the input of the fixed permutation, and then XORs the same message block into the right half of the output of the fixed permutation. The design of the fixed permutation is also new.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>JH は、単一の大きな固定置換からハッシュアルゴリズムを構築するために、スポンジ構成をいくぶん想起させる新しい構成を用いています。固定置換は SP ネットワークで、2 つの 4 ビット S-box を、一組の線形混合演算とビット置換と組み合わせています。この設計のすべての非線形性は、S-box から得られます。この設計の最も革新的な部分は圧縮関数の構成で、512 ビットのメッセージブロックを固定置換の入力の左半分に XOR し、その後、同じメッセージブロックを固定置換の出力の右半分に XOR します。固定置換の設計も新しいものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>JH’s performance is good, and has modest memory requirements. Unlike most second-round candidates, all output sizes of JH use the same function, but with different initial hash values and different amounts of truncation at the end.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>JH の性能は良好で、必要なメモリは控えめです。第 2 ラウンドの候補の大半と異なり、JH は、すべての出力サイズで同じ関数を使い、初期ハッシュ値と最後の切り詰め量だけを変えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most serious cryptanalytic result on JH is a theoretical preimage attack on the 512-bit version [39, 40], which is barely cheaper than a brute force attack. As this attack does not appear to threaten the design, it does not concern us. However, the compression function construction of JH is not well-understood, and the submitter did not provide a great deal of analysis of this construction.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>JH に対する最も深刻な暗号解析の結果は、512 ビット版に対する理論上の原像攻撃 [39, 40] で、総当たり攻撃よりかろうじてコストが低い程度です。この攻撃は設計への脅威にならないと思われるため、私たちは懸念していません。しかし、JH の圧縮関数の構成は十分には理解されておらず、提出者は、この構成についての解析をあまり多く提供しませんでした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.9 Keccak</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.9 Keccak</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Keccak follows the sponge construction and uses a large fixed permutation. The permutation can be seen as an SP-network with 5-bit wide S-boxes, or as a combination of a linear mixing operation and a very simple nonlinear mixing operation. The construction of the permutation is the most innovative part of the Keccak design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Keccak は、スポンジ構成に従い、大きな固定置換を用います。この置換は、5 ビット幅の S-box を持つ SP ネットワークとして、あるいは線形混合演算と非常に単純な非線形混合演算の組合せとして捉えることができます。置換の構成は、Keccak の設計で最も革新的な部分です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Keccak performs well on high-end platforms and is expected to perform well across a wide range of platforms, as well as in dedicated hardware. The hash algorithm has modest memory requirements. Unlike most second-round candidates, Keccak uses a single design for all hash outputs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Keccak は、ハイエンドのプラットフォームで良好な性能を示し、幅広いプラットフォームのほか、専用ハードウェアでも良好な性能を示すことが見込まれます。このハッシュアルゴリズムの必要なメモリは控えめです。第 2 ラウンドの候補の大半と異なり、Keccak は、すべてのハッシュ出力に単一の設計を用います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most significant cryptanalytic result on Keccak of which we are aware are distinguishing attacks against reduced round versions of the permutation [41]; however, these do not appear to threaten the security of the hash algorithm.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>私たちが把握している Keccak に関する最も重要な暗号解析の結果は、ラウンド数を縮小した版の置換に対する識別攻撃 [41] ですが、これらはハッシュアルゴリズムのセキュリティへの脅威にはならないと思われます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.10 Luffa</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.10 Luffa</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Luffa is a variant of the sponge construction, using a linear mixing operation and several fixed 256-bit permutations in place of a single wider permutation. The fixed permutations are SP networks, which combine linear mixing operations with a single 4-bit wide S-box, and this S-box provides all nonlinearity in the design. The most innovative part of Luffa is the sponge construction.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Luffa は、単一のより幅の広い置換の代わりに、線形混合演算と、複数の固定の 256 ビット置換を用いる、スポンジ構成の変種です。固定置換は、線形混合演算と単一の 4 ビット幅の S-box を組み合わせた SP ネットワークで、この S-box がこの設計のすべての非線形性を提供します。Luffa の最も革新的な部分は、スポンジ構成です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Luffa provides good performance on high-end platforms and appears suitable for a wide variety of platforms. Substantial parts of the design are the same for different output sizes.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Luffa は、ハイエンドのプラットフォームで良好な性能を示し、多種多様なプラットフォームに適していると思われます。設計の相当な部分は、出力サイズが異なっても同じです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most significant cryptanalytic result on Luffa of which we are aware is a pseudo-preimage attack on the squeezing steps of Luffa-384 and Luffa-512 [42]. This is a consequence of the structure of Luffa (XORing 256-bit permutation results together to generate an output) and does not appear to lead to a threat to the security of the hash algorithm.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>私たちが把握している Luffa に関する最も重要な暗号解析の結果は、Luffa-384 と Luffa-512 のスクイーズのステップに対する擬似原像攻撃 [42] です。これは Luffa の構造（256 ビットの置換結果を XOR し合わせて出力を生成すること）の帰結であり、ハッシュアルゴリズムのセキュリティへの脅威につながるとは思われません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.11 Shabal</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.11 Shabal</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Shabal is a hash algorithm that is constructed using a novel chaining mode, which can be seen as a variant of a wide-pipe Merkle-Damgård hash construction. Its compression function is similarly innovative, based on a feedback shift register construction that combines the several inputs provided by the chaining mode efficiently. Nonlinearity in Shabal is derived from the overlap of XOR, modular addition, and bitwise AND operations. The entire design is very different from any other second-round candidate and has many new ideas.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Shabal は、新しい連鎖モードを用いて構築されたハッシュアルゴリズムで、ワイドパイプの Merkle-Damgård ハッシュ構成の変種とみなすことができます。その圧縮関数も同様に革新的で、連鎖モードが提供する複数の入力を効率的に組み合わせるフィードバックシフトレジスタの構成に基づいています。Shabal の非線形性は、XOR、法加算、ビット単位の AND 演算の重なりから得られます。設計全体は、他のどの第 2 ラウンドの候補ともまったく異なり、多くの新しい考え方を含んでいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Shabal’s performance is good. However, it requires more working memory than most of the second-round candidates. The same internal function is used for all output sizes of Shabal.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Shabal の性能は良好です。ただし、第 2 ラウンドの候補の大半よりも多くの作業用メモリを必要とします。Shabal のすべての出力サイズに、同じ内部関数が使われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Several observations regarding Shabal’s compression function have been published, including powerful distinguishing attacks on the keyed permutation that forms its core [43, 44]. However, the attacks have not been claimed to directly threaten the security of the hash algorithm, and the submitters have modified the security proof of their chaining mode to require weaker assumptions that are not invalidated by the attacks. Nonetheless, the distinguishing attacks remain a concern.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Shabal の圧縮関数に関するいくつかの観察結果が公表されており、その中核を成す鍵付き置換に対する強力な識別攻撃 [43, 44] も含まれます。しかし、これらの攻撃がハッシュアルゴリズムのセキュリティを直接脅かすとは主張されておらず、提出者は、攻撃によって無効にならない、より弱い仮定を必要とするように、連鎖モードのセキュリティ証明を修正しました。それでも、識別攻撃は懸念事項として残っています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.12 SHAvite-3</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.12 SHAvite-3</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SHAvite-3 is a HAIFA hash algorithm. The compression function is a keyed permutation that is used in the Davies-Meyer construction. The keyed permutation is a balanced Feistel network [45] (for the 256-bit case) or a pair of interwoven balanced Feistel networks (for the 512-bit case), with the F-function constructed from the AES round function. All nonlinearity in the whole construction relies upon the AES S-box. The most innovative part of the design is the decision to construct the keyed permutation in this way; however, SHAvite-3 is a conservative design, with relatively little new about it.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHAvite-3 は、HAIFA のハッシュアルゴリズムです。圧縮関数は、Davies-Meyer 構成で用いられる鍵付き置換です。鍵付き置換は、バランス型 Feistel ネットワーク [45]（256 ビットの場合）、またはインターウーブンされた一対のバランス型 Feistel ネットワーク（512 ビットの場合）で、F 関数は AES のラウンド関数から構成されます。構成全体のすべての非線形性は、AES の S-box に依存しています。この設計の最も革新的な部分は、鍵付き置換をこの方法で構成するという判断です。ただし、SHAvite-3 は保守的な設計であり、新しい点は比較的少ないです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SHAvite-3 has acceptable performance on current high-end platforms, but hardware AES support could have a large impact on its performance, since the AES round function is used directly. Shavite-3 has modest memory requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHAvite-3 は、現在のハイエンドのプラットフォームでは許容できる性能ですが、AES のラウンド関数を直接使用しているため、ハードウェアでの AES サポートが性能に大きな影響を与える可能性があります。Shavite-3 の必要なメモリは控えめです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most serious cryptanalytic results on SHAvite-3 are large numbers of zero pseudo-preimages for the compression function [46, 47]. However, these require the use of a specific counter value, which is used only for the final message block, where the pseudo-preimages apparently cannot be constructed. While this result appears to pose no direct threat to SHAvite-3, this unexpected property of the compression function is a source of concern, especially given the fact that the offending counter value is used in Shavite-3’s current construction.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SHAvite-3 に対する最も深刻な暗号解析の結果は、圧縮関数に対する大量のゼロ擬似原像です [46, 47]。しかし、これには最後のメッセージブロックにのみ使用される特定のカウンタ値の使用が必要で、そこでは擬似原像を構成できないと思われます。この結果は SHAvite-3 への直接の脅威にはならないと思われますが、圧縮関数のこの予期しない性質は、特に問題のカウンタ値が Shavite-3 の現在の構成で使われているという事実を踏まえると、懸念の原因です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.13 SIMD</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.13 SIMD</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SIMD is a wide-pipe Merkle-Damgård hash construction. Its compression function is constructed from a keyed permutation, in a variant of the Davies-Meyer construction. The keyed permutation is the most innovative part of this design; it uses a linear code with provable diffusion properties as the “key schedule,” and uses four unbalanced Feistel networks that are reminiscent of the MD4 [48] and MD5 [49] round functions in an interleaved way as its round function. The nonlinearity in this design is provided by the overlap of modular addition and XOR operations and from the bitwise nonlinear functions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SIMD は、ワイドパイプの Merkle-Damgård ハッシュ構成です。その圧縮関数は、Davies-Meyer 構成の変種における鍵付き置換から構成されます。鍵付き置換はこの設計の最も革新的な部分で、証明可能な拡散特性を持つ線形符号を「鍵スケジュール」として用い、MD4 [48] と MD5 [49] のラウンド関数を想起させる 4 つの非対称 Feistel ネットワークをインターリーブして、ラウンド関数として用います。この設計の非線形性は、法加算と XOR 演算の重なりと、ビット単位の非線形関数によって提供されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SIMD can achieve very good performance, but only when vector instructions are available. It also has relatively large memory requirements, which raises concerns about its suitability for constrained platforms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SIMD は非常に良好な性能を達成できますが、それはベクトル命令が利用できる場合に限られます。また、必要なメモリが比較的大きく、制約のあるプラットフォームへの適合性について懸念が生じます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>At present, we are aware of no analysis that raises questions about SIMD’s security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現時点で、SIMD のセキュリティに疑問を生じさせる解析は把握していません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.14 Skein</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.14 Skein</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Skein is a variant of a Merkle-Damgård hash construction that is based on a novel tweakable block cipher and chaining mode. The compression function is used in a variant of the Matyas-Meyer-Oseas [25] construction that is appropriate for a tweakable block cipher, and the submission provides proofs that the construction is secure, assuming a secure compression function and tweakable block cipher. The block cipher (called “Threefish”) is constructed from a large number of very simple rounds and uses only three 64-bit operations—modular addition, bitwise XORing, and rotation. All nonlinearity in the hash algorithm is provided by the overlap of modular addition and XOR operations. The most innovative parts of Skein are the Threefish block cipher and the chaining mode.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Skein は、新しい tweak 可能なブロック暗号と連鎖モードに基づく、Merkle-Damgård ハッシュ構成の変種です。圧縮関数は、tweak 可能なブロック暗号に適した Matyas-Meyer-Oseas [25] 構成の変種で用いられており、提出物は、安全な圧縮関数と tweak 可能なブロック暗号を仮定した場合にこの構成が安全であることの証明を提供しています。ブロック暗号（「Threefish」と呼ばれます）は、非常に単純な多数のラウンドから構成され、64 ビットの演算を 3 つ、すなわち法加算、ビット単位の XOR、ローテートだけを使用します。このハッシュアルゴリズムのすべての非線形性は、法加算と XOR 演算の重なりによって提供されます。Skein の最も革新的な部分は、Threefish ブロック暗号と連鎖モードです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Skein has good performance on high-end platforms, particularly in 64-bit mode, and is also expected to perform well in constrained platforms and in dedicated hardware implementations. It has modest memory requirements and benefits from the pipelining used in modern processors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Skein は、ハイエンドのプラットフォーム、特に 64 ビットモードで良好な性能を示し、制約のあるプラットフォームや専用ハードウェア実装でも良好な性能を示すことが見込まれます。必要なメモリは控えめで、現代のプロセッサで使われるパイプライン処理の恩恵を受けます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most significant cryptanalytic results on Skein are distinguishing attacks against reduced-round versions of Threefish; these do not appear to pose a threat to the full hash algorithm at this time.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Skein に関する最も重要な暗号解析の結果は、ラウンド数を縮小した版の Threefish に対する識別攻撃です。これらは現時点では、完全なハッシュアルゴリズムへの脅威にはならないと思われます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4 Conclusion and Next Steps</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4 結論と今後の手順</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The announcement of the 14 second-round hash algorithm candidates, BLAKE, BLUE MIDNIGHT WISH, CubeHash, ECHO, Fugue, Grøstl, Hamsi, JH, Keccak, Luffa, Shabal, SHAvite-3, SIMD, and Skein, marks the start of the second round of the SHA-3 competition. This paper summarized the evaluation criteria used to select these candidate algorithms, and briefly described the basic design of the second-round candidates, along with advantages and disadvantages already noted in these submissions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>14 件の第 2 ラウンドのハッシュアルゴリズム候補、すなわち BLAKE、BLUE MIDNIGHT WISH、CubeHash、ECHO、Fugue、Grøstl、Hamsi、JH、Keccak、Luffa、Shabal、SHAvite-3、SIMD、Skein の発表は、SHA-3 コンペティションの第 2 ラウンドの開始を示します。本稿は、これらの候補アルゴリズムを選定するために用いた評価基準をまとめ、第 2 ラウンドの候補の基本設計と、これらの提出物ですでに指摘されている長所と短所を簡単に説明しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Submitters of the second-round candidates will be allowed to tweak their submissions to improve upon them if they wish, and fix any inconsistencies, problems or shortcomings in the specifications or source code. Any changes must be submitted to NIST by September 15, 2009 in a complete submission package, as defined in FRN-Nov07.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 ラウンドの候補の提出者は、希望すれば、提出物を改良するために調整を加えたり、仕様またはソースコードにある不整合、問題、欠点を修正したりすることが認められます。変更はすべて、FRN-Nov07 で定義された完全な提出パッケージとして、2009 年 9 月 15 日までに NIST に提出されなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The next twelve months will consist of a public review on the remaining 14 second-round hash algorithm candidates. Many of the second-round candidates have little or no cryptanalysis by the cryptographic community-at-large. With the number of candidates substantially reduced from the first round, we hope that the combined efforts of the cryptographic community will evaluate the remaining candidates and provide NIST with feedback that supports or refutes the security claims of the submitters. We are also interested in additional performance data on each of the candidates. This includes optimized implementations written in assembly code or using instruction set extensions, and analyses of implementation suitability of candidate algorithms in constrained platforms, as well as performance data for hardware implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>今後 12 か月は、残りの 14 件の第 2 ラウンドのハッシュアルゴリズム候補に対する一般のレビューに充てられます。第 2 ラウンドの候補の多くは、暗号コミュニティ全体からの暗号解析をほとんど、またはまったく受けていません。候補の数が第 1 ラウンドから大幅に減ったことで、暗号コミュニティの共同の努力により、残りの候補が評価され、提出者のセキュリティに関する主張を裏付けるまたは反証するフィードバックが NIST に寄せられることを期待しています。また、各候補についての追加の性能データにも関心があります。これには、アセンブリコードで書かれた、または命令セット拡張を用いる最適化された実装、制約のあるプラットフォームにおける候補アルゴリズムの実装適合性の解析、およびハードウェア実装の性能データが含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST plans to host the Second SHA-3 Candidate Conference at the University of California-Santa Barbara on August 23-24, 2010, following Crypto 2010. Submitters of the second-round candidates will be invited to present their algorithms. Soon after the conference, in the fall of 2010, NIST plans to select approximately five finalists for the final round of the competition. Detailed plans for the final round will be provided at a later date.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、Crypto 2010 に続いて 2010 年 8 月 23〜24 日に University of California-Santa Barbara で第 2 回 SHA-3 候補会議を開催する予定です。第 2 ラウンドの候補の提出者は、アルゴリズムを発表するために招待されます。会議の後まもなくの 2010 年秋に、NIST は、コンペティションの最終ラウンドに進む約 5 件のファイナリストを選定する予定です。最終ラウンドの詳細な計画は、後日示されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5 References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5 参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] FIPS PUB 180-3 Secure Hash Standard (SHS), Information Technology Laboratory, National Institute of Standards and Technology, Oct. 2008, http://csrc.nist.gov/publications/fips/fips180-3/fips180-3_final.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] FIPS PUB 180-3 Secure Hash Standard (SHS), Information Technology Laboratory, National Institute of Standards and Technology, Oct. 2008, http://csrc.nist.gov/publications/fips/fips180-3/fips180-3_final.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Near-Collisions of SHA-0 (with Forthcoming Results on SHA-0 and SHA-1), Eli Biham, Rafi Chen, http://www.cs.technion.ac.il/users/wwwb/cgi-bin/tr-get.cgi/2004/CS/CS-2004-09.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Near-Collisions of SHA-0 (with Forthcoming Results on SHA-0 and SHA-1), Eli Biham, Rafi Chen, http://www.cs.technion.ac.il/users/wwwb/cgi-bin/tr-get.cgi/2004/CS/CS-2004-09.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Collision Search Attacks on SHA1, Xiaoyun Wang, Yiqun Lisa Yin, Hongbo Yu, February 13, 2005, http://www.c4i.org/erehwon/shanote.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Collision Search Attacks on SHA1, Xiaoyun Wang, Yiqun Lisa Yin, Hongbo Yu, February 13, 2005, http://www.c4i.org/erehwon/shanote.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Cryptographic Hash Workshop, October 31-November 1, 2005, NIST Gaithersburg, MD, http://csrc.nist.gov/groups/ST/hash/first_workshop.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Cryptographic Hash Workshop, October 31-November 1, 2005, NIST Gaithersburg, MD, http://csrc.nist.gov/groups/ST/hash/first_workshop.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] The Second Cryptographic Hash Workshop, August 24-25, 2006, Santa Barbara, CA, http://csrc.nist.gov/groups/ST/hash/second_workshop.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] The Second Cryptographic Hash Workshop, August 24-25, 2006, Santa Barbara, CA, http://csrc.nist.gov/groups/ST/hash/second_workshop.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Report on the Development of the Advanced Encryption Standard (AES), James Nechvatal, et al., Computer Security Division, Information Technology Laboratory, National Institute of Standards and Technology, Oct. 2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Report on the Development of the Advanced Encryption Standard (AES), James Nechvatal, et al., Computer Security Division, Information Technology Laboratory, National Institute of Standards and Technology, Oct. 2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] FIPS PUB 197 Announcing the ADVANCED ENCRYPTION STANDARD (AES), Information Technology Laboratory, National Institute of Standards and Technology, Nov. 2001, http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] FIPS PUB 197 Announcing the ADVANCED ENCRYPTION STANDARD (AES), Information Technology Laboratory, National Institute of Standards and Technology, Nov. 2001, http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Announcing the Development of New Hash Algorithm(s) for the Revision of Federal Information Processing Standard (FIPS) 180–2, Secure Hash Standard, Federal Register / Vol. 72, No. 14 / Tuesday, January 23, 2007 / Notices 2861, http://csrc.nist.gov/groups/ST/hash/documents/FR_Notice_Jan07.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Announcing the Development of New Hash Algorithm(s) for the Revision of Federal Information Processing Standard (FIPS) 180–2, Secure Hash Standard, Federal Register / Vol. 72, No. 14 / Tuesday, January 23, 2007 / Notices 2861, http://csrc.nist.gov/groups/ST/hash/documents/FR_Notice_Jan07.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] Announcing Request for Candidate Algorithm Nominations for a New Cryptographic Hash Algorithm (SHA–3) Family, NIST, Federal Register / Vol. 72, No. 212 / Friday, November 2, 2007 / Notices, http://csrc.nist.gov/groups/ST/hash/documents/FR_Notice_Nov07.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] Announcing Request for Candidate Algorithm Nominations for a New Cryptographic Hash Algorithm (SHA–3) Family, NIST, Federal Register / Vol. 72, No. 212 / Friday, November 2, 2007 / Notices, http://csrc.nist.gov/groups/ST/hash/documents/FR_Notice_Nov07.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] Conference Report on the <i>First Advanced Encryption Standard (AES) Candidate Conference, Ventura, CA, August 20-22, 1998</i>, Edward Roback and Morris Dworkin, Journal of Research of the National Institute of Standards and Technology, Volume 104, Number 1, January–February 1999</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] Conference Report on the <i>First Advanced Encryption Standard (AES) Candidate Conference, Ventura, CA, August 20-22, 1998</i>, Edward Roback and Morris Dworkin, Journal of Research of the National Institute of Standards and Technology, Volume 104, Number 1, January–February 1999</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] The First SHA-3 Candidate Conference, K.U. Leuven, Belgium, Feb. 25-28, 2009, http://csrc.nist.gov/groups/ST/hash/sha-3/Round1/Feb2009/index.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] The First SHA-3 Candidate Conference, K.U. Leuven, Belgium, Feb. 25-28, 2009, http://csrc.nist.gov/groups/ST/hash/sha-3/Round1/Feb2009/index.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] Random Oracles are Practical: A Paradigm for Designing Efficient Protocols, Mihir Bellare and Phillip Rogaway, ACM Conference on Computer and Communications Security 1993, pp. 62–73, http://cseweb.ucsd.edu/users/mihir/papers/ro.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] Random Oracles are Practical: A Paradigm for Designing Efficient Protocols, Mihir Bellare and Phillip Rogaway, ACM Conference on Computer and Communications Security 1993, pp. 62–73, http://cseweb.ucsd.edu/users/mihir/papers/ro.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] The Random Oracle Methodology Revisited, Ran Canetti, Oded Goldreich and Shai Halevi, STOC 1998, pp. 209–218, http://arxiv.org/abs/cs.CR/0010019</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] The Random Oracle Methodology Revisited, Ran Canetti, Oded Goldreich and Shai Halevi, STOC 1998, pp. 209–218, http://arxiv.org/abs/cs.CR/0010019</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[14] Hash Forum, http://csrc.nist.gov/groups/ST/hash/email_list.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[14] Hash Forum, http://csrc.nist.gov/groups/ST/hash/email_list.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[15] ECRYPT SHA-3 Zoo, http://ehash.iaik.tugraz.at/wiki/The_SHA-3_Zoo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[15] ECRYPT SHA-3 Zoo, http://ehash.iaik.tugraz.at/wiki/The_SHA-3_Zoo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[16] One way hash functions and DES, Ralph Merkle, Advances in Cryptology - CRYPTO &#x27;89 Proceedings, Lecture Notes in Computer Science, Vol. 435, G. Brassard, ed, Springer-Verlag, 1989, pp. 428-446.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[16] One way hash functions and DES, Ralph Merkle, Advances in Cryptology - CRYPTO &#x27;89 Proceedings, Lecture Notes in Computer Science, Vol. 435, G. Brassard, ed, Springer-Verlag, 1989, pp. 428-446.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[17] A Design Principle for Hash Functions, I. Damgård, Advances in Cryptology - CRYPTO &#x27;89 Proceedings, Lecture Notes in Computer Science, Vol. 435, G. Brassard, ed, Springer-Verlag, 1989, pp. 416-427.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[17] A Design Principle for Hash Functions, I. Damgård, Advances in Cryptology - CRYPTO &#x27;89 Proceedings, Lecture Notes in Computer Science, Vol. 435, G. Brassard, ed, Springer-Verlag, 1989, pp. 416-427.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[18] Sponge Functions, G. Bertoni, et al, http://sponge.noekeon.org/SpongeFunctions.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[18] Sponge Functions, G. Bertoni, et al, http://sponge.noekeon.org/SpongeFunctions.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[19] On the Indifferentiability of the Sponge Construction, G. Bertoni, et al, EuroCrypt 2008, N. Smart (Ed.), LNCS 4965, pp. 181–197, 2008, http://sponge.noekeon.org/SpongeIndifferentiability.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[19] On the Indifferentiability of the Sponge Construction, G. Bertoni, et al, EuroCrypt 2008, N. Smart (Ed.), LNCS 4965, pp. 181–197, 2008, http://sponge.noekeon.org/SpongeIndifferentiability.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[20] eBASH: ECRYPT Benchmarking of All Submitted Hashes, http://bench.cr.yp.to/ebash.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[20] eBASH: ECRYPT Benchmarking of All Submitted Hashes, http://bench.cr.yp.to/ebash.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[21] A Study on RAM Requirements of Various SHA-3 Candidates on Low-cost 8-bit CPUs, Kota Ideguchi, Toru Owada, Hirotaka Yoshida, http://www.sdl.hitachi.co.jp/crypto/lesamnta/A_Study_on_RAM_Requirements.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[21] A Study on RAM Requirements of Various SHA-3 Candidates on Low-cost 8-bit CPUs, Kota Ideguchi, Toru Owada, Hirotaka Yoshida, http://www.sdl.hitachi.co.jp/crypto/lesamnta/A_Study_on_RAM_Requirements.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[22] The Intel AES Instructions Set and the SHA-3 Candidates, R. Benadjila, et al, http://crypto.rd.francetelecom.com/sha3/AES/paper/</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[22] The Intel AES Instructions Set and the SHA-3 Candidates, R. Benadjila, et al, http://crypto.rd.francetelecom.com/sha3/AES/paper/</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[23] SIMD (Single Instruction, Multiple Data), http://en.wikipedia.org/wiki/SIMD</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[23] SIMD (Single Instruction, Multiple Data), http://en.wikipedia.org/wiki/SIMD</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[24] A Framework for Iterative Hash Functions — HAIFA, Eli Biham, Orr Dunkelman, NIST Second Cryptographic Hash Workshop, Santa Barbara, August 2006, http://csrc.nist.gov/groups/ST/hash/documents/DUNKELMAN_NIST3.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[24] A Framework for Iterative Hash Functions — HAIFA, Eli Biham, Orr Dunkelman, NIST Second Cryptographic Hash Workshop, Santa Barbara, August 2006, http://csrc.nist.gov/groups/ST/hash/documents/DUNKELMAN_NIST3.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[25] Black-Box Analysis of the Block-Cipher-Based Hash-Function Constructions from PGV, John Black, Phillip Rogaway, and Tom Shrimpton, Advances in Cryptology - CRYPTO &#x27;02, Lecture Notes in Computer Science, vol. 2442, pp. 320-335, Springer, 2002.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[25] Black-Box Analysis of the Block-Cipher-Based Hash-Function Constructions from PGV, John Black, Phillip Rogaway, and Tom Shrimpton, Advances in Cryptology - CRYPTO &#x27;02, Lecture Notes in Computer Science, vol. 2442, pp. 320-335, Springer, 2002.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[26] ChaCha, a variant of Salsa20, Daniel J. Bernstein, Jan 28, 2008, http://cr.yp.to/chacha/chacha-20080128.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[26] ChaCha, a variant of Salsa20, Daniel J. Bernstein, Jan 28, 2008, http://cr.yp.to/chacha/chacha-20080128.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[27] Attacks on Round-Reduced BLAKE, Li Ji and Xu Liangyu, Sony China Research Laboratory, http://eprint.iacr.org/2009/238.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[27] Attacks on Round-Reduced BLAKE, Li Ji and Xu Liangyu, Sony China Research Laboratory, http://eprint.iacr.org/2009/238.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[28] Round-Reduced Near-Collisions of BLAKE-32, Jian Guo and Krystian Matusiewicz, http://www.jguo.org/docs/blake-col.pdf?attredirects=0</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[28] Round-Reduced Near-Collisions of BLAKE-32, Jian Guo and Krystian Matusiewicz, http://www.jguo.org/docs/blake-col.pdf?attredirects=0</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[29] Design Principles for Iterated Hash Functions, Stefan Lucks, e-print (September 29, 2004), http://eprint.iacr.org/2004/253.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[29] Design Principles for Iterated Hash Functions, Stefan Lucks, e-print (September 29, 2004), http://eprint.iacr.org/2004/253.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[30] A near-collision attack on the <i>Blue Midnight Wish</i> compression function, Søren S. Thomsen, November 27, 2008, http://www2.mat.dtu.dk/people/S.Thomsen/bmw/nc-compress.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[30] A near-collision attack on the <i>Blue Midnight Wish</i> compression function, Søren S. Thomsen, November 27, 2008, http://www2.mat.dtu.dk/people/S.Thomsen/bmw/nc-compress.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[31] Inside the Hypercube, Jean-Philippe Aumasson, et al, http://eprint.iacr.org/2008/486.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[31] Inside the Hypercube, Jean-Philippe Aumasson, et al, http://eprint.iacr.org/2008/486.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[32] Preimage attack on CubeHash512-r/4 and CubeHash512-r/8, Dmitry Khovratovich, Ivica Nikolic, and Ralf-Philipp Weinmann, University of Luxembourg, http://ehash.iaik.tugraz.at/uploads/6/6c/Cubehash.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[32] Preimage attack on CubeHash512-r/4 and CubeHash512-r/8, Dmitry Khovratovich, Ivica Nikolic, and Ralf-Philipp Weinmann, University of Luxembourg, http://ehash.iaik.tugraz.at/uploads/6/6c/Cubehash.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[33] Linearization Framework for Collision Attacks: Application to CubeHash and MD6, E. Brier, et al, conference paper listed on http://thomas.peyrin.googlepages.com/research.htm</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[33] Linearization Framework for Collision Attacks: Application to CubeHash and MD6, E. Brier, et al, conference paper listed on http://thomas.peyrin.googlepages.com/research.htm</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[34] Collisions for CubeHash1/45 and CubeHash2/89, Wei Dai, http://www.cryptopp.com/sha3/cubehash.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[34] Collisions for CubeHash1/45 and CubeHash2/89, Wei Dai, http://www.cryptopp.com/sha3/cubehash.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[35] NIST mailing list 2008-12-04, Jean-Philippe Aumasson, http://ehash.iaik.tugraz.at/uploads/a/a9/Cubehash.txt</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[35] NIST mailing list 2008-12-04, Jean-Philippe Aumasson, http://ehash.iaik.tugraz.at/uploads/a/a9/Cubehash.txt</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[36] S-Box (Substitution-box), http://en.wikipedia.org/wiki/S-box</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[36] S-Box (Substitution-box), http://en.wikipedia.org/wiki/S-box</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[37] Improved Cryptanalysis of the Reduced Grøstl Compression Function, ECHO Permutation and AES Block Cipher, Florian Mendel, et al, https://online.tu-graz.ac.at/tug_online/voe_main2.getVollText?pDocumentNr=106996</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[37] Improved Cryptanalysis of the Reduced Grøstl Compression Function, ECHO Permutation and AES Block Cipher, Florian Mendel, et al, https://online.tu-graz.ac.at/tug_online/voe_main2.getVollText?pDocumentNr=106996</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[38] Handbook of Applied Cryptography by Alfred J. Menezes, Paul C. van Oorschot, Scott A. Vanstone. Fifth Printing (August 2001) page 251.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[38] Handbook of Applied Cryptography 著 Alfred J. Menezes, Paul C. van Oorschot, Scott A. Vanstone. Fifth Printing (August 2001) page 251.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[39] An Observation on JH-512, Florian Mendel and Søren S. Thomsen, http://ehash.iaik.tugraz.at/uploads/d/da/Jh_preimage.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[39] An Observation on JH-512, Florian Mendel and Søren S. Thomsen, http://ehash.iaik.tugraz.at/uploads/d/da/Jh_preimage.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[40] The Complexity of Mendel and Thomsen&#x27;s Preimage Attack on JH-512, Hongjun Wu, http://ehash.iaik.tugraz.at/uploads/6/6f/Jh_mt_complexity.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[40] The Complexity of Mendel and Thomsen&#x27;s Preimage Attack on JH-512, Hongjun Wu, http://ehash.iaik.tugraz.at/uploads/6/6f/Jh_mt_complexity.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[41] Cube Attacks on Cryptographic Hash Functions, Joel Lathrop, May 21, 2009, http://www.cs.rit.edu/~jal6806/thesis/thesis.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[41] Cube Attacks on Cryptographic Hash Functions, Joel Lathrop, May 21, 2009, http://www.cs.rit.edu/~jal6806/thesis/thesis.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[42] Practical Pseudo-Cryptanalysis of Luffa, Jia Keting, http://eprint.iacr.org/2009/224.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[42] Practical Pseudo-Cryptanalysis of Luffa, Jia Keting, http://eprint.iacr.org/2009/224.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[43] Observations on the Shabal keyed permutation, Lars R. Knudsen, Krystian Matusiewicz, Søren S. Thomsen, April 7, 2009, http://www2.mat.dtu.dk/people/S.Thomsen/shabal/shabal.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[43] Observations on the Shabal keyed permutation, Lars R. Knudsen, Krystian Matusiewicz, Søren S. Thomsen, April 7, 2009, http://www2.mat.dtu.dk/people/S.Thomsen/shabal/shabal.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[44] More on Shabal&#x27;s permutation, Jean-Philippe Aumasson, Atefeh Mashatan, and Willi Meier, http://131002.net/data/papers/AMM09.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[44] More on Shabal&#x27;s permutation, Jean-Philippe Aumasson, Atefeh Mashatan, and Willi Meier, http://131002.net/data/papers/AMM09.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[45] Handbook of Applied Cryptography by Alfred J. Menezes, Paul C. van Oorschot, Scott A. Vanstone. Fifth Printing (August 2001) page 251.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[45] Handbook of Applied Cryptography 著 Alfred J. Menezes, Paul C. van Oorschot, Scott A. Vanstone. Fifth Printing (August 2001) page 251.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[46] Chosen-salt, chosen-counter, pseudo-collision for the compression function of SHAvite-3, Thomas Peyrin, NIST mailing list, 19 January 2009, http://ehash.iaik.tugraz.at/uploads/e/ea/Peyrin-SHAvite-3.txt</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[46] Chosen-salt, chosen-counter, pseudo-collision for the compression function of SHAvite-3, Thomas Peyrin, NIST mailing list, 19 January 2009, http://ehash.iaik.tugraz.at/uploads/e/ea/Peyrin-SHAvite-3.txt</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[47] OFFICIAL COMMENT: SHAvite-3, Mridul Nandi and Souradyuti Paul, http://csrc.nist.gov/groups/ST/hash/sha-3/Round1/documents/SHAvite3_Comments.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[47] OFFICIAL COMMENT: SHAvite-3, Mridul Nandi and Souradyuti Paul, http://csrc.nist.gov/groups/ST/hash/sha-3/Round1/documents/SHAvite3_Comments.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[48] The MD4 Message Digest Algorithm, Rivest, R., RFC 1186, MIT, October 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[48] The MD4 Message Digest Algorithm, Rivest, R. 著、RFC 1186、MIT、October 1990.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[49] The MD5 Message-Digest Algorithm, Rivest, R., RFC 1321, MIT and RSA Data Security, Inc, April 1992.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[49] The MD5 Message-Digest Algorithm, Rivest, R. 著、RFC 1321、MIT および RSA Data Security, Inc、April 1992.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7620.pdf">National Institute of Standards and Technology, IR 7620</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7620";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7559 は、合成された Web サービスの呼び出しを再現するための適切な証拠を保全するフォレンジック Web サービス（FWS）の設計を提案する報告書です。Web サービスの合成によってサービス間に相互依存関係が生まれ、悪用される可能性があるため、調査担当者は、悪用が報告された場合に攻撃を再現するために、合成されたサービスのログの集合をたどらなければなりません。FWS は、それ自体が Web サービスとして、オンラインのフォレンジック機能を他の Web サービスに提供し、信頼できる第三者として機能して、法廷で受け入れられる可能性を高めることを目指しています。本書は、Web サービスの背景、Web サービスに対する攻撃、Web サービスのフォレンジックにおける課題、FWS の概要、関連研究を取り上げています。">
+  <title>フォレンジック Web サービス（FWS） | NIST IR 7559 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Forensics Web Services (FWS)" data-search="フォレンジック web サービス（fws） forensics web services (fws)">フォレンジック Web サービス（FWS）</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Acknowledgements" data-search="謝辞 acknowledgements">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. INTRODUCTION" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0017" title="2. BACKGROUND ON WEB SERVICES" data-search="2. web サービスの背景 2. background on web services">2. Web サービスの背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0003" title="2.1 Basic Appearance of Web Services" data-search="2.1 web サービスの基本的な姿 2.1 basic appearance of web services">2.1 Web サービスの基本的な姿</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0012" title="2.2 Composition of Web Services" data-search="2.2 web サービスの合成 2.2 composition of web services">2.2 Web サービスの合成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0017" title="2.3 Static vs. Dynamic Composition" data-search="2.3 静的な合成と動的な合成 2.3 static vs. dynamic composition">2.3 静的な合成と動的な合成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001" title="2.4 Hierarchical vs. Conversational Composition" data-search="2.4 階層型の合成と会話型の合成 2.4 hierarchical vs. conversational composition">2.4 階層型の合成と会話型の合成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0016" title="2.5 Composition Standards and Languages" data-search="2.5 合成の標準と言語 2.5 composition standards and languages">2.5 合成の標準と言語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0006" title="2.6 Web Services Example" data-search="2.6 web サービスの例 2.6 web services example">2.6 Web サービスの例</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0009" title="3. WEB SERVICE ATTACKS" data-search="3. web サービスへの攻撃 3. web service attacks">3. Web サービスへの攻撃</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001" title="4. CHALLENGES IN FORENSICS OF WEB SERVICES" data-search="4. web サービスのフォレンジックにおける課題 4. challenges in forensics of web services">4. Web サービスのフォレンジックにおける課題</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0007" title="a) Neutrality" data-search="a) 中立性 a) neutrality">a) 中立性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0017" title="b) Comprehensiveness" data-search="b) 網羅性 b) comprehensiveness">b) 網羅性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0003" title="c) Reliability" data-search="c) 信頼性 c) reliability">c) 信頼性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0010" title="5. OVERVIEW of FWS" data-search="5. fws の概要 5. overview of fws">5. FWS の概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0010" title="5.1 FUNCTIONS PROVIDED BY FWS" data-search="5.1 fws が提供する機能 5.1 functions provided by fws">5.1 FWS が提供する機能</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0006" title="5.2 Monitoring Web Services Interactions" data-search="5.2 web サービスの相互作用の監視 5.2 monitoring web services interactions">5.2 Web サービスの相互作用の監視</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0014" title="6. Forensics over Web Services" data-search="6. web サービスにおけるフォレンジック 6. forensics over web services">6. Web サービスにおけるフォレンジック</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0006" title="Revealing Global Composition Instances" data-search="グローバルな合成インスタンスの解明 revealing global composition instances">グローバルな合成インスタンスの解明</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0015" title="Orchestration Process Verification" data-search="オーケストレーションプロセスの検証 orchestration process verification">オーケストレーションプロセスの検証</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0005" title="Choreography Instance Verification" data-search="コレオグラフィインスタンスの検証 choreography instance verification">コレオグラフィインスタンスの検証</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0012" title="7. RELATED WORK" data-search="7. 関連研究 7. related work">7. 関連研究</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0017" title="8. CONCLUSION" data-search="8. 結論 8. conclusion">8. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0023-b0001" title="REFERENCES" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7559 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Forensics Web Services (FWS)</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>フォレンジック Web サービス（FWS）</strong></span><br><span class="doc-panel-item">公開日 : 2010-06-30</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7559/final">https://csrc.nist.gov/pubs/ir/7559/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 135 / 136 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7559 は、合成された Web サービスの呼び出しを再現するための適切な証拠を保全するフォレンジック Web サービス（FWS）の設計を提案する報告書です。Web サービスの合成によってサービス間に相互依存関係が生まれ、悪用される可能性があるため、調査担当者は、悪用が報告された場合に攻撃を再現するために、合成されたサービスのログの集合をたどらなければなりません。FWS は、それ自体が Web サービスとして、オンラインのフォレンジック機能を他の Web サービスに提供し、信頼できる第三者として機能して、法廷で受け入れられる可能性を高めることを目指しています。本書は、Web サービスの背景、Web サービスに対する攻撃、Web サービスのフォレンジックにおける課題、FWS の概要、関連研究を取り上げています。</p></div>
+      </div>
+
+      <section class="row source-only pair figure" id="pdf-p0001-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report 7559</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 機関間報告書 7559</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Forensics Web Services (FWS)</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+フォレンジック Web サービス（FWS）</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Anoop Singhal Murat Gunestas Duminda Wijesekera</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Anoop Singhal Murat Gunestas Duminda Wijesekera</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Forensics Web Services (FWS)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フォレンジック Web サービス（FWS）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report 7559</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 機関間報告書 7559</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Anoop Singhal Murat Gunestas Duminda Wijesekera</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Anoop Singhal Murat Gunestas Duminda Wijesekera</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>COMPUTER SECURITY</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Division Information Technology Laboratory National Institute of Standards and Technology Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ部門 情報技術研究所 米国国立標準技術研究所 Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>June 2010</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2010年6月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Gary Locke, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Gary Locke 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dr. Patrick D. Gallagher, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Dr. Patrick D. Gallagher 所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analysis to advance the development and productive use of information technology. ITL’s responsibilities include the development of technical, physical, administrative, and management standards and guidelines for the cost-effective security and privacy of sensitive unclassified information in Federal computer systems. This Interagency Report discusses ITL’s research, guidance, and outreach efforts in computer security and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラストラクチャに対する技術的なリーダーシップを提供することで、米国の経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を推進するため、テスト、テスト方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦コンピュータシステムにおける機微な非機密情報のセキュリティとプライバシーを費用対効果の高い形で確保するための、技術的、物理的、事務的、管理的な標準およびガイドラインの開発が含まれます。この機関間報告書では、コンピュータセキュリティに関する ITL の研究、ガイダンス、アウトリーチの取り組みと、産業界、政府、学術機関との協力活動について説明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report 7559 17 pages (January 2010)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 機関間報告書 7559 17 ページ（2010年1月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書では、実験の手順や概念を適切に説明するために、特定の商業組織、機器、または資材を明示している場合があります。このような明示は、米国国立標準技術研究所（NIST）による推奨や保証を意味するものではなく、それらの組織、資材、機器が当該目的に必ずしも最適であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors Anoop Singhal, Murat Gunestas and Duminda Wijesekera would like to thank their colleagues who reviewed drafts of this document and contributed to its development. A special note of thanks goes to Mark Carson, Rick Ayers, Rick Kuhn, Ramaswamy Chandramouli and Karen Scarforne of NIST for serving as reviewers for this document. The authors also acknowledge Elizabeth Lennon for her technical editing and administrative support.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者の Anoop Singhal、Murat Gunestas、Duminda Wijesekera は、本文書の草案をレビューし、その作成に貢献してくれた同僚に感謝します。特に、NIST の Mark Carson、Rick Ayers、Rick Kuhn、Ramaswamy Chandramouli、Karen Scarforne には、本文書のレビュー担当者を務めていただいたことに深く感謝します。また、技術編集と事務面の支援を行った Elizabeth Lennon にも謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The advance of Web services technologies promises to have far-reaching effects on the Internet and enterprise networks. Web services based on the eXtensible Markup Language (XML), Simple Object Access Protocol (SOAP), and related open standards, and deployed in Service Oriented Architectures (SOA) allow data and applications to interact without human intervention through dynamic and ad hoc connections. Web services technology can be implemented in a wide variety of architectures, can co-exist with other technologies and software design approaches, and can be adopted in an evolutionary manner without requiring major transformations to legacy applications and databases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービス技術の進歩は、インターネットとエンタープライズネットワークに広範な影響を及ぼすと期待されています。eXtensible Markup Language（XML）、Simple Object Access Protocol（SOAP）、および関連するオープン標準に基づき、サービス指向アーキテクチャ（SOA）に展開される Web サービスは、動的かつアドホックな接続を通じて、人間の介在なしにデータとアプリケーションが相互作用することを可能にします。Web サービス技術は、さまざまなアーキテクチャで実装でき、他の技術やソフトウェア設計手法と共存でき、レガシーのアプリケーションやデータベースに大幅な変更を加えることなく、段階的に導入できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Web services are currently a preferred way to architect and provide complex services. This complexity arises due to the composition of new services and dynamically invoking existing services. These compositions create service inter-dependencies that can be misused for monetary or other gains. When a misuse is reported, investigators have to navigate through a collection of logs of the composed services to recreate the attack. In order to facilitate that task, in this document we propose the design and architecture of a forensic web services (FWS) that would securely maintain transactional records between other web services. These secure records can be re-linked to reproduce the transactional history by an independent agency. In this report we show the necessary components of a forensic framework for web services and its success through a case study.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスは現在、複雑なサービスを設計し提供するうえで好まれる方法です。この複雑さは、新しいサービスの合成と、既存のサービスの動的な呼び出しから生じます。こうした合成によってサービス間の相互依存関係が生まれ、金銭的な利益などを目的として悪用される可能性があります。悪用が報告された場合、調査担当者は、攻撃を再現するために、合成されたサービスのログの集合をたどらなければなりません。この作業を容易にするため、本文書では、他の Web サービス間のトランザクション記録を安全に保持するフォレンジック Web サービス（FWS）の設計とアーキテクチャを提案します。これらの安全な記録は、独立した機関によって再び関連付けられ、トランザクションの履歴を再現できます。本報告書では、Web サービスのフォレンジックフレームワークに必要な構成要素と、その有効性をケーススタディによって示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. INTRODUCTION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0017">2. BACKGROUND ON WEB SERVICES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0017">2. Web サービスの背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1 Basic Appearance of Web Services</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1 Web サービスの基本的な姿</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2.2 Composition of Web Services</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0012">2.2 Web サービスの合成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0017">2.3 Static vs. Dynamic Composition</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0017">2.3 静的な合成と動的な合成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.4 Hierarchical vs, Conversational Composition</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">2.4 階層型の合成と会話型の合成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0016">2.5 Composition Standards and Languages</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0016">2.5 合成の標準と言語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">2.6 Web Services Example</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">2.6 Web サービスの例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0009">3. WEB SERVICE ATTACKS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0009">3. Web サービスへの攻撃</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4. CHALLENGES IN FORENSICS OF WEB SERVICES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4. Web サービスのフォレンジックにおける課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0010">5. OVERVIEW OF FWS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0010">5. FWS の概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0010">5.1 Functions Provided by FWS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0010">5.1 FWS が提供する機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0006-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">5.2 Monitoring Web Services Interactions</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">5.2 Web サービスの相互作用の監視</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0014">6. FORENSICS OVER WEB SERVICES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0014">6. Web サービスにおけるフォレンジック</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0012">7. RELATED WORK</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0012">7. 関連研究</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0006-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0017">8. CONCLUSION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0017">8. 結論</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. INTRODUCTION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The advance of Web services technologies promises to have far-reaching effects on the Internet and enterprise networks. Web services based on the eXtensible Markup Language (XML), Simple Object Access Protocol (SOAP), and related open standards, and deployed in Service Oriented Architectures (SOA) allow data and applications to interact without human intervention through dynamic and ad hoc connections. Web services technology can be implemented in a wide variety of architectures, can co-exist with other technologies and software design approaches, and can be adopted in an evolutionary manner without requiring major transformations to legacy applications and databases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービス技術の進歩は、インターネットとエンタープライズネットワークに広範な影響を及ぼすと期待されています。eXtensible Markup Language（XML）、Simple Object Access Protocol（SOAP）、および関連するオープン標準に基づき、サービス指向アーキテクチャ（SOA）に展開される Web サービスは、動的かつアドホックな接続を通じて、人間の介在なしにデータとアプリケーションが相互作用することを可能にします。Web サービス技術は、さまざまなアーキテクチャで実装でき、他の技術やソフトウェア設計手法と共存でき、レガシーのアプリケーションやデータベースに大幅な変更を加えることなく、段階的に導入できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The security challenges presented by the Web services approach are formidable. Many of the features that make Web services attractive, including greater accessibility of data, dynamic application-to-application connections, and relative autonomy (lack of human intervention) are at odds with traditional security models and controls. The following are some of the challenges for secure web services:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスのアプローチがもたらすセキュリティ上の課題は非常に大きいです。データのアクセス性の向上、アプリケーション間の動的な接続、相対的な自律性（人間の介在がないこと）など、Web サービスを魅力的にしている機能の多くは、従来のセキュリティモデルや管理策と相容れません。安全な Web サービスに向けた課題には、次のようなものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Confidentiality and integrity of data that is transmitted via Web services protocols in service-to-service transactions, including data that traverses intermediary (pass-through) services.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サービス間のトランザクションにおいて Web サービスのプロトコルを介して送信されるデータ（中継（パススルー）サービスを通過するデータを含む）の機密性と完全性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Functional integrity of the Web services that requires both establishment in advance of the trustworthiness of services in orchestrations or choreographies.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">オーケストレーションまたはコレオグラフィにおけるサービスの信頼性を事前に確立する必要がある、Web サービスの機能的完全性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Availability in the face of denial of service attacks that exploit vulnerabilities unique to Web service technologies, especially targeting core services, such as discovery service, on which other services rely.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Web サービス技術に固有の脆弱性を悪用するサービス拒否攻撃、特に、他のサービスが依存する発見サービスなどの中核となるサービスを標的とする攻撃に直面した場合の可用性。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SOA processing model requires the ability to secure SOAP messages and XML documents as they are forwarded along potentially long and complex chains of consumer, provider, and intermediary services. The nature of Web services processing makes those services subject to unique attacks, as well as variations on familiar attacks targeting Web servers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SOA の処理モデルでは、コンシューマー、プロバイダー、仲介サービスから成る、潜在的に長く複雑な連鎖に沿って転送される SOAP メッセージや XML 文書を保護できることが求められます。Web サービス処理の性質上、これらのサービスは、Web サーバーを標的とするよく知られた攻撃の変種だけでなく、固有の攻撃も受けやすくなっています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In web services, the service-level compositional techniques create complex inter-dependencies between services belonging to different organizations that can be exploited due to some localized or compositional flaws. Therefore such exploits/attacks [1-3] can affect multiple servers and organizations, resulting in financial loss or infrastructural damage. Investigating such incidents requires that dependencies between service invocations be retained in a participating party neutral and secure way. Material evidence currently extractable from web servers such as log records, firewall alerts from end point services, and the like, do not have forensic value because defendants can claim that they did not send that message. In this report, we describe a participant neutral solution for a forensically valid evidence gathering mechanism for web services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスでは、サービスレベルの合成手法により、異なる組織に属するサービス間に複雑な相互依存関係が生じ、局所的な欠陥や合成に起因する欠陥によって悪用される可能性があります。このため、こうした悪用や攻撃 [1-3] は、複数のサーバーや組織に影響を及ぼし、金銭的損失やインフラストラクチャへの損害をもたらす可能性があります。このようなインシデントを調査するには、サービス呼び出し間の依存関係を、関与する当事者に中立で安全な方法で保持しておく必要があります。現在 Web サーバーから抽出できる物的証拠、たとえばログレコードやエンドポイントサービスからのファイアウォールのアラートなどには、被告が当該メッセージを送信していないと主張できるため、フォレンジック上の価値がありません。本報告書では、Web サービスにおいてフォレンジック上有効な証拠を収集する仕組みについて、参加者に中立な解決策を説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. BACKGROUND ON WEB SERVICES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. Web サービスの背景</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Two conceptual elements underlie current web services: (1) Use of XML (eXtensible Markup Language), SOAP (Simple Object Access Protocol), and WSDL (Web Service Definition Language) as basic building material; (2) Complex applications built upon long-running transactions that are composed of other web services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現在の Web サービスの基盤には、2 つの概念的な要素があります。(1) 基本的な構成要素としての XML（eXtensible Markup Language）、SOAP（Simple Object Access Protocol）、WSDL（Web Service Definition Language）の使用、(2) 他の Web サービスから構成される長時間実行トランザクションの上に構築される複雑なアプリケーション。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Basic Appearance of Web Services</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 Web サービスの基本的な姿</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>XML format underlies the entire web service architecture and its artifacts. All schemas, definition files, messages transmitted are formed by the means of XML. WSDL, a XML based definition file, defines the interface of a web service in order for the service to be invoked by other services in accordance with the specifications of internal executions. SOAP, a XML based protocol, defines the metadata of the messages to be exchanged between services. WSDL documents define operations; and they are the only mechanisms in order for web services to communicate with each other. Web services use SOAP messages by exchanging them as incoming and outgoing messages through the operations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>XML 形式は、Web サービスアーキテクチャ全体とその成果物の基盤となっています。すべてのスキーマ、定義ファイル、送信されるメッセージは XML を用いて形成されます。XML ベースの定義ファイルである WSDL は、内部実行の仕様に従って他のサービスがそのサービスを呼び出せるよう、Web サービスのインターフェースを定義します。XML ベースのプロトコルである SOAP は、サービス間で交換されるメッセージのメタデータを定義します。WSDL 文書は操作を定義し、操作は Web サービスが相互に通信するための唯一の仕組みです。Web サービスは、操作を通じて SOAP メッセージを受信メッセージおよび送信メッセージとして交換することで、SOAP メッセージを使用します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Composition of Web Services</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 Web サービスの合成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The message exchange patterns (MEP) described above constitute the entire web service paradigm. These simple MEPs construct collaboration scenarios using the appropriate composition models. While defining a composition, two issues come up: how it is designed and what pattern it employs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上で説明したメッセージ交換パターン（MEP）が、Web サービスのパラダイム全体を構成しています。これらの単純な MEP は、適切な合成モデルを用いて連携のシナリオを構築します。合成を定義する際には、どのように設計するか、どのようなパターンを採用するかという 2 つの問題が生じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3 Static vs. Dynamic Composition</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 静的な合成と動的な合成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One consumer service could select the target provider service either statically or dynamically, that is, at design-time or run-time. Design-time selections entail a-priori determination while run-time selections can introduce the opportunity to switch between web services dynamically. Static web service composition introduces less anonymity than the dynamic counterpart, therefore it requires less effort for a forensic examination.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1 つのコンシューマーサービスは、対象となるプロバイダーサービスを、静的に、または動的に、すなわち設計時または実行時に選択できます。設計時の選択は事前の決定を伴いますが、実行時の選択は Web サービスを動的に切り替える機会をもたらす可能性があります。静的な Web サービスの合成は、動的な合成と比べて匿名性が低いため、フォレンジック調査に必要な労力が少なくて済みます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4 Hierarchical vs. Conversational Composition</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4 階層型の合成と会話型の合成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>According to Khalaf [4], one could compose web services either in a hierarchical or in a conversational pattern. Through Hierarchical Composition, a consumer web service calls another composite web service passing the input parameter and receiving the result. Other than this request-response activity, no other call is employed to the same instance at the target. Designers, however, mostly use Conversational Composition when web services need to interact with each other more than once throughout the same instances at both sides. In these scenarios, the target system, unavoidably, makes its internal state mutable, thus causing overlapping instances to be created within parties to the composition.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Khalaf [4] によれば、Web サービスは階層型または会話型のパターンで合成できます。階層型の合成では、コンシューマー Web サービスが入力パラメーターを渡して別の合成 Web サービスを呼び出し、結果を受け取ります。この要求と応答のやり取り以外には、対象側の同一インスタンスに対する呼び出しは行われません。一方、設計者は、双方の同一インスタンス間で Web サービスが複数回やり取りする必要がある場合、会話型の合成を多く使用します。こうしたシナリオでは、対象システムは必然的に内部状態を可変にし、その結果、合成に関与する当事者の間に重複するインスタンスが作成されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In a hierarchical pattern, the instance of an external web service completely finishes before returning the result while many interactions between instances can survive in conversational pattern. Although describing what exactly happened during execution in a hierarchical pattern is reasonable, this might not be the case in conversational pattern. Thus, from a forensics point of view, representing and recreating the activities in the latter pattern is much more difficult than the former one.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>階層型のパターンでは、外部の Web サービスのインスタンスは結果を返す前に完全に終了しますが、会話型のパターンでは、インスタンス間の多くのやり取りが存続する可能性があります。階層型のパターンでは、実行中に何が起きたかを正確に記述することは合理的ですが、会話型のパターンではそうとは限りません。したがって、フォレンジックの観点では、後者のパターンの活動を表現し再現することは、前者よりもはるかに困難です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.5 Composition Standards and Languages</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.5 合成の標準と言語</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although there are many standards and specifications for web services, we mention state-of-the-art orchestration and choreography specifications here. BPEL (Business Process Execution Language) is a language for business process modeling. WS-BPEL and BPEL4WS are their two popular implementations for web service architecture. They can define both abstract and executable processes. They are two effective tools to realize orchestration of composite web services from a central point. Conversely, WSCI and WS-CDL create a global view of multi-party choreographies of web services from their individual description files. These languages enable collaborative processes that are recruiting multiple web services, and facilitate interactions between them from a global, high-level perspective rather than an individual service’s request response perspective.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスには多くの標準や仕様がありますが、ここでは最新のオーケストレーションおよびコレオグラフィ仕様を取り上げます。BPEL（Business Process Execution Language）は、ビジネスプロセスをモデル化するための言語です。WS-BPEL と BPEL4WS は、Web サービスアーキテクチャにおける代表的な 2 つの実装です。これらは、抽象プロセスと実行可能プロセスの両方を定義できます。これらは、合成 Web サービスのオーケストレーションを中心点から実現する有効なツールです。これに対し、WSCI と WS-CDL は、個々の記述ファイルから、Web サービスの複数当事者間のコレオグラフィの全体像を作成します。これらの言語は、複数の Web サービスを組み込んだ協調プロセスを可能にし、個々のサービスの要求・応答の観点ではなく、全体的で高い抽象度の観点からサービス間のやり取りを促進します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.6 Web Services Example</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.6 Web サービスの例</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Before examining forensics for Web services in detail, it is helpful to first consider an example of Web services that can be used as a model to understand Web services security. Figure 1 shows a simplified representation of major Web services components for a consumer loan service.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスのフォレンジックを詳しく調べる前に、まず、Web サービスのセキュリティを理解するためのモデルとして使用できる Web サービスの例を検討すると役立ちます。図 1 は、消費者ローンサービスにおける主要な Web サービスの構成要素を簡略化して示したものです。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0011-b0011" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0011-figure-01.png" alt="Diagram in a box: a clip-art person at a desk labeled &quot;User&quot; is connected by a line to a server labeled &quot;Web Portal&quot;, which is connected to a server labeled &quot;Loan Service&quot;. The Loan Service server has lines to two servers, &quot;Rate Service&quot; (upper right) and &quot;Credit Service&quot; (lower right)."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の構成図です。机に向かう人物のイラスト（「User」）が線で「Web Portal」のサーバーにつながり、それが「Loan Service」のサーバーにつながっています。Loan Service のサーバーからは、右上の「Rate Service」と右下の「Credit Service」の 2 台のサーバーへ線が出ています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1: Consumer Loan Service Example</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1: 消費者ローンサービスの例</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this example, users (consumers) contact a Web portal that offers financial services. When a user requests loan information, the Web portal contacts a loan Web service on behalf of the user. The loan service then contacts other Web services as needed, such as rate and credit services, to get up-to-date information, and passes the requested information back to the user through the Web portal. Each host that needs to use a Web service uses the Universal Description, Discovery, and Integration (UDDI) protocol to locate a suitable Web service and invoke it.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この例では、ユーザー（コンシューマー）は、金融サービスを提供する Web ポータルにアクセスします。ユーザーがローン情報を要求すると、Web ポータルはユーザーに代わってローン Web サービスにアクセスします。次にローンサービスは、最新の情報を得るために、金利サービスや信用サービスなど、必要に応じて他の Web サービスにアクセスし、要求された情報を Web ポータルを通じてユーザーに返します。Web サービスを利用する必要のある各ホストは、Universal Description, Discovery, and Integration（UDDI）プロトコルを使用して、適切な Web サービスを探し出し、呼び出します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are several major security objectives for this scenario. One is validating the identity of the user requesting the loan information. Another is restricting the use of Web services; for example, the credit service might charge a transaction fee for each request, so the credit service would need assurance of the identity of the service requesting the information. Other security objectives involve ensuring that only authorized users and Web services are able to access, modify, and/or delete the necessary information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このシナリオには、いくつかの主要なセキュリティ目的があります。1 つは、ローン情報を要求しているユーザーの身元を検証することです。もう 1 つは、Web サービスの使用を制限することです。たとえば、信用サービスが要求ごとに取引手数料を課す場合、信用サービスは、情報を要求しているサービスの身元を確かなものとして確認する必要があります。その他のセキュリティ目的には、認可されたユーザーと Web サービスのみが、必要な情報にアクセスし、変更し、または削除できるようにすることが含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. WEB SERVICE ATTACKS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. Web サービスへの攻撃</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are many attacks on web services, such as WSDL/UDDI scanning, parameter tampering, replays, XML rewriting, man-in-the-middle, eavesdropping, routing detours [1-3] etc. In addition to web service attacks classified in [1], dynamic service selection, choreography, orchestration, and composition increase the ways of exploiting web services, such as application and dataflow attacks [3].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスに対する攻撃には、WSDL/UDDI スキャン、パラメーター改ざん、リプレイ、XML 書き換え、中間者攻撃、盗聴、ルーティングの迂回など [1-3] 多数があります。[1] で分類されている Web サービス攻撃に加えて、動的なサービス選択、コレオグラフィ、オーケストレーション、合成によって、アプリケーション攻撃やデータフロー攻撃 [3] など、Web サービスを悪用する方法が増えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>We now show the details of a sample cross-site scripting (CSS) attack used to illustrate the capabilities of FWS. A typical CSS attack may inject a malicious script to harm a web service that dynamically builds some of its information. Figure 2 shows an attacker with stolen credentials injecting some malicious data invoking an update operation on a Weather service that stores this script (including instructions to steal cookies) from web browsers. Then a web application, say Portal Web Application, invoking a GET operation retrieves this malicious data and publishes the weather information to its subscribers in an html form, thereby making the subscribers send their personal information stored in cookies to the attacker’s Fishing Net Application. Then, a Fishing Net Application managed by the Attacker can obtain sensitive user information as shown in Figure 2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ここでは、FWS の機能を説明するために用いるクロスサイトスクリプティング（CSS）攻撃の例の詳細を示します。典型的な CSS 攻撃では、情報の一部を動的に構築する Web サービスに被害を与えるため、悪意のあるスクリプトを注入する場合があります。図 2 は、盗まれた認証情報を持つ攻撃者が、天気サービスの更新操作を呼び出して悪意のあるデータを注入し、そのデータに Web ブラウザーからクッキーを盗む命令を含むスクリプトを保存させる様子を示しています。次に、たとえば Portal Web Application などの Web アプリケーションが GET 操作を呼び出してこの悪意のあるデータを取得し、天気情報を HTML 形式で購読者に公開します。その結果、購読者はクッキーに保存された個人情報を攻撃者の Fishing Net Application に送信することになります。図 2 に示すように、攻撃者が管理する Fishing Net Application は、機微なユーザー情報を入手できます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0013-b0005" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0013-figure-01.png" alt="Attack diagram. A gray box &quot;Portal Web Service (End Point for CSS)&quot; sits on a server labeled &quot;Portal Web Application (Victim)&quot;. Black lines labeled &quot;HTML content with mal scripts&quot; go from this server to three computers labeled &quot;Target Client&quot;. Red lines labeled &quot;Personal info (e.g. cookies)&quot; go from each Target Client to a server labeled &quot;Fishing Net Application&quot;, which connects to a stick figure &quot;Attacker&quot;. The Attacker points to an oval &quot;MET_WEBAPP&quot; at a gray box &quot;Meteorology Web Service (Actual Start Point for CSS)&quot;. An arrow labeled &quot;Web Service Messaging&quot; goes from Meteorology Web Service up to a gray box &quot;Weather Web Service (Stepping Stone)&quot;, annotated: &quot;- One-Way message - Identity of sender (Met. WS) and receiver (Wea.WS..updateOp) - Content of mal script (e.g. including the address of Fishing Net App.) - Timestamp&quot;. Another &quot;Web Service Messaging&quot; arrow goes between Weather Web Service and Portal Web Service, annotated: &quot;- Two-Way message - Identity of sender (WS-Client of Portal Web App) and receiver (Wea.WS. .getOp) - Content of mal script (e.g. including the address of Fishing Net App.) - Timestamp&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>攻撃の構成図です。灰色の箱「Portal Web Service (End Point for CSS)」が「Portal Web Application (Victim)」のサーバーの上にあります。このサーバーから、「HTML content with mal scripts」と書かれた黒い線が「Target Client」の 3 台のコンピューターへ伸びています。各 Target Client からは「Personal info (e.g. cookies)」と書かれた赤い線が「Fishing Net Application」のサーバーへ伸び、そのサーバーは棒人間の「Attacker」につながっています。Attacker は楕円「MET_WEBAPP」を介して灰色の箱「Meteorology Web Service (Actual Start Point for CSS)」を指しています。Meteorology Web Service から灰色の箱「Weather Web Service (Stepping Stone)」へ「Web Service Messaging」の矢印があり、注記は「- One-Way message - Identity of sender (Met. WS) and receiver (Wea.WS..updateOp) - Content of mal script (e.g. including the address of Fishing Net App.) - Timestamp」です。Weather Web Service と Portal Web Service の間にも「Web Service Messaging」の矢印があり、注記は「- Two-Way message - Identity of sender (WS-Client of Portal Web App) and receiver (Wea.WS. .getOp) - Content of mal script (e.g. including the address of Fishing Net App.) - Timestamp」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2. A Cross-Site Scripting Attack Using Web Services. Meteorolgy Web Service (MET_WS) gets infected with malicious data and delivers the data ignorantly to the Weather Web Service (WEA_WS) when requested. WEA_WS, accordingly to their choreography, passes malicious data to Portal Web Service (POR_WS) among other legal information. An attacker, aware of choreography among web services, exploits this model and has Portal Web Application delivered malicious data to its members using web services in this choreography model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2. Web サービスを用いたクロスサイトスクリプティング攻撃。気象 Web サービス（MET_WS）は悪意のあるデータに感染し、要求を受けると、感染を知らないままそのデータを天気 Web サービス（WEA_WS）に配信します。WEA_WS はコレオグラフィに従い、他の正当な情報とともに悪意のあるデータをポータル Web サービス（POR_WS）に渡します。Web サービス間のコレオグラフィを知る攻撃者は、このモデルを悪用し、このコレオグラフィモデルの Web サービスを使って、ポータル Web アプリケーションに悪意のあるデータをそのメンバーへ配信させます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The stated CSS attack shows how the business logic of a web service can be used to attack a server that depends upon other web services. In this scenario, Portal Web Service can claim that Weather Web Service sent the malicious content, whereas the actual source was Meteorology Web Service. This illustrates the need to have a mechanism that irrefutably points to the source of malice.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上記の CSS 攻撃は、Web サービスのビジネスロジックが、他の Web サービスに依存するサーバーを攻撃するためにどのように使用され得るかを示しています。このシナリオでは、ポータル Web サービスは、悪意のあるコンテンツを送信したのは天気 Web サービスであると主張できますが、実際の発信元は気象 Web サービスでした。これは、悪意の発信元を反論の余地なく示す仕組みが必要であることを示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. CHALLENGES IN FORENSICS OF WEB SERVICES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. Web サービスのフォレンジックにおける課題</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As opposed to traditional forensics implementations, applying forensics to web service infrastructures introduces novel problems such as a need for neutrality and comprehensiveness. The primary purpose of digital forensics is to present digital evidence in legal proceedings. Therefore, the techniques used to extract digital evidence from devices must comply with legal standards. Reliability is another important issue for forensic examinations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>従来のフォレンジックの実装とは異なり、Web サービスのインフラストラクチャにフォレンジックを適用すると、中立性や網羅性の必要性といった新たな問題が生じます。デジタルフォレンジックの主な目的は、法的手続においてデジタル証拠を提示することです。したがって、デバイスからデジタル証拠を抽出するために用いる技法は、法的基準に準拠しなければなりません。信頼性も、フォレンジック調査におけるもう 1 つの重要な問題です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>a) Neutrality</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+a) 中立性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Web services, owned by organizations, have equal rights in the court of law when any dispute arises between parties. Any log records residing at only one party’s site would have no forensic value under these circumstances since any alteration on the records might have been employed in favor of that site. Many forensic investigations on traditional systems have been based on one site’s records. For traditional systems that may be reasonable since investigators take advantage of inquiring users and human factors to corroborate evidence. In service oriented architectures, both sites should be automated to collect and retain their own records. Records at both the sites would be under question by the opponent party, thus showing the need to have a neutral party capturing and preserving evidence based on interactions between parties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織が所有する Web サービスは、当事者間で紛争が生じた場合、法廷において対等な権利を持ちます。このような状況では、一方の当事者のサイトにのみ存在するログレコードは、記録の改変がそのサイトに有利になるように行われた可能性があるため、フォレンジック上の価値を持ちません。従来のシステムに対する多くのフォレンジック調査は、一方のサイトの記録に基づいて行われてきました。従来のシステムでは、調査担当者がユーザーへの聞き取りや人的要因を活用して証拠を裏付けるため、それが妥当な場合があります。サービス指向アーキテクチャでは、双方のサイトが自動で自らの記録を収集し保持する必要があります。双方のサイトの記録は、相手方の当事者から疑義を呈されることになるため、当事者間のやり取りに基づく証拠を、中立的な第三者が取得し保全する必要があることがわかります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>b) Comprehensiveness</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+b) 網羅性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As described earlier web service compositions may span over many web services of many organizations. Such interdependent services create long information flows. Thus malicious data may stream over many web services. From a forensics point of view, the evidence gathered should be comprehensive enough so that investigation can reach all related end points to reveal what party performed what action. Incomplete evidence might point to any web service node as the source of malicious activity, thus misleading the investigators through the examination.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>前述のとおり、Web サービスの合成は、多くの組織の多くの Web サービスにまたがる場合があります。このような相互依存するサービスは、長い情報の流れを生み出します。したがって、悪意のあるデータが多くの Web サービスを流れる可能性があります。フォレンジックの観点では、収集する証拠は、調査によってすべての関連するエンドポイントに到達し、どの当事者がどの行為を行ったかを明らかにできるだけの網羅性を備えている必要があります。不完全な証拠では、悪意のある活動の発信元としてどの Web サービスノードも示してしまう可能性があり、調査を通じて調査担当者を誤った方向に導くことになります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>c) Reliability</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+c) 信頼性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Yet another important principle that any evidence should have is reliability. In the court of law, digital evidence must be presented in an articulate manner. Because impersonation and replay attacks do occur in web services, cryptographic mechanisms would help to protect ownership of information passed around in messages by signing them digitally. Such a requirement, of course, would entail web services using a cryptography platform such as Public Key Infrastructure (PKI).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>あらゆる証拠が備えるべきもう 1 つの重要な原則は、信頼性です。法廷では、デジタル証拠は明瞭な形で提示されなければなりません。Web サービスでは、なりすましやリプレイ攻撃が実際に発生するため、暗号メカニズムは、メッセージにデジタル署名を付けることで、メッセージで受け渡される情報の所有権を保護するのに役立ちます。もちろん、このような要件を満たすには、Web サービスが公開鍵基盤（PKI）などの暗号プラットフォームを使用する必要があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. OVERVIEW of FWS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. FWS の概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In order to facilitate and base forensic investigations on reliable data, we propose designing Forensic Web Services (FWS) that preserve appropriate evidence to recreate the composed web service invocations. This would have a greater chance of being accepted in a court of law. FWS will provide on-line forensic capabilities to other web services as a web service itself. To utilize them, FWS would be integrated with web services that require their services – refered to as customer web services of FWS. In order to do so, FWS provides a centralized service access point to its customer web services. This information retained by FWS acting as a trusted third party can be directly given to forensic examiners. Previous proposals to monitor web services [5] and generating evidence [6-8] have been for business purposes. The evidence they produce does not meet the requirement for forensic examinations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>信頼できるデータに基づいてフォレンジック調査を行いやすくするため、合成された Web サービス呼び出しを再現するための適切な証拠を保全するフォレンジック Web サービス（FWS）の設計を提案します。これにより、法廷で受け入れられる可能性が高まります。FWS は、それ自体が Web サービスとして、オンラインのフォレンジック機能を他の Web サービスに提供します。これを利用するには、FWS を、そのサービスを必要とする Web サービス（FWS の顧客 Web サービスと呼びます）に統合します。そのために、FWS は顧客 Web サービスに対して一元化されたサービスアクセスポイントを提供します。信頼できる第三者として機能する FWS が保持するこの情報は、フォレンジック調査担当者に直接提供できます。Web サービスを監視するこれまでの提案 [5] や、証拠を生成する提案 [6-8] は、ビジネス目的のものでした。それらが生成する証拠は、フォレンジック調査の要件を満たしていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Forensic Web Service Framework provides two essential services:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フォレンジック Web サービスフレームワークは、2 つの不可欠なサービスを提供します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><strong>Pair-wise evidence generation:</strong> Collect transactional evidence that occur between pairs of services at service invocation times. Figure 3 illustrates this process, called “deliver”.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><strong>ペア単位の証拠生成:</strong> サービスの呼び出し時に、サービスのペアの間で発生するトランザクションの証拠を収集します。図 3 は、「deliver」と呼ばれるこのプロセスを示しています。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><strong>Comprehensive evidence generation:</strong> On demand, compose pairs of transactional evidence collected at service invocation times and reveal global views of complex transactional scenarios that occurred during specified periods, and provide them for forensic examiners. Figure 3 illustrates the ‘collectDependents’ algorithm (the core component of this process), that is inspired by King’s and Chen’s dependency graph algorithm [9].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><strong>包括的な証拠生成:</strong> 要求に応じて、サービスの呼び出し時に収集されたトランザクション証拠のペアを合成し、指定された期間に発生した複雑なトランザクションシナリオの全体像を明らかにして、フォレンジック調査担当者に提供します。図 3 は、King と Chen の依存関係グラフアルゴリズム [9] に着想を得た、「collectDependents」アルゴリズム（このプロセスの中核となる構成要素）を示しています。</span></p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0016-b0008" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0016-figure-01.png" alt="Two panels. Left, titled &quot;Pair Wise Evidence Generation&quot;: a sequence diagram with lifelines &quot;Sender WS&quot;, &quot;Forensic WS&quot; and &quot;Receiver WS&quot;. A dotted &quot;Request&quot; arrow goes from Sender WS to Forensic WS at time &quot;t1&quot; and on to Receiver WS; Forensic WS records &quot;LRI(Request)&quot;. A dotted &quot;Response&quot; arrow comes back from Receiver WS to Forensic WS at &quot;t2&quot;; an &quot;Ack&quot; arrow goes on to Receiver WS and &quot;LRI(Response)+LRI(Ack)&quot; goes back to Sender WS. Right, titled &quot;Comprehensive Evidence Generation&quot;: a boxed algorithm: &quot;←!– Starts extracting values (timeThreshold, nodeThreshold, etc.) → ←!– from DependentsBagIn and initializes creating the → ←!– WebServiceNodes and LogRecordEdges instances of GRAPH → 1. baseTime = startTime - timeThreshold 2. for each logRecordIndex LRI in FWS { 3. timeThreshold=timeTreshold - (startTime - LRI.timeStamp) 4. startTime=LRI.timestamp 5. for each webServiceNode WS in GRAPH { 6. if (SenderWS | ReceiverWS ∈ LRI &amp; LRI ∈ GRAPH&amp; R.timestamp ≥ baseTime &amp; WS.nodeLevel ≤ WS.nodeThreshold) { 7. Add LRI as edge into GRAPH 8. if (LRI&#x27;s partner web service PWS ∈ GRAPH) { 9. PWS.nodeLevel=WS.nodeLevel+1 10. PWS.nodeThreshold=nodeThreshold 11. Add the PWS into GRAPH } 12. if (LRI&#x27;s PWS ∈ this.FWS &amp; LRI&#x27;s PWS ∈ GRAPH) { 13. NeighbourFWS = getFWS(PWS) 14. NeighbourFWS.collectDependents(DependentsBagIn) 15. Merge DependentsBagOut into GRAPH}}}} 16. return GRAPH in DependentsBagOut format&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2 つの部分からなる図です。左は「Pair Wise Evidence Generation」と題したシーケンス図で、ライフラインは「Sender WS」「Forensic WS」「Receiver WS」です。Sender WS から点線の「Request」が時刻「t1」に Forensic WS へ送られ、さらに Receiver WS へ進みます。Forensic WS は「LRI(Request)」を記録します。Receiver WS から点線の「Response」が時刻「t2」に Forensic WS へ戻り、「Ack」は Receiver WS へ進み、「LRI(Response)+LRI(Ack)」は Sender WS へ戻ります。右は「Comprehensive Evidence Generation」と題した枠内のアルゴリズムです。「←!– Starts extracting values (timeThreshold, nodeThreshold, etc.) → ←!– from DependentsBagIn and initializes creating the → ←!– WebServiceNodes and LogRecordEdges instances of GRAPH → 1. baseTime = startTime - timeThreshold 2. for each logRecordIndex LRI in FWS { 3. timeThreshold=timeTreshold - (startTime - LRI.timeStamp) 4. startTime=LRI.timestamp 5. for each webServiceNode WS in GRAPH { 6. if (SenderWS | ReceiverWS ∈ LRI &amp; LRI ∈ GRAPH&amp; R.timestamp ≥ baseTime &amp; WS.nodeLevel ≤ WS.nodeThreshold) { 7. Add LRI as edge into GRAPH 8. if (LRI&#39;s partner web service PWS ∈ GRAPH) { 9. PWS.nodeLevel=WS.nodeLevel+1 10. PWS.nodeThreshold=nodeThreshold 11. Add the PWS into GRAPH } 12. if (LRI&#39;s PWS ∈ this.FWS &amp; LRI&#39;s PWS ∈ GRAPH) { 13. NeighbourFWS = getFWS(PWS) 14. NeighbourFWS.collectDependents(DependentsBagIn) 15. Merge DependentsBagOut into GRAPH}}}} 16. return GRAPH in DependentsBagOut format」。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3. Pair-wise evidence generation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3. ペア単位の証拠生成。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.1 FUNCTIONS PROVIDED BY FWS</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.1 FWS が提供する機能</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations that are tightly integrated with each other through web transactions and processes can benefit from FWS in many ways. First, organizations need to hold some of their partner web services accountable when their mal-actions affect one’s own efficiency, consistency, availability, etc. Secondly, the detailed explanation of the malicious activity may impact the severity of punishments or collectible monetary compensation. Logging of critical information exchanges is an effective way to meet these two needs. FWS can monitor the systems non-refutably; those records retained by the system would have forensic value in a court of law; which has not been the case so far. Hereafter, we propose to provide more refined evidence regarding the activities that occur on web service architectures. In the next section, we propose an architecture of the system to maintain instance correlations through both hierarchical and conversational compositions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web トランザクションとプロセスを通じて互いに緊密に統合されている組織は、さまざまな点で FWS から利益を得られます。第 1 に、パートナーの Web サービスの不正な行為が自組織の効率、一貫性、可用性などに影響を与えた場合、組織はそのパートナーに責任を負わせる必要があります。第 2 に、悪意のある活動の詳細な説明は、処罰の重さや回収可能な金銭的補償に影響を与える場合があります。重要な情報交換をログに記録することは、この 2 つのニーズを満たす有効な方法です。FWS はシステムを否認不可能な形で監視できます。システムが保持するこれらの記録は法廷でフォレンジック上の価値を持ちますが、これまでそうではありませんでした。以降では、Web サービスアーキテクチャ上で発生する活動に関して、より精緻な証拠を提供することを提案します。次節では、階層型と会話型の両方の合成を通じてインスタンスの相関関係を維持するシステムアーキテクチャを提案します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.2 Monitoring Web Services Interactions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.2 Web サービスの相互作用の監視</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Through the FWS framework, WS-Forensics layer (see Figure 4) routes the interactions to pass over FWS stations on the way to their ultimate targets. As described in our previous study [10], handler-chain architecture [11] is used to ease and standardize client side workload on deployment of FWS-Handlers. This function underlies the entire forensic functionality of the FWS described below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FWS フレームワークでは、WS-Forensics 層（図 4 を参照）が、相互作用を最終的な宛先に向かう途中で FWS ステーションを経由するよう経路づけます。以前の研究 [10] で説明したとおり、FWS-Handler の展開におけるクライアント側の作業負荷を軽減し標準化するために、ハンドラーチェーンアーキテクチャ [11] を使用します。この機能は、以下で説明する FWS のフォレンジック機能全体の基盤となります。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0017-b0012" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0017-figure-01.png" alt="Three protocol stacks. &quot;Sender WS&quot; (left): WS-BPEL|WS-CDL..., WSDL, WS-Forensics, WS-SecConv|WS-Trust, SOAP; an arrow runs down from the top layer to SOAP. &quot;Forensic WS&quot; (middle): WS-Forensics, WS-SecConv. WS-Trust, SOAP; arrows go up from SOAP to WS-Forensics and back down to SOAP. &quot;Receiver WS&quot; (right): the same five layers as the sender; an arrow runs up from SOAP to the top layer. Arrows connect the SOAP layers from sender to Forensic WS and from Forensic WS to receiver."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3 つのプロトコルスタックの図です。左の「Sender WS」は上から WS-BPEL|WS-CDL...、WSDL、WS-Forensics、WS-SecConv|WS-Trust、SOAP で、最上層から SOAP へ下向きの矢印があります。中央の「Forensic WS」は WS-Forensics、WS-SecConv、WS-Trust、SOAP で、SOAP から WS-Forensics へ上がり、また SOAP へ下りる矢印があります。右の「Receiver WS」は送信側と同じ 5 層で、SOAP から最上層へ上向きの矢印があります。SOAP 層どうしが、送信側から Forensic WS へ、Forensic WS から受信側へ矢印で結ばれています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4. WS-Forensics Stack. Arrows depict how WS-Forensics is applied for a message through web services and their existing stacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4. WS-Forensics スタック。矢印は、メッセージに対して、Web サービスとその既存のスタックを通じて WS-Forensics がどのように適用されるかを示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. Forensics over Web Services</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. Web サービスにおけるフォレンジック</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Capturing the interdependent activity makes little sense from a forensics perspective if the capturing procedure is not comprehensive. Finding the dependent interactions and web services with respect to a specific point in the scope of a certain composed execution of web services seems an exhaustive task. In this section, we give an overview of the architecture of FWS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>相互依存する活動を取得する手順が網羅的でなければ、フォレンジックの観点では、その取得にほとんど意味はありません。Web サービスの特定の合成実行の範囲内にある特定の時点に関して、依存する相互作用や Web サービスを見つける作業は、すべてを調べ尽くす必要があるように思われます。本節では、FWS のアーキテクチャの概要を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>We propose a protocol in order for FWS-Handlers and FWS stations to run in the layer proposed above. FWS stations store interactions to ease the task that should be performed by the algorithms (see [10] for design) to collect records of dependent interactions spanned over many web services during the actual execution. Figure 5 illustrates typical message flows for forensics capabilities for web services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FWS-Handler と FWS ステーションが、上で提案した層で動作するためのプロトコルを提案します。FWS ステーションは、実際の実行中に多くの Web サービスにまたがる依存する相互作用の記録を収集するアルゴリズム（設計については [10] を参照）の作業を容易にするため、相互作用を保存します。図 5 は、Web サービスのフォレンジック機能における典型的なメッセージフローを示しています。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0018-b0004" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0018-figure-01.png" alt="Network diagram. A box &quot;FWS-Registry and Other Services&quot; at the top has arrows to three boxes &quot;FWS-1&quot;, &quot;FWS-3&quot; and &quot;FWS-2&quot;. FWS-1 is linked to an oval &quot;FWS-1 Member WSs Handlers&quot; on the left, FWS-3 to an oval &quot;FWS-3 Member WSs Handlers&quot; on the right, and FWS-2 to an oval &quot;FWS-2 Member WSs Handlers&quot; below. Thick curved arrows connect FWS-1, FWS-2 and FWS-3 with each other; dash-dot arrows connect the member ovals with each other. Legend: thick curved double arrow = &quot;Comprehensive Evidence Generation Flows&quot;; dash-dot arrow = &quot;Pair-wise Evidence Generation Flows (WS-Forensics)&quot;; solid double arrow = &quot;FWS Service Invocations&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ネットワークの構成図です。上部の箱「FWS-Registry and Other Services」から、「FWS-1」「FWS-3」「FWS-2」の 3 つの箱へ矢印が出ています。FWS-1 は左の楕円「FWS-1 Member WSs Handlers」、FWS-3 は右の楕円「FWS-3 Member WSs Handlers」、FWS-2 は下の楕円「FWS-2 Member WSs Handlers」とつながっています。FWS-1・FWS-2・FWS-3 の間は太い曲線の矢印で、メンバーの楕円どうしは一点鎖線の矢印で結ばれています。凡例: 太い曲線の両矢印は「Comprehensive Evidence Generation Flows」、一点鎖線の矢印は「Pair-wise Evidence Generation Flows (WS-Forensics)」、実線の両矢印は「FWS Service Invocations」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 5. The FWS Framework and Message Flows.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5. FWS フレームワークとメッセージフロー。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Revealing Global Composition Instances</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+グローバルな合成インスタンスの解明</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many studies/specifications offer composition models to handle business transactions and other cross organizational activities over web services. To the best of our knowledge, there is no existing framework that can create the sceanario of interactions among the services from the events logged in a neutral way. FWS can interleave the instances of global / composed executions of web services using global unique identifier as shown in Figure 6-I. We believe that with our design, it should be possible to reveal and represent the composition of executions. This capability would be provided on the basis of the following two functions; verification of orchestration processes and choreography instances.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くの研究や仕様が、Web サービス上のビジネストランザクションやその他の組織間活動を扱うための合成モデルを提示しています。私たちの知る限り、記録されたイベントから、サービス間の相互作用のシナリオを中立的な方法で作成できる既存のフレームワークはありません。FWS は、図 6-I に示すように、グローバル一意識別子を使用して、Web サービスのグローバルな（合成された）実行のインスタンスを織り込むことができます。私たちは、この設計により、実行の合成を明らかにして表現できるはずだと考えています。この機能は、次の 2 つの機能、すなわちオーケストレーションプロセスの検証とコレオグラフィインスタンスに基づいて提供されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Orchestration Process Verification</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+オーケストレーションプロセスの検証</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Given an orchestration process model of a web service, the FWS framework can detect whether the process behaved as it is expected. When such checks are applied to web services based on the instances revealed above, the results can determine if a deviation has occurred from the expected behavior of the services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスのオーケストレーションプロセスモデルを前提として、FWS フレームワークは、そのプロセスが期待どおりに動作したかどうかを判定できます。上で明らかにしたインスタンスに基づいてこのような検査を Web サービスに適用すると、その結果から、サービスの期待される動作から逸脱が生じたかどうかを判断できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Choreography Instance Verification</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+コレオグラフィインスタンスの検証</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Given a choreography model, FWS could detect deviations from expected set of choreography instances and represent them as shown in Figure 6-II. Deviating points in the choreography instance should successfully be addressed along with actual identities of sources for deviations to realize any forensic examiner’s ultimate goal.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コレオグラフィモデルを前提として、FWS は期待されるコレオグラフィインスタンスの集合からの逸脱を検出し、図 6-II に示すように表現できます。フォレンジック調査担当者の最終目標を達成するには、コレオグラフィインスタンスの逸脱箇所に、その逸脱の発生源の実際の識別情報を添えて適切に対処すべきです。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0019-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7559/p0019-figure-01.png" alt="Two parts. Part &quot;I&quot;: three overlapping cloud shapes (dark gray, light gray and white) stacked on each other. Part &quot;II&quot;: a cloud containing four black boxes connected by arrows numbered 1, 2, 3, 5 and 7, with an arrow numbered 6 leaving the cloud to an orange box outside it. Below: a small cloud with four black boxes linked by arrows, labeled &quot;A composition instance with participant web service instances&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2 つの部分からなる図です。「I」は、濃い灰色・薄い灰色・白の 3 つの雲形が重なった図です。「II」は、雲形の中の 4 つの黒い箱が 1、2、3、5、7 の番号付きの矢印で結ばれ、番号 6 の矢印が雲の外のオレンジ色の箱へ出ている図です。下には、4 つの黒い箱を矢印で結んだ小さな雲形があり、「A composition instance with participant web service instances」と説明されています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 6. (I) Interleaving the Global Composition Instances. FWS records envision keeps a “global unique identifier” that refers to each separate execution. (II) A Choreography Instance Deviated from Original Model. FWS records are designed to keep dependency information along with instance correlation information thus allowing to reveal if there is any deviation from expected instance of global execution.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 6. (I) グローバルな合成インスタンスの織り込み。FWS の記録は、個々の実行を参照する「グローバル一意識別子」を保持します。(II) 元のモデルから逸脱したコレオグラフィインスタンス。FWS の記録は、インスタンス相関情報とともに依存関係情報も保持するよう設計されており、グローバル実行の期待されるインスタンスから逸脱があるかどうかを明らかにできます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7. RELATED WORK</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7. 関連研究</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There is no forensic framework for investigating inter-related web services designed so far. However, the work cited hereafter share some common features with FWS’ objectives or methods.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これまでのところ、相互に関連する Web サービスを調査するために設計されたフォレンジックフレームワークはありません。しかし、以降で引用する研究には、FWS の目的や手法と共通する特徴があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Robinson [12] influenced the model employed through FWS for pair-wise evidence generation with some differences. Robinson [12] provides a framework to support fair B2B communications on the basis of a trusted deliver agent notion. It implements Coeffey-Saidha [13] protocol to provide non-repudiation in their protocols. However, the framework is designed to run with other protocols as well. Robinson[12] only proposes delivering evidences to the related parties, but not preserving them in trusted agents.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Robinson [12] は、いくつかの相違点はあるものの、FWS がペア単位の証拠生成に採用したモデルに影響を与えました。Robinson [12] は、信頼できる配送エージェントの概念に基づき、公正な B2B 通信を支えるフレームワークを提供しています。このフレームワークは、自らのプロトコルにおいて否認防止を実現するため、Coeffey-Saidha [13] プロトコルを実装しています。ただし、他のプロトコルでも動作するよう設計されています。Robinson [12] が提案しているのは、関係当事者への証拠の配送だけであり、信頼できるエージェントで証拠を保全することではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Herzberg [6] introduces the notion of having an Evidence Layer for e-commerce transactions. They propose this layer to be at the bottom of the e-commerce stack and on top of a transport layer (such TLS/SSL, or TCP/IP). They introduce two protocols to generate and deliver the evidence to involved parties in message exchange; the first is the Simple Evidence Layer Protocol and the second is the optimistic one. They employ notaries in the first protocol while generating and delivering the evidence. FWS use the layering approach of Herzberg [6] in the web service stack with minor changes, such as adding the time stamping point, and use their SELP as the pair-wise evidence generation protocol. Like others, Herzberg et al [6] was not designed for forensics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Herzberg [6] は、電子商取引のトランザクションに証拠層（Evidence Layer）を設ける概念を導入しています。彼らは、この層を電子商取引スタックの最下部、かつトランスポート層（TLS/SSL や TCP/IP など）の上に配置することを提案しています。メッセージ交換に関与する当事者に証拠を生成して配送するため、2 つのプロトコルを導入しており、1 つ目は Simple Evidence Layer Protocol、2 つ目は楽観的なプロトコルです。1 つ目のプロトコルでは、証拠の生成と配送に公証人を用います。FWS は、タイムスタンプ付与点を追加するなどの小さな変更を加え、Herzberg [6] の階層化アプローチを Web サービススタックに採用し、同氏らの SELP をペア単位の証拠生成プロトコルとして使用します。他の研究と同様に、Herzberg ら [6] の研究もフォレンジック向けに設計されたものではありませんでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FWS also implement trusted third parties for pair-wise evidence generation as Coffey-Saidha et al [13]. Although inline TTPs are immature for business transaction, they add value to forensics evidence. Onieva [14] gives the intermediary usage perspective in the implementation of inline TTPs for e-commerce transactions. They also support multi-recipient cases through these intermediaries, but not for forensics. Bilal [15] uses BPEL for non-repudiation protocol implementation in web services, but does not use TTP, thereby lacking the capability to handle message content.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FWS は、Coffey-Saidha ら [13] と同様に、ペア単位の証拠生成に信頼できる第三者も実装しています。インライン TTP はビジネストランザクションでは未成熟ですが、フォレンジック証拠に価値を加えます。Onieva [14] は、電子商取引トランザクションでインライン TTP を実装する際の仲介者の利用という観点を示しています。また、仲介者を通じて複数受信者のケースにも対応しますが、フォレンジック向けではありません。Bilal [15] は、Web サービスで否認防止プロトコルを実装するために BPEL を使用していますが、TTP を使用しないため、メッセージ内容を扱う能力がありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>WSLogA [16] track web service invocations by logging service invocations using SOAP intermediaries. Therefore, it captures the external behavior of service invocations. The main purpose of WSLogA is to provide feedback to business organizations by comprehensively logging services usage records. However, because it does not address any distributed collection mechanism necessary to gather comprehensive forensic evidence over services sharing multiple servers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>WSLogA [16] は、SOAP 仲介者を用いてサービス呼び出しを記録し、Web サービスの呼び出しを追跡します。そのため、サービス呼び出しの外部的な振る舞いを捉えます。WSLogA の主な目的は、サービス利用記録を包括的に記録し、ビジネス組織にフィードバックを提供することです。しかし、複数のサーバーを共有するサービスにまたがって包括的なフォレンジック証拠を収集するために必要な、分散型の収集メカニズムを扱っていないため、</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FWS has been influenced by many studies on network forensics, of which we describe two. Wang uses IDS alerts [17] to generate an evidence graph for network forensic analysis. Local reasoning and global reasoning help them in defining malicious activity in individual hosts and networks respectively. Unlike Web Server Nodes in FWS, they use hosts as nodes in their graphs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FWS は、ネットワークフォレンジックに関する多くの研究の影響を受けていますが、そのうち 2 つを説明します。Wang は、ネットワークフォレンジック分析のための証拠グラフを生成するために、IDS のアラート [17] を使用しています。ローカルな推論とグローバルな推論は、それぞれ個々のホストとネットワークにおける悪意のある活動を定義する助けとなります。FWS の Web サーバーノードとは異なり、彼らはグラフのノードとしてホストを使用しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ForNet [18] is another distributed forensic framework that uses logs from routers in a network to run agents that provide their log records to ForNet servers. Unlike Wang [17], ForNet uses succinct information of every regular network packets adequate to trace the actual source of packets even when they are spoofed. Although not designed for Web Services, this work has been inspired by the design of ForNET.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ForNet [18] は、もう 1 つの分散型フォレンジックフレームワークで、ネットワーク内のルーターのログを用いてエージェントを動作させ、そのエージェントが自らのログレコードを ForNet サーバーに提供します。Wang [17] とは異なり、ForNet は、パケットが偽装されている場合でも、パケットの実際の発信元を追跡するのに十分な、すべての通常のネットワークパケットの簡潔な情報を使用します。Web サービス向けには設計されていませんが、この研究は ForNet の設計に着想を得ています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8. CONCLUSION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Web services span many applications and domains. Consequently, any vulnerability in one service can be exploited to affect more than one service. In Web Services architecture it is a challenge to investigate the nature and source of an attack. We propose a framework referred to as Forensic Web Services that provides this capability as a service to other web services by logging service invocations. Our design shows how collected logs can provide the capability to produce a collection of digital evidence to expose the attack from its logs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Web サービスは多くのアプリケーションやドメインにまたがります。そのため、1 つのサービスの脆弱性が悪用され、複数のサービスに影響を及ぼす可能性があります。Web サービスアーキテクチャでは、攻撃の性質と発生源を調査することが課題です。私たちは、サービス呼び出しを記録し、この機能を他の Web サービスにサービスとして提供するフォレンジック Web サービスと呼ばれるフレームワークを提案します。私たちの設計は、収集したログから攻撃を明らかにするためのデジタル証拠の集合を生成する能力を、どのように提供できるかを示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>REFERENCES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] A. Vorobiev and H. Jun, &quot;Security Attack Ontology for Web Services,&quot; in Semantics, Knowledge and Grid, 2006. SKG &#x27;06. Second International Conference on, 2006, pp. 42-42.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] A. Vorobiev and H. Jun, &quot;Security Attack Ontology for Web Services,&quot; in Semantics, Knowledge and Grid, 2006. SKG &#x27;06. Second International Conference on, 2006, pp. 42-42.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Y. Demchenko, L. Gommans, C. de Laat, and B. Oudenaarde, &quot;Web services and grid security vulnerabilities and threats analysis and model,&quot; in Grid Computing, 2005. The 6th IEEE/ACM International Workshop on, 2005, p. 6 pp.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Y. Demchenko, L. Gommans, C. de Laat, and B. Oudenaarde, &quot;Web services and grid security vulnerabilities and threats analysis and model,&quot; in Grid Computing, 2005. The 6th IEEE/ACM International Workshop on, 2005, p. 6 pp.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] A. Singhal, T. Winograd, and K. Scarforne, NIST Special Publication 800-95, &quot;Guide to Secure Web Services” , August 2007, http://csrc.nist.gov/publications/nistpubs/800-95/SP800-95.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] A. Singhal, T. Winograd, and K. Scarforne, NIST Special Publication 800-95, &quot;Guide to Secure Web Services” , August 2007, http://csrc.nist.gov/publications/nistpubs/800-95/SP800-95.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] R. Khalaf, N. Mukhi, and S. Weerawarana, &quot;Service-Oriented Composition in BPEL4WS,&quot; in Twelfth International World Wide Web Conference, Budapest, Hungary, 2003.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] R. Khalaf, N. Mukhi, and S. Weerawarana, &quot;Service-Oriented Composition in BPEL4WS,&quot; in Twelfth International World Wide Web Conference, Budapest, Hungary, 2003.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] S. M. S. Cruz, M. L. M. Campos, P. F. Pires, and L. M. Campos, &quot;Monitoring e-business Web services usage through a log based architecture,&quot; in Web Services, 2004. Proceedings. IEEE International Conference on, 2004, pp. 61-69.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] S. M. S. Cruz, M. L. M. Campos, P. F. Pires, and L. M. Campos, &quot;Monitoring e-business Web services usage through a log based architecture,&quot; in Web Services, 2004. Proceedings. IEEE International Conference on, 2004, pp. 61-69.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] A. Herzberg and I. Yoffe, &quot;The Delivery and Evidences Layer,&quot; Cryptology ePrint Archive Report 2007/139, 2007.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] A. Herzberg and I. Yoffe, &quot;The Delivery and Evidences Layer,&quot; Cryptology ePrint Archive Report 2007/139, 2007.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] S. Kremer, O. Markowitch, and J. Zhou, &quot;An Intensive Survey of Non-repudiation protocols,&quot; Computer Communications, vol. 25, pp. 1606-1621, 2002.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] S. Kremer, O. Markowitch, and J. Zhou, &quot;An Intensive Survey of Non-repudiation protocols,&quot; Computer Communications, vol. 25, pp. 1606-1621, 2002.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] P. Robinson, N. Cook, and S. Shrivastava, &quot;Implementing fair non-repudiable interactions with Web services,&quot; in EDOC Enterprise Computing Conference, 2005 Ninth IEEE International, 2005, pp. 195-206.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] P. Robinson, N. Cook, and S. Shrivastava, &quot;Implementing fair non-repudiable interactions with Web services,&quot; in EDOC Enterprise Computing Conference, 2005 Ninth IEEE International, 2005, pp. 195-206.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] S. T. King and P. M. Chen. “Backtracking Intrusions,” in Proceedings of the 2003 Symposium on Operating Systems Principles (SOSP), pages 223-236, October 2003.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] S. T. King and P. M. Chen. “Backtracking Intrusions,” in Proceedings of the 2003 Symposium on Operating Systems Principles (SOSP), pages 223-236, October 2003.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] M. Gunestas, D. Wijesekera, and A. Singhal, &quot;Forensic Web Services,&quot; in Fourth Annual IFIP WG 11.9 International Conference on Digital Forensics Kyoto, Japan, 2008.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] M. Gunestas, D. Wijesekera, and A. Singhal, &quot;Forensic Web Services,&quot; in Fourth Annual IFIP WG 11.9 International Conference on Digital Forensics Kyoto, Japan, 2008.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] P. Srinath, H. Chathura, E. Jaliya, C. Eran, R. Ajith, J. Deepal, W. Sanjiva, and D. Glen, &quot;Axis2, Middleware for Next Generation Web Services,&quot; in Web Services, 2006. ICWS &#x27;06. International Conference on, 2006, pp. 833-840.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] P. Srinath, H. Chathura, E. Jaliya, C. Eran, R. Ajith, J. Deepal, W. Sanjiva, and D. Glen, &quot;Axis2, Middleware for Next Generation Web Services,&quot; in Web Services, 2006. ICWS &#x27;06. International Conference on, 2006, pp. 833-840.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] P. Robinson, N. Cook, and S. Shrivastava, &quot;Implementing fair non-repudiable interactions with Web services,&quot; in EDOC Enterprise Computing Conference, 2005 Ninth IEEE International, 2005, pp. 195-206.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] P. Robinson, N. Cook, and S. Shrivastava, &quot;Implementing fair non-repudiable interactions with Web services,&quot; in EDOC Enterprise Computing Conference, 2005 Ninth IEEE International, 2005, pp. 195-206.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] T. Coffey, P. Saidha, “Non-repudiation with mandatory proof of receipt,” ACMCCR: Computer Communication Review 26.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] T. Coffey, P. Saidha, “Non-repudiation with mandatory proof of receipt,” ACMCCR: Computer Communication Review 26.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[14] J. A. Onieva, Z. Jianying, M. Carbonell, and J. Lopez, &quot;Intermediary non-repudiation protocols,&quot; in E-Commerce, 2003. CEC 2003. IEEE International Conference on, 2003, pp. 207-214.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[14] J. A. Onieva, Z. Jianying, M. Carbonell, and J. Lopez, &quot;Intermediary non-repudiation protocols,&quot; in E-Commerce, 2003. CEC 2003. IEEE International Conference on, 2003, pp. 207-214.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[15] M. Bilal, J. P. Thomas, M. Thomas, and S. Abraham, &quot;Fair BPEL processes transaction using non-repudiation protocols,&quot; in Services Computing, 2005 IEEE International Conference on, 2005, pp. 337-340 vol.1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[15] M. Bilal, J. P. Thomas, M. Thomas, and S. Abraham, &quot;Fair BPEL processes transaction using non-repudiation protocols,&quot; in Services Computing, 2005 IEEE International Conference on, 2005, pp. 337-340 vol.1.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[16] S. M. S. Cruz, M. L. M. Campos, P. F. Pires, and L. M. Campos, &quot;Monitoring e-business Web services usage through a log based architecture,&quot; in Web Services, 2004. Proceedings. IEEE International Conference on, 2004, pp. 61-69.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[16] S. M. S. Cruz, M. L. M. Campos, P. F. Pires, and L. M. Campos, &quot;Monitoring e-business Web services usage through a log based architecture,&quot; in Web Services, 2004. Proceedings. IEEE International Conference on, 2004, pp. 61-69.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[17] W. Wang and T. E. Daniels, &quot;Building evidence graphs for network forensics analysis,&quot; in Computer Security Applications Conference, 21st Annual, 2005, p. 11 pp.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[17] W. Wang and T. E. Daniels, &quot;Building evidence graphs for network forensics analysis,&quot; in Computer Security Applications Conference, 21st Annual, 2005, p. 11 pp.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[18] K. Shanmugasundaram, N. Memon, A. Savant, and H. Bronnimann, “ForNet: A Distributed Forensics Network,” in Proceedings of the Second International Workshop on Mathematical Methods, Models and Architectures for Computer Networks Security, St. Petersburg, Russia, 2003.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[18] K. Shanmugasundaram, N. Memon, A. Savant, and H. Bronnimann, “ForNet: A Distributed Forensics Network,” in Proceedings of the Second International Workshop on Mathematical Methods, Models and Architectures for Computer Networks Security, St. Petersburg, Russia, 2003.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7559.pdf">National Institute of Standards and Technology, IR 7559</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7559";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

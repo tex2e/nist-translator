@@ -1,0 +1,1581 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7539 は、スマートカードに共通鍵を安全に注入するためのアーキテクチャを説明する研究論文で、特に、将来個人識別検証（PIV）カードに実装できる鍵注入のアーキテクチャを詳述します。主な目的は、物理アクセス制御システム（PACS）で PIV カードを使用する機会を新たに作り出すことであり、カードの発行後に、サイト固有の共通鍵を PIV カードにロードする方法を提案します。これにより、各スマートカードは、やり取りする各 PACS と固有の共通鍵を共有でき、本書は、カード管理システム（CMS）がサイト固有の PACS 共通鍵を安全にロードできるようにする 4 つのプロトコルを示します。各プロトコルは固有のセキュリティ特性を持ち、PIV カードのカード管理鍵をそれぞれ異なる役割で使用します。">
+  <title>スマートカードへの共通鍵の注入 | NIST IR 7539 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Symmetric Key Injection onto Smart Cards" data-search="スマートカードへの共通鍵の注入 symmetric key injection onto smart cards">スマートカードへの共通鍵の注入</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="2. Overview" data-search="2. 概要 2. overview">2. 概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="3. A Simple Key Injection Protocol" data-search="3. 単純な鍵注入プロトコル 3. a simple key injection protocol">3. 単純な鍵注入プロトコル</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="4. A Card Key Management Certificate" data-search="4. カード鍵管理証明書 4. a card key management certificate">4. カード鍵管理証明書</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001" title="4.1 Symmetric Key Injection Using a Card Key Management Key" data-search="4.1 カード鍵管理鍵を用いた共通鍵の注入 4.1 symmetric key injection using a card key management key">4.1 カード鍵管理鍵を用いた共通鍵の注入</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001" title="5. Symmetric Key Injection Without a Card Key Management Key" data-search="5. カード鍵管理鍵を用いない共通鍵の注入 5. symmetric key injection without a card key management key">5. カード鍵管理鍵を用いない共通鍵の注入</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="5.1 The Protocol" data-search="5.1 プロトコル 5.1 the protocol">5.1 プロトコル</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0011" title="5.2 An Analysis of the Protocol" data-search="5.2 プロトコルの分析 5.2 an analysis of the protocol">5.2 プロトコルの分析</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="6. An Alternative Protocol for Symmetric Key Injection Without a Card Key Management Key" data-search="6. カード鍵管理鍵を用いない共通鍵注入の代替プロトコル 6. an alternative protocol for symmetric key injection without a card key management key">6. カード鍵管理鍵を用いない共通鍵注入の代替プロトコル</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0004" title="6.1 The Protocol" data-search="6.1 プロトコル 6.1 the protocol">6.1 プロトコル</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0002" title="6.2 An Analysis of the Protocol" data-search="6.2 プロトコルの分析 6.2 an analysis of the protocol">6.2 プロトコルの分析</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="7. Implementation Considerations" data-search="7. 実装上の考慮事項 7. implementation considerations">7. 実装上の考慮事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0002" title="7.1 Site Identifiers" data-search="7.1 サイト識別子 7.1 site identifiers">7.1 サイト識別子</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0004" title="7.2 Generating Symmetric PACS Keys" data-search="7.2 共通鍵 pacs 鍵の生成 7.2 generating symmetric pacs keys">7.2 共通鍵 PACS 鍵の生成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="7.3 Service Architecture" data-search="7.3 サービスアーキテクチャ 7.3 service architecture">7.3 サービスアーキテクチャ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="8. Use of Symmetric Key for Authentication" data-search="8. 認証のための共通鍵の使用 8. use of symmetric key for authentication">8. 認証のための共通鍵の使用</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="Appendix A—References" data-search="付録 a—参考文献 appendix a—references">付録 A—参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7539 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Symmetric Key Injection onto Smart Cards</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>スマートカードへの共通鍵の注入</strong></span><br><span class="doc-panel-item">公開日 : 2008-12-22</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7539/final">https://csrc.nist.gov/pubs/ir/7539/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 167 / 168 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7539 は、スマートカードに共通鍵を安全に注入するためのアーキテクチャを説明する研究論文で、特に、将来個人識別検証（PIV）カードに実装できる鍵注入のアーキテクチャを詳述します。主な目的は、物理アクセス制御システム（PACS）で PIV カードを使用する機会を新たに作り出すことであり、カードの発行後に、サイト固有の共通鍵を PIV カードにロードする方法を提案します。これにより、各スマートカードは、やり取りする各 PACS と固有の共通鍵を共有でき、本書は、カード管理システム（CMS）がサイト固有の PACS 共通鍵を安全にロードできるようにする 4 つのプロトコルを示します。各プロトコルは固有のセキュリティ特性を持ち、PIV カードのカード管理鍵をそれぞれ異なる役割で使用します。</p></div>
+      </div>
+
+      <section class="row source-only pair figure" id="pdf-p0001-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7539</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7539</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Symmetric Key Injection onto Smart Cards</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+スマートカードへの共通鍵の注入</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David A. Cooper<br>William I. MacGregor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David A. Cooper<br>William I. MacGregor</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7539</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7539</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Symmetric Key Injection onto Smart Cards</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スマートカードへの共通鍵の注入</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David A. Cooper<br>William I. MacGregor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David A. Cooper<br>William I. MacGregor</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>COMPUTER SECURITY</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Division<br>Information Technology Laboratory<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ部門<br>情報技術研究所<br>国立標準技術研究所<br>Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>December 2008</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2008 年 12 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Carlos M. Gutierrez, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Carlos M. Gutierrez 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Patrick D. Gallagher, Deputy Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>Patrick D. Gallagher、NIST 副所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analysis to advance the development and productive use of information technology. ITL’s responsibilities include the development of technical, physical, administrative, and management standards and guidelines for the cost-effective security and privacy of sensitive unclassified information in Federal computer systems. This Interagency Report discusses ITL’s research, guidance, and outreach efforts in computer security, and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準基盤に対する技術的なリーダーシップを提供することで、米国の経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるために、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦コンピュータシステムにおける機微な非機密情報のセキュリティとプライバシーを費用対効果よく確保するための、技術的、物理的、管理的、運用管理上の標準およびガイドラインの策定が含まれます。この省庁間報告書では、コンピュータセキュリティに関する ITL の研究、ガイダンス、アウトリーチの取り組みと、産業界、政府、学術機関との共同活動を論じています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report<br>20 pages (2008)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所 省庁間報告書<br>20 ページ（2008 年）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験的な手順や概念を適切に説明するために、特定の商業的な組織、装置、または資材を挙げている場合があります。こうした記載は、国立標準技術研究所による推奨や推薦を意味するものではなく、挙げられた組織、資材、または装置が目的に対して必ずしも最良であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper describes architectures for securely injecting secret keys onto smart cards. Specifically, this paper details key injection architectures that could be implemented on Personal Identity Verification (PIV) Card in future. The primary goal is to create additional opportunities for the use of the PIV Card in Physical Access Control Systems (PACS). There is significant interest in conducting a fast, accurate, and highly secured authentication transaction using symmetric keys in PACS environments. This paper suggests ways to load site specific symmetric keys onto a PIV Card after the card has been issued, which allows each smart card to share a unique secret key with each PACS with which it interacts. The paper presents four protocols that enable a Card Management System (CMS) to securely load site specific PACS symmetric keys. Each protocol presents unique security characteristics and uses the PIV Card’s card management key in different capacities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿は、スマートカードに共通鍵を安全に注入するためのアーキテクチャを説明します。具体的には、将来、個人識別検証（PIV）カードに実装できる鍵注入のアーキテクチャを詳述します。主な目的は、物理アクセス制御システム（PACS）で PIV カードを使用する機会を新たに作り出すことです。PACS 環境では、共通鍵を用いた、高速で正確かつ高度に保護された認証トランザクションを実行することに大きな関心が寄せられています。本稿は、カードの発行後に、サイト固有の共通鍵を PIV カードにロードする方法を提案します。これにより、各スマートカードは、やり取りする各 PACS とそれぞれ固有の共通鍵を共有できます。本稿は、カード管理システム（CMS）がサイト固有の PACS 共通鍵を安全にロードできるようにする 4 つのプロトコルを示します。各プロトコルは固有のセキュリティ特性を持ち、PIV カードのカード管理鍵をそれぞれ異なる役割で使用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Disclaimer</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>免責事項</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This is research paper intended to stimulate discussion on new concepts and approaches. Statements made are the opinions of the authors and should not be interpreted as standards, guidelines, best practices, or recommendations for specific changes to any other NIST publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、新しい概念や手法に関する議論を促すことを意図した研究論文です。記載内容は著者らの意見であり、標準、ガイドライン、ベストプラクティス、または NIST の他の刊行物に対する特定の変更の推奨として解釈すべきではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Keywords: HSPD-12, Key Management, PIV, FIPS 201, Smart Cards, PACS, Card Authentication Key</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>キーワード: HSPD-12、鍵管理、PIV、FIPS 201、スマートカード、PACS、カード認証鍵</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. Overview</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. 概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. A Simple Key Injection Protocol</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. 単純な鍵注入プロトコル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">4. A Card Key Management Certificate</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">4. カード鍵管理証明書</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">4.1 Symmetric Key Injection Using a Card Key Management Key</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">4.1 カード鍵管理鍵を用いた共通鍵の注入</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">5. Symmetric Key Injection Without a Card Key Management Key</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">5. カード鍵管理鍵を用いない共通鍵の注入</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">5.1 The Protocol</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">5.1 プロトコル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0011">5.2 An Analysis of the Protocol</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0011">5.2 プロトコルの分析</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">6. An Alternative Protocol for Symmetric Key Injection Without a Card Key Management Key</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">6. カード鍵管理鍵を用いない共通鍵注入の代替プロトコル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0004">6.1 The Protocol</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0004">6.1 プロトコル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">6.2 An Analysis of the Protocol</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">6.2 プロトコルの分析</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. Implementation Considerations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. 実装上の考慮事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">7.1 Site Identifiers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">7.1 サイト識別子</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0004">7.2 Generating Symmetric PACS Keys</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0004">7.2 共通鍵 PACS 鍵の生成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">7.3 Service Architecture</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">7.3 サービスアーキテクチャ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">8. Use of Symmetric Key for Authentication</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">8. 認証のための共通鍵の使用</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In many facilities, a primary consideration in the selection of an authentication mechanism for a Physical Access Control system (PACS) is the need for speed. Individuals attempting to enter the facility need to be able to quickly swipe their smart cards near the proximity reader and be granted access if they are authorized. A common form of authentication in these systems involves simply reading a serial number from the card, which is then checked against an access control list. This is a very weak form of authentication, however, since it would be very easy for an unauthorized person to create a smart card that responds with the same serial number as that of a smart card belonging to an authorized individual.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くの施設では、物理アクセス制御システム（PACS）の認証メカニズムを選ぶ際の主要な検討事項は、速度の必要性です。施設に入ろうとする人は、スマートカードを近接リーダにすばやくかざし、許可されていればアクセスを認められる必要があります。これらのシステムで一般的な認証の形態は、カードからシリアル番号を読み取り、それをアクセス制御リストと照合するだけのものです。しかし、これは非常に弱い認証の形態です。許可された人物のスマートカードと同じシリアル番号で応答するスマートカードを、許可されていない人物が作成することは非常に容易だからです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The use of a cryptographic challenge/response mechanism as part of the authentication process can minimize the risk that a card can be successfully cloned. Where a smart card only needs to support access to a single facility, a secret key that is shared between the smart card and the facility’s PACS may be loaded onto the smart card during the initial card personalization process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証プロセスの一部として暗号のチャレンジ/レスポンスのメカニズムを用いることで、カードが複製に成功するリスクを最小限に抑えることができます。スマートカードが単一の施設へのアクセスのみをサポートすればよい場合は、スマートカードと施設の PACS の間で共有される共通鍵を、最初のカードのパーソナライゼーションの過程でスマートカードにロードしてもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Homeland Security Presidential Directive 12 [2] (HSPD-12) requires the issuance of smart cards Personal Identity Verification Cards (PIV Cards) to federal employees and contractors, with the intention that these smart cards be interoperable across federal agencies. That is, an employee of one agency should be able to use a PIV Card issued by his or her agency to gain entry into any federal building to which he or she is authorized. The use of a single secret key that is loaded onto the PIV Card at the time of personalization is not appropriate in this scenario, as it would require the secret keys of individuals’ PIV Cards to be widely shared among a large number of independently operated PACS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国土安全保障大統領指令 12 [2]（HSPD-12）は、連邦職員と契約業者に対して、個人識別検証カード（PIV カード）というスマートカードを発行することを求めており、これらのスマートカードが連邦機関間で相互運用できることを意図しています。すなわち、ある機関の職員は、自らの機関が発行した PIV カードを使って、入ることを許可されているあらゆる連邦政府の建物に入ることができるようにすべきです。このシナリオでは、パーソナライゼーションの時点で PIV カードにロードされる単一の共通鍵を使用することは適切ではありません。個々人の PIV カードの共通鍵が、独立して運用される多数の PACS の間で広く共有されることになってしまうためです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Challenge/response protocols that are based on public key cryptography are well-suited for use in a multi-organizational environment. Every PIV Card includes an asymmetric authentication key and certificate. Use of a challenge/response protocol that employs the asymmetric authentication key would allow for anyone to authenticate any PIV Card without the need to share secret keys. In some environments, however, the amount of time required for a smart card to perform a private key operation may be considered unacceptable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>公開鍵暗号に基づくチャレンジ/レスポンスのプロトコルは、複数の組織にまたがる環境での使用に適しています。すべての PIV カードには、非対称の認証鍵と証明書が含まれています。非対称の認証鍵を使用するチャレンジ/レスポンスのプロトコルを使えば、共通鍵を共有する必要なく、誰でも任意の PIV カードを認証できます。しかし、環境によっては、スマートカードが秘密鍵演算を実行するのに必要な時間が、許容できないと考えられる場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this paper, we describe architecture for securely injecting secret keys onto smart cards. In this architecture, each smart card shares a unique secret key with each PACS with which it interacts. When an individual wishes to be able to access a facility controlled by a PACS for which no key has yet been loaded onto the card, a protocol is followed in which the smart card, the PACS, and the CMS that initialized the smart card work together to load a new secret key onto the card. The resulting architecture allows for the use of a fast, secure authentication mechanism based on secret key cryptography in a multi-organizational environment while maintaining a minimal sharing of secret keys.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿では、スマートカードに共通鍵を安全に注入するためのアーキテクチャを説明します。このアーキテクチャでは、各スマートカードは、やり取りする各 PACS と固有の共通鍵を共有します。個人が、まだ鍵がカードにロードされていない PACS が管理する施設にアクセスできるようにしたい場合は、スマートカード、PACS、およびそのスマートカードを初期化した CMS が連携して新しい共通鍵をカードにロードするプロトコルに従います。このアーキテクチャにより、共通鍵の共有を最小限に抑えながら、複数の組織にまたがる環境で、共通鍵暗号に基づく高速で安全な認証メカニズムを使用できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Overview</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ideally, the process of loading a symmetric key onto a smart card for the purpose of enabling authentication for physical access would only involve two entities, the PACS and the smart card. When a card holder presents a smart card to a door reader in order to obtain access to a facility, the PACS needs to be able to authenticate the card, but the card does not need to authenticate the PACS. For this reason, while a PACS needs to ensure that it does not provide keys that will be accepted for authentication purposes to cards that it has not authenticated, it is not strictly necessary for a smart card to authenticate the source of a symmetric key before accepting the key for storage on the card. In practice, however, smart cards have limited memory, and it cannot be assumed that a smart card will have sufficient storage space to hold every symmetric key that is provided to it. Thus, there is a practical need to manage the limited storage space available.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>理想的には、物理アクセスの認証を可能にする目的でスマートカードに共通鍵をロードする過程には、PACS とスマートカードの 2 つのエンティティだけが関与します。カード保持者が施設へのアクセスを得るためにスマートカードをドアのリーダに提示するとき、PACS はカードを認証できる必要がありますが、カードが PACS を認証する必要はありません。このため、PACS は、認証していないカードに、認証目的で受け入れられる鍵を提供しないようにする必要がある一方で、スマートカードが、共通鍵をカードへの保存のために受け入れる前に、その鍵の出所を認証することは、厳密には必要ではありません。しかし実際には、スマートカードのメモリは限られており、スマートカードに提供されるすべての共通鍵を保持するのに十分な保存領域があると想定することはできません。したがって、利用可能な限られた保存領域を管理する実用上の必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Making meaningful decisions about which keys to store on the card will require, at a minimum, the ability to authenticate the sources of the keys, a process that is too complicated for a smart card to perform by itself. For every smart card, however, there is a CMS that is responsible for the personalization of that card. The protocols presented in this paper include the smart card’s CMS, along with the smart card and the PACS, in the key loading process. The CMS is responsible for managing the smart card’s resources. The CMS decides whether a key presented by a PACS should be stored on the card, and if the card’s memory is already full, which PACS’s key should be deleted in order to free up space for the new key.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>カードにどの鍵を保存するかについて有意な判断を行うには、少なくとも鍵の出所を認証する能力が必要ですが、このプロセスはスマートカード自身が実行するには複雑すぎます。しかし、すべてのスマートカードには、そのカードのパーソナライゼーションを担う CMS があります。本稿で示すプロトコルは、スマートカードと PACS に加えて、スマートカードの CMS も鍵のロード過程に含めます。CMS は、スマートカードのリソースを管理する責任を負います。CMS は、PACS から提示された鍵をカードに保存すべきかどうか、またカードのメモリがすでに満杯である場合は、新しい鍵のための空きを作るためにどの PACS の鍵を削除すべきかを判断します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Federal Information Processing Standards 201 (FIPS 201) [7] specifies one mandatory key and four optional keys for inclusion on PIV Cards. One limitation of the FIPS 201 specification is that it does not specify any asymmetric keys that are under the control of the PIV Card rather than the card holder. The card management key is under the control of the PIV Card, but it is a symmetric key. This limits the use of the card management key to secure communication between the two entities that know the key: the PIV Card and the PIV Card’s CMS. The remaining keys defined in FIPS 201 are under the control of the card holder. This means that data encrypted using the key management public key may be read by the card holder and data signed using the PIV authentication key, the card authentication key, or the digital signature key may have been created by the card holder.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連邦情報処理標準 201（FIPS 201）[7] は、PIV カードに含める必須の鍵 1 つと任意の鍵 4 つを規定しています。FIPS 201 の仕様の制約の 1 つは、カード保持者ではなく PIV カードの管理下にある非対称鍵を規定していないことです。カード管理鍵は PIV カードの管理下にありますが、共通鍵です。このため、カード管理鍵の用途は、その鍵を知る 2 つのエンティティ、すなわち PIV カードと PIV カードの CMS の間の安全な通信に限られます。FIPS 201 で定義されている残りの鍵は、カード保持者の管理下にあります。これは、鍵管理公開鍵を用いて暗号化されたデータをカード保持者が読める場合があり、PIV 認証鍵、カード認証鍵、またはデジタル署名鍵を用いて署名されたデータが、カード保持者によって作成された可能性があることを意味します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All four of the protocols in this paper rely on the card management key to authenticate messages sent between the PIV Card and the PIV Card’s CMS. In all four protocols this key is used to allow the PIV Card to authenticate the key injection command. In the third and fourth protocols, this key is also used to allow the PACS to authenticate the PIV Card, with the aid of the PIV Card’s CMS. The second protocol, on the other hand, makes use of a yet to be defined asymmetric key management key to allow the PACS to send encrypted data to the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿の 4 つのプロトコルはすべて、PIV カードと PIV カードの CMS の間で送られるメッセージを認証するために、カード管理鍵に依拠します。4 つのプロトコルすべてで、この鍵は、PIV カードが鍵注入コマンドを認証できるようにするために使われます。第 3 と第 4 のプロトコルでは、この鍵はさらに、PIV カードの CMS の助けを借りて、PACS が PIV カードを認証できるようにするためにも使われます。一方、第 2 のプロトコルは、PACS が暗号化されたデータを PIV カードに送れるようにするために、まだ定義されていない非対称の鍵管理鍵を利用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Other protocols to symmetric key management are possible, although we find the motivating arguments less compelling. A fixed set of PACS keys could be loaded by the CMS into the PIV Card at issuance (could not adapt to a changing population of PACS, or a universe of PACS keys larger than could be stored on the PIV Card). After authentication using the asymmetric PIV authentication key or biometric mechanism, a PACS could load a new PACS key into a key cache on the PIV Card (would require the cache to be public-writable, and cache management could be difficult on smart cards without real-time clocks). A PIV Card and PACS could generate a new shared session key through execution of a key establishment protocol between them (would produce unique, independent keys for each PIV Card-PACS pair, complicating reader access to PACS keys). The approaches that offer the best security and scalability rely on the CMS as a trusted intermediary for symmetric key injection onto the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>共通鍵管理には他のプロトコルも可能ですが、その動機となる論拠はあまり説得力がないと私たちは考えます。固定された PACS 鍵の集合を、発行時に CMS が PIV カードにロードすることもできるでしょう（変化する PACS の母集団や、PIV カードに保存できる数を超える PACS 鍵の全体には対応できません）。PACS は、非対称の PIV 認証鍵または生体認証メカニズムを用いた認証の後、PIV カード上の鍵キャッシュに新しい PACS 鍵をロードすることもできるでしょう（キャッシュが公開書き込み可能である必要があり、リアルタイムクロックを持たないスマートカードではキャッシュ管理が困難になる場合があります）。PIV カードと PACS は、両者の間で鍵確立プロトコルを実行することにより、新しい共有セッション鍵を生成することもできるでしょう（PIV カードと PACS の各組に固有で独立した鍵が生成されるため、リーダが PACS 鍵にアクセスすることが複雑になります）。最良のセキュリティとスケーラビリティを提供する手法は、PIV カードへの共通鍵注入のための信頼できる仲介者としての CMS に依拠するものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. A Simple Key Injection Protocol</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 単純な鍵注入プロトコル</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section presents the simplest of the four protocols described in this paper. Unlike the other three protocols, this protocol makes no attempt to prevent the PIV Card’s CMS from learning the value of the symmetric physical access key provided by the PACS to the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、本稿で説明する 4 つのプロトコルのうち最も単純なものを示します。他の 3 つのプロトコルと異なり、このプロトコルは、PACS が PIV カードに提供する共通鍵の物理アクセス鍵の値を、PIV カードの CMS が知ることを防ごうとはしていません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The card holder connects to the PACS over a two-way authenticated Transport Layer Security (TLS) session [6] in which client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">カード保持者は、クライアント認証に PIV カードの PIV 認証鍵を用いる双方向認証の Transport Layer Security（TLS）セッション [6] を介して、PACS に接続します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">The PACS uses information provided by the card holder in addition to information available from the Backend Attribute Exchange [1] to determine whether to provision the PIV Card with a symmetric physical access key. The PACS also uses the Backend Attribute Exchange to find the Universal Resource Identifier (URI) for the PIV Card’s CMS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">PACS は、バックエンド属性交換 [1] から得られる情報に加えて、カード保持者から提供された情報を用いて、PIV カードに共通鍵の物理アクセス鍵を提供するかどうかを判断します。PACS はまた、バックエンド属性交換を用いて、PIV カードの CMS の Universal Resource Identifier（URI）を見つけます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">If the PACS wishes to provision the PIV Card with a symmetric physical access key then the PACS directs the card holder to the PIV Card’s CMS by providing the card holder with a URI that points to the card holder’s CMS. The URI includes an identifier for the PACS (e.g., https://cms.example.com/keyloader?siteid=192.0.2.4).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">PACS が PIV カードに共通鍵の物理アクセス鍵を提供したい場合、PACS は、カード保持者の CMS を指す URI をカード保持者に提供することで、カード保持者を PIV カードの CMS に誘導します。この URI には、PACS の識別子が含まれます（例: https://cms.example.com/keyloader?siteid=192.0.2.4）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">The card holder follows the URI, which results in the establishment of a two-way authenticated TLS session with the PIV Card’s CMS. Client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">カード保持者はこの URI に従い、その結果、PIV カードの CMS との間に双方向認証の TLS セッションが確立されます。クライアント認証は、PIV カードの PIV 認証鍵を用いて行われます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">The CMS makes a decision as to whether to load the PACS’s key onto the PIV Card, and proceeds with the remainder of the protocol only if the key is to be loaded. The decision process must include verifying that the identifier specified in the URI corresponds to a legitimate PACS. If the identified PACS is legitimate, but no empty slots remain on the PIV Card, then the CMS may ask the card holder to determine which, if any, PACS’s key should be deleted in order to allow the new key to be loaded.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">CMS は、PACS の鍵を PIV カードにロードするかどうかを判断し、鍵をロードする場合にのみ、プロトコルの残りを進めます。この判断プロセスには、URI で指定された識別子が正当な PACS に対応していることの検証が含まれなければなりません。識別された PACS が正当であるものの、PIV カードに空きスロットが残っていない場合、CMS は、新しい鍵をロードできるようにするために、どの PACS の鍵を、もしあれば削除すべきかを決定するようカード保持者に求めてもよいです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">The CMS uses the Backend Attribute Exchange to obtain the symmetric physical access key for the PIV Card, \(K_{PHYS}\), from the PACS. The communication between the CMS and the PACS is performed over a two-way authenticated TLS session using a cipher suite that provides both confidentiality and integrity protection for the data transmitted between the CMS and the PACS. Before providing \(K_{PHYS}\), PACS verifies that the CMS requesting the key is the CMS responsible for the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">CMS は、バックエンド属性交換を用いて、PIV カードの共通鍵の物理アクセス鍵 \(K_{PHYS}\) を PACS から取得します。CMS と PACS の間の通信は、CMS と PACS の間で送信されるデータの機密性と完全性保護の両方を提供する暗号スイートを用いた、双方向認証の TLS セッションを介して行われます。\(K_{PHYS}\) を提供する前に、PACS は、鍵を要求している CMS が、その PIV カードを担当する CMS であることを検証します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">The CMS determines in which slot, \(S_{PIV}\), the symmetric key should be stored on the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">CMS は、共通鍵を PIV カードのどのスロット \(S_{PIV}\) に保存すべきかを決定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">The CMS generates a key injection command with the following data: \(C_s\), \(K_{PHYS}\), \(I_p\), \(S_{PIV}\). \(C_s\) is a counter that is shared between the CMS and the card that is incremented for each key injection command and that is used in order to allow the PIV Card to detect message replays. \(I_p\) is the PACS’s site identifier. The key injection command is encrypted and protected using a Message Authentication Code (MAC). The encryption and MAC keys are derived from the symmetric card management key, \(K_{CM}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">CMS は、データ \(C_s\)、\(K_{PHYS}\)、\(I_p\)、\(S_{PIV}\) を含む鍵注入コマンドを生成します。\(C_s\) は、CMS とカードの間で共有され、鍵注入コマンドごとに増分されるカウンタで、PIV カードがメッセージのリプレイを検出できるようにするために使われます。\(I_p\) は、PACS のサイト識別子です。鍵注入コマンドは、暗号化され、メッセージ認証コード（MAC）で保護されます。暗号化鍵と MAC 鍵は、共通のカード管理鍵 \(K_{CM}\) から導出されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">The CMS sends the key injection command to the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">CMS は、鍵注入コマンドを PIV カードに送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">The PIV Card decrypts and verifies the authenticity of the key injection command, checks that the counter, \(C_s\), is higher than for any previously processed key injection command, and then stores \(K_{PHYS}\) and \(I_p\) in slot \(S_{PIV}\). The PIV Card then sends a response to the CMS indicating that the key injection command has been successfully executed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">PIV カードは、鍵注入コマンドを復号してその真正性を検証し、カウンタ \(C_s\) が、以前に処理したどの鍵注入コマンドよりも大きいことを確認してから、\(K_{PHYS}\) と \(I_p\) をスロット \(S_{PIV}\) に保存します。続いて PIV カードは、鍵注入コマンドが正常に実行されたことを示す応答を CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. A Card Key Management Certificate</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. カード鍵管理証明書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FIPS 201 specifies an optional card authentication key, which may be either symmetric or asymmetric, that is under the control of any entity that has physical possession of the PIV Card. The card authentication key is intended to be used for authentication to PACS in a manner that provides for strong single factor authentication. In this section, we discuss the potential benefits of replacing the card authentication key with a card key management key that is under the control of the PIV Card. As will be described, this card key management key could be used to support single factor authentication, two factor authentication, and symmetric key injection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FIPS 201 は、共通鍵でも非対称鍵でもよい任意のカード認証鍵を規定しており、これは PIV カードを物理的に所持するあらゆるエンティティの管理下にあります。カード認証鍵は、強力な単一要素認証を提供する形で PACS への認証に使われることを意図しています。本節では、カード認証鍵を、PIV カードの管理下にあるカード鍵管理鍵に置き換えることで得られる潜在的な利点を論じます。後述するように、このカード鍵管理鍵は、単一要素認証、二要素認証、共通鍵注入をサポートするために使えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The infrastructure requirements for the card key management key would be similar to the requirements for the asymmetric card authentication key. The key would have to be generated on the PIV Card and the PIV Card could not permit exportation of the private key from the card. The certificates for card key management public keys would look just like the certificates issued for card authentication public keys with the exception that the keyUsage extension would assert the keyEncipherment or keyAgreement bit instead of the digitalSignature bit. In addition, the card key management private key could be used without explicit user action. The main difference would be that the card key management private key could not be used directly via a card command. Instead, the card key management private key could only be used by applets loaded onto the PIV Card, and these applets would not be permitted to export any data (keys) encrypted using the card key management public key. This restriction is necessary in order to protect against multi-protocol attacks, in which an attacker replays a message in the context of one protocol that was originally created for use in another protocol. For example, if an attacker could simply send a command to the card to decrypt some data using the card key management key, then the attacker could eavesdrop on a symmetric key injection protocol exchange and then send a command to the card asking it to decrypt the encrypted symmetric key that it captured while eavesdropping.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>カード鍵管理鍵のインフラストラクチャ要件は、非対称のカード認証鍵の要件に似たものになるでしょう。この鍵は PIV カード上で生成される必要があり、PIV カードは、カードからの秘密鍵のエクスポートを許してはなりません。カード鍵管理公開鍵の証明書は、keyUsage 拡張が digitalSignature ビットではなく keyEncipherment または keyAgreement ビットを表明する点を除き、カード認証公開鍵に対して発行される証明書とまったく同じに見えるでしょう。さらに、カード鍵管理秘密鍵は、明示的なユーザー操作なしで使用できます。主な違いは、カード鍵管理秘密鍵がカードコマンドを介して直接使用できないことです。代わりに、カード鍵管理秘密鍵は PIV カードにロードされたアプレットだけが使用でき、これらのアプレットは、カード鍵管理公開鍵で暗号化されたデータ（鍵）をエクスポートすることを許可されません。この制限は、あるプロトコルでの使用のために作成されたメッセージを、攻撃者が別のプロトコルの文脈でリプレイする、複数プロトコル攻撃から守るために必要です。たとえば、攻撃者がカード鍵管理鍵を用いてデータを復号するコマンドを単純にカードに送信できるとすれば、攻撃者は共通鍵注入プロトコルのやり取りを盗聴し、その後、盗聴中に取得した暗号化された共通鍵を復号するよう求めるコマンドをカードに送信できてしまいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Appendix D of NIST Interagency Report 7452 (NISTIR 7452) [5] presents a protocol for establishing a secure session between a PIV Card and a smart card reader. The protocol relies on the use of a key management private key that is under the control of the PIV Card and whose corresponding public key appears in a certificate that can be validated by the card reader. The proposed card key management key could be used for this purpose. The result of the protocol is a pair of symmetric keys, one for encryption and the other for authentication, that are shared between the PIV Card and the card reader.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST Interagency Report 7452（NISTIR 7452）[5] の付録 D は、PIV カードとスマートカードリーダの間に安全なセッションを確立するためのプロトコルを示しています。このプロトコルは、PIV カードの管理下にある鍵管理用秘密鍵の使用に依拠し、その対応する公開鍵は、カードリーダが検証できる証明書に含まれます。提案されたカード鍵管理鍵は、この目的に使用できます。このプロトコルの結果は、PIV カードとカードリーダの間で共有される、一方が暗号化用、もう一方が認証用の 1 対の共通鍵です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Single factor authentication could be achieved by running the key establishment portion of the protocol in Appendix D of NISTIR 7452, using the card key management key, and then having the card reader perform a challenge/response using one of the symmetric keys created during the session establishment protocol. Two factor authentication could be achieved by performing secure biometric match-on-card as described in NISTIR 7452.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>単一要素認証は、NISTIR 7452 の付録 D のプロトコルの鍵確立の部分をカード鍵管理鍵を用いて実行し、その後、カードリーダが、セッション確立プロトコルで作成された共通鍵の 1 つを用いてチャレンジ/レスポンスを実行することで実現できるでしょう。二要素認証は、NISTIR 7452 で説明されている安全なカード上生体照合（match-on-card）を実行することで実現できるでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In addition to being able to replace the card authentication key and to being able to support protocols such as secure biometric match-on-card [5], the presence of card key management keys on PIV Cards would also be ideal for supporting the injection of symmetric keys onto PIV Cards. A protocol for using a card key management key to perform symmetric key injection is presented below. This protocol differs from the protocol in Section 3 in that it ensures that thesymmetric key remains a secret shared by only the PACS and the PIV Card. Neither the PIV Card’s CMS nor the PIV Card holder may obtain a copy of the symmetric key.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>カード鍵管理鍵は、カード認証鍵を置き換えることができ、安全なカード上生体照合 [5] などのプロトコルをサポートできることに加えて、PIV カードへの共通鍵の注入をサポートするうえでも理想的です。カード鍵管理鍵を用いて共通鍵注入を行うプロトコルを以下に示します。このプロトコルは、共通鍵が PACS と PIV カードだけが共有する秘密であり続けることを保証する点で、第 3 節のプロトコルと異なります。PIV カードの CMS も PIV カード保持者も、共通鍵の写しを入手することはできません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1 Symmetric Key Injection Using a Card Key Management Key</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1 カード鍵管理鍵を用いた共通鍵の注入</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The card holder connects to the PACS over a two-way authenticated TLS session in which client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">カード保持者は、クライアント認証に PIV カードの PIV 認証鍵を用いる双方向認証の TLS セッションを介して、PACS に接続します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">The PACS uses information provided by the card holder in addition to information available from the Backend Attribute Exchange to determine whether to provision the PIV Card with a symmetric physical access key. The PACS also uses the Backend Attribute Exchange to find the URI for the PIV Card’s CMS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">PACS は、バックエンド属性交換から得られる情報に加えて、カード保持者から提供された情報を用いて、PIV カードに共通鍵の物理アクセス鍵を提供するかどうかを判断します。PACS はまた、バックエンド属性交換を用いて、PIV カードの CMS の URI を見つけます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">If the PACS wishes to provision the PIV Card with a symmetric physical access key then the PACS directs the card holder to the PIV Card’s CMS by providing the card holder with a URI that points to the card holder’s CMS. The URI includes an identifier for the PACS (e.g., https://cms.example.com/keyloader?siteid=192.0.2.4).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">PACS が PIV カードに共通鍵の物理アクセス鍵を提供したい場合、PACS は、カード保持者の CMS を指す URI をカード保持者に提供することで、カード保持者を PIV カードの CMS に誘導します。この URI には、PACS の識別子が含まれます（例: https://cms.example.com/keyloader?siteid=192.0.2.4）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">The card holder follows the URI, which results in the establishment of a two-way authenticated TLS session with the PIV Card’s CMS. Client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">カード保持者はこの URI に従い、その結果、PIV カードの CMS との間に双方向認証の TLS セッションが確立されます。クライアント認証は、PIV カードの PIV 認証鍵を用いて行われます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">The CMS makes a decision as to whether to load the PACS’s key onto the PIV Card, and proceeds with the remainder of the protocol only if the key is to be loaded. The decision process must include verifying that the identifier specified in the URI corresponds to a legitimate PACS. If the identified PACS is legitimate, but no empty slots remain on the PIV Card, then the CMS may ask the card holder to determine which, if any, PACS’s key should be deleted in order to allow the new key to be loaded.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">CMS は、PACS の鍵を PIV カードにロードするかどうかを判断し、鍵をロードする場合にのみ、プロトコルの残りを進めます。この判断プロセスには、URI で指定された識別子が正当な PACS に対応していることの検証が含まれなければなりません。識別された PACS が正当であるものの、PIV カードに空きスロットが残っていない場合、CMS は、新しい鍵をロードできるようにするために、どの PACS の鍵を、もしあれば削除すべきかを決定するようカード保持者に求めてもよいです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">The CMS uses the Backend Attribute Exchange to obtain the symmetric physical access key for the PIV Card from the PACS. The communication between the CMS and the PACS is performed over a two-way authenticated TLS session. The PACS performs the following steps to respond to the CMS’s request for a key:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">CMS は、バックエンド属性交換を用いて、PIV カードの共通鍵の物理アクセス鍵を PACS から取得します。CMS と PACS の間の通信は、双方向認証の TLS セッションを介して行われます。PACS は、CMS の鍵の要求に応答するために、次の手順を実行します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Use the Backend Attribute Exchange to obtain the PIV Card’s card key management certificate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">バックエンド属性交換を用いて、PIV カードのカード鍵管理証明書を取得します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0007-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Validate the PIV Card’s card key management certificate and verify that the entity identified by the Federal Agency Smart Credential Number (FASC-N) [8] in the subjectAltName extension in the certificate should be provided with a symmetric PACS key.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">PIV カードのカード鍵管理証明書を検証し、証明書の subjectAltName 拡張にある Federal Agency Smart Credential Number（FASC-N）[8] で識別されるエンティティに、共通鍵 PACS 鍵を提供すべきであることを確認します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0007-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">Encrypt the symmetric PACS key, \(K_{PHYS}\), that is to be provided to the PIV Card using the public key from the PIV Card’s card key management certificate: \((K_{PHYS})K_{CKMK}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">PIV カードに提供する共通鍵 PACS 鍵 \(K_{PHYS}\) を、PIV カードのカード鍵管理証明書にある公開鍵を用いて暗号化します: \((K_{PHYS})K_{CKMK}\)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0010-b0007-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body">Send \((K_{PHYS})K_{CKMK}\) to the CMS as the value for the requested attribute.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body">\((K_{PHYS})K_{CKMK}\) を、要求された属性の値として CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">The CMS determines in which slot, \(S_{PIV}\), the symmetric key should be stored on the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">CMS は、共通鍵を PIV カードのどのスロット \(S_{PIV}\) に保存すべきかを決定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">The CMS generates a key injection command with the following data: \(C_s\), \((K_{PHYS})K_{CKMK}\), \(I_p\), \(S_{PIV}\). \(C_s\) is a counter that is shared between the CMS and the card that is incremented for each key injection command and that is used in order to allow the PIV Card to detect message replays. \(I_p\) is the PACS’s site identifier. The key injection command is protected using a MAC. The MAC key is derived from the symmetric card management key, \(K_{CM}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">CMS は、データ \(C_s\)、\((K_{PHYS})K_{CKMK}\)、\(I_p\)、\(S_{PIV}\) を含む鍵注入コマンドを生成します。\(C_s\) は、CMS とカードの間で共有され、鍵注入コマンドごとに増分されるカウンタで、PIV カードがメッセージのリプレイを検出できるようにするために使われます。\(I_p\) は、PACS のサイト識別子です。鍵注入コマンドは、MAC で保護されます。MAC 鍵は、共通のカード管理鍵 \(K_{CM}\) から導出されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">The CMS sends the key injection command to the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">CMS は、鍵注入コマンドを PIV カードに送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">The PIV Card verifies the authenticity of the key injection command, checks that the counter, \(C_s\), is higher than for any previously processed key injection command, uses its card key management private key to decrypt \((K_{PHYS})K_{CKMK}\), and then stores \(K_{PHYS}\) and \(I_p\) in slot \(S_{PIV}\). The PIV Card then sends a response to the CMS indicating that the key injection command has been successfully executed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">PIV カードは、鍵注入コマンドの真正性を検証し、カウンタ \(C_s\) が、以前に処理したどの鍵注入コマンドよりも大きいことを確認し、カード鍵管理秘密鍵を用いて \((K_{PHYS})K_{CKMK}\) を復号してから、\(K_{PHYS}\) と \(I_p\) をスロット \(S_{PIV}\) に保存します。続いて PIV カードは、鍵注入コマンドが正常に実行されたことを示す応答を CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Symmetric Key Injection Without a Card Key Management Key</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. カード鍵管理鍵を用いない共通鍵の注入</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section presents a protocol that does not rely on the presence of a card key management key that results in a symmetric key that is only shared between the PACS and the PIV Card. In this variation of the protocol, the PIV Card establishes a connection with the PACS. This allows the PACS to authenticate the PIV Card using the card’s PIV authentication key. In the case that the PIV Card connects to the PACS from a client that is trusted by the PACS, this allows the PACS to verify that the symmetric key that it creates can only be obtained by the PIV Card. In the case that the PIV Card is connected to the PACS from a client that is not trusted by the PACS, this allows the PACS to verify that the PIV Card is present, but the PACS must rely on the PIV Card’s CMS to ensure that no entity other than the PIV Card can obtain the symmetric key.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、カード鍵管理鍵の存在に依拠せず、PACS と PIV カードだけが共有する共通鍵を生み出すプロトコルを示します。このプロトコルの変種では、PIV カードが PACS との接続を確立します。これにより、PACS は、カードの PIV 認証鍵を用いて PIV カードを認証できます。PIV カードが、PACS が信頼するクライアントから PACS に接続する場合、これにより PACS は、自らが作成する共通鍵を PIV カードだけが取得できることを検証できます。PIV カードが、PACS が信頼しないクライアントから PACS に接続される場合、これにより PACS は PIV カードが存在することを検証できますが、PIV カード以外のエンティティが共通鍵を取得できないことを保証するには、PACS は PIV カードの CMS に依拠しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.1 The Protocol</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.1 プロトコル</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The card holder connects to the PACS over a two-way authenticated TLS session in which client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">カード保持者は、クライアント認証に PIV カードの PIV 認証鍵を用いる双方向認証の TLS セッションを介して、PACS に接続します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">The PACS uses information provided by the card holder in addition to information available from the Backend Attribute Exchange to determine whether to provision the PIV Card with a symmetric physical access key. The PACS also uses the Backend Attribute Exchange to find the URI for the PIV Card’s CMS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">PACS は、バックエンド属性交換から得られる情報に加えて、カード保持者から提供された情報を用いて、PIV カードに共通鍵の物理アクセス鍵をプロビジョニングするかどうかを判断します。PACS はまた、バックエンド属性交換を用いて、PIV カードの CMS の URI を取得します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">The PACS sends its Rivest Shamir Adleman (RSA) key management key, \(K_{KM,PACS}\) to the PIV Card.<sup>1</sup></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">PACS は、その Rivest Shamir Adleman（RSA）鍵管理鍵 \(K_{KM,PACS}\) を PIV カードに送信します。<sup>1</sup></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">The PIV Card generates a random session key, \(K_s\), and a nonce, \(N_s\).<sup>2</sup></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">PIV カードは、ランダムなセッション鍵 \(K_s\) とナンス \(N_s\) を生成します。<sup>2</sup></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">The PIV Card sends the following data to the PACS:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">PIV カードは、次のデータを PACS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">encrypted session key and nonce: \((K_s \parallel N_s)K_{KM,PACS}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">暗号化されたセッション鍵とナンス: \((K_s \parallel N_s)K_{KM,PACS}\)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0008-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\(\mathrm{MAC}_{KPACS} = \mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}]\), where \(K_{CM}\) is the symmetric card management key that the PIV Card shares with its CMS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\(\mathrm{MAC}_{KPACS} = \mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}]\)。ここで \(K_{CM}\) は、PIV カードがその CMS と共有する共通のカード管理鍵です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">The PACS directs the card holder to the PIV Card’s CMS by providing the card holder with a URI that points to the card holder’s CMS. The URI includes an identifier for the PACS, the encrypted session key and nonce and the MAC (e.g., https://cms.example.com/keyloader?siteid=192.0.2.4&amp;keyandnonce=...&amp;macKPACS=...).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">PACS は、カード保持者の CMS を指す URI をカード保持者に提供することで、カード保持者を PIV カードの CMS に誘導します。この URI には、PACS の識別子、暗号化されたセッション鍵とナンス、および MAC が含まれます（例: https://cms.example.com/keyloader?siteid=192.0.2.4&amp;keyandnonce=...&amp;macKPACS=...）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">The card holder follows the URI, which results in the establishment of a two-way authenticated TLS session with the PIV Card’s CMS. Client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">カード保持者はこの URI に従い、その結果、PIV カードの CMS との間に双方向認証の TLS セッションが確立されます。クライアント認証は、PIV カードの PIV 認証鍵を用いて行われます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">The CMS makes a decision as to whether to load the PACS’s key onto the PIV Card, and proceeds with the remainder of the protocol only if the key is to be loaded. The decision process must include verifying that the identifier specified in the URI corresponds to a legitimate PACS. If the identified PACS is legitimate, but no empty slots remain on the PIV Card, then the CMS may ask the card holder to determine which, if any, PACS’s key should be deleted in order to allow the new key to be loaded.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">CMS は、PACS の鍵を PIV カードにロードするかどうかを判断し、鍵をロードする場合にのみ、プロトコルの残りを進めます。この判断プロセスには、URI で指定された識別子が正当な PACS に対応していることの検証が含まれなければなりません。識別された PACS が正当であるものの、PIV カードに空きスロットが残っていない場合、CMS は、新しい鍵をロードできるようにするため、どの PACS の鍵を削除するか、または削除する鍵がないかをカード保持者に判断するよう求めてもよいです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">The CMS verifies that \(K_s\) and \(N_s\) were created by the PIV Card and that the PIV Card used the correct key to encrypt \(K_s\) and \(N_s\):</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">CMS は、\(K_s\) と \(N_s\) が PIV カードによって作成されたこと、および PIV カードが \(K_s\) と \(N_s\) の暗号化に正しい鍵を使用したことを検証します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0012-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">The CMS uses the PACS’s identifier from the URI to obtain the PACS’s key management certificate and then validates the PACS’s key management certificate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">CMS は、URI にある PACS の識別子を用いて PACS の鍵管理証明書を取得し、その後、PACS の鍵管理証明書を検証します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0012-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">The CMS extracts the public key, \(K'_{KM,PACS}\), from the key management certificate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">CMS は、鍵管理証明書から公開鍵 \(K'_{KM,PACS}\) を取り出します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0012-b0012-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">The CMS extracts \((K_s \parallel N_s)K_{KM,PACS}\) and \(\mathrm{MAC}_{KPACS}\) from the URI and verifies that \(\mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K'_{KM,PACS}] = \mathrm{MAC}_{KPACS}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">CMS は、URI から \((K_s \parallel N_s)K_{KM,PACS}\) と \(\mathrm{MAC}_{KPACS}\) を取り出し、\(\mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K'_{KM,PACS}] = \mathrm{MAC}_{KPACS}\) であることを検証します。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0012-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> Note that this is just a raw RSA key, not a certificate.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> これは単なる生の RSA 鍵であり、証明書ではないことに注意してください。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0012-b0014" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> The PIV Card only needs to store \(K_s\) and \(N_s\) until the key injection operation completes. \(K_s\) must only be shared between the PIV Card and the PACS.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> PIV カードが \(K_s\) と \(N_s\) を保存する必要があるのは、鍵注入の操作が完了するまでだけです。\(K_s\) は、PIV カードと PACS の間でのみ共有されなければなりません。        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">The CMS establishes a two-way authenticated TLS session with the PACS and sends the PIV Card’s FASC-N and \((K_s \parallel N_s)K_{KM,PACS}\) to the PACS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">CMS は、PACS との間に双方向認証の TLS セッションを確立し、PIV カードの FASC-N と \((K_s \parallel N_s)K_{KM,PACS}\) を PACS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body">The PACS:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body">PACS は次の処理を行います。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Verifies that \((K_s \parallel N_s)K_{KM,PACS}\) is the same as the encrypted session key and nonce that it received directly from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">\((K_s \parallel N_s)K_{KM,PACS}\) が、PIV カードから直接受け取った、暗号化されたセッション鍵とナンスと同じであることを検証します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0007-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Generates the symmetric PACS key, \(K_{PHYS}\), for PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">PIV カード用の共通鍵 PACS 鍵 \(K_{PHYS}\) を生成します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0007-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">Encrypts \(K_{PHYS}\) using the session key generated by the PIV Card: \((K_{PHYS})K_s\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">PIV カードが生成したセッション鍵を用いて \(K_{PHYS}\) を暗号化します: \((K_{PHYS})K_s\)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0007-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body">Submits \(N_s\) and \((K_{PHYS})K_s\) to the PIV Card’s CMS over the TLS protected channel.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">d.</span><span class="list-body">TLS で保護されたチャネルを介して、\(N_s\) と \((K_{PHYS})K_s\) を PIV カードの CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body">The CMS performs the following steps:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body">CMS は次の手順を実行します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Determine in which slot, \(S_{PIV}\), the symmetric key should be stored on the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">共通鍵を PIV カードのどのスロット \(S_{PIV}\) に保存すべきかを決定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0008-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Generate a key injection command with the following data: \(N_s\), \((K_{PHYS})K_s\), \(I_p\), \(S_{PIV}\). \(I_p\) is the PACS’s site identifier. The command is protected using a MAC computed using \(K_{CM}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">データ \(N_s\)、\((K_{PHYS})K_s\)、\(I_p\)、\(S_{PIV}\) を含む鍵注入コマンドを生成します。\(I_p\) は、PACS のサイト識別子です。このコマンドは、\(K_{CM}\) を用いて計算した MAC で保護されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">13.</span><span class="list-body">The CMS sends the key injection command to the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">13.</span><span class="list-body">CMS は、鍵注入コマンドを PIV カードに送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">14.</span><span class="list-body">PIV Card verifies authenticity of the key injection command, checks that the command includes the correct nonce, \(N_s\), uses \(K_s\) to decrypt \((K_{PHYS})K_s\), and then stores \(K_{PHYS}\) and \(I_p\) in slot \(S_{PIV}\). The PIV Card then sends a response to the CMS indicating that the key injection command has been successfully executed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">14.</span><span class="list-body">PIV カードは、鍵注入コマンドの真正性を検証し、コマンドに正しいナンス \(N_s\) が含まれていることを確認し、\(K_s\) を用いて \((K_{PHYS})K_s\) を復号してから、\(K_{PHYS}\) と \(I_p\) をスロット \(S_{PIV}\) に保存します。続いて PIV カードは、鍵注入コマンドが正常に実行されたことを示す応答を CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.2 An Analysis of the Protocol</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.2 プロトコルの分析</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first step in the protocol involves the PACS authenticating the smart card. After the card’s identity has been authenticated, that PACS may use the authenticated identity to determine whether it wishes to load a symmetric physical access key onto the card. Note that the authentication performed in the first step of the protocol does not ensure the PACS that the session key sent to it in step four was created by the smart card (unless the card holder connects to the PACS using a client that is trusted by the PACS). While step one ensures that the smart card is present, the session key may have been generated by the card holder on a desktop computer. The PACS must rely on the smart card’s CMS’s verification of \(\mathrm{MAC}_{KPACS}\) to ensure that the session key was generated by the smart card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このプロトコルの最初の手順では、PACS がスマートカードを認証します。カードの身元が認証された後、その PACS は、認証された身元を用いて、カードに共通鍵の物理アクセス鍵をロードするかどうかを判断できます。プロトコルの最初の手順で行われる認証だけでは、4 番目の手順で PACS に送られたセッション鍵がスマートカードによって作成されたことを PACS に保証できないことに注意してください（カード保持者が PACS の信頼するクライアントを使用して PACS に接続する場合を除きます）。最初の手順によってスマートカードの存在は確認されますが、セッション鍵はカード保持者がデスクトップコンピュータ上で生成した可能性があります。セッション鍵がスマートカードによって生成されたことを保証するには、PACS はスマートカードの CMS による \(\mathrm{MAC}_{KPACS}\) の検証に依拠しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Once the smart card has been authenticated, the PACS sends its asymmetric key management public key to the card. Since the card is not expected to authenticate the PACS, the PACS only needs to send its public key, rather than a certificate that contains the key. The smart card responds by creating a fresh session key and nonce, which it encrypts using the PACS’s public key and sends back to the PACS. The PACS will later encrypt the symmetric physical access key using the session key, as a way of ensuring that only the smart card can obtain the key. The nonce will be included in the key injection command so that the smart card can verify that the command is not a replay and that the key to be loaded was actually encrypted using the session key that is currently in memory.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スマートカードが認証されると、PACS は、自身の非対称の鍵管理用公開鍵をカードに送信します。カードが PACS を認証することは想定されていないため、PACS は、鍵を含む証明書ではなく、公開鍵だけを送ればよいです。スマートカードは、新たなセッション鍵とナンスを生成し、それらを PACS の公開鍵で暗号化して PACS に送り返すことで応答します。PACS は後で、スマートカードだけが鍵を取得できるようにする手段として、セッション鍵を用いて共通鍵の物理アクセス鍵を暗号化します。ナンスは鍵注入コマンドに含められ、スマートカードは、コマンドがリプレイでないこと、およびロードされる鍵が、現在メモリにあるセッション鍵を用いて実際に暗号化されたものであることを検証できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The smart card also computes a MAC that covers both the encrypted session key and nonce and the public key used to encrypt these values. This MAC will be sent to the smart card’s CMS for verification. The CMS’s verification of the MAC will protect against two attacks. First, since the key used to compute the MAC, \(K_{CM}\), is under the control of the smart card and not the card holder, verification of \(\mathrm{MAC}_{KPACS}\) ensures that the session key was created by the smart card and not by a separate device, such as a desktop computer, that is under the control of the card holder. Second, when combined with the validation of the PACS’s key management certificate and the verification that the key management key used by the smart card to encrypt the session key is the same as the public key in the PACS’s key management certificate, the CMS helps to protect against man-in-the-middle attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スマートカードはまた、暗号化されたセッション鍵とナンス、およびこれらの値の暗号化に使用された公開鍵の両方を対象とする MAC を計算します。この MAC は、検証のためにスマートカードの CMS に送られます。CMS による MAC の検証は、2 つの攻撃から保護します。第一に、MAC の計算に使われた鍵 \(K_{CM}\) は、カード保持者ではなくスマートカードの管理下にあるため、\(\mathrm{MAC}_{KPACS}\) の検証により、セッション鍵が、カード保持者の管理下にあるデスクトップコンピュータなどの別のデバイスではなく、スマートカードによって作成されたことが保証されます。第二に、PACS の鍵管理証明書の検証、およびスマートカードがセッション鍵の暗号化に使用した鍵管理鍵が PACS の鍵管理証明書にある公開鍵と同じであることの検証と組み合わせることで、CMS は中間者攻撃からの保護に寄与します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. An Alternative Protocol for Symmetric Key Injection Without a Card Key Management Key</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. カード鍵管理鍵を用いない共通鍵注入の代替プロトコル</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section presents an alternative key injection protocol, which differs from the protocol presented in Section 5 in that the PIV Card does not connect to the PACS prior to connecting with its CMS. The result of this difference is that the PACS cannot authenticate the PIV Card at all and so must completely rely on the PIV Card’s CMS to ensure that symmetric key that it provides can only be obtained by the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本節では、代替の鍵注入プロトコルを示します。このプロトコルは、PIV カードが CMS に接続する前に PACS に接続しない点で、第 5 節で示したプロトコルと異なります。この違いにより、PACS は PIV カードをまったく認証できず、PACS が提供する共通鍵を PIV カードだけが取得できることを保証するため、PIV カードの CMS に全面的に依拠しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.1 The Protocol</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.1 プロトコル</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The card holder connects to the CMS over a two-way authenticated TLS session in which client authentication is performed using the PIV Authentication key from the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">カード保持者は、クライアント認証に PIV カードの PIV 認証鍵を用いる双方向認証の TLS セッションを介して、CMS に接続します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">The PIV Card’s CMS establishes a two-way authenticated TLS session with the PACS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">PIV カードの CMS は、PACS との間に双方向認証の TLS セッションを確立します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">The CMS obtains the PACS’s RSA key management certificate, validates it, and then sends the public key from the certificate, \(K_{KM,PACS}\), to the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">CMS は、PACS の RSA 鍵管理証明書を取得して検証し、その後、証明書にある公開鍵 \(K_{KM,PACS}\) を PIV カードに送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">PIV Card generates a random session key, \(K_s\), and a nonce, \(N_s\).<sup>3</sup></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">PIV カードは、ランダムなセッション鍵 \(K_s\) とナンス \(N_s\) を生成します。<sup>3</sup></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">PIV Card sends the following data to the CMS:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">PIV カードは、次のデータを CMS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0009-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">encrypted session key and nonce: \((K_s \parallel N_s)K_{KM,PACS}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">暗号化されたセッション鍵とナンス: \((K_s \parallel N_s)K_{KM,PACS}\)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0009-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\(\mathrm{MAC}_{KPACS} = \mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}]\), where \(K_{CM}\) is the symmetric card management key that the PIV Card shares with its CMS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\(\mathrm{MAC}_{KPACS} = \mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}]\)。ここで \(K_{CM}\) は、PIV カードがその CMS と共有する共通のカード管理鍵です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">The CMS verifies that \(K_s\) and \(N_s\) were created by the PIV Card and that the PIV Card used the correct key to encrypt \(K_s\) and \(N_s\) by verifying that \(\mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}] = \mathrm{MAC}_{KPACS}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">CMS は、\(\mathrm{MAC}[K_{CM}, (K_s \parallel N_s)K_{KM,PACS} \parallel K_{KM,PACS}] = \mathrm{MAC}_{KPACS}\) であることを検証することで、\(K_s\) と \(N_s\) が PIV カードによって作成されたこと、および PIV カードが \(K_s\) と \(N_s\) の暗号化に正しい鍵を使用したことを検証します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">The CMS sends the following data to the PACS over the TLS protected channel:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">CMS は、TLS で保護されたチャネルを介して、次のデータを PACS に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0011-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">The FASC-N from the PIV Card’s validated PIV Authentication certificate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">PIV カードの検証済みの PIV 認証証明書にある FASC-N。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0011-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\((K_s \parallel N_s)K_{KM,PACS}\)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">\((K_s \parallel N_s)K_{KM,PACS}\)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">The PACS uses the information provided by the CMS to determine whether to provision the PIV Card with a key. If the PACS decides to provision the PIV Card with a key, then the PACS performs the following steps:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">PACS は、CMS から提供された情報を用いて、PIV カードに鍵を提供するかどうかを判断します。PACS が PIV カードに鍵を提供すると決定した場合、PACS は次の手順を実行します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0012-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Generate the symmetric PACS key, \(K_{PHYS}\), for PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">PIV カード用の共通鍵 PACS 鍵 \(K_{PHYS}\) を生成します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0012-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Encrypt \(K_{PHYS}\) using the session key generated by the PIV Card: \((K_{PHYS})K_s\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">PIV カードが生成したセッション鍵を用いて \(K_{PHYS}\) を暗号化します: \((K_{PHYS})K_s\)。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0012-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">Submit [FASC-N, \(N_s\), \((K_{PHYS})K_s\), \(I_p\)], where \(I_p\) is the PACS’s site identifier, to the PIV Card’s CMS over the TLS protected channel.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">c.</span><span class="list-body">TLS で保護されたチャネルを介して、[FASC-N、\(N_s\)、\((K_{PHYS})K_s\)、\(I_p\)] を PIV カードの CMS に送信します。ここで \(I_p\) は PACS のサイト識別子です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">The CMS performs the following steps:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body">CMS は次の手順を実行します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0013-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">Determine in which slot, \(S_{PIV}\), the symmetric key should be stored on the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">a.</span><span class="list-body">共通鍵を PIV カードのどのスロット \(S_{PIV}\) に保存すべきかを決定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0013-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">Generate a key injection command with the following data: \(N_s\), \((K_{PHYS})K_s\), \(I_p\), \(S_{PIV}\). The command is protected using a MAC computed using \(K_{CM}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">b.</span><span class="list-body">データ \(N_s\)、\((K_{PHYS})K_s\)、\(I_p\)、\(S_{PIV}\) を含む鍵注入コマンドを生成します。このコマンドは、\(K_{CM}\) を用いて計算した MAC で保護されます。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0014" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>3</sup> The PIV Card only needs to store \(K_s\) and \(N_s\) until the key injection operation completes. \(K_s\) must only be shared between the PIV Card and the PACS.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>3</sup> PIV カードが \(K_s\) と \(N_s\) を保存する必要があるのは、鍵注入の操作が完了するまでだけです。\(K_s\) は、PIV カードと PACS の間でのみ共有されなければなりません。        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">PIV Card verifies authenticity of the key injection command, checks that the command includes the correct nonce, \(N_s\), uses \(K_s\) to decrypt \((K_{PHYS})K_s\), and then stores \(K_{PHYS}\) and \(I_p\) in slot \(S_{PIV}\).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body">PIV カードは、鍵注入コマンドの真正性を検証し、コマンドに正しいナンス \(N_s\) が含まれていることを確認し、\(K_s\) を用いて \((K_{PHYS})K_s\) を復号してから、\(K_{PHYS}\) と \(I_p\) をスロット \(S_{PIV}\) に保存します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.2 An Analysis of the Protocol</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.2 プロトコルの分析</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While this protocol is similar in many ways to the protocol in Section 5, the security properties are very different. Since there is no direct communication between the PACS and the PIV Card, there is no way for the PACS to verify that \(K_s\) was generated by the PIV Card, or even to verify that the PIV Card is present. All of the information provided to the PACS by the PIV Card’s CMS could have been created by the CMS without the participation of the PIV Card. For this reason, the PACS must place a greater degree of trust in the CMS than would be required if the PIV Card were to communicate directly with the PACS, as in the protocol in Section 5. The main advantage of the protocol proposed in this section over the protocol in Section 3 is that the steps performed by the PIV Card are exactly the same as in the protocol in Section 5. Thus, the PIV Card could support both protocols using the same code.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このプロトコルは多くの点で第 5 節のプロトコルに似ていますが、セキュリティ特性は大きく異なります。PACS と PIV カードの間に直接の通信がないため、PACS が、\(K_s\) が PIV カードによって生成されたことを検証する方法も、PIV カードが存在することさえ検証する方法もありません。PIV カードの CMS が PACS に提供する情報はすべて、PIV カードの関与なしに CMS が作成できたものです。このため、PACS は、第 5 節のプロトコルのように PIV カードが PACS と直接通信する場合に必要とされるよりも、CMS により高い程度の信頼を置かなければなりません。本節で提案するプロトコルの、第 3 節のプロトコルに対する主な利点は、PIV カードが実行する手順が、第 5 節のプロトコルとまったく同じであることです。したがって、PIV カードは、同じコードを用いて両方のプロトコルをサポートできます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7. Implementation Considerations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7. 実装上の考慮事項</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.1 Site Identifiers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.1 サイト識別子</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The site identifiers that are loaded onto the PIV Cards along with the symmetric keys are used by the door readers to indicate to the PIV Cards which key should be used to perform an authentication. A door reader sends a site identifier to the card, the card scans through its list of stored keys for the one with the corresponding site identifier, and uses that key to perform the challenge. Thus, site identifiers must be selected in a manner that satisfies two requirements: a smart card must not be required to store two different keys at the same time with the same site identifier and door readers must be able to determine at the time that a challenge command is sent to a card what site identifier to specify in the command.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>共通鍵とともに PIV カードにロードされるサイト識別子は、認証の実行にどの鍵を使用するかを、ドアリーダが PIV カードに示すために使われます。ドアリーダはサイト識別子をカードに送信し、カードは、保存している鍵の一覧から、対応するサイト識別子を持つ鍵を探し、その鍵を用いてチャレンジを実行します。したがって、サイト識別子は、2 つの要件を満たす方法で選ばなければなりません。すなわち、スマートカードが、同じサイト識別子を持つ 2 つの異なる鍵を同時に保存することを求められてはならないこと、そして、ドアリーダが、カードにチャレンジコマンドを送信する時点で、コマンドにどのサイト識別子を指定するかを判断できなければならないことです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In many PACS, there is only one-way communication between door readers and door controllers. Door readers collect information from the smart card and forward that information to door controllers, which make access control decisions. In such environments, door readers cannot look up smart card specific site identifiers to include in challenge messages. For this reason, it is recommended that each PACS select a single site identifier for use with every smart card to which it provides a key. In order to ensure that no smart card will receive keys from two different PACS with the same site identifier, each PACS must ensure that its site identifier is unique. Rather than creating a new system for assigning site identifiers to PACS, this paper recommends the use of IPv4 addresses, which would result in site identifiers being 32 bits in length. As every PACS will need to be network accessible, every PACS will have already been assigned an IPv4 address, which it can use as its site identifier.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くの PACS では、ドアリーダとドアコントローラの間には一方向の通信しかありません。ドアリーダは、スマートカードから情報を収集して、アクセス制御の判断を行うドアコントローラにその情報を転送します。このような環境では、ドアリーダは、チャレンジメッセージに含めるスマートカード固有のサイト識別子を検索できません。このため、各 PACS は、自らが鍵を提供するすべてのスマートカードに対して使用する単一のサイト識別子を選ぶべきです。どのスマートカードも、同じサイト識別子を持つ 2 つの異なる PACS から鍵を受け取ることがないようにするため、各 PACS は、自らのサイト識別子が一意であることを確保しなければなりません。本稿は、PACS にサイト識別子を割り当てる新しい仕組みを作るのではなく、IPv4 アドレスの使用を推奨します。その場合、サイト識別子の長さは 32 ビットになります。すべての PACS はネットワークからアクセスできる必要があるため、どの PACS にもすでに IPv4 アドレスが割り当てられており、それをサイト識別子として使用できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.2 Generating Symmetric PACS Keys</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.2 共通鍵 PACS 鍵の生成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are three options for generating symmetric PACS keys for injection onto smart cards: a PACS may generate a unique, randomly generated key for each card, load the same key onto every card, or load each card with a unique key that is derived from a common master secret key. In this paper, we recommend the use of derived keys for most PACS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スマートカードに注入する共通鍵 PACS 鍵を生成するための選択肢は 3 つあります。PACS は、カードごとに一意でランダムに生成した鍵を生成する、すべてのカードに同じ鍵をロードする、または共通のマスターシークレット鍵から導出した一意の鍵を各カードにロードする、のいずれかです。本稿では、ほとんどの PACS で導出鍵の使用を推奨します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When using derived keys the PACS maintains a single key derivation key, which it distributes to all of the door controllers. Keys for each PIV Card are created deterministically from the key derivation key and the PIV Card’s FASC-N using a key derivation function [4]. While the individual PIV Card’s key may be easily computed using the key derivation key and the card’s FASC-N, it is infeasible for an attacker who learns the value of one or more of the derived keys to determine the value of the key derivation key or the value of any other derived key. Thus, the compromise of a PACS key on one or more PIV Cards would not require the replacement of the key derivation key, only the removal of the compromised PIV Cards from the access control list. The use of derived keys also avoids the need for each door controller to maintain a separate key for each PIV Card. A door reader may send a challenge to a PIV Card and then send the challenge, the PIV’s response, and the PIV Card’s asserted FASC-N to the door controller. The door controller can authenticate the PIV Card using only the key derivation key and the information received from the door reader. The door controller may then make an authorization decision based on the authenticated FASC-N.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>導出鍵を使用する場合、PACS は単一の鍵導出鍵を保持し、それをすべてのドアコントローラに配布します。各 PIV カードの鍵は、鍵導出関数 [4] を用いて、鍵導出鍵と PIV カードの FASC-N から決定的に作成されます。個々の PIV カードの鍵は、鍵導出鍵とカードの FASC-N を用いて容易に計算できますが、導出鍵の 1 つ以上の値を知った攻撃者が、鍵導出鍵の値や他の導出鍵の値を求めることは、計算量的に不可能です。したがって、1 枚以上の PIV カードの PACS 鍵が危殆化しても、鍵導出鍵を交換する必要はなく、危殆化した PIV カードをアクセス制御リストから削除するだけで済みます。導出鍵を使用することで、各ドアコントローラが PIV カードごとに別々の鍵を保持する必要もなくなります。ドアリーダは、PIV カードにチャレンジを送信し、そのチャレンジ、PIV の応答、および PIV カードが主張する FASC-N をドアコントローラに送信してもよいです。ドアコントローラは、鍵導出鍵とドアリーダから受け取った情報だけで PIV カードを認証できます。その後、ドアコントローラは、認証された FASC-N に基づいて認可の判断を行ってもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In practice, each door controller will need to maintain several key derivation keys, since a key derivation key may only be used for a limited period of time [3]. Since PIV Cards may be valid for up to five years, if key derivation keys are changed every year then at any time a door controller will need to maintain five key derivations keys. When attempting to authenticate a PIV Card, the door controller would need to attempt to verify the response from the PIV Card using each of the five key derivations keys, and would consider the PIV Card to be successfully authenticated if response could be verified using any of the key derivation keys.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実際には、鍵導出鍵は限られた期間しか使用できない場合があるため [3]、各ドアコントローラは複数の鍵導出鍵を保持する必要があります。PIV カードの有効期間は最長 5 年の場合があるため、鍵導出鍵を毎年変更する場合、ドアコントローラは常に 5 つの鍵導出鍵を保持する必要があります。PIV カードを認証しようとするとき、ドアコントローラは、5 つの鍵導出鍵のそれぞれを用いて PIV カードからの応答の検証を試み、いずれかの鍵導出鍵を用いて応答を検証できれば、PIV カードの認証に成功したとみなします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.3 Service Architecture</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.3 サービスアーキテクチャ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The architecture supporting symmetric key injection needs to support two basic scenarios: loading the key of an individual PACS onto an existing PIV Card and the bulk loading of keys onto a new PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>共通鍵注入をサポートするアーキテクチャは、2 つの基本的なシナリオをサポートする必要があります。既存の PIV カードに個々の PACS の鍵をロードすることと、新しい PIV カードに鍵を一括ロードすることです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The protocols presented in this paper are all designed to allow the card holder to connect to the PACS and/or CMS using an Internet connected client. This allows a card holder to prepare in advance for a visit to a site by loading that site’s key onto his/her PIV Card prior to arrival. In the case of a conference, for example, the conference registration web site could direct holders of PIV Cards to the site’s PACS. Card holders who arrive at a site who do not have an appropriate key loaded onto their card could be directed to a kiosk running a web browser that allows access to the PACS’s web site and to the web site’s of known CMS’s.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿で示すプロトコルはいずれも、カード保持者がインターネットに接続されたクライアントを用いて PACS や CMS に接続できるように設計されています。これにより、カード保持者は、到着前に、その施設の鍵を PIV カードにロードしておくことで、施設への訪問に事前に備えることができます。たとえば会議の場合、会議の登録 Web サイトが、PIV カードの保持者を会場の PACS に誘導することができます。カードに適切な鍵がロードされていない状態で施設に到着したカード保持者は、PACS の Web サイトや既知の CMS の Web サイトにアクセスできる、Web ブラウザを実行するキオスク端末に誘導されてもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When a card holder obtains a new PIV Card, the symmetric PACS keys from the old PIV Card cannot be copied onto the new card. However, since the CMS knows the identities of all of the PACS that have keys stored on the old card, the CMS may contact each of these PACS in order to obtain a key for the new card. By performing this bulk loading of symmetric keys onto the new card, the disruption to the card holder resulting from obtaining a new PIV Card is minimized. In the protocols in Sections 3 and 4, the PIV Card’s initial contact with the PACS serves only to obtain the PACS’s identifier, and so these initial steps may be skipped during the bulk loading process. The initial steps in the protocol in Section 5, on the other hand, cannot be skipped. Thus, if neither the protocol from Section 3 nor the protocol from Section 4 is being used, then either the protocol from Section 6 should be used for all key loading operations or the protocol from Section 6 should be used for bulk key loading onto new PIV Cards and the protocol from Section 5 should be used for loading individual keys onto existing cards.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>カード保持者が新しい PIV カードを入手するとき、古い PIV カードの共通鍵 PACS 鍵を新しいカードにコピーすることはできません。しかし、CMS は、古いカードに鍵が保存されているすべての PACS の身元を把握しているため、CMS は、これらの PACS のそれぞれに連絡して、新しいカード用の鍵を取得してもよいです。共通鍵を新しいカードに一括ロードすることで、新しい PIV カードの入手に伴うカード保持者への支障は最小限になります。第 3 節と第 4 節のプロトコルでは、PIV カードと PACS との最初の接触は PACS の識別子を取得するためだけのものであるため、一括ロードの過程ではこれらの最初の手順を省略できます。一方、第 5 節のプロトコルの最初の手順は、省略できません。したがって、第 3 節のプロトコルも第 4 節のプロトコルも使用していない場合は、すべての鍵ロード操作に第 6 節のプロトコルを使用するか、新しい PIV カードへの一括鍵ロードには第 6 節のプロトコルを使用し、既存のカードへの個別の鍵のロードには第 5 節のプロトコルを使用すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>No matter which protocol is used for loading keys onto new PIV Cards, some method should be provided to enable PACS to link the FASC-N from a new PIV Card to the FASC-N from an old PIV Card. This information may be used by the PACS to aid in the decision as to whether to provide a key for the new PIV Card and also to enable the PACS to update their access control databases with the new identifier. The linkage between the old and new FASC-N could be included in the protocol messages or could be included as an attribute in the Backend Attribute Exchange.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>新しい PIV カードに鍵をロードするのにどのプロトコルを使用するかにかかわらず、PACS が、新しい PIV カードの FASC-N を古い PIV カードの FASC-N に関連付けられるようにする何らかの方法を提供すべきです。この情報は、PACS が新しい PIV カードに鍵を提供するかどうかの判断を助けるために使用でき、また PACS がアクセス制御データベースを新しい識別子で更新できるようにするためにも使用できます。古い FASC-N と新しい FASC-N の関連付けは、プロトコルメッセージに含めることも、バックエンド属性交換の属性として含めることもできます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8. Use of Symmetric Key for Authentication</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8. 認証のための共通鍵の使用</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Once symmetric physical access keys have been loaded onto smart cards, they may be used to support one, two, or three factor authentication. One factor authentication may be performed using the same protocol as is specified for the symmetric card authentication key in FIPS 201. Two factor authentication may be performed by requiring the use of either a PIN or a biometric in addition to requiring the use of the symmetric key in order to prove the presence of the PIV Card. Three factor authentication may be performed by requiring the use of a PIN and a biometric in addition to requiring the use of the symmetric key in order to prove the presence of the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>共通鍵の物理アクセス鍵がスマートカードにロードされると、それらは、一要素、二要素、または三要素の認証をサポートするために使用できます。一要素認証は、FIPS 201 で共通のカード認証鍵に対して規定されているものと同じプロトコルを用いて実行できます。二要素認証は、PIV カードの存在を証明するための共通鍵の使用を求めることに加えて、PIN または生体情報のいずれかの使用を求めることで実行できます。三要素認証は、PIV カードの存在を証明するための共通鍵の使用を求めることに加えて、PIN と生体情報の使用を求めることで実行できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While FIPS 201 specifies that secret key operations may be performed using the card authentication key without explicit user action, this does not need to be the case for symmetric keys that are injected onto PIV Cards. The protocols in this paper indicate that when a key is loaded onto a PIV Card, a site identifier, \(I_p\), is associated with the key. A second piece of information, a boolean indicating whether operations may be performed using the key without explicit user action may also be associated with the key. If this flag is set then the PIV Card cannot successfully respond to a challenge unless the correct PIN is provided to unlock the key. If a key is designated as requiring a PIN to unlock, then that key should not be accessible over the contactless interface. If the key were accessible over the contactless interface then an attacker could lock someone’s PIV Card by sending a sequence of PIN attempts to the card without the card holder’s knowledge.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FIPS 201 は、明示的なユーザー操作なしに、カード認証鍵を用いてシークレット鍵の演算を実行してもよいと規定していますが、PIV カードに注入される共通鍵については、そうである必要はありません。本稿のプロトコルは、鍵が PIV カードにロードされるとき、サイト識別子 \(I_p\) がその鍵に関連付けられることを示しています。明示的なユーザー操作なしに、その鍵を用いた操作を実行してもよいかどうかを示すブール値という第 2 の情報も、その鍵に関連付けてもよいです。このフラグが設定されている場合、鍵のロックを解除するために正しい PIN が提供されない限り、PIV カードはチャレンジに正常に応答できません。鍵がロック解除に PIN を要するものと指定されている場合、その鍵は非接触インタフェース経由でアクセスできるようにすべきではありません。鍵が非接触インタフェース経由でアクセスできるとすれば、攻撃者は、カード保持者に知られることなく一連の PIN の試行をカードに送信することで、誰かの PIV カードをロックできてしまいます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Biometric authentication could be achieved by using the symmetric key to perform secure biometric match-on-card [5], which would result in either two or three factor authentication depending on whether the symmetric key was configured to require PIN entry before use. In the case that PIN entry is required; the biometric template may be transferred from the PIV Card to the door reader, allowing the door reader to perform the match rather than the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>生体認証は、共通鍵を用いて安全なカード上生体照合（match-on-card）[5] を実行することで実現できます。共通鍵が使用前に PIN 入力を要するように設定されているかどうかに応じて、二要素または三要素の認証になります。PIN 入力が必要な場合、生体テンプレートを PIV カードからドアリーダに転送して、PIV カードではなくドアリーダが照合を行ってもよいです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Backend attribute exchange architecture and interface specification, May 2008. http://www.smart.gov/awg/documents/BackendArchitectureInterfaceSpec.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Backend attribute exchange architecture and interface specification, May 2008. http://www.smart.gov/awg/documents/BackendArchitectureInterfaceSpec.pdf.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] HSPD 12. <em>Policy for a Common Identification Standard for Federal Employees and Contractors</em>, August 2004.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] HSPD 12. <em>Policy for a Common Identification Standard for Federal Employees and Contractors</em>, August 2004.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Elaine Barker, William Barker, William Burr, William Polk, and Miles Smid. <em>Recommendation for key management - part 1: General. NIST special publication 800-57,</em> National Institute of Standards and Technology, March 2007.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Elaine Barker, William Barker, William Burr, William Polk, and Miles Smid. <em>Recommendation for key management - part 1: General. NIST special publication 800-57,</em> National Institute of Standards and Technology, March 2007.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Lily Chen. <em>Recommendation for key derivation using pseudorandom functions.</em> NIST special publication 800-108, National Institute of Standards and Technology, November 2008.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Lily Chen. <em>Recommendation for key derivation using pseudorandom functions.</em> NIST special publication 800-108, National Institute of Standards and Technology, November 2008.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] David Cooper, Hung Dang, Philip Lee, William MacGregor, and Ketan Mehta. <em>Secure biometric match-on-card feasibility report.</em> NIST Interagency Report 7452, November 2007.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] David Cooper, Hung Dang, Philip Lee, William MacGregor, and Ketan Mehta. <em>Secure biometric match-on-card feasibility report.</em> NIST Interagency Report 7452, November 2007.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] Tim Dierks and Eric Rescorla. <em>The Transport Layer Security (TLS) Protocol Version 1.2.</em> RFC 5246 (Proposed Standard), August 2008.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] Tim Dierks and Eric Rescorla. <em>The Transport Layer Security (TLS) Protocol Version 1.2.</em> RFC 5246 (Proposed Standard), August 2008.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] FIPS 201-1. <em>Personal Identity Verification (PIV) of Federal Employees and Contractors</em>. National Institute of Standards and Technology, March 2006.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] FIPS 201-1. <em>Personal Identity Verification (PIV) of Federal Employees and Contractors</em>. National Institute of Standards and Technology, March 2006.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] PACS v2.2. <em>Technical Implementation Guidance: Smart Card Enabled Physical Access Control Systems</em>, Version 2.2. The Government Smart Card Interagency Advisory Board’s Physical Security Interagency Interoperability Working Group, July 2004.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] PACS v2.2. <em>Technical Implementation Guidance: Smart Card Enabled Physical Access Control Systems</em>, Version 2.2. The Government Smart Card Interagency Advisory Board’s Physical Security Interagency Interoperability Working Group, July 2004.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7539.pdf">National Institute of Standards and Technology, IR 7539</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7539";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

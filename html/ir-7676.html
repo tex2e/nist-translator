@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7676 は、NIST 特別刊行物 800-73-3 が導入した、使用済み（retired）の鍵管理鍵を PIV カード上の個人識別検証（PIV）カードアプリケーション内に格納する機能を補完する文書です。本書は、使用済みの鍵管理鍵を PIV カードに格納する仕組みの設計に関する根拠の一部を示します。あわせて、スマートカードベンダー、PIV カード発行者およびミドルウェア開発者に対し、鍵履歴（Key History）の仕組みの使い方についての提案を示します。">
+  <title>個人識別検証（PIV）カードにおける鍵履歴の維持と使用 | NIST IR 7676 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Maintaining and Using Key History on Personal Identity Verification (PIV) Cards" data-search="個人識別検証（piv）カードにおける鍵履歴の維持と使用 maintaining and using key history on personal identity verification (piv) cards">個人識別検証（PIV）カードにおける鍵履歴の維持と使用</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Disclaimer" data-search="免責事項 disclaimer">免責事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="2. Overview" data-search="2. 概要 2. overview">2. 概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="3. Storing Retired Keys Within the PIV Card Application" data-search="3. piv カードアプリケーション内への使用済み鍵の格納 3. storing retired keys within the piv card application">3. PIV カードアプリケーション内への使用済み鍵の格納</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0001" title="Appendix A—Sample OffCardKeyHistoryFile" data-search="付録 a—offcardkeyhistoryfile の例 appendix a—sample offcardkeyhistoryfile">付録 A—OffCardKeyHistoryFile の例</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0001" title="Appendix B—Acronyms" data-search="付録 b—略語 appendix b—acronyms">付録 B—略語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0001" title="Appendix C—References" data-search="付録 c—参考文献 appendix c—references">付録 C—参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7676 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Maintaining and Using Key History on Personal Identity Verification (PIV) Cards</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>個人識別検証（PIV）カードにおける鍵履歴の維持と使用</strong></span><br><span class="doc-panel-item">公開日 : 2010-06-18</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7676/final">https://csrc.nist.gov/pubs/ir/7676/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 86 / 88 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7676 は、NIST 特別刊行物 800-73-3 が導入した、使用済み（retired）の鍵管理鍵を PIV カード上の個人識別検証（PIV）カードアプリケーション内に格納する機能を補完する文書です。本書は、使用済みの鍵管理鍵を PIV カードに格納する仕組みの設計に関する根拠の一部を示します。あわせて、スマートカードベンダー、PIV カード発行者およびミドルウェア開発者に対し、鍵履歴（Key History）の仕組みの使い方についての提案を示します。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7676</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7676</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Maintaining and Using Key History on Personal Identity Verification (PIV) Cards</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+個人識別検証（PIV）カードにおける鍵履歴の維持と使用</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David A. Cooper</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David A. Cooper</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7676</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7676</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Maintaining and Using Key History on Personal Identity Verification (PIV) Cards</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>個人識別検証（PIV）カードにおける鍵履歴の維持と使用</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David A. Cooper</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David A. Cooper</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><i>Computer Security Division<br>Information Technology Laboratory</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>コンピュータセキュリティ部<br>情報技術研究所</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>June 2010</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2010 年 6 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br><i>Gary Locke, Secretary</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br><i>Gary Locke 長官</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br><i>Patrick D. Gallagher, Director</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br><i>Patrick D. Gallagher、NIST 所長</i></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analysis to advance the development and productive use of information technology. ITL’s responsibilities include the development of technical, physical, administrative, and management standards and guidelines for the cost-effective security and privacy of sensitive unclassified information in Federal computer systems. This Interagency Report discusses ITL’s research, guidance, and outreach efforts in computer security, and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラに対する技術的リーダーシップを提供することにより、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるため、試験、試験方法、参照データ、概念実証実装および技術分析を開発しています。ITL の責務には、連邦コンピュータシステムにおける機微な非機密情報のセキュリティとプライバシーを費用対効果よく確保するための、技術的、物理的、管理的および経営上の標準とガイドラインの策定が含まれます。この省庁間報告書は、コンピュータセキュリティにおける ITL の研究、ガイダンスおよびアウトリーチの取り組みと、産業界、政府および学術機関との協力活動について論じています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report<br>15 pages (2010)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 省庁間報告書<br>15 ページ（2010 年）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験的な手順や概念を適切に説明するために、特定の商業事業者、装置または資材に言及している場合があります。こうした言及は、米国国立標準技術研究所による推奨や支持を意味するものではなく、それらの事業者、資材または装置がその目的に必ずしも最適であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Special Publication 800-73-3 [7] introduces the ability to store retired Key Management Keys within the Personal Identity Verification (PIV) Card Application on a PIV Card. This paper complements SP 800-73-3 by providing some of the rationale for the design of the mechanism for storing retired Key Management Keys on PIV Cards and by providing suggestions to smart card vendors, PIV Card Issuers, and middleware developers on the use of the Key History mechanism.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 特別刊行物 800-73-3 [7] は、使用済み（retired）の鍵管理鍵を、PIV カード上の個人識別検証（PIV）カードアプリケーション内に格納する機能を導入しました。本書は、使用済みの鍵管理鍵を PIV カードに格納する仕組みの設計に関する根拠の一部を示すとともに、スマートカードベンダー、PIV カード発行者およびミドルウェア開発者に対し、鍵履歴（Key History）の仕組みの使い方についての提案を示すことで、SP 800-73-3 を補完するものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Disclaimer</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+免責事項</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Statements made in this paper are the opinions of the author and should not be interpreted as standards, guidelines, best practices, or recommendations for specific changes to any other NIST publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書の記述は著者の見解であり、標準、ガイドライン、ベストプラクティス、または NIST の他の刊行物に対する具体的な変更の推奨として解釈すべきではありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. Overview</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. 概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. Storing Retired Keys Within the PIV Card Application</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. PIV カードアプリケーション内への使用済み鍵の格納</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">Appendix A— Sample OffCardKeyHistoryFile</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">付録 A— OffCardKeyHistoryFile の例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">Appendix B— Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">付録 B— 略語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">Appendix C— References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">付録 C— 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Federal Information Processing Standard (FIPS) 201 [2] specifies that a PIV Card may include a Key Management Key to support either key transport or key agreement. This key may be used to enable the encryption of data to protect the data while it is being sent across a network and while it is at rest. For example, an email message may be encrypted by the sender to protect the message from eavesdropping while it is being sent and the encrypted email may be stored on the recipient’s computer or mail server to be decrypted each time the recipient reads the email.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連邦情報処理標準（FIPS）201 [2] は、PIV カードに、鍵輸送または鍵合意のいずれかを支援する鍵管理鍵を含めてもよいと規定しています。この鍵は、ネットワーク上を送信される間および保存されている間のデータを保護するために、データの暗号化を可能にする目的で使用できます。たとえば、電子メールメッセージは、送信中の盗聴からメッセージを保護するために送信者によって暗号化され、暗号化された電子メールは、受信者のコンピュータまたはメールサーバーに保存され、受信者が読むたびに復号されることがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each Key Management Key has a limited lifetime and must be replaced periodically with a newly generated key pair. While any newly encrypted data should be encrypted using the most recently generated Key Management public key, users need to continue to have access to their older Key Management private keys to be able to decrypt data that has been stored in encrypted form and that was encrypted using one of their older Key Management public keys.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各鍵管理鍵の有効期間は限られており、新しく生成された鍵ペアに定期的に置き換えなければなりません。新たに暗号化するデータは、最も新しく生成された鍵管理用公開鍵を使って暗号化すべきですが、利用者は、暗号化された形で保存されていて、かつ古い鍵管理用公開鍵のいずれかで暗号化されたデータを復号できるよう、古い鍵管理用秘密鍵にも引き続きアクセスできる必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Special Publication 800-73-3 [7] provides for the ability to store these older (retired) Key Management Keys within the PIV Card Application. The storage and use of retired Key Management Keys on a PIV Card involves a number of tradeoffs. In order to decrypt an encrypted message, an application needs access to information that will allow it to determine which private key to use to perform the decryption. Thus, in addition to the private key, some additional information needs to be made available to applications to aid in identifying the appropriate private key to use to perform a decryption operation. If insufficient information is made available to applications, then applications may be unable to make use of the private keys. However, storage space on PIV Cards is limited and reading data from a PIV Card can be relatively slow, so there is a need to avoid storing more information than necessary on the card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特別刊行物 800-73-3 [7] は、これらの古い（使用済みの）鍵管理鍵を PIV カードアプリケーション内に格納する機能を提供しています。使用済みの鍵管理鍵を PIV カードに格納して使用することには、いくつかのトレードオフがあります。暗号化されたメッセージを復号するには、アプリケーションが、復号に使用する秘密鍵を判断できる情報にアクセスできる必要があります。したがって、秘密鍵に加えて、復号操作に使用する適切な秘密鍵を特定する助けとなる追加情報を、アプリケーションが利用できるようにする必要があります。アプリケーションに提供される情報が不十分な場合、アプリケーションは秘密鍵を利用できなくなる可能性があります。ただし、PIV カードの記憶容量は限られており、PIV カードからのデータの読み取りは比較的遅いことがあるため、必要以上の情報をカードに格納しないようにする必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper describes the mechanism in SP 800-73-3 that supports the maintenance of key history within the PIV Card Application and provides suggestions to PIV Card manufacturers, issuers, and middleware developers on the use of the Key History mechanism. Readers of this paper should be familiar with the description of the Key History mechanism in Part 1 of SP 800-73-3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、SP 800-73-3 における、PIV カードアプリケーション内での鍵履歴の維持を支援する仕組みについて説明し、PIV カードの製造者、発行者およびミドルウェア開発者に対し、鍵履歴の仕組みの使い方についての提案を示します。本書の読者は、SP 800-73-3 の第 1 部にある鍵履歴の仕組みの説明を理解しておくべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Overview</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>FIPS 201 [2] specifies one mandatory and three optional asymmetric key pairs that may appear on PIV Cards: the PIV Authentication Key, the Card Authentication Key, the Digital Signature Key, and the Key Management Key. FIPS 201 requires that whenever one of these keys is present on the card, the corresponding X.509 certificate [6] must also be stored on the card. Storing the certificates on the card ensures that any application that has access to the private keys also has access to the corresponding certificates. In the case of the Key Management Key, it is likely that the only information about the cardholder’s Key Management Key that an entity encrypting a message intended for the cardholder will use will be the X.509 certificate containing the public key. Ensuring that the PIV Card-using application also has access to the certificate ensures that the application will have access to all the information that it needs to determine whether the Key Management Key on the PIV Card was used to encrypt a particular encrypted message.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>FIPS 201 [2] は、PIV カードに存在しうる非対称鍵ペアとして、必須のもの 1 つと任意のもの 3 つを規定しています。すなわち、PIV 認証鍵、カード認証鍵、デジタル署名鍵および鍵管理鍵です。FIPS 201 は、これらの鍵のいずれかがカード上に存在する場合は常に、対応する X.509 証明書 [6] もカードに格納しなければならないと定めています。証明書をカードに格納することで、秘密鍵にアクセスできるアプリケーションは、対応する証明書にも必ずアクセスできます。鍵管理鍵の場合、カード保持者宛てのメッセージを暗号化する主体が使用するカード保持者の鍵管理鍵に関する情報は、おそらく公開鍵を含む X.509 証明書のみです。PIV カードを使用するアプリケーションが証明書にもアクセスできるようにすることで、そのアプリケーションは、PIV カード上の鍵管理鍵が特定の暗号化されたメッセージの暗号化に使用されたかどうかを判断するために必要なすべての情報にアクセスできるようになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In most cases, an encrypted message does not include a copy of the certificate whose public key was used to encrypt the data. For example, a common format for encrypted data that will be stored in encrypted form is the envelopedData content type of the Cryptographic Message Syntax (CMS) [8], which is used in S/MIME to encode encrypted email messages. In CMS, the public key that was used to encrypt the message is identified by specifying either the contents of the subjectKeyIdentifier extension from the certificate from which the key was taken or the issuer distinguished name and serial number from the certificate. The recipient must then identify the private key corresponding to the certificate that contains this information in order to decrypt the message.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ほとんどの場合、暗号化されたメッセージには、データの暗号化に公開鍵が使用された証明書の写しは含まれません。たとえば、暗号化された形で保存されるデータの一般的な形式は、暗号メッセージ構文（CMS）[8] の envelopedData コンテンツタイプであり、S/MIME で暗号化された電子メールメッセージを符号化するために使用されます。CMS では、メッセージの暗号化に使用された公開鍵は、その鍵の取得元の証明書にある subjectKeyIdentifier 拡張の内容、または証明書の発行者識別名とシリアル番号のいずれかを指定することで識別されます。受信者は、メッセージを復号するために、この情報を含む証明書に対応する秘密鍵を特定しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While storing the certificates corresponding to retired Key Management private keys on the PIV Card ensures that they are always accessible to PIV Card-using applications that may need them, there are two drawbacks: the storage space that would be needed to hold the certificates may be needed for other purposes and it may take too long to read all of the certificates from the PIV Card. SP 800-73-3 [7] addresses these issues by allowing the entity that loads the PIV Card Application onto a PIV Card to decide how much space to allocate on the PIV Card to the storage of retired X.509 certificates for Key Management and by enabling access to these certificates from an off-card source. When the PIV Card-using application can access retired certificates from an off-card source, the application does not need to read them from the card. The certificates that are stored on the PIV Card may serve as an alternative source for the certificates for PIV Card-using applications that cannot obtain the certificates from an off-card source.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>使用済みの鍵管理用秘密鍵に対応する証明書を PIV カードに格納すれば、それらを必要とする可能性のある PIV カード利用アプリケーションが常にそれらにアクセスできるようになりますが、2 つの欠点があります。証明書の保持に必要な記憶容量が他の目的に必要になる場合があること、そして PIV カードからすべての証明書を読み取るのに時間がかかりすぎる場合があることです。SP 800-73-3 [7] は、PIV カードアプリケーションを PIV カードにロードする主体が、使用済みの鍵管理用 X.509 証明書の格納に PIV カード上でどれだけの容量を割り当てるかを決められるようにし、さらにカード外のソースからこれらの証明書にアクセスできるようにすることで、これらの問題に対処しています。PIV カード利用アプリケーションがカード外のソースから使用済みの証明書にアクセスできる場合、そのアプリケーションはそれらをカードから読み取る必要がありません。PIV カードに格納された証明書は、カード外のソースから証明書を取得できない PIV カード利用アプリケーションにとって、証明書の代替の取得元となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper assumes that applications will only make use of Key Management private keys if they have access to the corresponding certificates. This would mean that a PIV Card-using application that cannot access the off-card certificate source would be limited to using the retired Key Management private keys for which the corresponding certificates are stored within the PIV Card Application. A PIV Card-using application that did not have access to the certificate containing the public key that was used to encrypt a message could try to decrypt the message with every private key in its possession until it had either successfully decrypted the message or had tried every private key, but this paper assumes that applications will not do this.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、アプリケーションが、対応する証明書にアクセスできる場合にのみ鍵管理用秘密鍵を使用することを前提としています。これは、カード外の証明書のソースにアクセスできない PIV カード利用アプリケーションは、対応する証明書が PIV カードアプリケーション内に格納されている使用済みの鍵管理用秘密鍵のみを使用することに限られることを意味します。メッセージの暗号化に使用された公開鍵を含む証明書にアクセスできない PIV カード利用アプリケーションは、メッセージの復号に成功するか、すべての秘密鍵を試し終えるまで、保有しているすべての秘密鍵でメッセージの復号を試みることもできますが、本書は、アプリケーションがそのようなことをしないことを前提としています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Storing Retired Keys Within the PIV Card Application</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. PIV カードアプリケーション内への使用済み鍵の格納</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SP 800-73-3 [7] allows for up to twenty retired Key Management Keys to be stored within the PIV Card Application on a PIV Card. SP 800-73-3 imposes a limit of twenty retired Key Management Keys since ISO/IEC 7816-4 [3] requires each key to be assigned a unique key reference value and limits each card application to thirty-two different key reference values. Seven of the PIV Card Application’s key reference values have already been assigned to other keys (PIV Card Application PIN [&#x27;80&#x27;], PIN Unblocking Key [&#x27;81&#x27;], PIV Authentication Key [&#x27;9A&#x27;], Card Management Key [&#x27;9B&#x27;], Digital Signature Key [&#x27;9C&#x27;], Key Management Key [&#x27;9D&#x27;], and Card Authentication Key [&#x27;9E&#x27;]). The remaining five key reference values for the PIV Card Application are being reserved for possible future use.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP 800-73-3 [7] は、PIV カード上の PIV カードアプリケーション内に、最大 20 個の使用済み鍵管理鍵を格納することを認めています。ISO/IEC 7816-4 [3] は、各鍵に一意の鍵参照値を割り当てることを求め、1 つのカードアプリケーションにつき 32 個の異なる鍵参照値に制限しているため、SP 800-73-3 は使用済み鍵管理鍵の数を 20 個に制限しています。PIV カードアプリケーションの鍵参照値のうち 7 個は、すでに他の鍵（PIV カードアプリケーション PIN [&#x27;80&#x27;]、PIN ブロック解除鍵 [&#x27;81&#x27;]、PIV 認証鍵 [&#x27;9A&#x27;]、カード管理鍵 [&#x27;9B&#x27;]、デジタル署名鍵 [&#x27;9C&#x27;]、鍵管理鍵 [&#x27;9D&#x27;]、カード認証鍵 [&#x27;9E&#x27;]）に割り当てられています。PIV カードアプリケーションの残り 5 個の鍵参照値は、将来の使用の可能性のために予約されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When the PIV Card Application is loaded onto a card, space may be allocated for zero to twenty retired Key Management private keys and their corresponding certificates. Space may be allocated for fewer certificates than private keys. Where space on the card is limited, it is recommended that priority be given to allocating space for as many retired Key Management private keys as possible while also allocating space for at least one retired X.509 certificate for Key Management. Storing at least one certificate on the card will ensure that the most recently retired Key Management Key will always be available for use, even when the PIV Card-using application cannot access the off-card certificate source. Maximizing the number of retired Key Management private keys stored on the card will ensure maximal availability of older encrypted data whenever the PIV Card-using application has access to all of the corresponding certificates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PIV カードアプリケーションをカードにロードする際、使用済みの鍵管理用秘密鍵とそれに対応する証明書を 0 個から 20 個まで格納する容量を割り当てることができます。秘密鍵より少ない数の証明書を格納する容量を割り当てることもできます。カード上の容量が限られている場合は、鍵管理用の使用済みの X.509 証明書を少なくとも 1 つ格納する容量も割り当てつつ、使用済みの鍵管理用秘密鍵をできるだけ多く格納する容量の割り当てを優先することが推奨されます。少なくとも 1 つの証明書をカードに格納すれば、PIV カード利用アプリケーションがカード外の証明書ソースにアクセスできない場合でも、最も最近使用済みとなった鍵管理鍵を常に使用できます。カードに格納する使用済みの鍵管理用秘密鍵の数を最大にすれば、PIV カード利用アプリケーションが対応するすべての証明書にアクセスできる場合に、古い暗号化データを最大限に利用可能にできます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When all of the retired X.509 certificates for Key Management are stored within the PIV Card Application, SP 800-73-3 does not require those certificates to also be available from an off-card source. However, it is recommended that issuers make retired certificates available from an off-card source even in this case since it will generally be much faster for the PIV Card-using application to obtain the certificates from an off-card source than to read them from the PIV Card.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>使用済みの鍵管理用 X.509 証明書のすべてが PIV カードアプリケーション内に格納されている場合、SP 800-73-3 は、それらの証明書がカード外のソースからも利用できることを求めていません。ただし、PIV カード利用アプリケーションにとっては、証明書を PIV カードから読み取るよりもカード外のソースから取得するほうが一般にはるかに速いため、この場合でも、発行者が使用済みの証明書をカード外のソースから利用できるようにすることが推奨されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When retired certificates are made available from an off-card source, the URL that points to the off-card source must be of the form:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>使用済みの証明書をカード外のソースから利用できるようにする場合、カード外のソースを指す URL は、次の形式でなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>&quot;http://&quot; &lt;DNS name&gt; &quot;/&quot; &lt;ASCII-HEX encoded SHA-256 hash of <b>OffCardKeyHistoryFile</b>&gt;</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>&quot;http://&quot; &lt;DNS name&gt; &quot;/&quot; &lt;ASCII-HEX encoded SHA-256 hash of <b>OffCardKeyHistoryFile</b>&gt;</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For example, the <i>offCardCertURL</i> that points to the sample <b>OffCardKeyHistoryFile</b> shown in Appendix A is</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>たとえば、<i>offCardCertURL</i> が付録 A に示す <b>OffCardKeyHistoryFile</b> の例を指す場合は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>http://smime2.nist.gov/8B0F34EA6AFC8322CE557CCEF49A8327CDAC58D67405CEFDE0A05E01895BFF46</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>http://smime2.nist.gov/8B0F34EA6AFC8322CE557CCEF49A8327CDAC58D67405CEFDE0A05E01895BFF46</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The <i>offCardCertURL</i> is included in the Key History object, which is protected by the digitally signed Security Object. This allows the PIV Card-using application to verify the integrity of the SHA-256 hash [1] that is encoded in the <i>offCardCertURL</i>. The SHA-256 hash serves three purposes:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><i>offCardCertURL</i> は鍵履歴オブジェクトに含まれ、鍵履歴オブジェクトはデジタル署名されたセキュリティオブジェクトによって保護されています。これにより、PIV カード利用アプリケーションは、<i>offCardCertURL</i> に符号化されている SHA-256 ハッシュ [1] の完全性を検証できます。SHA-256 ハッシュは 3 つの目的を果たします。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">It allows the PIV Card-using application to verify the contents of the <b>OffCardKeyHistoryFile</b> by comparing a hash of the downloaded file to the hash value encoded in the URL.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">ダウンロードしたファイルのハッシュと URL に符号化されたハッシュ値を比較することにより、PIV カード利用アプリケーションが <b>OffCardKeyHistoryFile</b> の内容を検証できるようにします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">It supports local caching of the <b>OffCardKeyHistoryFile</b> by providing a simple mechanism for ensuring that a locally cached file exactly matches the file referenced by the URL on a PIV Card. Locally caching the <b>OffCardKeyHistoryFile</b> after it is downloaded the first time allows for faster access to the retired certificates during subsequent uses of the PIV Card and ensures access to the retired certificates that are not stored within the PIV Card Application even if the PIV Card-using application is not connected to the network or the server holding the <b>OffCardKeyHistoryFile</b> is temporarily unavailable.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><b>OffCardKeyHistoryFile</b> のローカルキャッシュを支援します。これは、ローカルにキャッシュされたファイルが、PIV カード上の URL が参照するファイルと完全に一致することを保証する簡単な仕組みを提供することによります。<b>OffCardKeyHistoryFile</b> を最初にダウンロードした後にローカルにキャッシュしておくと、その後の PIV カードの使用時に使用済みの証明書へより速くアクセスでき、PIV カード利用アプリケーションがネットワークに接続されていない場合や、<b>OffCardKeyHistoryFile</b> を保持するサーバーが一時的に利用できない場合でも、PIV カードアプリケーション内に格納されていない使用済みの証明書にアクセスできます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Encoding the SHA-256 hash of the <b>OffCardKeyHistoryFile</b> in the <i>offCardCertURL</i> ensures that the URL cannot be guessed by anyone who does not already have access to the <b>OffCardKeyHistoryFile</b> or to the PIV Card.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><b>OffCardKeyHistoryFile</b> の SHA-256 ハッシュを <i>offCardCertURL</i> に符号化することで、<b>OffCardKeyHistoryFile</b> または PIV カードにまだアクセスできない者には、その URL を推測できないようにします。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>If the server holding the certificates does not allow users to obtain a listing of the files in a directory, making the URLs unguessable should prevent anyone who is not in possession of a PIV Card from downloading the <b>OffCardKeyHistoryFile</b> referenced by the card even though the file can be downloaded by anyone who knows the file’s URL. Since X.509 certificates for Key Management may be publicly distributed, configuring the server to prevent users from obtaining a listing of the files in a directory should provide a sufficient level of protection against the off-card certificate files being downloaded by anyone who is not in possession of the PIV Card. However, since the retired X.509 certificates for Key Management are only needed by the cardholder, Agencies may choose to place the server holding the off-card certificate files on an internal network, although doing so may cause problems for cardholders trying to use their PIV Cards while they are telecommuting or on travel.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>証明書を保持するサーバーが、ユーザーによるディレクトリ内のファイル一覧の取得を許可していなければ、URL を推測できないようにすることで、PIV カードを所持していない者が、カードによって参照される <b>OffCardKeyHistoryFile</b> をダウンロードすることを防げるはずです。ただし、ファイルの URL を知っている者であれば誰でもそのファイルをダウンロードできます。鍵管理用の X.509 証明書は公開配布されてもよいため、ユーザーがディレクトリ内のファイル一覧を取得できないようにサーバーを構成すれば、PIV カードを所持していない者によるカード外の証明書ファイルのダウンロードに対して、十分な水準の保護が得られるはずです。しかし、使用済みの鍵管理用 X.509 証明書が必要になるのはカード保持者のみであるため、各機関は、カード外の証明書ファイルを保持するサーバーを内部ネットワーク上に置くことを選んでもよいです。ただし、そうすると、カード保持者が在宅勤務中や出張中に PIV カードを使おうとする際に問題が生じる場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A new <b>OffCardKeyHistoryFile</b> will need to be created whenever a new Key Management Key is created for a cardholder and the cardholder’s previous Key Management Key is moved into the key history.<sup>1</sup> Since the SHA-256 hash of the <b>OffCardKeyHistoryFile</b> is encoded in the <i>offCardCertURL</i>, the <i>offCardCertURL</i> in a PIV Card’s Key History object will need to be updated whenever a new <b>OffCardKeyHistoryFile</b> is created for the card. Moving a newly retired Key Management Key into the key history may also result in the value of either <i>keysWithOnCardCerts</i> or <i>keysWithOffCardCerts</i> needing to be changed. Whenever any of the values within the Key History object are changed, the hash of the Key History object in the Security Object will need to be updated and the Security Object will need to be re-signed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>カード保持者に新しい鍵管理鍵が作成され、そのカード保持者の以前の鍵管理鍵が鍵履歴に移されるたびに、新しい <b>OffCardKeyHistoryFile</b> を作成する必要があります。<sup>1</sup> <b>OffCardKeyHistoryFile</b> の SHA-256 ハッシュは <i>offCardCertURL</i> に符号化されているため、PIV カードの鍵履歴オブジェクト内の <i>offCardCertURL</i> は、カードに新しい <b>OffCardKeyHistoryFile</b> が作成されるたびに更新する必要があります。新たに使用済みとなった鍵管理鍵を鍵履歴に移すことで、<i>keysWithOnCardCerts</i> または <i>keysWithOffCardCerts</i> のいずれかの値を変更する必要が生じる場合もあります。鍵履歴オブジェクト内のいずれかの値が変更されるたびに、セキュリティオブジェクト内の鍵履歴オブジェクトのハッシュを更新し、セキュリティオブジェクトに再署名する必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As a general rule, PIV Card-using applications that may need access to retired X.509 certificates for Key Management should first read the Key History object. If the Key History object is present and contains an <i>offCardCertURL</i>, then the PIV Card-using application should look for the <b>OffCardKeyHistoryFile</b> that is referenced by the <i>offCardCertURL</i> in a local cache. If the file cannot be found there, or if there is no local cache, the PIV Card-using application should use the <i>offCardCertURL</i> to download the <b>OffCardKeyHistoryFile</b> from the server. Whether the <b>OffCardKeyHistoryFile</b> is obtained from the local cache or from a remote server, the SHA-256 hash of the file should be compared with the SHA-256 hash encoded in the <i>offCardCertURL</i> to ensure that the correct file has been obtained. PIV Card-using applications should be prepared for the possibility that the server holding the <b>OffCardKeyHistoryFile</b> cannot be accessed even if network connectivity is available since the server may only be available from an Agency’s internal network. If the Key History object does not include an <i>offCardCertURL</i> or if the <b>OffCardKeyHistoryFile</b> referenced by the <i>offCardCertURL</i> is not locally cached and cannot be downloaded from the server, then the PIV Card-using application will need to read the retired X.509 certificates for Key Management from the PIV Card, if they have been stored on the card. The PIV Card-using application does not need to validate the retired X.509 certificates for Key Management since they are only being used to aid in identifying the appropriate private key to use to decrypt data that was previously encrypted.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一般的な原則として、使用済みの鍵管理用 X.509 証明書にアクセスする必要がある PIV カード利用アプリケーションは、まず鍵履歴オブジェクトを読み取るべきです。鍵履歴オブジェクトが存在し、<i>offCardCertURL</i> を含んでいる場合、PIV カード利用アプリケーションは、<b>OffCardKeyHistoryFile</b>（<i>offCardCertURL</i> が参照するもの）をローカルキャッシュ内で探すべきです。そこでファイルが見つからない場合、またはローカルキャッシュがない場合、PIV カード利用アプリケーションは <i>offCardCertURL</i> を使ってサーバーから <b>OffCardKeyHistoryFile</b> をダウンロードするべきです。<b>OffCardKeyHistoryFile</b> をローカルキャッシュから取得した場合でも、リモートサーバーから取得した場合でも、正しいファイルが取得されたことを確認するため、ファイルの SHA-256 ハッシュを <i>offCardCertURL</i> に符号化された SHA-256 ハッシュと比較すべきです。サーバーは機関の内部ネットワークからしか利用できない場合があるため、ネットワーク接続が利用できる場合でも、<b>OffCardKeyHistoryFile</b> を保持するサーバーにアクセスできない可能性があることに、PIV カード利用アプリケーションは備えておくべきです。鍵履歴オブジェクトに <i>offCardCertURL</i> が含まれていない場合、または <b>OffCardKeyHistoryFile</b>（<i>offCardCertURL</i> が参照するもの）がローカルにキャッシュされておらず、サーバーからもダウンロードできない場合、PIV カード利用アプリケーションは、使用済みの鍵管理用 X.509 証明書がカードに格納されていれば、それらを PIV カードから読み取る必要があります。使用済みの鍵管理用 X.509 証明書は、以前に暗号化されたデータを復号するために使用する適切な秘密鍵を特定する助けとしてのみ使用されるため、PIV カード利用アプリケーションはそれらを検証する必要はありません。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0009-b0004" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> An <b>OffCardKeyHistoryFile</b> does not need to be created if all of the retired X.509 certificates for Key Management are stored within the PIV Card Application and the <i>offCardCertURL</i> is omitted from the PIV Card’s Key History object.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> <b>OffCardKeyHistoryFile</b> は、使用済みの鍵管理用 X.509 証明書のすべてが PIV カードアプリケーション内に格納され、PIV カードの鍵履歴オブジェクトから <i>offCardCertURL</i> が省略されている場合は、作成する必要はありません。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>If a PIV Card-using application is unable to access the <b>OffCardKeyHistoryFile</b>, then the application will only be able to make use of the retired Key Management Keys for which the corresponding certificates are also stored on the PIV Card. The design of the Key History mechanism takes this into consideration. In general, a given retired Key Management Key’s use will decline with age. So, PIV Card-using applications will typically need access to the most recently retired Key Management Keys more frequently than they will need access to older retired Key Management Keys. Thus, SP 800-73-3 requires that if the PIV Card does not store all of the retired X.509 certificates for Key Management then the card must store those certificates corresponding to the most recently issued Key Management Keys.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PIV カード利用アプリケーションが <b>OffCardKeyHistoryFile</b> にアクセスできない場合、そのアプリケーションは、対応する証明書も PIV カードに格納されている使用済みの鍵管理鍵しか使用できません。鍵履歴の仕組みの設計は、この点を考慮しています。一般に、使用済みの特定の鍵管理鍵が使われる機会は、古くなるにつれて減っていきます。そのため、PIV カード利用アプリケーションは通常、古い使用済み鍵管理鍵よりも、最近使用済みとなった鍵管理鍵に、より頻繁にアクセスする必要があります。したがって SP 800-73-3 は、PIV カードが使用済みの鍵管理用 X.509 証明書のすべてを格納しない場合、最も最近発行された鍵管理鍵に対応する証明書を、カードが格納しなければならないと定めています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tables 1 through 4 provide examples of the storage of retired Key Management Keys within the PIV Card Application. All four examples involve the storage of the same set of seven retired keys, but the examples differ in the number of retired X.509 certificates for Key Management that are stored within the PIV Card Application. For each retired Key Management private key that is stored within the PIV Card Application, the tables show the key reference value assigned to the private key, the BER-TLV tag for the corresponding certificate (if the certificate is stored within the PIV Card Application), the date when the certificate was issued (notBefore), and the date when the certificate expires (notAfter).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 から表 4 は、PIV カードアプリケーション内への使用済み鍵管理鍵の格納例を示しています。4 つの例はいずれも同じ 7 個の使用済み鍵の集合の格納に関するものですが、PIV カードアプリケーション内に格納される使用済みの鍵管理用 X.509 証明書の数が例ごとに異なります。各表は、PIV カードアプリケーション内に格納されている使用済みの鍵管理用秘密鍵ごとに、その秘密鍵に割り当てられた鍵参照値、対応する証明書の BER-TLV タグ（証明書が PIV カードアプリケーション内に格納されている場合）、証明書の発行日（notBefore）および証明書の有効期限日（notAfter）を示しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that in the examples, each of the Key Management Keys was replaced with a newer key long before the end of the corresponding certificate’s three-year lifespan. While a cardholder would not typically be issued new Key Management Keys so frequently, a cardholder may be issued a new Key Management Key well before the end of the current Key Management Key’s certificate’s lifetime if the PIV Card was lost or broken, information in the certificate (e.g., email address) needed to be changed, or the PIV Card needed to be replaced as a result of changes in information printed on the face of the card (e.g., rank).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>例では、各鍵管理鍵が、対応する証明書の 3 年の有効期間が終わるずっと前に、より新しい鍵に置き換えられていることに注意してください。カード保持者に新しい鍵管理鍵がこれほど頻繁に発行されることは通常ありませんが、PIV カードが紛失または破損した場合、証明書内の情報（たとえば電子メールアドレス）を変更する必要があった場合、またはカード表面に印刷された情報（たとえば階級）の変更によって PIV カードを交換する必要があった場合には、現在の鍵管理鍵の証明書の有効期間が終わるよりずっと前に、新しい鍵管理鍵がカード保持者に発行されることがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 presents an example in which all of the certificates are stored within the PIV Card Application. Since <i>keysWithOffCardCerts</i> is zero, the <i>offCardCertURL</i> is not required to be present in the Key History object. In order to facilitate discovery of the key references and BER-TLV tags that correspond to the retired private keys and certificates, respectively, SP 800-73-3 requires that the retired keys be assigned key references &#x27;82&#x27; through &#x27;88&#x27; and that the certificates be stored in the BER-TLV tags that correspond to these key references. However, there is no requirement with respect to which retired key is assigned to which of these key references. Thus, in this example, the keys have been assigned to key references &#x27;82&#x27; through &#x27;88&#x27; at random.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 は、すべての証明書が PIV カードアプリケーション内に格納されている例を示しています。<i>keysWithOffCardCerts</i> が 0 であるため、鍵履歴オブジェクトに <i>offCardCertURL</i> が存在することは求められません。使用済みの秘密鍵と証明書にそれぞれ対応する鍵参照と BER-TLV タグを容易に見つけられるようにするため、SP 800-73-3 は、使用済み鍵に鍵参照 &#x27;82&#x27; から &#x27;88&#x27; を割り当て、証明書をこれらの鍵参照に対応する BER-TLV タグに格納することを求めています。ただし、どの使用済み鍵をこれらの鍵参照のどれに割り当てるかについての要件はありません。そのため、この例では、鍵を鍵参照 &#x27;82&#x27; から &#x27;88&#x27; にランダムに割り当てています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2 presents an example in which only four of the seven retired X.509 certificates for Key Management are stored within the PIV Card Application. In this case, the <i>offCardCertURL</i> is required to be present and the file that is referred to by the URL must contain all seven of the retired X.509 certificates for Key Management (see Appendix A). As is required by SP 800-73-3, the four retired Key Management Keys that were most recently issued are the ones that are stored within the PIV Card Application. These certificates must be stored in BER-TLV tags &#x27;5FC10D&#x27; through &#x27;5FC110&#x27;. The corresponding private keys must be assigned to the corresponding key references as specified in Table 6 of SP 800-73-3, Part 1. For example, the private key corresponding to the certificate in BER-TLV tag &#x27;5FC10D&#x27; must be assigned key reference &#x27;82&#x27;. The oldest three private keys, the ones for which the corresponding certificates are not stored within the PIV Card Application, must be assigned key references &#x27;93&#x27; through &#x27;95&#x27;.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2 は、使用済みの鍵管理用 X.509 証明書 7 つのうち 4 つだけが PIV カードアプリケーション内に格納されている例を示しています。この場合、<i>offCardCertURL</i> が存在することが求められ、URL が参照するファイルには、使用済みの鍵管理用 X.509 証明書 7 つすべてが含まれていなければなりません（付録 A を参照）。SP 800-73-3 が求めているとおり、PIV カードアプリケーション内に格納されるのは、最も最近発行された 4 つの使用済み鍵管理鍵です。これらの証明書は BER-TLV タグ &#x27;5FC10D&#x27; から &#x27;5FC110&#x27; に格納しなければなりません。対応する秘密鍵は、SP 800-73-3 第 1 部の表 6 に規定されているとおり、対応する鍵参照に割り当てなければなりません。たとえば、BER-TLV タグ &#x27;5FC10D&#x27; の証明書に対応する秘密鍵には、鍵参照 &#x27;82&#x27; を割り当てなければなりません。最も古い 3 つの秘密鍵、すなわち対応する証明書が PIV カードアプリケーション内に格納されていないものには、鍵参照 &#x27;93&#x27; から &#x27;95&#x27; を割り当てなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tables 5 and 6 present two more examples of the storage of retired Key Management Keys within the PIV Card Application. Both examples are based on a scenario in which the PIV Card Application is holding the seven retired Key Management Keys depicted in the examples in Tables 1 though 4 and the cardholder is issued a new Key Management Key, resulting in the previous Key Management Key becoming a retired Key Management Key. As in the example in Table 3, the PIV Card Application only stores three retired X.509 certificates for Key Management.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 5 と表 6 は、PIV カードアプリケーション内への使用済み鍵管理鍵の格納について、さらに 2 つの例を示しています。どちらの例も、PIV カードアプリケーションが表 1 から表 4 の例に示した 7 個の使用済み鍵管理鍵を保持していて、カード保持者に新しい鍵管理鍵が発行され、その結果、以前の鍵管理鍵が使用済みの鍵管理鍵になるというシナリオに基づいています。表 3 の例と同様に、PIV カードアプリケーションは、使用済みの鍵管理用 X.509 証明書を 3 つだけ格納しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 1: keysWithOnCardCerts = 7, keysWithOffCardCerts = 0</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 1: keysWithOnCardCerts = 7, keysWithOffCardCerts = 0</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>82</td><td>83</td><td>84</td><td>85</td><td>86</td><td>87</td><td>88</td></tr><tr><th scope="row">Certificate Tag</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>5FC110</td><td>5FC111</td><td>5FC112</td><td>5FC113</td></tr><tr><th scope="row">Cert. notBefore</th><td>03/08</td><td>11/05</td><td>05/05</td><td>05/07</td><td>10/06</td><td>01/09</td><td>04/07</td></tr><tr><th scope="row">Cert. notAfter</th><td>03/11</td><td>11/08</td><td>05/08</td><td>05/10</td><td>10/09</td><td>01/12</td><td>04/10</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>82</td><td>83</td><td>84</td><td>85</td><td>86</td><td>87</td><td>88</td></tr><tr><th scope="row">証明書タグ</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>5FC110</td><td>5FC111</td><td>5FC112</td><td>5FC113</td></tr><tr><th scope="row">証明書 notBefore</th><td>03/08</td><td>11/05</td><td>05/05</td><td>05/07</td><td>10/06</td><td>01/09</td><td>04/07</td></tr><tr><th scope="row">証明書 notAfter</th><td>03/11</td><td>11/08</td><td>05/08</td><td>05/10</td><td>10/09</td><td>01/12</td><td>04/10</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 2: keysWithOnCardCerts = 4, keysWithOffCardCerts = 3</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 2: keysWithOnCardCerts = 4, keysWithOffCardCerts = 3</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>82</td><td>83</td><td>84</td><td>85</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">Certificate Tag</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>5FC110</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">Cert. notBefore</th><td>03/08</td><td>01/09</td><td>05/07</td><td>04/07</td><td>05/05</td><td>10/06</td><td>11/05</td></tr><tr><th scope="row">Cert. notAfter</th><td>03/11</td><td>01/12</td><td>05/10</td><td>04/10</td><td>05/08</td><td>10/09</td><td>11/08</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>82</td><td>83</td><td>84</td><td>85</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">証明書タグ</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>5FC110</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">証明書 notBefore</th><td>03/08</td><td>01/09</td><td>05/07</td><td>04/07</td><td>05/05</td><td>10/06</td><td>11/05</td></tr><tr><th scope="row">証明書 notAfter</th><td>03/11</td><td>01/12</td><td>05/10</td><td>04/10</td><td>05/08</td><td>10/09</td><td>11/08</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 3: keysWithOnCardCerts = 3, keysWithOffCardCerts = 4</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 3: keysWithOnCardCerts = 3, keysWithOffCardCerts = 4</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>82</td><td>83</td><td>84</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">Certificate Tag</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">Cert. notBefore</th><td>01/09</td><td>05/07</td><td>03/08</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/05</td></tr><tr><th scope="row">Cert. notAfter</th><td>01/12</td><td>05/10</td><td>03/11</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/08</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>82</td><td>83</td><td>84</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">証明書タグ</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">証明書 notBefore</th><td>01/09</td><td>05/07</td><td>03/08</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/05</td></tr><tr><th scope="row">証明書 notAfter</th><td>01/12</td><td>05/10</td><td>03/11</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/08</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 4: keysWithOnCardCerts = 0, keysWithOffCardCerts = 7</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 4: keysWithOnCardCerts = 0, keysWithOffCardCerts = 7</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>8F</td><td>90</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">Certificate Tag</th><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">Cert. notBefore</th><td>10/06</td><td>05/05</td><td>04/07</td><td>05/07</td><td>01/09</td><td>03/08</td><td>11/05</td></tr><tr><th scope="row">Cert. notAfter</th><td>10/09</td><td>05/08</td><td>04/10</td><td>05/10</td><td>01/12</td><td>03/11</td><td>11/08</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>8F</td><td>90</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">証明書タグ</th><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">証明書 notBefore</th><td>10/06</td><td>05/05</td><td>04/07</td><td>05/07</td><td>01/09</td><td>03/08</td><td>11/05</td></tr><tr><th scope="row">証明書 notAfter</th><td>10/09</td><td>05/08</td><td>04/10</td><td>05/10</td><td>01/12</td><td>03/11</td><td>11/08</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 5: keysWithOnCardCerts = 3, keysWithOffCardCerts = 4</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 5: keysWithOnCardCerts = 3, keysWithOffCardCerts = 4</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>82</td><td>83</td><td>84</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">Certificate Tag</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">Cert. notBefore</th><td>01/09</td><td>05/09</td><td>03/08</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/07</td></tr><tr><th scope="row">Cert. notAfter</th><td>01/12</td><td>05/12</td><td>03/11</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/10</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>82</td><td>83</td><td>84</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">証明書タグ</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">証明書 notBefore</th><td>01/09</td><td>05/09</td><td>03/08</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/07</td></tr><tr><th scope="row">証明書 notAfter</th><td>01/12</td><td>05/12</td><td>03/11</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/10</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Table 6: keysWithOnCardCerts = 3, keysWithOffCardCerts = 5</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>表 6: keysWithOnCardCerts = 3, keysWithOffCardCerts = 5</b></p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0011-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><th scope="row">Key Reference</th><td>82</td><td>83</td><td>84</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">Certificate Tag</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">Cert. notBefore</th><td>01/09</td><td>05/09</td><td>03/08</td><td>05/07</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/05</td></tr><tr><th scope="row">Cert. notAfter</th><td>01/12</td><td>05/12</td><td>03/11</td><td>05/10</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/08</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><th scope="row">鍵参照</th><td>82</td><td>83</td><td>84</td><td>91</td><td>92</td><td>93</td><td>94</td><td>95</td></tr><tr><th scope="row">証明書タグ</th><td>5FC10D</td><td>5FC10E</td><td>5FC10F</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr><tr><th scope="row">証明書 notBefore</th><td>01/09</td><td>05/09</td><td>03/08</td><td>05/07</td><td>10/06</td><td>04/07</td><td>11/05</td><td>05/05</td></tr><tr><th scope="row">証明書 notAfter</th><td>01/12</td><td>05/12</td><td>03/11</td><td>05/10</td><td>10/09</td><td>04/10</td><td>11/08</td><td>05/08</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the example in Table 5, the PIV Card Application is only capable of storing seven retired Key Management private keys. In this case, in order to make room for the new retired Key Management Key (associated with the certificate issued 05/09), the oldest retired Key Management Key (associated with the certificate issued 05/05) is removed from the PIV Card Application. Since the three most recently issued retired X.509 certificates for Key Management must be stored within the PIV Card Application, the certificate that was issued in May 2007 is also removed from the PIV Card Application in order to make room for the newly retired certificate that was issued in May 2009. Since the certificate that was issued in May 2007 is no longer stored within the PIV Card Application, its corresponding private key must be assigned a key reference between &#x27;92&#x27; and &#x27;95&#x27; rather than a key reference between &#x27;82&#x27; and &#x27;84&#x27;.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 5 の例では、PIV カードアプリケーションが格納できる使用済み鍵管理用秘密鍵は 7 個だけです。この場合、新たに使用済みとなる鍵管理鍵（2009 年 5 月発行の証明書に対応する鍵）の分の空きを作るため、最も古い使用済み鍵管理鍵（2005 年 5 月発行の証明書に対応する鍵）が PIV カードアプリケーションから削除されます。最近発行された使用済みの鍵管理用 X.509 証明書 3 つは PIV カードアプリケーション内に格納しなければならないため、2009 年 5 月に発行された新たに使用済みとなった証明書の分の空きを作るために、2007 年 5 月に発行された証明書も PIV カードアプリケーションから削除されます。2007 年 5 月に発行された証明書はもう PIV カードアプリケーション内に格納されていないため、その対応する秘密鍵には、&#x27;82&#x27; から &#x27;84&#x27; の間の鍵参照ではなく、&#x27;92&#x27; から &#x27;95&#x27; の間の鍵参照を割り当てなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0014-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the example in Table 6, the PIV Card Application is capable of storing at least eight retired Key Management Keys, so no keys need to be removed from the PIV Card Application. However, as in the example in Table 5, the certificate that was issued in May 2007 needs to be removed from the PIV Card Application in order to make room for the certificate that was issued in May 2009, and the private key corresponding to the certificate that was issued in May 2007 needs to be assigned a key reference between &#x27;91&#x27; and &#x27;95&#x27; rather than a key reference between &#x27;82&#x27; and &#x27;84&#x27;.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 6 の例では、PIV カードアプリケーションは少なくとも 8 個の使用済み鍵管理鍵を格納できるため、PIV カードアプリケーションから鍵を削除する必要はありません。ただし、表 5 の例と同様に、2009 年 5 月に発行された証明書の分の空きを作るため、2007 年 5 月に発行された証明書を PIV カードアプリケーションから削除する必要があり、2007 年 5 月に発行された証明書に対応する秘密鍵には、&#x27;82&#x27; から &#x27;84&#x27; の間の鍵参照ではなく、&#x27;91&#x27; から &#x27;95&#x27; の間の鍵参照を割り当てる必要があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—Sample OffCardKeyHistoryFile</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—OffCardKeyHistoryFile の例</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This appendix presents an example of the contents of the <b>OffCardKeyHistoryFile</b>, which is referenced by the <i>offCardCertURL</i> in the Key History object. The sample <b>OffCardKeyHistoryFile</b> corresponds to the example presented in Table 2. Examples corresponding to Tables 1, 3, and 4, would be nearly identical, with only the key references associated with each certificate being different.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この付録は、<b>OffCardKeyHistoryFile</b>（鍵履歴オブジェクト内の <i>offCardCertURL</i> によって参照されるもの）の内容の例を示します。この <b>OffCardKeyHistoryFile</b> の例は、表 2 に示した例に対応しています。表 1、表 3 および表 4 に対応する例は、各証明書に関連付けられた鍵参照だけが異なり、ほぼ同一になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The <b>OffCardKeyHistoryFile</b> contains the DER encoding [5] of the following ASN.1 [4]:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>OffCardKeyHistoryFile</b> は、次の ASN.1 [4] の DER エンコーディング [5] を含みます。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>OffCardKeyHistoryFile ::= SEQUENCE SIZE (1..20) OF SEQUENCE {
+        keyReference      OCTET STRING (SIZE(1))
+        cert              Certificate
+}</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>where <b>cert</b> is a retired X.509 certificate for Key Management and <b>keyReference</b> is the key reference assigned to the corresponding private key. The example below shows the pseudo-ASN.1 of the data that is being encoded on the left and the ASCII-HEX encoded representation of the contents of the <b>OffCardKeyHistoryFile</b> on the right. In order to enhance readability, only the first fourteen octets of each of the X.509 certificates are shown, but otherwise the entire contents of the <b>OffCardKeyHistoryFile</b> are presented. Each of the retired X.509 certificates for Key Management differ in their serial numbers, validity dates, subject public keys, and signatures, but are generally the same otherwise and so the lengths of each of the certificates and the first fourteen octets of each of the certificates are the same. The one exception is the certificate that was issued in January 2009, which includes an elliptic curve cryptography subject public key rather than an RSA subject public key, which results in this certificate being 203 octets shorter than the other certificates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ここで <b>cert</b> は使用済みの鍵管理用 X.509 証明書であり、<b>keyReference</b> は対応する秘密鍵に割り当てられた鍵参照です。下の例は、左側に符号化されるデータの擬似 ASN.1 を、右側に <b>OffCardKeyHistoryFile</b> の内容の ASCII-HEX 符号化表現を示しています。読みやすさを高めるため、X.509 証明書については各証明書の最初の 14 オクテットだけを示していますが、それ以外は <b>OffCardKeyHistoryFile</b> の内容全体を示しています。使用済みの鍵管理用 X.509 証明書は、シリアル番号、有効期間の日付、サブジェクト公開鍵および署名がそれぞれ異なりますが、それ以外は一般に同じであるため、各証明書の長さと各証明書の最初の 14 オクテットは同じです。唯一の例外は 2009 年 1 月に発行された証明書で、RSA のサブジェクト公開鍵ではなく楕円曲線暗号のサブジェクト公開鍵を含んでいるため、この証明書は他の証明書より 203 オクテット短くなっています。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>pseudo-ASN.1                      DER encoding
+OffCardKeyHistoryFile ::=
+  SEQUENCE SIZE (7) OF            30 82 2E 6E
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;85&#x27;)      04 01 85
+      cert // (issued 04/07)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;82&#x27;)      04 01 82
+      cert // (issued 03/08)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 05 F0
+      keyReference // (&#x27;83&#x27;)      04 01 83
+      cert // (issued 01/09)      30 82 05 E9 30 82 04 D1 A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;94&#x27;)      04 01 94
+      cert // (issued 10/06)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;93&#x27;)      04 01 93
+      cert // (issued 05/05)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;84&#x27;)      04 01 84
+      cert // (issued 05/07)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …
+    SEQUENCE                      30 82 06 BB
+      keyReference // (&#x27;95&#x27;)      04 01 95
+      cert // (issued 11/05)      30 82 06 B4 30 82 05 9C A0 03 02 01 02 02 …</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B—略語</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>ASCII</td><td>American Standard Code for Information Interchange</td></tr><tr><td>ASN.1</td><td>Abstract Syntax Notation One</td></tr><tr><td>CMS</td><td>Cryptographic Message Syntax</td></tr><tr><td>DER</td><td>Distinguished Encoding Rules</td></tr><tr><td>DNS</td><td>Domain Name System</td></tr><tr><td>FIPS</td><td>Federal Information Processing Standard</td></tr><tr><td>HEX</td><td>Hexadecimal</td></tr><tr><td>HTTP</td><td>Hypertext Transfer Protocol</td></tr><tr><td>IEC</td><td>International Electrotechnical Commission</td></tr><tr><td>ISO</td><td>International Organization for Standardization</td></tr><tr><td>ITL</td><td>Information Technology Laboratory</td></tr><tr><td>N/A</td><td>Not Applicable</td></tr><tr><td>NIST</td><td>National Institute of Standards and Technology</td></tr><tr><td>NISTIR</td><td>National Institute of Standards and Technology Interagency Report</td></tr><tr><td>PIV</td><td>Personal Identity Verification</td></tr><tr><td>RSA</td><td>Rivest, Shamir, Adleman cryptographic algorithm</td></tr><tr><td>SHA</td><td>Secure Hash Algorithm</td></tr><tr><td>S/MIME</td><td>Secure/Multipurpose Internet Mail Extensions</td></tr><tr><td>SP</td><td>Special Publication</td></tr><tr><td>URL</td><td>Uniform Resource Locator</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>ASCII</td><td>米国標準情報交換符号</td></tr><tr><td>ASN.1</td><td>抽象構文記法 1</td></tr><tr><td>CMS</td><td>暗号メッセージ構文</td></tr><tr><td>DER</td><td>識別符号化規則</td></tr><tr><td>DNS</td><td>ドメインネームシステム</td></tr><tr><td>FIPS</td><td>連邦情報処理標準</td></tr><tr><td>HEX</td><td>16 進数</td></tr><tr><td>HTTP</td><td>ハイパーテキスト転送プロトコル</td></tr><tr><td>IEC</td><td>国際電気標準会議</td></tr><tr><td>ISO</td><td>国際標準化機構</td></tr><tr><td>ITL</td><td>情報技術研究所</td></tr><tr><td>N/A</td><td>該当なし</td></tr><tr><td>NIST</td><td>米国国立標準技術研究所</td></tr><tr><td>NISTIR</td><td>米国国立標準技術研究所省庁間報告書</td></tr><tr><td>PIV</td><td>個人識別検証</td></tr><tr><td>RSA</td><td>Rivest、Shamir、Adleman の暗号アルゴリズム</td></tr><tr><td>SHA</td><td>セキュアハッシュアルゴリズム</td></tr><tr><td>S/MIME</td><td>Secure/Multipurpose Internet Mail Extensions</td></tr><tr><td>SP</td><td>特別刊行物</td></tr><tr><td>URL</td><td>Uniform Resource Locator</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix C—References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 C—参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Federal Information Processing Standards Publication 180-3, <i>Secure Hash Standard (SHS)</i>, October 2008. (See http://csrc.nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Federal Information Processing Standards Publication 180-3, <i>Secure Hash Standard (SHS)</i>, October 2008. (See http://csrc.nist.gov)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Federal Information Processing Standards Publication 201-1, Change Notice 1, <i>Personal Identity Verification (PIV) of Federal Employees and Contractors</i>, March 2006. (See http://csrc.nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Federal Information Processing Standards Publication 201-1, Change Notice 1, <i>Personal Identity Verification (PIV) of Federal Employees and Contractors</i>, March 2006. (See http://csrc.nist.gov)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] ISO/IEC 7816-4:2005, <i>Identification cards — Integrated circuit cards — Part 4: Organization, security and commands for interchange</i>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] ISO/IEC 7816-4:2005, <i>Identification cards — Integrated circuit cards — Part 4: Organization, security and commands for interchange</i>.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] ISO/IEC 8824-2:2008, <i>Information technology — Abstract Syntax Notation One (ASN.1): Information object specification</i>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] ISO/IEC 8824-2:2008, <i>Information technology — Abstract Syntax Notation One (ASN.1): Information object specification</i>.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] ISO/IEC 8825-1:2008, <i>Information technology — ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)</i>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] ISO/IEC 8825-1:2008, <i>Information technology — ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)</i>.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] ISO/IEC 9594-8:2008, <i>Information technology — Open Systems Interconnection — The Directory: Public-key and attribute certificate frameworks</i>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] ISO/IEC 9594-8:2008, <i>Information technology — Open Systems Interconnection — The Directory: Public-key and attribute certificate frameworks</i>.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] NIST Special Publication 800-73-3, <i>Interfaces for Personal Identity Verification – Part 1: End-Point PIV Card Application Namespace, Data Model and Representation</i>, February 2010. (See http://csrc.nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] NIST Special Publication 800-73-3, <i>Interfaces for Personal Identity Verification – Part 1: End-Point PIV Card Application Namespace, Data Model and Representation</i>, February 2010. (See http://csrc.nist.gov)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Russell Housley, <i>Cryptographic Message Syntax (CMS)</i>, Internet Engineering Task Force (IETF) Request for Comments (RFC) 5652, September 2009. (See http://www.ietf.org/rfc/rfc5652.txt)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Russell Housley, <i>Cryptographic Message Syntax (CMS)</i>, Internet Engineering Task Force (IETF) Request for Comments (RFC) 5652, September 2009. (See http://www.ietf.org/rfc/rfc5652.txt)</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7676.pdf">National Institute of Standards and Technology, IR 7676</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7676";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

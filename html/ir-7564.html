@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7564 は、セキュリティメトリクスの分野の概要を示し、技術水準を前進させるために進められる可能性のある研究の方向を検討する論文です。過去数十年の間に、研究者らはコンピュータセキュリティの尺度と測定体系を開発するためにさまざまな試みを行い、成果の度合いはまちまちであったと述べています。本書は、背景、セキュリティ測定の側面、研究が可能な領域を順に取り上げ、結論を述べています。">
+  <title>セキュリティメトリクス研究の方向性 | NIST IR 7564 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Directions in Security Metrics Research" data-search="セキュリティメトリクス研究の方向性 directions in security metrics research">セキュリティメトリクス研究の方向性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0004" title="Acknowledgements" data-search="謝辞 acknowledgements">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="2. Background" data-search="2. 背景 2. background">2. 背景</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="3. Aspects of Security Measurement" data-search="3. セキュリティ測定の側面 3. aspects of security measurement">3. セキュリティ測定の側面</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0005" title="3.1 Correctness and Effectiveness" data-search="3.1 正確性と有効性 3.1 correctness and effectiveness">3.1 正確性と有効性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0002" title="3.2 Leading Versus Lagging Indicators" data-search="3.2 先行指標と遅行指標 3.2 leading versus lagging indicators">3.2 先行指標と遅行指標</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="3.3 Organizational Security Objectives" data-search="3.3 組織のセキュリティ目標 3.3 organizational security objectives">3.3 組織のセキュリティ目標</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0002" title="3.4 Qualitative and Quantitative Properties" data-search="3.4 定性的な特性と定量的な特性 3.4 qualitative and quantitative properties">3.4 定性的な特性と定量的な特性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0002" title="3.5 Measurements of the Large Versus the Small" data-search="3.5 大規模なものの測定と小規模なものの測定 3.5 measurements of the large versus the small">3.5 大規模なものの測定と小規模なものの測定</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="4. Possible Research Areas" data-search="4. 考えられる研究分野 4. possible research areas">4. 考えられる研究分野</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0008" title="4.1 Formal Models of Security Measurement and Metrics" data-search="4.1 セキュリティ測定とメトリクスの形式モデル 4.1 formal models of security measurement and metrics">4.1 セキュリティ測定とメトリクスの形式モデル</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0004" title="4.2 Historical Data Collection and Analysis" data-search="4.2 過去のデータの収集と分析 4.2 historical data collection and analysis">4.2 過去のデータの収集と分析</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0003" title="4.3 Artificial Intelligence Assessment Techniques" data-search="4.3 人工知能による評価技術 4.3 artificial intelligence assessment techniques">4.3 人工知能による評価技術</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="4.4 Practicable Concrete Measurement Methods" data-search="4.4 実行可能な具体的測定方法 4.4 practicable concrete measurement methods">4.4 実行可能な具体的測定方法</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0002" title="4.5 Intrinsically Measurable Components" data-search="4.5 本質的に測定可能な構成要素 4.5 intrinsically measurable components">4.5 本質的に測定可能な構成要素</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0020-b0001" title="5. Conclusion" data-search="5. 結論 5. conclusion">5. 結論</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0001" title="6. References" data-search="6. 参考文献 6. references">6. 参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7564 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Directions in Security Metrics Research</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>セキュリティメトリクス研究の方向性</strong></span><br><span class="doc-panel-item">公開日 : 2009-04-30</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7564/final">https://csrc.nist.gov/pubs/ir/7564/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 189 / 190 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7564 は、セキュリティメトリクスの分野の概要を示し、技術水準を前進させるために進められる可能性のある研究の方向を検討する論文です。過去数十年の間に、研究者らはコンピュータセキュリティの尺度と測定体系を開発するためにさまざまな試みを行い、成果の度合いはまちまちであったと述べています。本書は、背景、セキュリティ測定の側面、研究が可能な領域を順に取り上げ、結論を述べています。</p></div>
+      </div>
+
+      <section class="row source-only pair figure" id="pdf-p0001-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7564</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7564</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Directions in Security Metrics Research</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+セキュリティメトリクス研究の方向性</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Wayne Jansen</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Wayne Jansen</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7564</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7564</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Directions in Security Metrics Research</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティメトリクス研究の方向性</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Wayne Jansen</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Wayne Jansen</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>COMPUTER SECURITY</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Division<br>Information Technology Laboratory<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Computer Security Division<br>Information Technology Laboratory<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>April 2009</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2009 年 4 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Gary Locke, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Gary Locke 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Patrick D. Gallagher, Deputy Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology<br>Patrick D. Gallagher、NIST 副局長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analysis to advance the development and productive use of information technology. ITL’s responsibilities include the development of technical, physical, administrative, and management standards and guidelines for the cost-effective security and privacy of sensitive unclassified information in Federal computer systems. This Interagency Report discusses ITL’s research, guidance, and outreach efforts in computer security, and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology（NIST）の Information Technology Laboratory（ITL）は、国の測定・標準基盤に対する技術的リーダーシップを提供することで、米国の経済と公共の福祉を促進しています。ITL は、情報技術の発展と効果的な活用を進めるため、試験、試験方法、参照データ、概念実証の実装および技術分析を開発しています。ITL の責務には、連邦コンピュータシステムにおける機微な非機密情報のセキュリティとプライバシーを費用対効果よく確保するための、技術的、物理的、管理的および運用管理上の標準とガイドラインの策定が含まれます。この Interagency Report は、コンピュータセキュリティに関する ITL の研究、ガイダンスおよびアウトリーチの取り組みと、産業界、政府および学術機関との協力活動について論じています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report<br>26 pages (2009)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Interagency Report<br>26 ページ（2009 年）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この文書では、実験手順や概念を適切に説明するために、特定の商業的主体、機器または資材を明示している場合があります。このような明示は、National Institute of Standards and Technology による推奨や支持を意味するものではなく、また、それらの主体、資材または機器がその目的に利用できる最良のものであることを必ずしも意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>More than 100 years ago, Lord Kelvin insightfully observed that measurement is vital to deep knowledge and understanding in physical science. During the last few decades, researchers have made various attempts to develop measures and systems of measurement for computer security with varying degrees of success. This paper provides an overview of the security metrics area and looks at possible avenues of research that could be pursued to advance the state of the art.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>100 年以上前に、Lord Kelvin は、物理科学における深い知識と理解にとって測定が不可欠であることを鋭く指摘しました。過去数十年の間に、研究者らはコンピュータセキュリティの尺度と測定体系を開発するためにさまざまな試みを行い、成果の度合いはまちまちでした。この論文は、セキュリティメトリクスの分野の概要を示し、技術水準を前進させるために進められる可能性のある研究の方向を検討します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Keywords: Security Metrics; Computer Security, Security Evaluation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>キーワード: セキュリティメトリクス、コンピュータセキュリティ、セキュリティ評価</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report received the support of many individuals. The author is grateful to Tim Grance for suggesting the topic and encouraging its development. The author also wishes to thank colleagues who reviewed drafts of this document and contributed to its technical content, as well as the individuals who reviewed the public-release draft of this document and provided comments during the review period. Improvements to the content would not have been possible without their feedback and valuable suggestions. In particular, Paul Black, Lee Badger, and Russell Cameron Thomas offered useful and thought-provoking insight on the subject matter. However, the author takes full responsibility for any remaining errors or omissions in the report.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この報告書は多くの方々の支援を受けました。著者は、このテーマを提案し、その展開を後押ししてくださった Tim Grance 氏に感謝します。また、この文書のドラフトをレビューして技術的な内容に貢献してくださった同僚の方々、ならびにこの文書の公開ドラフトをレビューし、レビュー期間中にコメントを寄せてくださった方々にも感謝します。内容の改善は、これらの方々のフィードバックと貴重な提案なしにはあり得ませんでした。特に、Paul Black、Lee Badger、Russell Cameron Thomas の各氏は、このテーマについて有益で示唆に富む洞察を示してくださいました。ただし、報告書に残る誤りや脱落については、著者がすべての責任を負います。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2. Background</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">2. 背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. Aspects of Security Measurement</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. セキュリティ測定の側面</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">3.1 Correctness and Effectiveness</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">3.1 正確性と有効性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">3.2 Leading Versus Lagging Indicators</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">3.2 先行指標と遅行指標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.3 Organizational Security Objectives</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">3.3 組織のセキュリティ目標</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">3.4 Qualitative and Quantitative Properties</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">3.4 定性的な特性と定量的な特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0002">3.5 Measurements of the Large Versus the Small</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0002">3.5 大規模なものの測定と小規模なものの測定</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">4. Possible Research Areas</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">4. 考えられる研究分野</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0008">4.1 Formal Models of Security Measurement and Metrics</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0008">4.1 セキュリティ測定とメトリクスの形式モデル</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0004">4.2 Historical Data Collection and Analysis</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0004">4.2 過去のデータの収集と分析</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0003">4.3 Artificial Intelligence Assessment Techniques</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0003">4.3 人工知能による評価技術</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">4.4 Practicable Concrete Measurement Methods</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0002">4.4 実行可能な具体的測定方法</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0002">4.5 Intrinsically Measurable Components</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0002">4.5 本質的に測定可能な構成要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">5. Conclusion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">5. 結論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">6. References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">6. 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>“We thought we understood what we were writing. We also thought the community would understand what we had written – or at least what we intended to have written. That turned out not to be the case.” – Marvin Schaefer, If A1 is the answer, what was the question? [Sch04]</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「私たちは、自分たちが書いていることを理解していると思っていました。また、コミュニティも、私たちが書いたこと、少なくとも書くつもりだったことを理解してくれると思っていました。しかし、そうではないことがわかりました。」 – Marvin Schaefer, If A1 is the answer, what was the question? [Sch04]</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security metrics is an area of computer security that has been receiving a good deal of attention lately. It is not a new topic, but one which receives focused interest sporadically. Much of what has been written about security metrics is definitional, aimed at providing guidelines for defining a security metric and specifying criteria for which to strive. However, relatively little has been reported on actual metrics that have been proven useful in practice [Ber05, CIS08].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティメトリクスは、コンピュータセキュリティの分野の一つで、最近多くの注目を集めています。新しい話題ではありませんが、関心が集中するのは散発的です。セキュリティメトリクスについて書かれたものの多くは定義に関するもので、セキュリティメトリクスを定義するためのガイドラインと、目指すべき基準の規定を目的としています。しかし、実務で有用であると実証された実際のメトリクスについての報告は、比較的わずかです [Ber05, CIS08]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Information security metrics are seen as an important factor in making sound decisions about various aspects of security, ranging from the design of security architectures and controls to the effectiveness and efficiency of security operations. Security metrics strive to offer a quantitative and objective basis for security assurance. The main uses fall into several broad classes:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報セキュリティメトリクスは、セキュリティアーキテクチャや管理策の設計から、セキュリティ運用の有効性と効率に至るまで、セキュリティのさまざまな側面について適切な判断を下すための重要な要素と見られています。セキュリティメトリクスは、セキュリティ保証に対する定量的で客観的な根拠の提供を目指しています。主な用途は、いくつかの大きな区分に分けられます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Strategic support – Assessments of security properties can be used to aid different kinds of decision making, such as program planning, resource allocation, and product and service selection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">戦略的支援 – セキュリティ特性の評価は、プログラム計画、リソース配分、製品やサービスの選定など、さまざまな種類の意思決定の補助に使えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Quality assurance – Security metrics can be used during the software development lifecycle to eliminate vulnerabilities, particularly during code production, by performing functions such as measuring adherence to secure coding standards, identifying likely vulnerabilities that may exist, and tracking and analyzing security flaws that are eventually discovered.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">品質保証 – セキュリティメトリクスは、ソフトウェア開発ライフサイクルの間、特にコード作成中に、セキュアコーディング標準の遵守状況の測定、存在する可能性の高い脆弱性の特定、最終的に発見されるセキュリティ上の欠陥の追跡と分析といった機能を果たすことで、脆弱性を排除するために使えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Tactical oversight – Monitoring and reporting of the security status or posture of an IT system can be carried out to determine compliance with security requirements (e.g., policy, procedures, and regulations), gauge the effectiveness of security controls and manage risk, provide a basis for trend analysis, and identify specific areas for improvement.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">戦術的な監督 – IT システムのセキュリティの状況や態勢の監視と報告を行うことで、セキュリティ要件（例: ポリシー、手順、規制）への準拠の判定、セキュリティ管理策の有効性の評価とリスクの管理、傾向分析の基礎の提供、改善すべき具体的な領域の特定ができます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security metrics can be categorized various ways. One simple classification is to consider metrics that denote the maturity level of processes believed to contribute to the security of a system, versus those that denote the extent to which some security characteristic is present in a system [Jel00]. The former apply to security processes, procedures, and training used when designing, configuring, maintaining, and operating a system. The latter apply to the security posture of a system and the inherent level of risk involved. More elaborate security metric taxonomies also exist [Vau02, Sav07].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティメトリクスは、さまざまな方法で分類できます。単純な分類の一つは、システムのセキュリティに寄与すると考えられるプロセスの成熟度レベルを表すメトリクスと、何らかのセキュリティ特性がシステムにどの程度備わっているかを表すメトリクスとを区別するものです [Jel00]。前者は、システムの設計、構成、保守、運用の際に使われるセキュリティのプロセス、手順、トレーニングに適用されます。後者は、システムのセキュリティ態勢と、そこに内在するリスクのレベルに適用されます。より精緻なセキュリティメトリクスの分類体系も存在します [Vau02, Sav07]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Other disciplines, such as the field of finance, have proven quantitative methods for determining risk along with decision-making frameworks based on established measures and metrics. Such standardized measurements and decision-aid capabilities are just emerging for information system security, however, and as in any discipline, require realistic assumptions and inputs to attain reliable results [Sal09]. Advancing the state of scientifically sound, security measures and metrics (i.e., a metrology for information system security) would greatly aid the design, implementation, and operation of secure information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>金融分野などの他の分野には、確立された尺度とメトリクスに基づく意思決定の枠組みと、リスクを判定するための実績ある定量的手法があります。しかし、情報システムセキュリティにおけるこのような標準化された測定と意思決定支援の能力は、ようやく現れ始めたところです。また、どの分野でも同様に、信頼できる結果を得るには現実的な前提と入力が必要です [Sal09]。科学的に健全なセキュリティ測定とメトリクス（すなわち、情報システムセキュリティの計量学）の現状を前進させることは、安全な情報システムの設計、実装、運用に大いに役立ちます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Background</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 背景</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The term “security metrics” is used often today, but with a range of meanings and interpretations. Several examples taken from recent publications are as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「セキュリティメトリクス」という用語は今日よく使われていますが、その意味や解釈はさまざまです。最近の刊行物から取った例をいくつか示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>“At a high-level, metrics are quantifiable measurements of some aspect of a system or enterprise. For an entity (system, product, or other) for which security is a meaningful concept, there are some identifiable attributes that collectively characterize the security of that entity. Further, a security metric (or combination of security metrics) is a quantitative measure of how much of that attribute the entity possesses. A security metric can be built from lower-level physical measures.” [ISS08]</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「大まかに言えば、メトリクスとは、システムやエンタープライズのある側面を定量化可能な形で測定したものです。セキュリティが意味のある概念であるエンティティ（システム、製品など）には、そのエンティティのセキュリティを総合的に特徴づける、識別可能な属性がいくつかあります。さらに、セキュリティメトリクス（またはセキュリティメトリクスの組み合わせ）は、エンティティがその属性をどの程度備えているかを示す定量的な尺度です。セキュリティメトリクスは、より低レベルの物理的な尺度から構築できます。」 [ISS08]</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>“Metrics are tools designed to facilitate decision making and improve performance and accountability through collection, analysis, and reporting of relevant performance-related data. The purpose of measuring performance is to monitor the status of measured activities and facilitate improvement in those activities by applying corrective actions, based on observed measurements. … While a case can be made for using different terms for more detailed and aggregated items, such as ‘metrics’ and ‘measures,’ this document uses these terms interchangeably.” [Swa03]</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「メトリクスは、性能に関するデータの収集、分析、報告を通じて、意思決定を容易にし、性能と説明責任を向上させるために設計されたツールです。性能測定の目的は、測定対象の活動の状況を監視し、観測された測定値に基づいて是正措置を講じることで、その活動の改善を促すことです。…「メトリクス」と「測定値」のように、より詳細な項目と集約された項目に異なる用語を使い分けるべきだという主張もありますが、この文書ではこれらの用語を同じ意味で使います。」 [Swa03]</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>“Measurements provide single-point-in-time views of specific, discrete factors, while metrics are derived by comparing to a predetermined baseline two or more measurements taken over time. Measurements are generated by counting; metrics are generated from analysis. In other words, measurements are objective raw data and metrics are either objective or subjective human interpretations of those data.” [Pay06]</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「測定値は、特定の個別の要素についてある時点を切り取った見方を与えますが、メトリクスは、時間をかけて取得した 2 つ以上の測定値を、あらかじめ定めたベースラインと比較することで導き出されます。測定値は計数によって生成され、メトリクスは分析から生成されます。言い換えると、測定値は客観的な生データであり、メトリクスは、それらのデータに対する客観的または主観的な人間の解釈です。」 [Pay06]</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A metric generally implies a system of measurement based on quantifiable measures. A method of measurement used to determine the unit of a quantity can involve a measuring instrument, reference material, or measuring system. Measured values of properties should be linearly ordered and the method of measurement well defined, including details of how specific factors are to be measured or assessed and explanations of sources of uncertainty.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>メトリクスは一般に、定量化可能な尺度に基づく測定体系を意味します。ある量の単位を決定するために使われる測定方法では、測定器、標準物質、または測定システムを使用することがあります。特性の測定値は線形に順序づけられるべきです。また、測定方法は、特定の要素をどのように測定または評価するかの詳細や、不確かさの発生源の説明を含めて、明確に定義されるべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For information system security, the measures are concerned with aspects of the system that contribute to its security. That is, security metrics involve the application of a method of measurement to one or more entities of a system that possess an assessable security property to obtain a measured value. From an organizational perspective, security measures and metrics should enable an organization to gauge how well it is meeting its security objectives.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報システムセキュリティでは、尺度は、システムのセキュリティに寄与するシステムの側面に関係します。つまり、セキュリティメトリクスは、評価可能なセキュリティ特性を持つシステムの1つ以上のエンティティに測定方法を適用して、測定値を得ることを伴います。組織の観点からは、セキュリティ測定とメトリクスにより、組織が自らのセキュリティ目標をどの程度達成しているかを評価できるようにすべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To be of value, the method of measurement employed should be reproducible, that is, capable of attaining the same result when performed independently by different competent evaluators. The result should also be repeatable, such that a second assessment by the same evaluators produces the same result. Relevance and timeliness are also implicit considerations, since it is of little benefit to have measures that are not meaningful or whose latency exceeds their usefulness.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>価値を持つには、採用する測定方法は再現可能であるべきです。すなわち、異なる有能な評価者が独立して実施しても同じ結果が得られるべきです。結果も反復可能であるべきであり、同じ評価者による2回目の評価でも同じ結果が得られるべきです。意味のない尺度や、遅延が有用性を上回る尺度を持っても利益はほとんどないため、関連性と適時性も暗黙の考慮事項です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that the term “metrics” when used in the context of Information Technology (IT) is a bit of misnomer.<sup>1</sup> It implies that traditional concepts in metrology, as used in physics and other areas of science and technology, apply equally to IT. That is not the case, however [Gra99, Vau02]. For example, the concepts of fundamental units, scales, and uncertainty prevalent in scientific metrics have not traditionally been applied to IT or have been applied less rigorously. It is also important to recognize that compared with more mature scientific fields, IT metrology is still emerging. Many physical properties began as a qualitative comparison (e.g., “warmer” and “colder”) before becoming a formally defined quantity (e.g., “temperature”), which holds promise for IT metrics in general, and IT system security metrics in particular.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報技術（IT）の文脈で用語「メトリクス」を使うことは、やや誤称であることに注意してください。<sup>1</sup> これは、物理学やその他の科学技術分野で使われる従来の計量学の概念が、IT にも同様に当てはまることを暗示しています。しかし、そうではありません [Gra99, Vau02]。たとえば、科学的なメトリクスで一般的な基本単位、尺度、不確かさの概念は、従来 IT には適用されてこなかったか、適用されても厳密さに欠けていました。より成熟した科学分野と比べて、IT の計量学はまだ発展途上であることを認識することも重要です。多くの物理的特性は、正式に定義された量（例: 「温度」）になる前は、定性的な比較（例: 「より暖かい」と「より冷たい」）から始まりました。このことは、IT メトリクス全般、特に IT システムのセキュリティメトリクスに期待を抱かせます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While some movement toward quantitative metrics for IT system security exists, in practice, qualitative measures that reflect reasoned estimates of security by an evaluator are the norm. That is, measures of information system security properties are often based on an evaluator’s expertise, intuition, and insight to induce an ordering, which is then quantified (e.g., 1=low, 2=medium, 3=high). Because of the subjectivity involved, some of the attributes sought in a good metric are not readily obtainable. For example, results in penetration testing or other methods of assessment that involve specialized skills are sometimes not repeatable, since they rely on the knowledge, talent, and experience of an individual evaluator, which can differ from other evaluators with respect to a property being measured.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IT システムセキュリティの定量的なメトリクスに向けた動きもある一方で、実際には、評価者によるセキュリティの合理的な推定を反映する定性的な尺度が標準です。すなわち、情報システムのセキュリティ特性の尺度は、評価者の専門知識、直観、洞察に基づいて順序を導き、それを数値化する（例: 1=低、2=中、3=高）場合が多くあります。主観性が伴うため、優れたメトリクスに求められる属性の一部は、容易には得られません。たとえば、ペネトレーションテストや、専門的な技能を伴うその他の評価方法の結果は、個々の評価者の知識、才能、経験に依存し、これらは測定対象の特性に関して評価者ごとに異なりうるため、再現できない場合があります。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0009-b0004" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> For example, the Proceeding of the 2001 Workshop on Information Security System Scoring and Ranking pointed out the discrepancy as “Information System Security Attribute Quantification or Ordering (Commonly but improperly known as ‘Security Metrics’).” [Hen01].<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> たとえば、2001 年の Workshop on Information Security System Scoring and Ranking の Proceedings は、この食い違いを「Information System Security Attribute Quantification or Ordering (Commonly but improperly known as ‘Security Metrics’)」と指摘しました [Hen01]。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Aspects of Security Measurement</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. セキュリティ測定の側面</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many major efforts to measure or assess security have been attempted. They include the Trusted Computer System Evaluation Criteria (TCSEC) [DOD85], Information Technology Security Evaluation Criteria (ITSEC) [CEC91], Systems Security Engineering Capability Maturity Model (SSE-CMM) [ISS08], and Common Criteria [CCP06]. Each attempt has obtained only limited success.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティを測定または評価するために、多くの大規模な取り組みが試みられてきました。これらには、Trusted Computer System Evaluation Criteria（TCSEC）[DOD85]、Information Technology Security Evaluation Criteria（ITSEC）[CEC91]、Systems Security Engineering Capability Maturity Model（SSE-CMM）[ISS08]、Common Criteria [CCP06] があります。いずれの試みも、限られた成功しか収めていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It is reasonable to infer from the experience to date that security measurement is a tough problem, not to be underestimated [Bel06]. Further evidence is that the topic, Enterprise-Level Security Metrics, was included in the most recent Hard Problem List prepared by the INFOSEC Research Council, which identifies key research problems from the perspective of its members, the major sponsors of information security research within the U.S. Government [IRC05]. The Institute for Information Infrastructure Protection (I3P) reported also identified security metrics as one of its four research and development priorities for the next five to ten years [I3P09].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これまでの経験から、セキュリティ測定は難しい問題であり、軽視すべきではないと推論するのが妥当です [Bel06]。さらなる証拠として、INFOSEC Research Council が作成した最新の Hard Problem List に、「Enterprise-Level Security Metrics」というテーマが含まれていることが挙げられます。この一覧は、米国政府における情報セキュリティ研究の主要なスポンサーである同評議会の会員の視点から、主要な研究課題を特定したものです [IRC05]。Institute for Information Infrastructure Protection（I3P）は、セキュリティメトリクスを今後5年から10年の4つの研究開発優先事項の一つとして特定したと報告しました [I3P09]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Insights into some critical aspects of security measurement gleaned from past efforts are discussed below. The intent is not to give a list of common pitfalls, although some are mentioned in the discussion. Instead, the objective is to highlight those factors that are believed to be pertinent to a research effort in security metrics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>過去の取り組みから得られた、セキュリティ測定のいくつかの重要な側面についての洞察を、以下で論じます。よくある落とし穴の一覧を示すことが意図ではありませんが、議論の中でいくつかには触れます。目的は、セキュリティメトリクスの研究に関連すると考えられる要因に焦点を当てることです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 Correctness and Effectiveness</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 正確性と有効性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security of an IT system comprises two interdependent aspects: correctness and effectiveness. Correctness denotes assurance that the security-enforcing mechanisms have been rightly implemented (i.e., they do exactly what they are intended to do, such as performing some calculation). Effectiveness denotes assurance that the security-enforcing mechanisms of the system meet the stated security objectives (i.e., they do not do anything other than what is intended for them to do, while satisfying expectations for resiliency). Most programmers have produced a program that satisfies correctness criteria, but fails to meet effectiveness criteria, particularly under extraordinary unanticipated conditions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ITシステムのセキュリティは、相互に依存する2つの側面、すなわち正確性と有効性から成ります。正確性は、セキュリティ実施機構が正しく実装されている（すなわち、何らかの計算を行うなど、意図されたことを正確に行う）という保証を表します。有効性は、システムのセキュリティ実施機構が、定められたセキュリティ目標を満たしている（すなわち、レジリエンスへの期待を満たしつつ、意図されたこと以外は何も行わない）という保証を表します。ほとんどのプログラマーは、正確性の基準は満たすものの、有効性の基準は満たさないプログラムを作ったことがあります。特に、想定外の異常な状況でそうなることがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The evaluation of correctness gauges the ability of the security-enforcing mechanisms to carry out their tasks precisely to the specifications. Correctness can be assessed with respect to the development process and the development environment during the construction of the system and also in terms of its operation. Emphasis is typically on substantiating how well the system exhibits the behavior expected of it.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>正確性の評価は、セキュリティ実施機構が仕様どおりに正確にタスクを実行する能力を測ります。正確性は、システムの構築中の開発プロセスや開発環境に関して、また運用に関しても評価できます。通常は、システムが期待された動作をどれだけ示すかを実証することに重点が置かれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The evaluation of effectiveness gauges the strength of the security-enforcing mechanisms to withstand attacks in carrying out their function. Effectiveness requires ascertaining how well the security-enforcing components tie together and work synergistically, the consequences of any known or discovered vulnerabilities, and the usability of the system. Emphasis is typically on substantiating whether the system can be induced to exhibit behavior that leads to or demonstrates a security vulnerability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>有効性の評価は、セキュリティ実施機構が、その機能を実行するうえで攻撃に耐える強度を測ります。有効性には、セキュリティ実施の構成要素がどれだけうまく結び付いて相乗的に機能するか、既知または発見された脆弱性の影響、およびシステムの使いやすさを確かめることが必要です。通常は、システムを誘導して、セキュリティ上の脆弱性につながる、またはそれを示す動作をさせられるかどうかを実証することに重点が置かれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In practice, security evaluations of correctness and effectiveness are largely done through reasoning rather than direct measurement of actual hardware and software components. Often, simplifying assumptions are made. For example, it may be postulated that the system communicates only with other systems operating under the same management control and security policy constraints; the need to trust and communicate with external systems under different management control would not be specifically addressed [SAI07]. The emphasis on abstractions and simplifying assumptions dissociates the assessment results from actual operational use [Lit93]. Even with this emphasis, the correctness and effectiveness of significantly large systems cannot be accurately determined for higher levels of assurance. Because of the high degree of human element involved, the timeliness and reproducibility of results also come into question. Conventions and practices, such as standardized procedures and criteria, can be applied to help normalize results among evaluators and expedite the process. Technical refresher classes and conformance training are other useful practices. Nevertheless, unless more of the human element can be eliminated or replaced by automated means, the current conditions can be expected to persist.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実際には、正確性と有効性に関するセキュリティ評価は、実際のハードウェアやソフトウェアの構成要素を直接測定するのではなく、主に推論によって行われます。多くの場合、単純化の前提が置かれます。たとえば、システムは、同じ管理統制とセキュリティポリシーの制約の下で動作する他のシステムとだけ通信すると仮定される場合があります。異なる管理統制下にある外部システムを信頼して通信する必要性は、具体的には扱われません [SAI07]。抽象化と単純化の前提を重視すると、評価結果が実際の運用から切り離されます [Lit93]。このように重視しても、相当に大規模なシステムの正確性と有効性を、より高い保証レベルについて正確に判定することはできません。人的要素が大きいため、結果の適時性と再現性も問題になります。標準化された手順や基準などの慣行や実務を適用すれば、評価者間で結果を正規化し、プロセスを迅速化できます。技術の再教育講座や適合性のトレーニングも、ほかの有用な実務です。それでも、人的要素をより多く排除するか、自動化された手段で置き換えられない限り、現在の状況は続くと予想されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Leading Versus Lagging Indicators</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 先行指標と遅行指標</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Analogous to economic indicators, security metrics may be potentially leading, coincident, or lagging indicators of the actual security state of the system. The distinction is significant. A coincident indicator reflects security conditions happening concurrently, while leading and lagging indicators reflect security conditions that exist respectively before or after a shift in security. If a lagging indicator is treated as a leading or coincident indicator, the consequences due to misinterpretation and reaction can be serious. The longer the latency period is for a lagging indicator, the greater the likelihood for problems. That is, a lagging security metric with a short latency period or lag time is preferred over one with a long latency period, since any needed response to an observed change can take place earlier. It is important to recognize lagging indicators and, if they are used, to be prepared to handle the intrinsic delay and associated limitations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>経済指標と同様に、セキュリティメトリクスは、システムの実際のセキュリティ状態の先行指標、一致指標、遅行指標のいずれにもなりえます。この区別は重要です。一致指標は同時に起きているセキュリティの状況を反映しますが、先行指標と遅行指標は、それぞれセキュリティの変化の前または後に存在するセキュリティの状況を反映します。遅行指標を先行指標や一致指標として扱うと、誤解とそれに基づく対応によって深刻な結果を招く可能性があります。遅行指標の遅延期間が長いほど、問題が生じる可能性は高くなります。つまり、観測された変化に対して必要な対応をより早く行えるため、遅延期間（遅れ時間）の短い遅行セキュリティメトリクスが、長いものよりも好まれます。遅行指標を認識し、使う場合は、その本質的な遅れと関連する制約に対処する準備をしておくことが重要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Simple counts, when used as a security measure, can be especially hard to classify and interpret. For example, does an increase in the number of viruses detected by antivirus software serve as a leading indicator, because the increased activity indicates an elevated threat level; serve as a lagging indicator, because the increased activity demonstrates a highly proficient leading-edge antivirus mechanism; or serve as a coincident indicator, because the increased activity acts as a notification that other security-enforcing mechanisms are failing? Similarly, decreased activity may be because the antivirus mechanism is losing its effectiveness, other security-enforcing mechanisms are increasingly successful, or the system is simply not being subjected to as many attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>単純な計数は、セキュリティの尺度として使う場合、特に分類と解釈が困難になりえます。たとえば、アンチウイルスソフトウェアが検出したウイルス数の増加は、活動の増加が脅威レベルの上昇を示すため先行指標になるのでしょうか。それとも、活動の増加が非常に優れた最先端のアンチウイルス機構を実証しているため遅行指標になるのでしょうか。あるいは、活動の増加が、他のセキュリティ実施機構が機能していないことの通知として働くため、一致指標になるのでしょうか。同様に、活動の減少は、アンチウイルス機構の有効性が低下しているため、他のセキュリティ実施機構がますます成功しているため、またはシステムが受ける攻撃の数が単に減っているためかもしれません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Many security metrics can be viewed as lagging indicators. The perspective on the initial security assessments of a system, whether they were done by a human evaluator (e.g., through penetration testing or external security audit), automated means (e.g., through vulnerability testing or security log processing), or some combination of the two, is likely to change eventually to reflect a lower security standing and higher associated risk. The main reason is that over time, understanding of a system and its related weaknesses and vulnerabilities deepens, especially in light of successful attacks on the system or other systems sharing similar characteristics that reveal previously unimagined or unexpected avenues of attack. That greater understanding is subsequently addressed in updated assessments (e.g., through additional tests). While some assessment programs have a process to refresh or maintain initial security assessments, a significant delay nevertheless occurs. Stated another way, no metric exists that can denote the state of security of a system in an absolute sense [Tor07a, Tor07b].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>多くのセキュリティメトリクスは遅行指標とみなせます。システムの最初のセキュリティ評価は、人間の評価者（例: ペネトレーションテストや外部のセキュリティ監査による）、自動化された手段（例: 脆弱性試験やセキュリティログの処理による）、またはその両方の組み合わせのいずれで行われたものであっても、それに対する見方は、いずれ、より低いセキュリティ水準と、それに伴うより高いリスクを反映するように変わる可能性が高いです。主な理由は、時間がたつにつれて、システムとそれに関連する弱点や脆弱性の理解が深まるためです。特に、システム自体、または類似の特性を共有する他のシステムに対する攻撃が成功し、これまで想像もしなかった、または予想外の攻撃経路が明らかになった場合にそうなります。その理解の深まりは、その後、更新された評価（例: 追加の試験による）で反映されます。初期のセキュリティ評価を更新または維持するプロセスを持つ評価プログラムもありますが、それでも大きな遅れが生じます。別の言い方をすれば、システムのセキュリティの状態を絶対的な意味で示せるメトリクスは存在しません [Tor07a, Tor07b]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Patches and software updates that are intended to repair or improve the security-enforcing mechanisms can lessen the significance of a lagging indicator. Not only does a reset of the baseline system occur with each change, potentially increasing risk [Bre07, Kei08, Lem08, Mar08, Nag08], but an exact picture of the initial baseline becomes obscured and more complicated to track over time (e.g., [Sto08]), making revised assessments impractical. That is, the presumed security posture of the initial baseline is never updated in light of increased understanding, potentially giving a false impression of the actual state. Several recent examples of dramatic shifts in our understanding of vulnerabilities in commonly used technologies, such as the Flash Player-ActionScript virtual machine [Dow08], OpenSSL cryptography [Dou08a, Gar08], MD5 algorithm in Web certificates [Pou08], and DNS protocol implementations [Dou08b], and also the prevalence of zero-day vulnerabilities indicate that with hindsight, unrevised values of lagging indicators could be highly misleading.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティ実施機構の修復や改善を目的としたパッチやソフトウェア更新は、遅行指標の重要性を低下させることがあります。変更のたびにベースラインシステムのベースラインが再設定され、リスクが増える可能性があるだけでなく [Bre07, Kei08, Lem08, Mar08, Nag08]、初期のベースラインの正確な姿が時間とともに不明瞭になり、追跡がより複雑になる（例: [Sto08]）ため、改訂された評価の実施が現実的でなくなります。つまり、初期のベースラインについて想定されたセキュリティ態勢は、理解が深まっても更新されず、実際の状態について誤った印象を与える可能性があります。Flash Player-ActionScript仮想マシン [Dow08]、OpenSSLの暗号 [Dou08a, Gar08]、Web証明書におけるMD5アルゴリズム [Pou08]、DNSプロトコルの実装 [Dou08b] など、広く使われている技術の脆弱性に対する私たちの理解が劇的に変化した最近のいくつかの例に加え、ゼロデイ脆弱性が広く存在することは、後から振り返ると、改訂されていない遅行指標の値が大きな誤解を招きうることを示しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 Organizational Security Objectives</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 組織のセキュリティ目標</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations exist for different purposes, hold different assets, have different exposure to the public, face different threats, and have different tolerances to risk. Because of these and other differences, their security objectives can vary significantly. For example, a government organization that mainly handles data about individual citizens of the country (e.g., taxes or social insurance) has different objectives than a government organization that does not (e.g., commerce or education). Similarly, the security objectives of a government organization that prepares and disseminates information for public consumption are different from one that deals mainly with classified information for its own use. In addition, practical considerations apply—most organizations cannot afford financially to protect all computational resources and assets at the highest degree possible and must prioritize based on criticality and sensitivity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、目的が異なり、保有する資産が異なり、公衆への露出が異なり、直面する脅威が異なり、リスク許容度が異なります。これらやその他の違いにより、セキュリティ目標は大きく異なる場合があります。たとえば、主にその国の個々の市民に関するデータ（例: 税や社会保険）を扱う政府組織の目標は、そうでない政府組織（例: 商務や教育）の目標とは異なります。同様に、公衆が利用するための情報を作成して普及させる政府組織のセキュリティ目標は、主に自らが使う機密情報を扱う組織のものとは異なります。さらに、現実的な考慮も働きます。ほとんどの組織は、財政的にすべての計算資源と資産を可能な限り最高の水準で保護する余裕がなく、重要度と機微性に基づいて優先順位を付けなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security metrics are generally used to determine how well an organization is meeting its security objectives. Since the security objectives of organizations can vary widely, it is reasonable to expect that the metrics required to make such an assessment for one organization would also be very different from those used for another. In other words, security is risk and policy dependent from an organizational perspective; the same platform populated with data at the same level of sensitivity, but from two different organizations, could be deemed adequate for one and inadequate for the other. The implication is that establishing security metrics that could be used for meaningful system comparisons between organizations would be extremely difficult to achieve (i.e., if achieved, they would have little real significance for some organizations).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティメトリクスは一般に、組織が自らのセキュリティ目標をどの程度達成しているかを判断するために使われます。組織のセキュリティ目標は大きく異なりうるため、そのような評価を行うために必要なメトリクスも、ある組織と別の組織で大きく異なると予想するのが妥当です。言い換えると、組織の観点からは、セキュリティはリスクとポリシーに依存します。同じ機微性レベルのデータを搭載した同じプラットフォームでも、2 つの異なる組織のものであれば、一方にとっては適切、他方にとっては不適切と判断されることがあります。このことが示唆するのは、組織間で意味のあるシステム比較に使えるセキュリティメトリクスを確立するのは、達成が極めて難しいということです（すなわち、達成できたとしても、一部の組織にとってはほとんど実際の意味がありません）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although security objectives are unique and tied to the goals and purpose of an organization, similarities in high level security objectives do exist between organizations performing similar work and are sometimes captured as best practices. Some steps, such as standard security profiles of organizational security requirements and criteria, can be taken to standardize common sets of core requirements needed by comparable organizations and allow reuse of engineered solutions. However, at best they cover only a common subset of the entire picture and may focus mainly on technical metrics.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティ目標は固有のものであり、組織の目標や目的に結び付いていますが、類似の業務を行う組織の間には、上位レベルのセキュリティ目標に類似点があり、それがベストプラクティスとして捉えられることもあります。組織のセキュリティ要件と基準の標準的なセキュリティプロファイルなど、いくつかの手段を講じれば、同等の組織が必要とする中核的な要件の共通の集合を標準化し、設計済みのソリューションの再利用を可能にできます。しかし、これらが扱うのは、せいぜい全体像の共通の一部にすぎず、主に技術的なメトリクスに焦点を当てている可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4 Qualitative and Quantitative Properties</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4 定性的な特性と定量的な特性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Measurement of software properties in general has been difficult to accomplish.<sup>2</sup> Many desired properties such as complexity, usability, and scalability are qualities that can be expressed in general terms, but difficult to define in objective terms that are useful in practice and provide a fully complete picture. For example, two well known software complexity measures, the McCabe cyclomatic complexity metric and Halstead&#x27;s software science metric, determine program complexity directly from source code [Mar97]. Critics claim that the number of control paths McCabe used to determine the complexity of code is only one part of the total picture. Similarly, some consider the emphasis placed on lexical and textual measures by Halstead to be weak, because the structural or logic flow is ignored, and consider the assumptions used to derive complexity equations to be faulty; furthermore, the equations can be difficult to compute and practical use is limited to comparisons between versions of the same code. At best, certain properties of software that are assessed are able to capture only some facets of any desired quality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ソフトウェアの特性の測定は、一般に達成が難しいものでした。<sup>2</sup> 複雑さ、使いやすさ、スケーラビリティなど、望まれる特性の多くは、一般的な言葉で表現できる性質ですが、実務で有用で、完全な全体像を示す客観的な言葉で定義することは困難です。たとえば、よく知られた 2 つのソフトウェア複雑さの尺度である McCabe のサイクロマティック複雑度メトリクスと Halstead のソフトウェアサイエンスメトリクスは、ソースコードから直接プログラムの複雑さを判定します [Mar97]。批評家は、McCabe がコードの複雑さを判定するために用いた制御パスの数は、全体像の一部にすぎないと主張しています。同様に、Halstead が語彙的・テキスト的な尺度に置いた重点は、構造やロジックの流れを無視しているため弱いと考える人もおり、複雑さの式を導くために用いた仮定は誤っていると考える人もいます。さらに、これらの式は計算が困難な場合があり、実用上の利用は同じコードのバージョン間の比較に限られます。せいぜい、評価されるソフトウェアの特定の特性が、望まれる品質のいくつかの面しか捉えられないのが関の山です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The distinction between quantitative and qualitative security metrics is easily obscured [Hen01]. Qualitative assignments can be used to represent quantitative measures of security properties (e.g., low means no vulnerabilities found; medium, between one and five found; and high, more than five found). More often, numeric values are used to represent rankings that are otherwise qualitative (e.g., 1, 2, and 3, versus low, medium, and high). While the numeric difference between ranked values may be significant for some metrics, it may not be for others, which is often the case with security metrics. For example, the numeric difference between security rankings assigned through the analysis and reasoning of evaluators would likely not have any particular significance, other than to impart an ordering. In other words, the common scales of measurement (i.e., nominal, ordinal, interval, and ratio) and associated principles of use apply.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>定量的なセキュリティメトリクスと定性的なセキュリティメトリクスの区別は、容易に曖昧になります [Hen01]。定性的な割り当てを使って、セキュリティ特性の定量的な尺度を表すことができます（例: 低は脆弱性が見つからなかったことを、中は 1 件から 5 件見つかったことを、高は 5 件を超えて見つかったことを表す）。より多くの場合は、本来は定性的な順位を表すために数値が使われます（例: 低・中・高に対する 1、2、3）。順位づけされた値の間の数値上の差は、一部のメトリクスでは意味を持つこともありますが、セキュリティメトリクスでよくあるように、ほかのメトリクスでは意味を持たない場合があります。たとえば、評価者の分析と推論によって割り当てられたセキュリティ順位の間の数値上の差は、順序を与えること以外には、特に重要な意味を持たない可能性が高いです。言い換えると、一般的な測定尺度（すなわち、名義尺度、順序尺度、間隔尺度、比率尺度）と、それに関連する使用上の原則が当てはまります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Quantitative valuations of several security properties may also be weighted and combined to derive a composite value (e.g., rating = .25 * rankingA + .75 * rankingB). Such compositions can, however, yield undesired results. For example, the Common Vulnerability Scoring System (CVSS) v1 formula produced a lack of diversity in scoring, such that many cases of vulnerabilities with different characteristics received the same scores, but were clearly at significantly different levels of severity, which eventuated the formula’s revision [Rei07a].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>複数のセキュリティ特性の定量的な評価値は、重み付けして組み合わせ、合成値を導くこともできます（例: rating = .25 * rankingA + .75 * rankingB）。しかし、このような合成は望ましくない結果をもたらす場合があります。たとえば、Common Vulnerability Scoring System（CVSS）v1の計算式は、スコアリングの多様性を欠く結果になりました。特性が異なり、深刻度が明らかに大きく異なる多くの脆弱性が同じスコアになったため、最終的に計算式が改訂されることになりました [Rei07a]。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0013-b0006" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> From a computability theory perspective, the general problem is undecidable, requiring its scope to be narrowed to a decidable sub-problem for a useful algorithm to be developed.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> 計算可能性理論の観点からは、この一般的な問題は決定不能であり、有用なアルゴリズムを開発するには、その範囲を決定可能な部分問題に絞り込む必要があります。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some qualitative properties are intangible and not able to be captured via direct measurement. An attribute, such as beauty, scent, or flavor, can be highly subjective in nature, varying widely among individuals. For example, a perfume’s fragrance might smell pleasant to one individual, but ghastly to another. In cases where no quantity can be clearly identified, such as the taste of wine, either a panel of experts rates various qualities using a blind rating (e.g., [Qua98]), or some measurable characteristics are assessed that are believed to correlate well with the quality in question (e.g., [AWB08]). Software security assessments appear to share many of the traits of these types of assessments and, where applicable, could possibly benefit by adopting or adapting some of the techniques used.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>定性的な特性の中には、無形で、直接の測定では捉えられないものがあります。美しさ、香り、風味などの属性は、本質的に非常に主観的であり、個人によって大きく異なる場合があります。たとえば、香水の香りは、ある人には心地よく、別の人にはひどく不快に感じられることがあります。ワインの味のように、どのような量も明確に識別できない場合は、専門家のパネルがブラインド評価で各種の品質を評価する（例: [Qua98]）か、問題の品質とよく相関すると考えられる、測定可能な特性を評価します（例: [AWB08]）。ソフトウェアのセキュリティ評価には、これらの種類の評価と共通する特徴が多くあるように見え、当てはまる場合には、使われている手法のいくつかを採用または応用することで、利益を得られる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5 Measurements of the Large Versus the Small</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5 大規模なものの測定と小規模なものの測定</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security measurements have proven to be much more successful when the target of assessment is small and simple rather than large and complex. For example, a FIPS 140 evaluation, which focuses exclusively on cryptographic modules, generally requires less cost and time than a Common Criteria evaluation of a product that incorporates such modules. This is not too surprising, since larger systems generally have greater complexity and functionality. As the number of components in a system increases, the number of possible interactions increases with the square of the number of components. Greater complexity and functionality typically relate inversely to security and require more scrutiny to evaluate.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティ測定は、評価の対象が大規模で複雑なものではなく、小規模で単純なものである場合のほうが、はるかに成功しやすいことが実証されています。たとえば、暗号モジュールだけに焦点を当てる FIPS 140 の評価は、一般に、そのようなモジュールを組み込んだ製品の Common Criteria 評価よりも、費用と時間が少なくて済みます。大規模なシステムは一般に、複雑さと機能がより大きいため、これはさほど意外ではありません。システム内の構成要素の数が増えると、起こりうる相互作用の数は構成要素の数の 2 乗に比例して増えます。複雑さと機能が大きいほど、通常はセキュリティと逆の関係になり、評価にはより多くの精査が必要になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Physical analogies apply here. The strength of a single concrete block of uniform material is more readily determined than a wall or structure composed of these blocks. The latter involve binding and reinforcing materials as well as height, design, and other architectural considerations. In other words, the different materials involved and the way in which they are composed determine the overall strength.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ここでは物理的なたとえが当てはまります。均一な材料でできた 1 つのコンクリートブロックの強度は、そのブロックを積んで作った壁や構造物の強度よりも、容易に判定できます。後者には、高さ、設計、その他の建築上の考慮事項のほか、結合材や補強材が関わります。言い換えると、関与するさまざまな材料と、それらを組み合わせる方法が、全体の強度を決めます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The composability problem in security is a long-standing problem—two systems, both of which are judged to be secure, can be connected together such that the resulting composite system is not secure. In theory, evaluated systems could be designed to be predictably composable such that the properties of the resulting composite system are easily determined. In practice, this has not occurred. Composability is somewhat like the philosopher’s stone, a legendary substance that could change cheap metals into gold. A solution for building meaningful, complex software systems from components may exist theoretically; however, progress to date in achieving this goal has been limited, suggesting that composability is an elusive problem that may be solvable only in limited situations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティにおける合成可能性の問題は、長年の問題です。どちらも安全と判断された 2 つのシステムを接続すると、結果として得られる合成システムが安全でなくなることがあります。理論上は、評価されたシステムを予測可能に合成できるように設計し、結果として得られる合成システムの特性を容易に判定できるようにすることもできます。実際には、そうはなっていません。合成可能性は、卑金属を金に変えられるとされる伝説上の物質である、哲学者の石に少し似ています。構成要素から意味のある複雑なソフトウェアシステムを構築するための解決策は、理論的には存在するかもしれませんが、この目標の達成に向けたこれまでの進展は限られており、合成可能性は、限られた状況でしか解決できない、捉えどころのない問題である可能性を示唆しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A technological breakthrough in composability would be a way to have security measurements of small systems directly contribute to the measurements of larger systems of which they are a part. In the absence of sound security metrics that can be used to assess the security of composed systems made from composable components with measured properties, the current high latency and expense in evaluating large systems can be expected to continue and limit the ability to perform cross-system comparisons in security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>合成可能性における技術的なブレークスルーとは、小規模なシステムのセキュリティ測定が、それらを構成要素として含む大規模なシステムの測定に直接寄与する方法を得ることでしょう。測定された特性を持つ合成可能な構成要素から作られた合成システムのセキュリティを評価するために使える、妥当なセキュリティメトリクスがなければ、大規模システムの評価における現在の高い遅延と費用は今後も続き、セキュリティにおけるシステム間比較を行う能力を制限すると予想されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Possible Research Areas</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 考えられる研究分野</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The implication from the previous section is that the present state of security metrics largely involves qualitative lagging indicators that require subjective evaluation and may not necessarily coincide with an organization’s security objectives. While this is a bleak picture, it does not mean that efforts to secure systems are pointless or that existing security metrics are useless. In order to improve the state of the art of security metrics, it can be argued that research efforts need to be focused on areas that satisfy one or more of the following factors:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>前節からわかるのは、セキュリティメトリクスの現状が、主に、主観的な評価を必要とし、組織のセキュリティ目標と必ずしも一致しない定性的な遅行指標に関わるということです。これは厳しい状況ですが、システムを保護する取り組みが無意味である、あるいは既存のセキュリティメトリクスが役に立たないという意味ではありません。セキュリティメトリクスの技術水準を高めるには、研究の取り組みを、次の要因の 1 つ以上を満たす分野に集中させる必要があると主張できます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Determine good estimators of system security.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">システムセキュリティの適切な推定量を決定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Reduce reliance on the human element in measurement and inherent subjectivity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">測定における人的要素への依存と、固有の主観性を減らします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Offer a more systematic and speedy means to obtain meaningful measurements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">意味のある測定値を得るための、より体系的で迅速な手段を提供します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Provide understanding and insight into the composition of security mechanisms.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティ機構の仕組みについての理解と洞察を提供します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Based on the past attempts, it is clear that reaching this objective will likely not be simple. Nevertheless, the opportunity exists to build on previous work and find ways around or through present limitations. The remainder of this section considers some possible research areas to explore as a starting point. Its intent is not to be prescriptive, but rather to suggest a range of plausible activities that may hold promise.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>過去の試みから、この目標を達成するのは単純ではない可能性が高いことは明らかです。それでも、これまでの成果の上に積み重ね、現在の制約を回避または突破する方法を見つける機会は存在します。この節の残りでは、出発点として探究できる研究分野の候補をいくつか検討します。意図は規範を示すことではなく、有望と思われる妥当な活動の幅を示すことです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1 Formal Models of Security Measurement and Metrics</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1 セキュリティ測定とメトリクスの形式モデル</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Security measurement and metrics efforts that are conceived at a high level of abstraction and formalism are often difficult to interpret and apply in practice. Existing formalisms also pose difficulties to reconcile with actual operational environments where software patches, version updates, and configuration setting changes take place regularly. The absence of formal security models and other formalisms needed to improve the relevance of security metrics to deployed systems have hampered progress. Having formal models that depict security properties of operational IT systems and incorporate relevant objects of significance to system security measurement would be a useful contribution. The research goal is to establish formal models with a level of detail sufficient to enable realistic predictions of operational system behavior and portray security measurements accurately.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>高い抽象度と形式性で着想されたセキュリティ測定とメトリクスの取り組みは、実際に解釈して適用することが難しいことが少なくありません。既存の形式的手法は、ソフトウェアパッチ、バージョン更新、設定変更が定期的に行われる実際の運用環境との整合を図るのも困難です。セキュリティメトリクスと展開済みシステムとの関連性を高めるために必要な、形式的なセキュリティモデルやその他の形式的手法が存在しないことが、進展を妨げてきました。運用中の IT システムのセキュリティ特性を描き、システムのセキュリティ測定にとって重要な関連オブジェクトを組み込んだ形式モデルを持つことは、有用な貢献になるでしょう。研究の目標は、運用システムの動作を現実的に予測し、セキュリティ測定を正確に描くのに十分な詳細さを持つ形式モデルを確立することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An example of the type of work expected is the effort on attack surface metrics done at Carnegie Mellon University [Man05, Man07]. A formal model is defined from an intuitive notion of a system’s attack surface (i.e., the ways in which the system can be entered and successfully attacked). The formal model is characterized in terms of certain system resources—those methods (e.g., application programming interfaces), channels (e.g., sockets), and data items (e.g., input strings) that an attacker can use to cause damage to the system. A surface measurement model can then be applied to compare attack surface measurements along each of the three dimensions and used to determine whether one system is more secure than another. The measurements entail making estimates of the damage potential and effort required, which respectively are the level of harm the attacker can cause to the system when using the resource in an attack, and the amount of work needed by the attacker to obtain the necessary access rights to be able to use the resource in an attack.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>期待される研究の一例として、Carnegie Mellon University で行われた攻撃対象領域メトリクスの取り組みがあります [Man05, Man07]。形式モデルは、システムの攻撃対象領域（すなわち、システムに侵入して攻撃を成功させられる方法）という直観的な概念から定義されます。この形式モデルは、攻撃者がシステムに損害を与えるために使える特定のシステムリソース、すなわち、メソッド（例: アプリケーションプログラミングインタフェース）、チャネル（例: ソケット）、データ項目（例: 入力文字列）によって特徴づけられます。その後、対象領域の測定モデルを適用して、3 つの次元それぞれについて攻撃対象領域の測定値を比較し、一方のシステムが他方より安全かどうかを判定するのに使えます。この測定には、損害を与える可能性と必要な労力の見積もりが必要です。これらはそれぞれ、攻撃者がリソースを攻撃で使用した場合にシステムに与えられる被害の度合い、および攻撃者がリソースを攻撃で使用できるようにするために必要なアクセス権を得るのに要する作業量です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Model checking, a method for formally verifying properties of systems, is another area where a formal technique may have potential for use in security metrics. Properties of interest are expressed as logic formulas. A representation of the system (e.g., a formal or program language description) is traversed and checked to determine whether a property holds, using efficient symbolic algorithms. Specifying security properties of interest to be automatically checked could automate certain types of evaluation. For example, model checking has been used to identify an important class of security vulnerabilities in the Red Hat Linux 9 distribution. Vulnerabilities were expressed as temporal safety properties that described the conditions under which the vulnerabilities were absent from the software programs that made up the distribution [Sch05]. Programs that violated a property were not verifiable and flagged for review. Model checking has also been used to verify security properties of access control policies [Gue04, Rei07b].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>モデル検査は、システムの特性を形式的に検証する手法であり、形式的な技法をセキュリティメトリクスに利用できる可能性のある、もう一つの分野です。対象とする特性を論理式で表現します。システムの表現（例: 形式的な記述やプログラミング言語による記述）をたどり、効率的な記号的アルゴリズムを使って、特性が成り立つかどうかを確認します。対象とするセキュリティ特性を指定して自動的に検査させれば、特定の種類の評価を自動化できる可能性があります。たとえば、モデル検査は、Red Hat Linux 9 ディストリビューションにおける重要な種類のセキュリティ脆弱性を特定するために使われました。脆弱性は、ディストリビューションを構成するソフトウェアプログラムに脆弱性がない条件を記述した、時相安全性特性として表現されました [Sch05]。特性に違反したプログラムは検証できず、レビューのためにフラグが立てられました。モデル検査はまた、アクセス制御ポリシーのセキュリティ特性の検証にも使われています [Gue04, Rei07b]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Research into formal models could also benefit the design of decision support systems that manage security infrastructure risks by strongly embracing security metrics in determining security investments. Developing decision support models that incorporate technical and organizational aspects of a system and also quantify the utility of a security investment based on established principles would be the focus. The high level of detail and complexity of such models would likely depend strongly on the availability of essential empirical data. For instance, the QuERIES methodology and underlying attack-versus-protect economic model, which offers a means to determine investment levels and strategies for protecting intellectual property in complex systems, requires such data as asset valuations, the costs of protection and theft of assets, and theft probabilities [Car08].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>形式モデルの研究は、セキュリティ投資の決定にセキュリティメトリクスを強く取り入れることで、セキュリティ基盤のリスクを管理する意思決定支援システムの設計にも役立つ可能性があります。焦点となるのは、システムの技術的側面と組織的側面を組み込み、確立された原則に基づいてセキュリティ投資の効用を定量化する、意思決定支援モデルの開発です。このようなモデルの詳細度と複雑さが高くなると、不可欠な経験的データを利用できるかどうかに強く依存する可能性が高いです。たとえば、複雑なシステムにおける知的財産を保護するための投資水準と戦略を決定する手段を提供する QuERIES 手法とその基盤となる攻撃対防御の経済モデルでは、資産評価額、保護と資産窃取のコスト、窃取確率などのデータが必要です [Car08]。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2 Historical Data Collection and Analysis</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2 過去のデータの収集と分析</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Predictive estimates of the security of software components and applications under consideration should be able to be drawn from historical data collected about the characteristics of other similar types of software (e.g., code quality and complexity) and the vulnerabilities they experienced (e.g., number and severity). For example, models that define software reliability in terms of the number of faults in a body of code have been applied to the OpenBSD operating system to estimate characteristics about the number of faults remaining in the system and when those faults may cause failures [Ozm06]. Empirical evidence also exists that features correlate with vulnerabilities and that components containing past vulnerabilities can be used to predict with reasonable accuracy vulnerable components (i.e., those having undiscovered vulnerabilities) based on their features [Neu07]. At the very least, insight into security measurements would likely be gained by applying analytical techniques to such historical collections to identify trends and correlations (e.g., via statistical methods), to discover unexpected relationships (e.g., via data mining), and to reveal other predictive interactions that may exist (e.g., via visual analytics).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>検討中のソフトウェア構成要素とアプリケーションのセキュリティに関する予測的な推定は、他の同種のソフトウェアの特性（例: コードの品質と複雑さ）と、それらが経験した脆弱性（例: 数と深刻度）について収集された過去のデータから導けるべきです。たとえば、コード本体における欠陥の数でソフトウェア信頼性を定義するモデルが、OpenBSD オペレーティングシステムに適用され、システムに残る欠陥の数と、それらの欠陥が障害を引き起こす可能性のある時期についての特性が推定されました [Ozm06]。また、特徴が脆弱性と相関すること、そして過去の脆弱性を含む構成要素を使えば、特徴に基づいて脆弱な構成要素（すなわち、未発見の脆弱性を持つもの）を妥当な精度で予測できることを示す経験的証拠もあります [Neu07]。少なくとも、このような過去の収集データに分析技術を適用して、傾向と相関を特定したり（例: 統計的手法による）、予想外の関係を発見したり（例: データマイニングによる）、存在しうるほかの予測的な相互作用を明らかにしたり（例: ビジュアルアナリティクスによる）することで、セキュリティ測定に対する洞察が得られる可能性が高いです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The research goal is to identify characteristics of software components and applications in the collection that can be extracted and used to predict the security condition of other software. Available open source software repositories can serve as a starting point for the data collection, but will require additional effort to incorporate vulnerability information and identify the points at which known vulnerabilities first appeared in the code set. With a large enough data collection, reliable estimators of the overall effectiveness of software might be derived that could be used in security assessments of software.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>研究の目標は、収集したデータの中から、ソフトウェア構成要素とアプリケーションの特性のうち、抽出して他のソフトウェアのセキュリティ状態の予測に使えるものを特定することです。利用可能なオープンソースソフトウェアのリポジトリを、データ収集の出発点にできますが、脆弱性情報を組み込み、既知の脆弱性がコードセットに最初に現れた時点を特定するための追加の作業が必要になります。十分に大規模なデータ収集があれば、ソフトウェアの全体的な有効性について、ソフトウェアのセキュリティ評価に使える信頼性の高い推定量を導出できるかもしれません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A historical data collection has other potential benefits and use. It can serve as a basis for confirming the validity of independently proposed security measurements and methods of measurement, identifying whether associated measures are leading, lagging, or coincident indicators, and establishing estimates of latency and uncertainty for useful indicators. It can also serve as a means to investigate new methods of detecting and discovering both expected and unexpected relationships for use as estimators, and to develop new and improved mathematical and computational methodologies to improve the visual analytics of the data collection. A selected subset of the historical data collection could also be used as reference materials for training or rating the proficiency of security evaluators.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>過去のデータ収集には、ほかにも潜在的な利点と用途があります。独立に提案されたセキュリティ測定と測定方法の妥当性を確認する基礎として、関連する尺度が先行指標、遅行指標、一致指標のいずれであるかを識別する基礎として、また、有用な指標について遅れと不確かさの推定値を確立する基礎として使えます。さらに、推定量として使うために、予想される関係と予想外の関係の両方を検出・発見する新しい方法を調べる手段として、また、データ収集のビジュアルアナリティクスを改善するための、新規で改良された数学的・計算論的方法論を開発する手段としても使えます。過去のデータ収集から選んだ部分集合は、セキュリティ評価者の訓練や習熟度の評価のための参照資料としても使えるでしょう。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3 Artificial Intelligence Assessment Techniques</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3 人工知能による評価技術</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The field of Artificial Intelligence (AI) involves the design and implementation of systems that exhibit capabilities of the human mind, such as reasoning, knowledge, perception, planning, learning, and communication. AI encompasses a number of sub-disciplines including machine learning, constraint satisfaction, search, agents and multi-agent systems, reasoning, and natural language engineering and processing. While the use of AI has met with both successes and defeats, its application in aspects of security metrics might prove beneficial, particularly as a means for reducing subjectivity and human involvement in performing security assessments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>人工知能（AI）の分野は、推論、知識、知覚、計画、学習、コミュニケーションなど、人間の知性の能力を示すシステムの設計と実装に関わります。AI には、機械学習、制約充足、探索、エージェントとマルチエージェントシステム、推論、自然言語工学・処理などの、多数の下位分野が含まれます。AI の利用には成功も失敗もありましたが、セキュリティメトリクスの側面への応用は、特にセキュリティ評価の実施における主観性と人間の関与を減らす手段として、有益であると判明するかもしれません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The research goal is to identify areas of security evaluations that could be performed using AI or AI-assisted techniques and demonstrate their use. Dealing with uncertainty and inconsistency has been a part of AI from its origins. More recently, AI systems are beginning to emerge that can independently formulate, refine, and test hypotheses from observed data to uncover fundamental properties [Fig09]. Technologies for managing uncertainty and inconsistency have already been used in areas such as the ranking algorithms used in web search engines and are being applied to the broader area of homeland security [Che05]. The expectation is that AI technologies can play a similarly important role in the context of security assessments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>研究の目標は、AI または AI 支援技術を使って実施できるセキュリティ評価の領域を特定し、その利用を実証することです。不確かさと不整合への対処は、AI の黎明期から AI の一部でした。最近では、観測データから仮説を独立に立案、洗練、検証して、基本的な特性を明らかにできる AI システムが現れ始めています [Fig09]。不確かさと不整合を管理する技術は、Web 検索エンジンで使われるランキングアルゴリズムなどの分野で既に使われており、より広い国土安全保障の分野にも適用されつつあります [Che05]。AI 技術は、セキュリティ評価の文脈でも、同様に重要な役割を果たせると期待されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For example, fuzzy logic is a superset of conventional logic that has been extended to handle the uncertainty in data. Fuzzy logic is useful in situations where it is difficult to make a precise statement about system behavior and has been applied successfully to the area of risk management [Don07, Mcg07, Sha03]. In these applications, qualitative risk descriptors, such as High, Medium, and Low, are able to be assigned to a range of values and calibrated as continuous quantitative input. In one case, fuzzy logic was used to assess the relative risk associated with computer network assets by ranking vulnerabilities with regard to the potential risk exposures of assets and networks [Don07]. In another case, using fuzzy logic provided risk analysts more information than qualitative approaches for ranking risks, to help them more effectively manage operational risks [Sha03].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>たとえば、ファジー論理は、データの不確かさを扱えるように拡張された、従来の論理の上位集合です。ファジー論理は、システムの動作について正確な記述を行うことが難しい状況で有用であり、リスク管理の分野に成功裏に適用されてきました [Don07, Mcg07, Sha03]。これらの適用では、高・中・低などの定性的なリスク記述子を、値の範囲に割り当て、連続的な定量入力として較正できます。ある事例では、資産とネットワークの潜在的なリスクエクスポージャーに関して脆弱性を順位づけすることで、コンピュータネットワーク資産に関連する相対リスクを評価するために、ファジー論理が使われました [Don07]。別の事例では、ファジー論理を使うと、リスク分析者は、リスクの順位づけについて、定性的な手法よりも多くの情報を得られ、運用リスクをより効果的に管理するうえで助けになりました [Sha03]。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.4 Practicable Concrete Measurement Methods</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.4 実行可能な具体的測定方法</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The current practice of security assessment, best illustrated by lower level evaluations under the Common Criteria, emphasizes the soundness of the evaluation evidence of the design and the process used in developing a product over the soundness of the product implementation. The rationale is that without a correct and effective design and development process, a correct and effective implementation is not possible. While this is true, the emphasis on design and process evidence versus actual product software largely overshadows practical security concerns involving the implementation and deployment of operational systems. The research goal is to devise methods of measurement that address vulnerabilities occurring in implementation and deployment and complementing existing security assessment practices that emphasize design and development process evidence. The intent is to be able to detect vulnerabilities that otherwise would escape detection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティ評価の現在の実務は、Common Criteria の下位レベルの評価に最もよく表れていますが、製品実装の健全性よりも、製品の開発に用いられた設計とプロセスに関する評価証拠の健全性を重視しています。その根拠は、正しく有効な設計・開発プロセスがなければ、正しく有効な実装は不可能であるというものです。これは事実ですが、実際の製品ソフトウェアよりも設計とプロセスの証拠に重点を置くことで、運用システムの実装と展開に関わる実際的なセキュリティ上の懸念は、大部分が影に隠れています。研究の目標は、実装と展開で生じる脆弱性を扱うとともに、設計・開発プロセスの証拠を重視する既存のセキュリティ評価の実務を補完する測定方法を考案することです。意図は、そうでなければ検出を逃れる脆弱性を検出できるようにすることです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Code analysis has been a traditional way to examine code automatically and identify software problems that stem from violations in standard coding practices. Code analysis tools that are capable of identifying different types of potentially exploitable vulnerabilities have also been developed for security [Cha06, Mic06]. They provide a good example of one type of concrete measurement method possible, which is reproducible, repeatable, relevant, and timely. Although such security analysis tools provide highly useful results, they detect vulnerabilities incompletely and generate significant numbers of false positives, allowing room for improvement (e.g., [Sch05, Kir06]).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コード分析は、コードを自動的に調べて、標準的なコーディング実務への違反に起因するソフトウェアの問題を特定する、従来からの方法です。悪用される可能性のあるさまざまな種類の脆弱性を特定できるコード分析ツールも、セキュリティ向けに開発されています [Cha06, Mic06]。これらは、再現性、反復性、関連性、適時性を備えた、可能な具体的測定方法の一種のよい例になっています。このようなセキュリティ分析ツールは非常に有用な結果を提供しますが、脆弱性の検出は不完全で、かなりの数の誤検知を生成するため、改善の余地があります（例: [Sch05, Kir06]）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Relatively little is known about software behavior or misbehavior after deployment [Bow02, Lib04]. Traditional means of feedback such as error or vulnerability reporting often are imprecise, contain inaccuracies, and involve delay, making it difficult to form a complete picture representative of the situation. Cooperative Bug Isolation (CBI) is an innovative technique that uses software instrumentation and sparse random sampling to gather information from the actual operation of deployed software [Lib04]. Algorithms have been developed for finding and fixing software errors based on statistical analysis of sparse feedback data. While developed for debugging purposes, the potential seemingly exists to extend the framework as a method of measurement for security through selective predicate instrumentation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>展開後のソフトウェアの動作や不適切な動作については、比較的わずかなことしかわかっていません [Bow02, Lib04]。エラーや脆弱性の報告など、従来のフィードバックの手段は、不正確であったり、誤りを含んでいたり、遅れを伴ったりすることが多く、状況を代表する完全な全体像を形成することが困難です。Cooperative Bug Isolation（CBI）は、ソフトウェアのインストルメンテーションと疎なランダムサンプリングを使って、展開されたソフトウェアの実際の動作から情報を収集する、革新的な技術です [Lib04]。疎なフィードバックデータの統計的分析に基づいて、ソフトウェアのエラーを見つけて修正するためのアルゴリズムが開発されています。デバッグを目的として開発されたものですが、選択的な述語のインストルメンテーションを通じて、この枠組みをセキュリティの測定方法に拡張できる可能性があるように思われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Various forms of black box security testing offer another example of a possible type of concrete measurement method. For example, fuzzing is a type of fault injection technique that involves sending various types of pseudorandom data to available interfaces to discover unknown flaws present in programs and systems [Jur06]. Fuzzing techniques have been shown to be an effective means for detecting security vulnerabilities. Robustness testing is a closely related technique, which involves determining how well a software system or component functions when subjected to invalid inputs or other conditions that induce stress on the implementation. Incorrect behaviors exhibited under stressful conditions can often lead to potential security exploits such as denial of service [Kak01, Ron02].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ブラックボックスのセキュリティ試験のさまざまな形式は、可能な具体的測定方法の種類のもう一つの例になります。たとえば、ファジングは、利用可能なインタフェースにさまざまな種類の疑似乱数データを送り、プログラムやシステムに存在する未知の欠陥を発見する、フォールトインジェクション技術の一種です [Jur06]。ファジング技術は、セキュリティ脆弱性を検出するための効果的な手段であることが示されています。堅牢性試験は、これと密接に関連する技術で、不正な入力や、実装にストレスを与えるその他の条件にさらしたときに、ソフトウェアシステムや構成要素がどの程度うまく機能するかを判定するものです。ストレスのかかる条件下で示される誤った動作は、サービス拒否など、潜在的なセキュリティ上の悪用につながることがよくあります [Kak01, Ron02]。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.5 Intrinsically Measurable Components</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.5 本質的に測定可能な構成要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Development of computing components that are inherently attuned to measurement would be a significant improvement in the state of the art of security metrics. The idea is to build components that clearly exhibit properties that matter to security. The research goal lies mainly on issues of mechanism and component design that facilitate or promote security measurement. For example, preparing strength of mechanism arguments in conjunction with the design and development of a security-enforcing component might be one method. Lower and upper bounds could be established, similar to the way performance bounds are calculated for sorting, matching, and other essential algorithms used in computing.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本質的に測定に適した計算構成要素を開発することは、セキュリティメトリクスの技術水準の大きな向上になるでしょう。その考え方は、セキュリティにとって重要な特性を明確に示す構成要素を構築することです。研究の目標は、主に、セキュリティ測定を容易にする、または促進する、機構と構成要素の設計の問題にあります。たとえば、セキュリティを実施する構成要素の設計と開発に合わせて、機構の強度を裏付ける論拠を構築することも一つの方法かもしれません。計算に使われるソート、マッチングなどの基本的なアルゴリズムの性能の限界を計算する方法と同様に、下限と上限を確立できるでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cryptographic mechanisms are an area where research results exist and bounds on the effort required to breach components could be determined, under specific assumptions. Extending this type of analysis to trust mechanisms is a more challenging problem, but one with significant benefits, if achieved. Components that rely on certain surety mechanisms, such as authentication modules designed for passwords or biometric modules for fingerprints, lend themselves to certain types of strength analysis (e.g., password space size [Lee08]), and results already exist that could be applied. Finally, techniques for strength analysis might also be drawn from physical security, such as metrics used by industry to evaluate safe and vault security and identify weaknesses leading to failure [Bla04].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>暗号機構は、研究結果が存在し、特定の仮定の下で、構成要素を破るために必要な労力の限界を判定できる分野です。この種の分析を信頼機構に拡張することは、より難しい問題ですが、達成できれば大きな利益があります。パスワード用に設計された認証モジュールや指紋用の生体認証モジュールのように、特定の確実性機構に依存する構成要素は、特定の種類の強度分析（例: パスワード空間の大きさ [Lee08]）に適しており、適用できる結果が既に存在します。最後に、強度分析の技術は、金庫や保管庫のセキュリティを評価し、失敗につながる弱点を特定するために業界で使われているメトリクス [Bla04] など、物理セキュリティから得られる可能性もあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another possible area involves the application of evaluation criteria to system design. One possibility is to determine whether a methodology can be formulated for stipulating how to compose individually evaluated components of systems, such that the security of the overall system is ensured. The Trusted Network Interpretation (TNI) served this purpose for the TCSEC, but it was tied to Department of Defense security policies and a small standardized subset of security profiles. Attempting to devise a similar type of methodology for the Common Criteria would be more difficult because of the vast range of protection profiles that are able to be specified and which already exist. Nevertheless, it may be possible to narrow that scope to a definable composable subset through the systematic application of rules, principles, and logic.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>もう一つの考えられる分野は、評価基準のシステム設計への適用に関わります。一つの可能性は、システム全体のセキュリティが確保されるように、個別に評価された構成要素をどのように合成するかを定める方法論を策定できるかどうかを判断することです。Trusted Network Interpretation（TNI）は TCSEC に対してこの目的を果たしましたが、これは国防総省のセキュリティポリシーと、標準化された小規模なセキュリティプロファイルの部分集合に結び付いていました。Common Criteria について同様の種類の方法論を考案しようとすることは、指定可能で、かつ既に存在する保護プロファイルの範囲が非常に広いため、より困難になります。それでも、規則、原則、論理を体系的に適用することで、その範囲を、定義可能な合成可能な部分集合に絞り込める可能性があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The security metrics area poses hard and multi-faceted problems for researchers. Quick resolution is not expected and the likelihood is that not all aspects of the problem are resolvable. Furthermore, only some of those aspects that are resolvable may be able to be done satisfactorily, meeting expectations of repeatability, reproducibility, relevance, timeliness, and cost. Several factors impede progress in security metrics:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティメトリクスの分野は、研究者にとって難しく、多面的な問題をもたらします。早期の解決は期待されておらず、問題のすべての側面を解決できる可能性は低いでしょう。さらに、解決可能な側面のうち、反復性、再現性、関連性、適時性、コストに関する期待を満たす形で満足に解決できるものは、一部に限られる可能性があります。セキュリティメトリクスの進展を妨げている要因がいくつかあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The lack of good estimators of system security.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">システムセキュリティの適切な推定量がないこと。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The entrenched reliance on subjective, human, qualitative input.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">主観的で、人間による、定性的な入力への根強い依存。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The protracted and delusive means commonly used to obtain measurements.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">測定値を得るために一般に使われている、長引き、誤解を招きやすい手段。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The dearth of understanding and insight into the composition of security mechanisms.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティ機構の構成についての理解と洞察の欠如。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper proposes several lines of research that address these factors and could help to progress the state of the art in security metrics. The following research areas were identified:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文は、これらの要因に対処し、セキュリティメトリクスの技術水準を向上させるのに役立つ可能性のある、いくつかの研究の方向性を提案します。次の研究分野が特定されました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Formal Models of Security Measurement and Metrics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティ測定とメトリクスの形式モデル</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Historical Data Collection and Analysis</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">過去のデータの収集と分析</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Artificial Intelligence Assessment Techniques</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">人工知能による評価技術</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Practicable Concrete Measurement Methods</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">実行可能な具体的測定方法</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Intrinsically Measurable Components.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">本質的に測定可能な構成要素。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each area in itself is quite extensive and requires a commitment to sustain the long-term research and development needed to be successful.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各分野はそれ自体がかなり広範で、成功に必要な長期の研究開発を持続させるための取り組みが必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. 参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[AWB08] Objective Measures of Wine Quality, Australian Wine and Brandy Corporation, July 15, 2008, http://www.wineaustralia.com/australia/portals/2/pdf/1650_print.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[AWB08] Objective Measures of Wine Quality, Australian Wine and Brandy Corporation, July 15, 2008, http://www.wineaustralia.com/australia/portals/2/pdf/1650_print.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Bel06] Steven Bellovin, On the Brittleness of Software and the Infeasibility of Security Metrics, IEEE Security and Privacy, Volume 4, Issue 4, July-Aug. 2006</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Bel06] Steven Bellovin, On the Brittleness of Software and the Infeasibility of Security Metrics, IEEE Security and Privacy, Volume 4, Issue 4, July-Aug. 2006</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Ber05] Scott Berinato, A Few Good Information Security Metrics, CSO Magazine, July 01, 2005, http://www.csoonline.com/article/220462/A_Few_Good_Information_Security_Metrics?contentId=220462&amp;slug=&amp;</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Ber05] Scott Berinato, A Few Good Information Security Metrics, CSO Magazine, July 01, 2005, http://www.csoonline.com/article/220462/A_Few_Good_Information_Security_Metrics?contentId=220462&amp;slug=&amp;</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Bla04] Matt Blaze, Safecracking for the Computer Scientist, Draft Document, December 21, 2004, http://www.crypto.com/papers/safelocks.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Bla04] Matt Blaze, Safecracking for the Computer Scientist, Draft Document, December 21, 2004, http://www.crypto.com/papers/safelocks.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Bow02] Jim Bowring, Alessandro Orso, Mary Jean Harrold, Monitoring Deployed Software Using Software Tomography, ACM SIGPLAN-SIGSOFT Workshop on Program Analysis for Software Tools and Engineering, Charleston, South Carolina, November 2002, http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=A3CE0E004AF88F94805FBCE9DCFFB558?doi=10.1.1.8.7773&amp;rep=rep1&amp;type=pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Bow02] Jim Bowring, Alessandro Orso, Mary Jean Harrold, Monitoring Deployed Software Using Software Tomography, ACM SIGPLAN-SIGSOFT Workshop on Program Analysis for Software Tools and Engineering, Charleston, South Carolina, November 2002, http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=A3CE0E004AF88F94805FBCE9DCFFB558?doi=10.1.1.8.7773&amp;rep=rep1&amp;type=pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Bre07] Bill Brenner, Windows Admins Feel Post-Patch Tuesday Pain, SearchSecurity.com, October 19, 2007, http://searchsecurity.techtarget.com/news/article/0,289142,sid14_gci1277683,00.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Bre07] Bill Brenner, Windows Admins Feel Post-Patch Tuesday Pain, SearchSecurity.com, October 19, 2007, http://searchsecurity.techtarget.com/news/article/0,289142,sid14_gci1277683,00.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Car08] Lawrence Carin, George Cybenko, Jeff Hughes, Cybersecurity Strategies: The QuERIES Methodology, IEEE Computer, Vol. 41, No. 8, August 2008</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Car08] Lawrence Carin, George Cybenko, Jeff Hughes, Cybersecurity Strategies: The QuERIES Methodology, IEEE Computer, Vol. 41, No. 8, August 2008</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CCP06] Common Criteria for Information Technology Security Evaluation Part 1: Introduction and general model, Common Criteria Portal, September 2006, Version 3.1 Revision 1, http://www.commoncriteriaportal.org/files/ccfiles/CCPART1V3.1R1.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CCP06] Common Criteria for Information Technology Security Evaluation Part 1: Introduction and general model, Common Criteria Portal, September 2006, Version 3.1 Revision 1, http://www.commoncriteriaportal.org/files/ccfiles/CCPART1V3.1R1.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CEC91] Information Technology Security Evaluation Criteria (ITSEC), Harmonised Criteria of France - Germany - the Netherlands - the United Kingdom, Commission of the European Communities Directorate XIII/F SOG-IS, June 1991, http://www.iwar.org.uk/comsec/resources/standards/itsec.htm</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CEC91] Information Technology Security Evaluation Criteria (ITSEC), Harmonised Criteria of France - Germany - the Netherlands - the United Kingdom, Commission of the European Communities Directorate XIII/F SOG-IS, June 1991, http://www.iwar.org.uk/comsec/resources/standards/itsec.htm</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Cha06] Pravir Chandra, Brian Chess, John Steven, Putting the Tools to Work: How to Succeed with Source Code Analysis, IEEE Security &amp; Privacy, vol. 4, no. 3, May/June 2006, http://www.fortify.com/servlet/download/public/fortify-ieee-how_to_succeed_with_source_code_analysis.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Cha06] Pravir Chandra, Brian Chess, John Steven, Putting the Tools to Work: How to Succeed with Source Code Analysis, IEEE Security &amp; Privacy, vol. 4, no. 3, May/June 2006, http://www.fortify.com/servlet/download/public/fortify-ieee-how_to_succeed_with_source_code_analysis.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Che05] Hsinchun Chen, Fei-Yue Wang, Artificial Intelligence for Homeland Security, IEEE Intelligent Systems, vol. 20, no. 5, September/October 2005, http://ai.arizona.edu/go/intranet/papers/IEEE-AI4HS-Chen-2005.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Che05] Hsinchun Chen, Fei-Yue Wang, Artificial Intelligence for Homeland Security, IEEE Intelligent Systems, vol. 20, no. 5, September/October 2005, http://ai.arizona.edu/go/intranet/papers/IEEE-AI4HS-Chen-2005.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CIS08] The CIS Security Metrics Service, The Center for Internet Security (CIS), July 1, 2008, http://securitymetrics.org/content/attach/Metricon3.0/metricon3-kreitner%20handout.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CIS08] The CIS Security Metrics Service, The Center for Internet Security (CIS), July 1, 2008, http://securitymetrics.org/content/attach/Metricon3.0/metricon3-kreitner%20handout.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[DOD85] Trusted Computer System Evaluation Criteria, DoD 5200.28-STD, Department of Defense, December l985, http://csrc.nist.gov/publications/history/dod85.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[DOD85] Trusted Computer System Evaluation Criteria, DoD 5200.28-STD, Department of Defense, December l985, http://csrc.nist.gov/publications/history/dod85.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Don07] Maxwell Dondo, A Fuzzy Risk Calculations Approach for a Network Vulnerability Ranking System, Technical Memorandum 2007-090, Defence R&amp;D Canada – Ottawa, May 2007, http://www.ottawa.drdc-rddc.gc.ca/docs/e/TEO-TM-2007-090.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Don07] Maxwell Dondo, A Fuzzy Risk Calculations Approach for a Network Vulnerability Ranking System, Technical Memorandum 2007-090, Defence R&amp;D Canada – Ottawa, May 2007, http://www.ottawa.drdc-rddc.gc.ca/docs/e/TEO-TM-2007-090.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Dou08a] Chad Dougherty, Debian and Ubuntu OpenSSL Packages Contain a Predictable Random Number Generator, Vulnerability Note VU#925211, U.S. Computer Emergency Readiness Team, May 13, 2008, https://www.kb.cert.org/vuls/id/925211</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Dou08a] Chad Dougherty, Debian and Ubuntu OpenSSL Packages Contain a Predictable Random Number Generator, Vulnerability Note VU#925211, U.S. Computer Emergency Readiness Team, May 13, 2008, https://www.kb.cert.org/vuls/id/925211</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Dou08b] Chad Dougherty, Multiple DNS Implementations Vulnerable to Cache Poisoning, Vulnerability Note VU#800113, U.S. Computer Emergency Readiness Team, July 08, 2008, http://www.kb.cert.org/vuls/id/800113</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Dou08b] Chad Dougherty, Multiple DNS Implementations Vulnerable to Cache Poisoning, Vulnerability Note VU#800113, U.S. Computer Emergency Readiness Team, July 08, 2008, http://www.kb.cert.org/vuls/id/800113</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Dow08] Mark Dowd, Application-Specific Attacks: Leveraging the ActionScript Virtual Machine, IBM Global Technology Services, April 2008, http://documents.iss.net/whitepapers/IBM_X-Force_WP_final.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Dow08] Mark Dowd, Application-Specific Attacks: Leveraging the ActionScript Virtual Machine, IBM Global Technology Services, April 2008, http://documents.iss.net/whitepapers/IBM_X-Force_WP_final.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Fig09] James Figueroa, Discovery Systems Check Their Own Facts, In the News, IEEE Intelligent Systems, Vol. 24, No. 3, May/June 2009.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Fig09] James Figueroa, Discovery Systems Check Their Own Facts, In the News, IEEE Intelligent Systems, Vol. 24, No. 3, May/June 2009.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Gar08] Simson Garfinkel, Alarming Open-Source Security Holes: How a programming error introduced profound security vulnerabilities in millions of computer systems, MIT Technology Review, May 20, 2008, http://www.technologyreview.com/Infotech/20801/?a=f</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Gar08] Simson Garfinkel, Alarming Open-Source Security Holes: How a programming error introduced profound security vulnerabilities in millions of computer systems, MIT Technology Review, May 20, 2008, http://www.technologyreview.com/Infotech/20801/?a=f</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Gra99] Martha M. Gray, Applicability of Metrology to Information Technology, Journal of Research of the National Institute of Standards and Technology, Vol. 104, No. 6, November–December 1999, http://nvl.nist.gov/pub/nistpubs/jres/104/6/j46gra.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Gra99] Martha M. Gray, Applicability of Metrology to Information Technology, Journal of Research of the National Institute of Standards and Technology, Vol. 104, No. 6, November–December 1999, http://nvl.nist.gov/pub/nistpubs/jres/104/6/j46gra.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Gue04] Ditimar P. Guelev, Mark Ryan, Pierre Yves Schobbens, Model Checking Access Control Policies, Proceedings of the 7th Information Security Conference, Palo Alto, CA, September 2004, http://books.google.ca/books?hl=en&amp;id=9FRKcSjoqb4C&amp;dq=Proceedings+of+the+7th+Information+security+conference++2004&amp;printsec=frontcover&amp;source=web&amp;ots=twzWL060_d&amp;sig=QqmyIbkeEPp-C4nrSVg8xOIi1Q0&amp;sa=X&amp;oi=book_result&amp;resnum=1&amp;ct=result#PPA219,M1</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Gue04] Ditimar P. Guelev, Mark Ryan, Pierre Yves Schobbens, Model Checking Access Control Policies, Proceedings of the 7th Information Security Conference, Palo Alto, CA, September 2004, http://books.google.ca/books?hl=en&amp;id=9FRKcSjoqb4C&amp;dq=Proceedings+of+the+7th+Information+security+conference++2004&amp;printsec=frontcover&amp;source=web&amp;ots=twzWL060_d&amp;sig=QqmyIbkeEPp-C4nrSVg8xOIi1Q0&amp;sa=X&amp;oi=book_result&amp;resnum=1&amp;ct=result#PPA219,M1</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Hen01] Ronda Henning et al., Proceedings of the Workshop on Information Security System Scoring and Ranking, Applied Computer Security Associates, Williamsburg, Virginia, May 21-23, 2001, http://www.acsac.org/measurement/proceedings/wisssr1-proceedings.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Hen01] Ronda Henning et al., Proceedings of the Workshop on Information Security System Scoring and Ranking, Applied Computer Security Associates, Williamsburg, Virginia, May 21-23, 2001, http://www.acsac.org/measurement/proceedings/wisssr1-proceedings.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[I3P09] National Cyber Security Research and Development Challenges Related to Economics, Physical Infrastructure and Human Behavior: An Industry, Academic and Government Perspective, The Institute for Information Infrastructure Protection (I3P), 2009, http://www.thei3p.org/docs/publications/i3pnationalcybersecurity.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[I3P09] National Cyber Security Research and Development Challenges Related to Economics, Physical Infrastructure and Human Behavior: An Industry, Academic and Government Perspective, The Institute for Information Infrastructure Protection (I3P), 2009, http://www.thei3p.org/docs/publications/i3pnationalcybersecurity.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[IRC05] Hard Problem List, INFOSEC Research Council, November 2005, http://www.cyber.st.dhs.gov/docs/IRC_Hard_Problem_List.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[IRC05] Hard Problem List, INFOSEC Research Council, November 2005, http://www.cyber.st.dhs.gov/docs/IRC_Hard_Problem_List.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[ISS08] SSE-CMM: Systems Security Engineering Capability Maturity Model, International Systems Security Engineering Association (ISSEA), referenced on July 7, 2008, http://www.sse-cmm.org/metric/metric.asp</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[ISS08] SSE-CMM: Systems Security Engineering Capability Maturity Model, International Systems Security Engineering Association (ISSEA), referenced on July 7, 2008, http://www.sse-cmm.org/metric/metric.asp</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Jel00] George Jelen, SSE-CMM Security Metrics, The National Institute of Standards and Technology (NIST) and Computer System Security and Privacy Advisory Board (CSSPAB) Workshop, Washington, D.C., June 13-14, 2000</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Jel00] George Jelen, SSE-CMM Security Metrics, The National Institute of Standards and Technology (NIST) and Computer System Security and Privacy Advisory Board (CSSPAB) Workshop, Washington, D.C., June 13-14, 2000</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Jur06] Leon Juranić, Using Fuzzing to Detect Security Vulnerabilities, INFIGO-TD-01-04-2006, Infigo Information Security, April 25, 2006, http://www.infigo.hr/files/INFIGO-TD-2006-04-01-Fuzzing-eng.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Jur06] Leon Juranić, Using Fuzzing to Detect Security Vulnerabilities, INFIGO-TD-01-04-2006, Infigo Information Security, April 25, 2006, http://www.infigo.hr/files/INFIGO-TD-2006-04-01-Fuzzing-eng.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Kak01] Rauli Kaksonen, A Functional Method for Assessing Protocol Implementation Security, VTT Publications 448, Technical Research Centre of Finland, 2001, http://www.vtt.fi/inf/pdf/publications/2001/P448.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Kak01] Rauli Kaksonen, A Functional Method for Assessing Protocol Implementation Security, VTT Publications 448, Technical Research Centre of Finland, 2001, http://www.vtt.fi/inf/pdf/publications/2001/P448.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Kei08] Gregg Keizer, Hackers Attack Newest Windows Patch, PC World Magazine, April 12, 2008, http://www.pcworld.com/businesscenter/article/144486/hackers_attack_newest_windows_patch.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Kei08] Gregg Keizer, Hackers Attack Newest Windows Patch, PC World Magazine, April 12, 2008, http://www.pcworld.com/businesscenter/article/144486/hackers_attack_newest_windows_patch.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Kir06] Dustin Kirkland, Loulwa Salem, BogoSec: Source Code Security Quality Calculator, IBM, May 2006, http://download.boulder.ibm.com/ibmdl/pub/software/dw/linux/l-bogosec.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Kir06] Dustin Kirkland, Loulwa Salem, BogoSec: Source Code Security Quality Calculator, IBM, May 2006, http://download.boulder.ibm.com/ibmdl/pub/software/dw/linux/l-bogosec.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Lee08] Nathan Lee, Amy Nicewick, Circular Reasoning: Venn Will We Agree on a Common SoF Analysis Method?, 9th International Common Criteria Conference, Jeju, Korea, September 23-25, 2008, http://www.commoncriteriaportal.org/iccc/9iccc/pdf/B2402.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Lee08] Nathan Lee, Amy Nicewick, Circular Reasoning: Venn Will We Agree on a Common SoF Analysis Method?, 9th International Common Criteria Conference, Jeju, Korea, September 23-25, 2008, http://www.commoncriteriaportal.org/iccc/9iccc/pdf/B2402.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Lem08] Robert Lemos, Patches Pose Significant Risk, Researchers Say, SecurityFocus, April 23, 2008, http://www.securityfocus.com/news/11514</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Lem08] Robert Lemos, Patches Pose Significant Risk, Researchers Say, SecurityFocus, April 23, 2008, http://www.securityfocus.com/news/11514</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Lib04] Benjamin Liblit, Cooperative Bug Isolation, PhD Thesis, University of California, Berkeley, December 2004, http://pages.cs.wisc.edu/~liblit/dissertation/dissertation.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Lib04] Benjamin Liblit, Cooperative Bug Isolation, PhD Thesis, University of California, Berkeley, December 2004, http://pages.cs.wisc.edu/~liblit/dissertation/dissertation.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Lit93] Bev Littlewood et al., Towards Operational Measures of Computer Security, Journal of Computer Security, vol. 2, no. 2-3, 1993, p. 211-230, http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.30.5769&amp;rep=rep1&amp;type=pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Lit93] Bev Littlewood et al., Towards Operational Measures of Computer Security, Journal of Computer Security, vol. 2, no. 2-3, 1993, p. 211-230, http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.30.5769&amp;rep=rep1&amp;type=pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Man05] Pratyusa Manadhata, Jeannette M. Wing, An Attack Surface Metric, CMU-CS-05-155, Carnegie Mellon University, July 2005, http://reports-archive.adm.cs.cmu.edu/anon/2005/CMU-CS-05-155.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Man05] Pratyusa Manadhata, Jeannette M. Wing, An Attack Surface Metric, CMU-CS-05-155, Carnegie Mellon University, July 2005, http://reports-archive.adm.cs.cmu.edu/anon/2005/CMU-CS-05-155.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Man07] Pratyusa K. Manadhata, Kymie M. C. Tan, Roy A. Maxion, Jeannette M. Wing, An Approach to Measuring a System’s Attack Surface, CMU-CS-07-146, Carnegie Mellon University, August 2007, http://reports-archive.adm.cs.cmu.edu/anon/2007/CMU-CS-07-146.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Man07] Pratyusa K. Manadhata, Kymie M. C. Tan, Roy A. Maxion, Jeannette M. Wing, An Approach to Measuring a System’s Attack Surface, CMU-CS-07-146, Carnegie Mellon University, August 2007, http://reports-archive.adm.cs.cmu.edu/anon/2007/CMU-CS-07-146.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Mar97] Lou Marco, Measuring Software Complexity, Enterprise Systems Journal, April 1997, http://cispom.boisestate.edu/cis320emaxson/metrics.htm</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Mar97] Lou Marco, Measuring Software Complexity, Enterprise Systems Journal, April 1997, http://cispom.boisestate.edu/cis320emaxson/metrics.htm</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Mar08] John Markoff, Leaks in Patch for Web Security Hole, The New York Times, August 8, 2008, http://www.nytimes.com/2008/08/09/technology/09flaw.html?_r=1&amp;oref=slogin</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Mar08] John Markoff, Leaks in Patch for Web Security Hole, The New York Times, August 8, 2008, http://www.nytimes.com/2008/08/09/technology/09flaw.html?_r=1&amp;oref=slogin</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Mcg07] William McGill, Bilal M. Ayyub, Multicriteria Security System Performance Assessment Using Fuzzy Logic, The Journal of Defense Modeling and Simulation (JDMS): Applications, Methodology, Technology, Special Issue: Homeland Security, October 2007, vol. 4, no. 4, http://www.scs.org/pubs/jdms/vol4num4/McGill.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Mcg07] William McGill, Bilal M. Ayyub, Multicriteria Security System Performance Assessment Using Fuzzy Logic, The Journal of Defense Modeling and Simulation (JDMS): Applications, Methodology, Technology, Special Issue: Homeland Security, October 2007, vol. 4, no. 4, http://www.scs.org/pubs/jdms/vol4num4/McGill.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Mic06] Christoph Michael, Steven Lavenhar, Source Code Analysis Tools – Overview, Cigital, Inc., January 27, 2006, https://buildsecurityin.us-cert.gov/daisy/bsi/articles/tools/code/263-BSI.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Mic06] Christoph Michael, Steven Lavenhar, Source Code Analysis Tools – Overview, Cigital, Inc., January 27, 2006, https://buildsecurityin.us-cert.gov/daisy/bsi/articles/tools/code/263-BSI.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Nag08] Becky Nagel, Excel Patch Causes Miscalculations, Government Computer News, March 19, 2008, http://www.gcn.com/online/vol1_no1/45992-1.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Nag08] Becky Nagel, Excel Patch Causes Miscalculations, Government Computer News, March 19, 2008, http://www.gcn.com/online/vol1_no1/45992-1.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Neu07] Stephan Neuhaus, Thomas Zimmermann, Christian Holler, Andreas Zeller, Predicting Vulnerable Software Components, ACM Conference on Computer and Communications Security (CCS &#x27;07), October 29-November 2, 2007, Alexandria, Virginia, http://www.st.cs.uni-sb.de/publications/files/neuhaus-ccs-2007.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Neu07] Stephan Neuhaus, Thomas Zimmermann, Christian Holler, Andreas Zeller, Predicting Vulnerable Software Components, ACM Conference on Computer and Communications Security (CCS &#x27;07), October 29-November 2, 2007, Alexandria, Virginia, http://www.st.cs.uni-sb.de/publications/files/neuhaus-ccs-2007.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Ozm06] Andy Ozment, Stuart Schechter, Milk or Wine: Does Software Security Improve with Age?, 15th USENIX Security Symposium, Vancouver, B.C., Canada, July 31–August 4, 2006, http://www.usenix.org/events/sec06/tech/full_papers/ozment/ozment.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Ozm06] Andy Ozment, Stuart Schechter, Milk or Wine: Does Software Security Improve with Age?, 15th USENIX Security Symposium, Vancouver, B.C., Canada, July 31–August 4, 2006, http://www.usenix.org/events/sec06/tech/full_papers/ozment/ozment.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Pay06] Shirley C. Payne, A Guide to Security Metrics, SANS Security Essentials GSEC Practical Assignment, Version 1.2e, June 19, 2006, http://www.sans.org/reading_room/whitepapers/auditing/55.php</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Pay06] Shirley C. Payne, A Guide to Security Metrics, SANS Security Essentials GSEC Practical Assignment, Version 1.2e, June 19, 2006, http://www.sans.org/reading_room/whitepapers/auditing/55.php</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Pou08] Kevin Poulsen, Researchers Use PlayStation Cluster to Forge a Web Skeleton Key, Wired Magazine, December 30, 2008, http://blog.wired.com/27bstroke6/2008/12/berlin.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Pou08] Kevin Poulsen, Researchers Use PlayStation Cluster to Forge a Web Skeleton Key, Wired Magazine, December 30, 2008, http://blog.wired.com/27bstroke6/2008/12/berlin.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Qua98] Richard E. Quandt, Measurement and Inference in Wine Tasting, Meetings of the Vineyard Data Quantification Society, Ajaccio, Corsica, October 2-3, 1998, http://www.liquidasset.com/corsica.htm</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Qua98] Richard E. Quandt, Measurement and Inference in Wine Tasting, Meetings of the Vineyard Data Quantification Society, Ajaccio, Corsica, October 2-3, 1998, http://www.liquidasset.com/corsica.htm</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Rei07a] Gavin Reid, Peter Mell, Karen Scarfone, CVSS-SIG Version 2 History, Forum of Incident Response and Security Teams, June 13, 2007, http://www.first.org/cvss/history.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Rei07a] Gavin Reid, Peter Mell, Karen Scarfone, CVSS-SIG Version 2 History, Forum of Incident Response and Security Teams, June 13, 2007, http://www.first.org/cvss/history.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Rei07b] Mark Reith, Jianwei Niu, William Winsborough, Apply Model Checking To Security Analysis in Trust Management, C107-0030, University of Texas at San Antonio, January 2, 2007, http://stinet.dtic.mil/cgi-bin/GetTRDoc?AD=ADA462754&amp;Location=U2&amp;doc=GetTRDoc.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Rei07b] Mark Reith, Jianwei Niu, William Winsborough, Apply Model Checking To Security Analysis in Trust Management, C107-0030, University of Texas at San Antonio, January 2, 2007, http://stinet.dtic.mil/cgi-bin/GetTRDoc?AD=ADA462754&amp;Location=U2&amp;doc=GetTRDoc.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Ron02] Juha Röning, Marko Laakso, Ari Takanen, Rauli Kaksonen, PROTOS -Systematic Approach to Eliminate Software Vulnerabilities, Invited presentation at Microsoft Research, Seattle, Washington, May 6, 2002, http://www.ee.oulu.fi/research/ouspg/protos/sota/MSR2002-protos/index.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Ron02] Juha Röning, Marko Laakso, Ari Takanen, Rauli Kaksonen, PROTOS -Systematic Approach to Eliminate Software Vulnerabilities, Invited presentation at Microsoft Research, Seattle, Washington, May 6, 2002, http://www.ee.oulu.fi/research/ouspg/protos/sota/MSR2002-protos/index.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[SAI07] Microsoft Windows Server 2003, XP Professional and XP Embedded Security Target, Version 3.0, Science Applications International Corporation, Common Criteria Testing Laboratory, November 19, 2007, http://www.commoncriteriaportal.org/files/epfiles/20080303_st_vid10184-st.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[SAI07] Microsoft Windows Server 2003, XP Professional and XP Embedded Security Target, Version 3.0, Science Applications International Corporation, Common Criteria Testing Laboratory, November 19, 2007, http://www.commoncriteriaportal.org/files/epfiles/20080303_st_vid10184-st.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sal09] Felix Salmon, Recipe for Disaster: The Formula That Killed Wall Street Wired Magazine, February 23, 2009, http://www.wired.com/techbiz/it/magazine/17-03/wp_quant?currentPage=all</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sal09] Felix Salmon, Recipe for Disaster: The Formula That Killed Wall Street Wired Magazine, February 23, 2009, http://www.wired.com/techbiz/it/magazine/17-03/wp_quant?currentPage=all</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sav07] Reijo M. Savola, Towards a Taxonomy for Information Security Metrics, International Conference on Software Engineering Advances (ICSEA 2007), Cap Esterel, France, August 2007</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sav07] Reijo M. Savola, Towards a Taxonomy for Information Security Metrics, International Conference on Software Engineering Advances (ICSEA 2007), Cap Esterel, France, August 2007</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sch04] Marvin Schaefer, If A1 is the Answer, What was the Question?, Annual Computer Security Applications Conference, Tucson, Arizona, December 2004, http://www.acsac.org/2004/papers/ClassicPaperSchafer.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sch04] Marvin Schaefer, If A1 is the Answer, What was the Question?, Annual Computer Security Applications Conference, Tucson, Arizona, December 2004, http://www.acsac.org/2004/papers/ClassicPaperSchafer.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sch05] Benjamin Schwarz, Hao Chen, David Wagner, Geoff Morrison, Jacob West, Model Checking An Entire Linux Distribution for Security Violations, 21st Annual Computer Security Applications Conference, Tucson, Arizona, December 2005, http://www.acsac.org/2005/papers/165.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sch05] Benjamin Schwarz, Hao Chen, David Wagner, Geoff Morrison, Jacob West, Model Checking An Entire Linux Distribution for Security Violations, 21st Annual Computer Security Applications Conference, Tucson, Arizona, December 2005, http://www.acsac.org/2005/papers/165.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sha03] Samir Shah, Measuring Operational Risk Using Fuzzy Logic Modeling, International Risk Management Institute, Inc. (IRMI), September 2003, http://www.irmi.com/Expert/Articles/2003/Shah09.aspx</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sha03] Samir Shah, Measuring Operational Risk Using Fuzzy Logic Modeling, International Risk Management Institute, Inc. (IRMI), September 2003, http://www.irmi.com/Expert/Articles/2003/Shah09.aspx</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Sto08] Andrew Storms, Many Microsoft Bulletins Replaced; Bigger Set of Kill Bits Issued, nCircle, August 12, 2008, http://blog.ncircle.com/blogs/sync/archives/2008/08/many_microsoft_bulletins_repla.html</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Sto08] Andrew Storms, Many Microsoft Bulletins Replaced; Bigger Set of Kill Bits Issued, nCircle, August 12, 2008, http://blog.ncircle.com/blogs/sync/archives/2008/08/many_microsoft_bulletins_repla.html</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Swa03] Marianne Swanson et al., Security Metrics Guide for Information Technology Systems, NIST Special Publication 800-55, July 2003, http://cid-7086a6423672c497.skydrive.live.com/self.aspx/.Public/NIST%20SP%20800-55.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Swa03] Marianne Swanson et al., Security Metrics Guide for Information Technology Systems, NIST Special Publication 800-55, July 2003, http://cid-7086a6423672c497.skydrive.live.com/self.aspx/.Public/NIST%20SP%20800-55.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Tor07a] Mark Torgerson, Security Metrics, 12th International Command and Control Research and Technology Symposium, Newport, Rhode Island, June 20, 2007, http://www.dodccrp.org/events/12th_ICCRTS/CD/html/presentations/108.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Tor07a] Mark Torgerson, Security Metrics, 12th International Command and Control Research and Technology Symposium, Newport, Rhode Island, June 20, 2007, http://www.dodccrp.org/events/12th_ICCRTS/CD/html/presentations/108.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Tor07b] Mark Torgerson, Security Metrics for Communication Systems, 12th International Command and Control Research and Technology Symposium, Newport, Rhode Island, June 19-21, 2007, http://www.dodccrp.org/events/12th_ICCRTS/CD/html/papers/108.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Tor07b] Mark Torgerson, Security Metrics for Communication Systems, 12th International Command and Control Research and Technology Symposium, Newport, Rhode Island, June 19-21, 2007, http://www.dodccrp.org/events/12th_ICCRTS/CD/html/papers/108.pdf</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Vau02] Rayford Vaughn Jr., Ronda Henning, Ambareen Siraj, Information Assurance Measures and Metrics – State of Practice and Proposed Taxonomy, 30th Hawaii International Conference on System Sciences, Big Island, Hawaii, January 7-10, 2002, http://csdl2.computer.org/comp/proceedings/hicss/2003/1874/09/187490331c.pdf</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Vau02] Rayford Vaughn Jr., Ronda Henning, Ambareen Siraj, Information Assurance Measures and Metrics – State of Practice and Proposed Taxonomy, 30th Hawaii International Conference on System Sciences, Big Island, Hawaii, January 7-10, 2002, http://csdl2.computer.org/comp/proceedings/hicss/2003/1874/09/187490331c.pdf</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7564.pdf">National Institute of Standards and Technology, IR 7564</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7564";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

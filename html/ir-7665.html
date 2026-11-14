@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7665 は、NIST と国家安全保障局（NSA）が共催した第 1 回特権管理ワークショップの議事録です。ワークショップは 2009 年 9 月 1 日から 3 日までメリーランド州ゲイザースバーグの NIST 本キャンパスで開催され、連邦政府の行政機関、民間部門、学術界を代表する約 120 人が参加しました。主な目標は、異なる視点、ユースケース、組織上のニーズを代表する幅広い人々を集め、特権管理の定義などの用語についての合意形成を含め、この分野のいくつかの側面について共通認識に達することでした。ワークショップは、標準・定義・用語、モデルとフレームワーク、技術と研究課題、ポリシーと要件の 4 つのトラックで構成され、本書は全体会議とトラックごとの議事、および付録の全体会議の質疑応答の議事を収めています。">
+  <title>特権管理ワークショップの議事録、2009 年 9 月 1〜3 日 | NIST IR 7665 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="Proceedings of the Privilege Management Workshop, September 1-3, 2009" data-search="特権管理ワークショップの議事録、2009年9月1〜3日 proceedings of the privilege management workshop, september 1-3, 2009">特権管理ワークショップの議事録、2009年9月1〜3日</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Introduction" data-search="はじめに introduction">はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0007" title="Plenary Proceedings" data-search="全体会議の議事 plenary proceedings">全体会議の議事</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0003" title="Track 1: Standards, Definitions, and Terms" data-search="トラック 1: 標準、定義、用語 track 1: standards, definitions, and terms">トラック 1: 標準、定義、用語</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0005" title="Track 2: Models and Frameworks" data-search="トラック 2: モデルとフレームワーク track 2: models and frameworks">トラック 2: モデルとフレームワーク</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0007" title="Track 3: Technology and Research Agenda" data-search="トラック 3: 技術と研究課題 track 3: technology and research agenda">トラック 3: 技術と研究課題</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="Track 4: Policies and Requirements" data-search="トラック 4: ポリシーと要件 track 4: policies and requirements">トラック 4: ポリシーと要件</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0003" title="Links and Resources" data-search="リンクと資料 links and resources">リンクと資料</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="Appendix A: Proceedings of the Plenary Question and Answer Session" data-search="付録 a: 全体会議の質疑応答の議事 appendix a: proceedings of the plenary question and answer session">付録 A: 全体会議の質疑応答の議事</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0004" title="Introductory Access Control Framework" data-search="アクセス制御フレームワーク入門 introductory access control framework">アクセス制御フレームワーク入門</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0006" title="Policy Machine" data-search="ポリシーマシン policy machine">ポリシーマシン</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0001" title="FICAM" data-search="ficam ficam">FICAM</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0003" title="RAdAC" data-search="radac radac">RAdAC</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001" title="Health IT" data-search="医療 it health it">医療 IT</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7665 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Proceedings of the Privilege Management Workshop, September 1-3, 2009</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>特権管理ワークショップの議事録、2009 年 9 月 1〜3 日</strong></span><br><span class="doc-panel-item">公開日 : 2010-01-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7665/final">https://csrc.nist.gov/pubs/ir/7665/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 65 / 67 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7665 は、NIST と国家安全保障局（NSA）が共催した第 1 回特権管理ワークショップの議事録です。ワークショップは 2009 年 9 月 1 日から 3 日までメリーランド州ゲイザースバーグの NIST 本キャンパスで開催され、連邦政府の行政機関、民間部門、学術界を代表する約 120 人が参加しました。主な目標は、異なる視点、ユースケース、組織上のニーズを代表する幅広い人々を集め、特権管理の定義などの用語についての合意形成を含め、この分野のいくつかの側面について共通認識に達することでした。ワークショップは、標準・定義・用語、モデルとフレームワーク、技術と研究課題、ポリシーと要件の 4 つのトラックで構成され、本書は全体会議とトラックごとの議事、および付録の全体会議の質疑応答の議事を収めています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7665</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7665</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Proceedings of the Privilege Management Workshop, September 1-3, 2009</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+特権管理ワークショップの議事録、2009年9月1〜3日</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Editors:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>編集者:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sheldon A. Durrant<br>The MITRE Corporation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Sheldon A. Durrant<br>The MITRE Corporation</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tanya Brewer<br>Annie Sokol<br>NIST</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Tanya Brewer<br>Annie Sokol<br>NIST</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0008" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7665</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7665</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Proceedings of the Privilege Management Workshop, September 1-3, 2009</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特権管理ワークショップの議事録、2009年9月1〜3日</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Editors:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>編集者:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sheldon A Durrant<br>The MITRE Corporation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Sheldon A Durrant<br>The MITRE Corporation</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tanya Brewer<br>Annie Sokol<br>NIST</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Tanya Brewer<br>Annie Sokol<br>NIST</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>January 2010</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2010年1月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0009" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U. S. Department of Commerce<br>Gary Locke, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Gary Locke 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Patrick D. Gallagher, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br>Patrick D. Gallagher 所長</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(This page intentionally left blank)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>（このページは意図的に空白としています）</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0005-b0001">Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0005-b0001">はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0005-b0007">Plenary Proceedings</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0005-b0007">全体会議の議事</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0003">Track 1: Standards, Definitions, and Terms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0003">トラック 1: 標準、定義、用語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0005">Track 2: Models and Frameworks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0005">トラック 2: モデルとフレームワーク</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0007">Track 3: Technology and Research Agenda</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0007">トラック 3: 技術と研究課題</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">Track 4: Policies and Requirements</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">トラック 4: ポリシーと要件</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">Links and Resources</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">リンクと資料</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0004-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">Appendix A: Proceedings of the Plenary Question and Answer Session</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">付録 A: 全体会議の質疑応答の議事</a></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書では、実験の手順や概念を適切に説明するために、特定の商業組織、機器、または資材を明示している場合があります。このような明示は、米国国立標準技術研究所（NIST）による推奨や保証を意味するものではなく、それらの組織、資材、機器が当該目的に必ずしも最適であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first Privilege Management Workshop, co-sponsored by the National Institute of Standards and Technology (NIST) and the National Security Agency (NSA), was held at NIST’s main campus in Gaithersburg, Maryland, September 1–3, 2009. The workshop was attended by approximately 120 people representing executive branch federal agencies, the private sector, and academia.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）と米国国家安全保障局（NSA）が共催した第 1 回特権管理ワークショップは、2009 年 9 月 1 日から 3 日まで、メリーランド州ゲイザースバーグにある NIST の本キャンパスで開催されました。ワークショップには、連邦政府の行政機関、民間部門、学術界を代表する約 120 人が参加しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Like so many other areas of information assurance-related technical endeavor, privilege management is large and complex, often the source of heated debate and opinion, and fraught with widely understood, yet ill-defined terminology and concepts. Thus, a primary goal of this first workshop was to bring together a wide spectrum of individuals representing differing viewpoints, use cases, and organizational needs with the intent of reaching a common understanding of several facets of this important area. This includes reaching consensus on the definition of privilege management and other terminology; understanding and analyzing the strengths and weaknesses of current and proposed access control models; ascertaining the current state of the practice and future research directions in privilege management; and understanding and articulating the managerial, legal, and policy requirements associated with privilege management. To facilitate these objectives, the workshop was organized into four tracks:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報保証に関連する他の多くの技術分野と同様に、特権管理は大規模かつ複雑で、しばしば激しい議論や意見対立の源となっており、広く理解されてはいるものの定義が曖昧な用語や概念に満ちています。そのため、この第 1 回ワークショップの主な目標は、異なる視点、ユースケース、組織上のニーズを代表する幅広い人々を集め、この重要な分野のいくつかの側面について共通認識に達することでした。これには、特権管理の定義やその他の用語についての合意形成、現行および提案中のアクセス制御モデルの長所と短所の理解と分析、特権管理における実務の現状と今後の研究の方向性の確認、特権管理に関連する管理上、法律上、およびポリシー上の要件の理解と明確化が含まれます。これらの目的を促進するため、ワークショップは次の 4 つのトラックで構成されました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Standards, Definitions, and Terms</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">標準、定義、用語</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0005-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Models and Frameworks</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">モデルとフレームワーク</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0005-b0004-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">State of the Technology and Research Agenda</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">技術の現状と研究課題</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0005-b0004-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Policies and Requirements</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ポリシーと要件</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document is a synopsis of the major proceedings of the plenary and tracks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書は、全体会議と各トラックの主要な議事の概要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One major point of consensus reached at the workshop was that the term “privilege management” describes a set of processes for managing the data, attributes and policies in particular that determine a user’s access rights to a system. This definition aligns with the Federal Identity, Credential, and Access Management (FICAM) definition of privilege management, and firmly establishes privilege management as one component of the wider access management framework. A more detailed technical position on privilege management can be found in an upcoming NIST Interagency Report (NISTIR 7657) on privilege management.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワークショップで得られた主要な合意事項の 1 つは、「特権管理」という用語が、システムに対するユーザーのアクセス権を決定する、特にデータ、属性、ポリシーを管理するための一連のプロセスを表すということでした。この定義は、連邦 ID・認証情報・アクセス管理（FICAM）による特権管理の定義と整合しており、特権管理をより広範なアクセス管理フレームワークの 1 つの構成要素として明確に位置づけるものです。特権管理に関するより詳細な技術的見解は、特権管理に関する今後の NIST 機関間報告書（NISTIR 7657）に記載される予定です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Plenary Proceedings</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+全体会議の議事</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Plenary, a precursor to the track discussions, set the overall tone for what issues and topics attendees should address during the course of the workshop. The plenary session began with an outline of a potential framework and context within which to view the privilege management space. Subsequent presenters stressed the importance—and difficulty—of representing, creating, and enforcing policies, and used healthcare and the Health Insurance Portability and Accountability Act (HIPAA) to illustrate the shortfalls between legal requirements and what could actually be enforced with current privilege management capabilities. Presenters briefed attendees on eXtensible Access Control Markup Language (XACML) and the differences between it and an implementation of a Policy Machine. Presenters also introduced the Risk-Adaptable Access Control (RAdAC) concept, and discussed what constitutes an authoritative attribute source, which provided the seed for further discussion in the various tracks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>全体会議は、各トラックでの議論に先立つものであり、参加者がワークショップの期間中に取り組むべき課題やトピックの全体的な方向性を示しました。全体会議は、特権管理の領域を捉えるための潜在的なフレームワークと文脈の概説から始まりました。続く発表者は、ポリシーを表現し、作成し、実施することの重要性と困難さを強調し、医療分野と医療保険の携行性と説明責任に関する法律（HIPAA）を例に、法的要件と、現行の特権管理の能力で実際に実施できることとの間の隔たりを示しました。発表者は、eXtensible Access Control Markup Language（XACML）と、XACML とポリシーマシンの実装との違いについて参加者に説明しました。また、リスク適応型アクセス制御（RAdAC）の概念も紹介し、何をもって権威ある属性の情報源とするかについて議論し、これが各トラックでのさらなる議論の種となりました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>During the plenary proceedings, attendees were invited to comment on the presenters’ briefings and to pose questions. Details of these discussions can be found in Appendix A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>全体会議の間、参加者は、発表者の説明にコメントし、質問することを求められました。これらの議論の詳細は付録 A に記載しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Track 1: Standards, Definitions, and Terms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+トラック 1: 標準、定義、用語</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Participants in Track 1 focused their efforts on one of the most important goals of the workshop—defining many of the key concepts associated with privilege management. After much debate, track participants agreed that “privilege management” is a component of the larger “access management” space. This is consistent with the FICAM framework supported by the Federal Chief Information Officers (CIO) Council and adopted by the Department of Defense (DoD).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トラック 1 の参加者は、ワークショップの最も重要な目標の 1 つである、特権管理に関連する多くの主要な概念の定義に注力しました。多くの議論の末、トラックの参加者は、「特権管理」がより大きな「アクセス管理」の領域の構成要素であることに合意しました。これは、連邦最高情報責任者（CIO）評議会が支持し、国防総省（DoD）が採用した FICAM フレームワークと整合しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Track 2: Models and Frameworks</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+トラック 2: モデルとフレームワーク</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A variety of models and frameworks exist for controlling access to enterprise resources. Track 2 participants sought to understand them, put them into context, and come to consensus on their advantages and limitations. The models discussed ranged from basic Access Control Lists (ACLs) and Role-Based Access Control (RBAC) to emerging models such as Attribute-Based Access Control (ABAC) to over-the-horizon models that include Policy-Based Access Control (PBAC) and Risk-Adaptable Access Control (RAdAC), a concept for integrating risk metrics, complex policies, machine learning, and a variety of attributes into making automated, dynamic access control decisions. One key conclusion reached in Track 2 discussions is that no access control model is better or worse than any other; they each have their place in the enterprise and should be adopted according to their suitability for a particular set of circumstances. Participants also concluded that Risk-Adaptable Access Control held promise, but had limitations that would preclude its use any time in the near future.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>エンタープライズのリソースへのアクセスを制御するために、さまざまなモデルとフレームワークが存在します。トラック 2 の参加者は、それらを理解し、文脈の中に位置づけ、それぞれの利点と限界について合意を得ることを目指しました。議論されたモデルは、基本的なアクセス制御リスト（ACL）やロールベースアクセス制御（RBAC）から、属性ベースアクセス制御（ABAC）などの新たなモデル、さらにはポリシーベースアクセス制御（PBAC）やリスク適応型アクセス制御（RAdAC）といった将来的なモデルにまで及びました。RAdAC は、リスクの指標、複雑なポリシー、機械学習、さまざまな属性を統合して、自動化された動的なアクセス制御の決定を行うための概念です。トラック 2 の議論で得られた重要な結論の 1 つは、他のモデルより優れている、あるいは劣っているアクセス制御モデルはなく、それぞれがエンタープライズの中で役割を持ち、特定の状況への適合性に応じて採用すべきであるというものです。参加者はまた、リスク適応型アクセス制御には将来性があるものの、近い将来に使用することを妨げる限界があると結論づけました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Track 3: Technology and Research Agenda</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+トラック 3: 技術と研究課題</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Track 3 attendees discussed the current state of the practice for privilege management and access control; analyzed gaps in current privilege management capabilities; discussed on going research in government, academia, and commercial spaces; and made suggestions on future research areas that need to be addressed. Participants agreed, with very few exceptions, that current privilege management implementations were limited to RBAC and that Attribute-Based Access Control was necessary, but needed to be more clearly defined and thoroughly researched. This research should include both stand-alone and federated ABAC models.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トラック 3 の参加者は、特権管理とアクセス制御の実務の現状について議論し、現行の特権管理の能力におけるギャップを分析し、政府、学術界、商業分野で進行中の研究について議論し、今後取り組む必要のある研究分野について提案を行いました。参加者は、ごく少数の例外を除き、現行の特権管理の実装は RBAC に限られていること、属性ベースアクセス制御は必要であるものの、より明確に定義し、徹底的に研究する必要があることで合意しました。この研究には、スタンドアロンの ABAC モデルとフェデレーテッドな ABAC モデルの両方を含めるべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Track 4: Policies and Requirements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+トラック 4: ポリシーと要件</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Track 4 tasked participants to discuss and analyze the relationship between privilege management and policy. Participants discussed what they thought would be needed to enable privilege management to address organizational policy, legal, and compliance requirements. Track attendees concluded that the trend in privilege management is toward using it to enforce organizational policy and compliance requirements, but that the greatly needed mechanisms to express digital policies were not yet mature. XACML was presented as a mechanism that has the potential to address some of these concerns, but it is not yet fully mature and has a variety of limitations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トラック 4 では、参加者に、特権管理とポリシーの関係について議論し、分析することが課されました。参加者は、特権管理が組織のポリシー、法律、コンプライアンスの要件に対処できるようにするために何が必要になるかについて議論しました。トラックの参加者は、特権管理の傾向は、組織のポリシーやコンプライアンスの要件を実施するために特権管理を使用する方向にありますが、デジタルなポリシーを表現するために強く求められる仕組みはまだ成熟していないと結論づけました。XACML は、こうした懸念の一部に対処できる可能性のある仕組みとして紹介されましたが、まだ十分に成熟しておらず、さまざまな限界があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Links and Resources</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+リンクと資料</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following list includes the briefing slides from the workshop, as well as other materials and background information pertinent to the workshop proceedings. For further information, visit the workshop’s Web site available at http://csrc.nist.gov/news_events/privilege-management-workshop/.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の一覧には、ワークショップの説明用スライドのほか、ワークショップの議事に関連するその他の資料や背景情報が含まれています。詳細については、ワークショップの Web サイト（http://csrc.nist.gov/news_events/privilege-management-workshop/）を参照してください。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo, David. “Policy Machine: Towards a Unifying Access Control Mechanism” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Ferraiolo_Plenary.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo, David. “Policy Machine: Towards a Unifying Access Control Mechanism” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Ferraiolo_Plenary.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo, David, Serban Gavrila and Steve Quirolgico. “The Policy Machine: A Mechanism for the Specification and Enforcement of Arbitrary Attribute-Based Access Control Policies.” http://csrc.nist.gov/groups/SNS/pm/PMInventionDescription.pdf. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ferraiolo, David, Serban Gavrila and Steve Quirolgico. “The Policy Machine: A Mechanism for the Specification and Enforcement of Arbitrary Attribute-Based Access Control Policies.” http://csrc.nist.gov/groups/SNS/pm/PMInventionDescription.pdf. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">LaPadula, Leonard J. “Privilege Management Framework.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Len_LaPadula.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">LaPadula, Leonard J. “Privilege Management Framework.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Len_LaPadula.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lafky, Deborah L. “Health Information Technology and Privilege Management: A Policy Agenda for Progress.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Deborah_Lafky.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lafky, Deborah L. “Health Information Technology and Privilege Management: A Policy Agenda for Progress.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Deborah_Lafky.pdf. Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">McGraw, Robert W. “Risk-Adaptable Access Control (RAdAC).” http://csrc.nist.gov/news_events/privilege-management-workshop/radac-Paper0001.pdf . Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">McGraw, Robert W. “Risk-Adaptable Access Control (RAdAC).” http://csrc.nist.gov/news_events/privilege-management-workshop/radac-Paper0001.pdf . Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Waterman, K. Krasnow. “Representing Policy for Enterprise Compliance.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Krasnow_Waterman.pdf Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Waterman, K. Krasnow. “Representing Policy for Enterprise Compliance.” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Krasnow_Waterman.pdf Privilege Management Workshop. September 1, 2009. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Westman, Roger. “What Constitutes an Authoritative Attribute Source?” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Roger_Westman.pdf Privilege Management Workshop. September 2, 2009. Last Accessed 10/05/09.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Westman, Roger. “What Constitutes an Authoritative Attribute Source?” http://csrc.nist.gov/news_events/privilege-management-workshop/presentations/Roger_Westman.pdf Privilege Management Workshop. September 2, 2009. Last Accessed 10/05/09.</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A: Proceedings of the Plenary Question and Answer Session</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A: 全体会議の質疑応答の議事</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Question/Comment</th><th>Answer/Response</th></tr></thead></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>質問／コメント</th><th>回答／応答</th></tr></thead></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Introductory Access Control Framework</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+アクセス制御フレームワーク入門</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>What are your thoughts on real-time risk management?</td><td>Stakeholders need to consider the risks and benefits of dynamically allowing access versus the risks and benefits of providing inappropriate access to a resource. These risks will be different depending on whether the organization in question is a profit-making company or a military organization. There is no single acceptable answer for everyone and every situation.</td></tr><tr><td>Where does federation fit into the framework that you presented and what about crossing authority boundaries?</td><td>I have no opinion on federation at this moment. The topic of federation and whether and how it fits into privilege management is something that the tracks will address during the workshop.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>リアルタイムのリスク管理についてどのようにお考えですか。</td><td>利害関係者は、アクセスを動的に許可することによるリスクと利点、およびリソースへの不適切なアクセスを提供することによるリスクと利点を検討する必要があります。これらのリスクは、対象の組織が営利企業であるか軍事組織であるかによって異なります。すべての人とあらゆる状況に受け入れられる唯一の答えはありません。</td></tr><tr><td>ご紹介になったフレームワークの中で、フェデレーションはどこに位置づけられますか。また、権限の境界を越える場合はどうなりますか。</td><td>現時点では、フェデレーションについて意見はありません。フェデレーションの話題、およびそれが特権管理に適合するかどうか、またどのように適合するかは、ワークショップ中に各トラックで取り上げる事項です。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Policy Machine</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+ポリシーマシン</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>There is a need for standardized definitions of Policy Enforcement Point and Policy Decision Point. With regards to the Policy Machine, are there any papers that support the details of the work that the team can make available?</td><td>Yes. The policy machine team has papers, specifications, reference implementations, etc.</td></tr><tr><td>What is the difference between XACML (eXtensible Access Control Markup Language) and the Policy Machine?</td><td>XACML is based on a language. It does not deal with processes like cut-and-paste, etc. XACML is only a way to specify policy, not a way to enforce policy, which the policy machine is able to do.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>ポリシー実施ポイント（Policy Enforcement Point）とポリシー決定ポイント（Policy Decision Point）の標準化された定義が必要です。ポリシーマシンについて、チームが提供できる、作業の詳細を裏付ける論文はありますか。</td><td>はい。ポリシーマシンのチームには、論文、仕様、参照実装などがあります。</td></tr><tr><td>XACML（eXtensible Access Control Markup Language）とポリシーマシンの違いは何ですか。</td><td>XACML は言語に基づいています。カットアンドペーストなどのプロセスは扱いません。XACML はポリシーを規定する方法にすぎず、ポリシーを実施する方法ではありません。ポリシーを実施することは、ポリシーマシンにはできます。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>FICAM</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+FICAM</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>How extensible are Personal Identity Verification (PIV) credentials?</td><td>The goal is to minimize the number of PIVs and to have interoperable systems that include attribute management. Another goal is to be able to provision and validate identities across the board. PIVs need to be extensible to accomplish all of that.</td></tr><tr><td>Strong authentication is stable with Public Key Infrastructure (PKI). Does Authorization need commensurate levels?</td><td>There is a Defense Information Systems Agency&#x27;s request for proposal (DISA RFP) coming for authorization, product evaluations, and procurement in FY11.</td></tr><tr><td>A federation component is going to be needed in order to access policies. Will there be rules in the framework on how to validate or verify access control policies like the Liberty Alliance uses with third-party assessors?</td><td>The Chief Information Officers (CIO) council has an ICAM subgroup that should focus on addressing those issues.</td></tr><tr><td>Has there been an uptake on Information Cards?</td><td>InfoCards have not taken off yet.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>個人識別検証（PIV）の認証情報は、どの程度拡張可能ですか。</td><td>目標は、PIV の数を最小限に抑え、属性管理を含む相互運用可能なシステムを持つことです。もう 1 つの目標は、全般にわたって ID をプロビジョニングし、検証できるようにすることです。そのすべてを達成するには、PIV が拡張可能である必要があります。</td></tr><tr><td>強力な認証は、公開鍵基盤（PKI）によって安定しています。認可にも同等のレベルが必要ですか。</td><td>国防情報システム局による提案依頼書（DISA RFP）が、認可、製品評価、調達について、2011 会計年度に出される予定です。</td></tr><tr><td>ポリシーにアクセスするには、フェデレーションの構成要素が必要になります。Liberty Alliance が第三者評価者とともに用いているような、アクセス制御ポリシーを検証または確認する方法について、フレームワークに規則が設けられるのでしょうか。</td><td>最高情報責任者（CIO）評議会には ICAM のサブグループがあり、これらの課題への対処に注力すべきです。</td></tr><tr><td>Information Card は普及しましたか。</td><td>InfoCard はまだ普及していません。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>RAdAC</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+RAdAC</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>Is RAdAC a model or a set of requirements?</td><td>There are many ways to quantify risk and there are many ways to implement RAdAC. There are still pieces that need to be addressed. RAdAC is more of a concept than a model at this point.</td></tr><tr><td>RAdAC conceptually feels good but the devil is in the details. What has been done to socialize and quantify risk?</td><td>IBM has done some work in this area. For RAdAC to be successful the capabilities have to be put out in parallel and we need to develop the knowledge base so that appropriate risk models are put in place. Also, the infrastructure for Attribute-based Access Control (ABAC) needs to be in place.</td></tr><tr><td>Will there be a human in the loop in RAdAC deployments?</td><td>Initially, there will be a human in the loop, but the vision is to have a fully automated system.</td></tr><tr><td>Who is held accountable in a RAdAC environment if a machine makes all the access control decisions? Many people will be nervous about removing a human from the loop because of a perceived lack of accountability.</td><td>Who will be responsible is going to depend on who sets and manages the policy, whether that is the CIO, the CISO or the data owner, etc.</td></tr><tr><td>Could RAdAC allow only partial access to a resource in order to offset the risks of not having a human in the loop?</td><td>RAdAC does not have to be a yes or no answer. Provisions could be made to leverage “hints.”</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>RAdAC はモデルですか、それとも要件の集まりですか。</td><td>リスクを定量化する方法も、RAdAC を実装する方法も多数あります。まだ対処が必要な部分があります。現時点では、RAdAC はモデルというより概念です。</td></tr><tr><td>RAdAC は概念としては良さそうですが、問題は細部にあります。リスクを周知し、定量化するために何が行われてきましたか。</td><td>IBM がこの分野でいくつかの取り組みを行っています。RAdAC が成功するには、各能力を並行して提供し、適切なリスクモデルが整備されるようにナレッジベースを開発する必要があります。また、属性ベースアクセス制御（ABAC）のインフラストラクチャも整備されていなければなりません。</td></tr><tr><td>RAdAC の展開では、人が介在しますか。</td><td>当初は人が介在しますが、構想としては完全に自動化されたシステムを目指しています。</td></tr><tr><td>機械がすべてのアクセス制御の決定を行う RAdAC 環境では、誰が責任を問われますか。説明責任が欠けていると受け止められるため、人を介在させなくなることに不安を覚える人が多いでしょう。</td><td>誰が責任を負うかは、CIO、CISO、データ所有者など、誰がポリシーを設定し管理するかによって決まります。</td></tr><tr><td>人が介在しないことによるリスクを相殺するために、RAdAC はリソースへの部分的なアクセスのみを許可することができますか。</td><td>RAdAC の回答は、はいかいいえかの二者択一である必要はありません。「ヒント」を活用するための規定を設けることもできます。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Health IT</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+医療 IT</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>What are the privacy implications of the government mandate that all health records be digitized by 2014? Big Brother is not just the U.S government. Isn’t there a risk that centralization in the private sector could pose privacy concerns?</td><td>From a U.S. government point of view, centralization is not an option because the public may perceive the government taking on the role of “big brother.” The goal of making health records digitized and available online is to have a network of networks in which Health Insurance Portability and Accountability Act (HIPAA) will be the standard with which everyone must comply. This would take the pressure off the U.S. government and place responsibility onto the owners and stewards of the data.</td></tr><tr><td>60-80% of the medical practitioners are not from “technical” backgrounds. Does that shift concerns away from privacy and onto availability of the health data?</td><td>Yes. The more medical practitioners rely on online data, the more this reliance will drive the requirements for availability guarantees.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>すべての医療記録を 2014 年までにデジタル化するという政府の義務づけは、プライバシーにどのような影響を及ぼしますか。ビッグブラザーは米国政府だけではありません。民間部門での集中化がプライバシー上の懸念を生じさせるリスクはないのでしょうか。</td><td>米国政府の観点からは、集中化は選択肢になりません。国民が、政府が「ビッグブラザー」の役割を担うと受け止める可能性があるためです。医療記録をデジタル化してオンラインで利用できるようにする目標は、ネットワークのネットワークを構築し、その中で医療保険の携行性と説明責任に関する法律（HIPAA）が、すべての人が遵守しなければならない基準となることです。これにより、米国政府への圧力が軽減され、責任がデータの所有者と管理者に移ります。</td></tr><tr><td>医療従事者の 60〜80% は「技術」系の経歴を持っていません。そのことで、懸念はプライバシーから医療データの可用性へと移りますか。</td><td>はい。医療従事者がオンラインデータに依存するほど、この依存が可用性の保証に対する要件を押し上げることになります。</td></tr></tbody></table>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7665.pdf">National Institute of Standards and Technology, IR 7665</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7665";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
