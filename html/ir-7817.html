@@ -1,0 +1,1663 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7817 は、フェデレーテッドなコミュニティにおけるクレデンシャルとその属性の失効を調査し、欠けている要件の特定に重点を置いた報告書です。世界中に多数のアイデンティティ管理システム（IDMS）が展開されていますが、フェデレーションのプロセスにも、クレデンシャルや属性を失効させる方法にも、統一的な手法がないとしています。デジタルクレデンシャルのさまざまな種類を紹介して分析し、2 者、3 者、4 者のアイデンティティプロバイダのモデルについて、失効に関連する欠けている要件と推奨事項を示します。第 2 の目標として、欠けている要件に対処するための、クレデンシャルの信頼性と失効のサービスである統一信頼性・失効サービス（URRS）を提案します。">
+  <title>フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル | NIST IR 7817 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+<label class="toc-show-all"><input type="checkbox" id="toc-show-all"> 深い階層も表示（3 件）</label>    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="A Credential Reliability and Revocation Model for Federated Identities" data-search="フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル a credential reliability and revocation model for federated identities">フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Acknowledgement:" data-search="謝辞: acknowledgement:">謝辞:</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="2. Identity Provider Models and Recommendations" data-search="2. アイデンティティプロバイダのモデルと推奨事項 2. identity provider models and recommendations">2. アイデンティティプロバイダのモデルと推奨事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0003" title="2.1. The Two-Party Model (two legged)" data-search="2.1. 2 者モデル（2 方向） 2.1. the two-party model (two legged)">2.1. 2 者モデル（2 方向）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0007-b0006" title="2.1.1. Delegation" data-search="2.1.1. 委任 2.1.1. delegation">2.1.1. 委任</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0005" title="2.2. The Three-Party Model (three legged)" data-search="2.2. 3 者モデル（3 方向） 2.2. the three-party model (three legged)">2.2. 3 者モデル（3 方向）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0002" title="2.2.1. Single Sign-On Schemes" data-search="2.2.1. シングルサインオン方式 2.2.1. single sign-on schemes">2.2.1. シングルサインオン方式</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0009-b0005" title="2.2.2. Privacy Enhancing Technologies" data-search="2.2.2. プライバシー強化技術 2.2.2. privacy enhancing technologies">2.2.2. プライバシー強化技術</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0003" title="2.3. The Four-Party Model (four legged)" data-search="2.3. 4者モデル（4者間） 2.3. the four-party model (four legged)">2.3. 4者モデル（4者間）</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0005" title="2.3.1. Single-Source Attribute Providers" data-search="2.3.1. 単一ソースの属性プロバイダ 2.3.1. single-source attribute providers">2.3.1. 単一ソースの属性プロバイダ</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0011-b0002" title="2.3.2. Multi-Source Attribute Providers" data-search="2.3.2. 複数ソースの属性プロバイダ 2.3.2. multi-source attribute providers">2.3.2. 複数ソースの属性プロバイダ</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0011-b0004" title="2.3.2.1. Attribute Aggregation" data-search="2.3.2.1. 属性の集約 2.3.2.1. attribute aggregation">2.3.2.1. 属性の集約</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0011-b0006" title="2.3.2.2. Service Provider as the Aggregation Agent" data-search="2.3.2.2. 集約エージェントとしてのサービスプロバイダ 2.3.2.2. service provider as the aggregation agent">2.3.2.2. 集約エージェントとしてのサービスプロバイダ</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0011-b0009" title="2.3.2.3. External Aggregation Agent" data-search="2.3.2.3. 外部の集約エージェント 2.3.2.3. external aggregation agent">2.3.2.3. 外部の集約エージェント</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001" title="3. The Uniform Reliability and Revocation Service (URRS)" data-search="3. 統一信頼性・失効サービス（urrs） 3. the uniform reliability and revocation service (urrs)">3. 統一信頼性・失効サービス（URRS）</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0014" title="3.1. URRS’s Role" data-search="3.1. urrs の役割 3.1. urrs’s role">3.1. URRS の役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0005" title="3.2. The User’s Role" data-search="3.2. ユーザーの役割 3.2. the user’s role">3.2. ユーザーの役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0012" title="3.3. The Service Provider’s Role" data-search="3.3. サービスプロバイダの役割 3.3. the service provider’s role">3.3. サービスプロバイダの役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0005" title="3.4. SSO Systems" data-search="3.4. sso システム 3.4. sso systems">3.4. SSO システム</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0011" title="3.5. The Identity Provider and Attribute Provider’s Role" data-search="3.5. アイデンティティプロバイダと属性プロバイダの役割 3.5. the identity provider and attribute provider’s role">3.5. アイデンティティプロバイダと属性プロバイダの役割</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0017" title="3.6. Supplementary URRS Feature: Credential Media (Token) Revocations" data-search="3.6. urrs の補足機能: クレデンシャルの媒体（トークン）の失効 3.6. supplementary urrs feature: credential media (token) revocations">3.6. URRS の補足機能: クレデンシャルの媒体（トークン）の失効</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0005" title="3.7. Supplementary URRS Feature: Derived Credential Revocation" data-search="3.7. urrs の補足機能: 派生クレデンシャルの失効 3.7. supplementary urrs feature: derived credential revocation">3.7. URRS の補足機能: 派生クレデンシャルの失効</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0001" title="Appendix A—Recommendations" data-search="付録 a—推奨事項 appendix a—recommendations">付録 A—推奨事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="Section 2.1 The Two-Party Model – Enterprise SSO" data-search="2.1 節 2 者モデル – エンタープライズの sso section 2.1 the two-party model – enterprise sso">2.1 節 2 者モデル – エンタープライズの SSO</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0004" title="Section 2.1.1 The Two-Party Model – Delegation" data-search="2.1.1 節 2 者モデル – 委任 section 2.1.1 the two-party model – delegation">2.1.1 節 2 者モデル – 委任</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0007" title="Section 2.2 The Three-Party Model" data-search="2.2 節 3 者モデル section 2.2 the three-party model">2.2 節 3 者モデル</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0003" title="Section 2.3 The Four-Party Model" data-search="2.3 節 4 者モデル section 2.3 the four-party model">2.3 節 4 者モデル</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0020-b0001" title="Appendix B—Acronyms" data-search="付録 b—頭字語 appendix b—acronyms">付録 B—頭字語</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0021-b0001" title="Appendix C—References" data-search="付録 c—参考文献 appendix c—references">付録 C—参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7817 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">A Credential Reliability and Revocation Model for Federated Identities</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル</strong></span><br><span class="doc-panel-item">公開日 : 2012-11-29</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7817/final">https://csrc.nist.gov/pubs/ir/7817/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 181 / 182 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7817 は、フェデレーテッドなコミュニティにおけるクレデンシャルとその属性の失効を調査し、欠けている要件の特定に重点を置いた報告書です。世界中に多数のアイデンティティ管理システム（IDMS）が展開されていますが、フェデレーションのプロセスにも、クレデンシャルや属性を失効させる方法にも、統一的な手法がないとしています。デジタルクレデンシャルのさまざまな種類を紹介して分析し、2 者、3 者、4 者のアイデンティティプロバイダのモデルについて、失効に関連する欠けている要件と推奨事項を示します。第 2 の目標として、欠けている要件に対処するための、クレデンシャルの信頼性と失効のサービスである統一信頼性・失効サービス（URRS）を提案します。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7817</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7817</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>A Credential Reliability and Revocation Model for Federated Identities</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hildegard Ferraiolo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hildegard Ferraiolo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>http://dx.doi.org/10.6028/NIST.IR.7817</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>http://dx.doi.org/10.6028/NIST.IR.7817</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0001-b0006" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7817</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7817</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A Credential Reliability and Revocation Model for Federated Identities</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フェデレーテッドアイデンティティのためのクレデンシャルの信頼性と失効のモデル</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hildegard Ferraiolo<br><i>Computer Security Division</i><br><i>Information Technology Laboratory</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hildegard Ferraiolo<br><i>Computer Security Division</i><br><i>Information Technology Laboratory</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>http://dx.doi.org/10.6028/NIST.IR.7817</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>http://dx.doi.org/10.6028/NIST.IR.7817</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>November 2012</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2012年11月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br><i>Rebecca Blank, Acting Secretary</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br><i>Rebecca Blank 長官代行</i></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br><i>Patrick D. Gallagher, Under Secretary of Commerce for Standards and Technology and Director</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br><i>Patrick D. Gallagher、商務次官（標準・技術担当）兼所長</i></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of other than national security-related information in Federal information systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラに対する技術的なリーダーシップを提供することで、米国経済と公共の福祉を促進しています。ITL は、情報技術の開発と生産的な利用を進めるために、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障関連以外の情報について、そのセキュリティとプライバシーを費用対効果よく確保するための、管理上、運用上、技術上および物理的な標準とガイドラインの開発が含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report 7817<br>22 pages (Nov. 2012)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology Interagency Report 7817<br>22 ページ（2012年11月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by NIST, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書では、実験の手順や概念を適切に説明するために、特定の商業的な事業体、機器、または材料を挙げている場合があります。そのような記載は、NIST による推奨や支持を意味するものではなく、また、挙げられた事業体、材料、機器がその目的に最適であると必ずしも意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by Federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, Federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本刊行物には、NIST がその法定責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。本刊行物の情報は、概念や方法論を含め、そのような関連刊行物の完成前であっても連邦機関が利用してもよいです。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、手順が存在する場合は、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. All NIST publications, other than the ones noted above, are available at http://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供するよう促されています。上記以外のすべての NIST 刊行物は http://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Comments on this publication may be submitted to:</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>本刊行物へのコメントは、次の宛先に提出できます。</b></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgement:</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞:</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The author wishes to thank their colleagues who reviewed drafts of this document and contributed to its development. The author also gratefully acknowledges and appreciates contributions from the public and private sector for the interest and involvement in the development of this publication. The author would like to acknowledge the NIST Multi-Factor Authentication Program as sponsors of this work.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者は、本文書のドラフトを査読し、策定に貢献してくれた同僚に感謝します。著者はまた、本刊行物の策定に関心を寄せ、関与してくれた官民の貢献に、感謝の意を表します。著者は、この作業のスポンサーである NIST Multi-Factor Authentication Program に謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A large number of Identity Management Systems (IDMSs) are being deployed worldwide that use different technologies for the population of their users. With the diverse set of technologies, and the unique business requirements for organizations to federate, there is no uniform approach to the federation process. Similarly, there is no uniform method to revoke credentials or their associated attribute(s) in a federated community. In the absence of a uniform revocation method, this document seeks to investigate credential and attribute revocation with a particular focus on identifying missing requirements. This document first introduces and analyzes the different types of digital credentials and identifies missing revocation-related requirements for each model in a federated environment. As a second goal, and as a by-product of the analysis and recommendations, this paper suggests a credential reliability and revocation service that serves to address the missing requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>世界中で、利用者の集団に対してさまざまな技術を用いる、多数のアイデンティティ管理システム（IDMS）が展開されています。技術が多様であり、組織がフェデレーションを行うための固有の業務要件があるため、フェデレーションのプロセスに統一的な手法はありません。同様に、フェデレーテッドなコミュニティにおいて、クレデンシャルや、それに関連付けられた属性を失効させる統一的な方法もありません。統一的な失効の方法がない状況で、本文書は、欠けている要件の特定に特に重点を置いて、クレデンシャルと属性の失効を調査します。本文書はまず、デジタルクレデンシャルのさまざまな種類を紹介して分析し、フェデレーテッドな環境における各モデルについて、失効に関連する欠けている要件を特定します。第 2 の目標として、また分析と推奨事項の副産物として、本論文は、欠けている要件に対処するための、クレデンシャルの信頼性と失効のサービスを提案します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>authentication; identity management; IDentity Management System (IDMS); information security</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証; アイデンティティ管理; アイデンティティ管理システム（IDMS）; 情報セキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Disclaimer</b></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>免責事項</b></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper is intended for informational purposes only. Statements made are the opinions of the author and should not be interpreted as standards, guidelines, best practices, or recommendations for specific changes to any other NIST publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文は、情報提供のみを目的としています。述べられている内容は著者の意見であり、標準、ガイドライン、ベストプラクティス、または他の NIST 刊行物に対する特定の変更の推奨事項と解釈すべきではありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. Identity Provider Models and Recommendations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. アイデンティティプロバイダのモデルと推奨事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">2.1. The Two-Party Model (two legged)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0003">2.1. 2 者モデル（2 者間）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">2.1.1. Delegation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0006">2.1.1. 委任</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">2.2. The Three-Party Model (three legged)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0005">2.2. 3 者モデル（3 者間）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">2.2.1. Single Sign-On Schemes</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0002">2.2.1. シングルサインオン方式</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">2.2.2. Privacy Enhancing Technologies</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0005">2.2.2. プライバシー強化技術</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.3. The Four-Party Model (four legged)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">2.3. 4 者モデル（4 者間）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">2.3.1. Single-Source Attribute Providers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0005">2.3.1. 単一ソースの属性プロバイダ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.3.2. Multi-Source Attribute Providers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002">2.3.2. 複数ソースの属性プロバイダ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">2.3.2.1. Attribute Aggregation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">2.3.2.1. 属性の集約</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">2.3.2.2. Service Provider as the Aggregation Agent</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0006">2.3.2.2. 集約エージェントとしてのサービスプロバイダ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-4" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">2.3.2.3. External Aggregation Agent</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">2.3.2.3. 外部の集約エージェント</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">3. The Uniform Reliability and Revocation Service (URRS)</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">3. 統一信頼性・失効サービス（URRS）</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0014">3.1. URRS’s Role</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0014">3.1. URRS の役割</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0005">3.2. The User’s Role</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0005">3.2. ユーザーの役割</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0012">3.3. The Service Provider’s Role</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0012">3.3. サービスプロバイダの役割</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0005">3.4. SSO Systems</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0005">3.4. SSO システム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">3.5. The Identity Provider and Attribute Provider’s Role</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">3.5. アイデンティティプロバイダと属性プロバイダの役割</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0017">3.6. Supplementary URRS Feature: Credential Media (Token) Revocations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0017">3.6. URRS の補足機能: クレデンシャルの媒体（トークン）の失効</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0005">3.7. Supplementary URRS Feature: Derived Credential Revocation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0005">3.7. URRS の補足機能: 派生クレデンシャルの失効</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">Appendix A— Recommendations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">付録 A— 推奨事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">Appendix B— Acronyms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">付録 B— 頭字語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">Appendix C— References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">付録 C— 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Identity providers establish and manage their user community’s digital identities. These identities (in the form of digital credentials) are employed by users to authenticate to service providers. The digital identity technology deployed by an identity provider for the population of its users varies and often dictates a specific authentication solution in order for the service provider to authenticate the user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アイデンティティプロバイダは、自らの利用者コミュニティのデジタルアイデンティティを確立し、管理します。これらのアイデンティティ（デジタルクレデンシャルの形をとる）は、利用者がサービスプロバイダに認証するために使われます。アイデンティティプロバイダが利用者の集団に対して展開するデジタルアイデンティティ技術はさまざまであり、サービスプロバイダが利用者を認証するために、特定の認証ソリューションを必要とすることが多くあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A federated community accommodates two or more identity providers along with the specific authentication solution. With the diverse set of identity providers and the unique business requirements for organizations to federate, there is no uniform approach in the federation process. Similarly, there is no uniform method to revoke credentials or their associated attribute(s). In the absence of a uniform method, this document investigates credential and attribute revocation with a particular focus on identifying missing requirements for revocation. As a by-product of the analysis and recommendations, this document also suggests a model for credential reliability and revocation services that serves to address some of the missing requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フェデレーテッドなコミュニティは、2 つ以上のアイデンティティプロバイダを、特定の認証ソリューションとともに収容します。アイデンティティプロバイダが多様であり、組織がフェデレーションを行うための固有の業務要件があるため、フェデレーションのプロセスに統一的な手法はありません。同様に、クレデンシャルやそれに関連付けられた属性を失効させる統一的な方法もありません。統一的な方法がない状況で、本文書は、失効に関して欠けている要件の特定に特に重点を置いて、クレデンシャルと属性の失効を調査します。分析と推奨事項の副産物として、本文書は、欠けている要件の一部に対処するための、クレデンシャルの信頼性と失効のサービスのモデルも提案します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Identity Provider Models and Recommendations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. アイデンティティプロバイダのモデルと推奨事項</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For the purpose of this document, the identity provider and associated authentication solutions can be categorized according to the number of parties involved in an authentication event. The two-party model, for example, involves only the service provider and the credential holder (user) in the authentication event. The four-party model, on the far end of the spectrum, involves the credential holder, an independent identity provider, the service provider, and one or more independent attribute providers that vouch for attributes requested by the service provider. These and other models are discussed in this section. Where applicable, recommendations are identified to improve credential revocation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本文書の目的上、アイデンティティプロバイダと関連する認証ソリューションは、認証イベントに関与する当事者の数に従って分類できます。たとえば、2 者モデルでは、認証イベントにサービスプロバイダとクレデンシャルの保持者（ユーザー）だけが関与します。4 者モデルは、その対極にあり、クレデンシャルの保持者、独立したアイデンティティプロバイダ、サービスプロバイダ、そして、サービスプロバイダが要求する属性を保証する 1 つ以上の独立した属性プロバイダが関与します。これらのモデルとその他のモデルを、この節で論じます。該当する場合は、クレデンシャルの失効を改善するための推奨事項を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1. The Two-Party Model (two legged)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1. 2 者モデル（2 方向）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the two-party model, the two parties in the authentication event are the user and the service provider. The service provider also acts as the identity provider. The two-party model is the most frequently used scheme today. The user registers with each service provider separately, and receives a digital credential (usually username and password) after completing the registration process. These credentials are used for subsequent logins to the service providers. With a two-party model, the user is forced to remember (or carry) credentials for each service he/she subscribes to. The two-party model is generally not part of a federation, except by loose interpretation or by extension, where it is used in an enterprise’s Single Sign-On (SSO) applications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2 者モデルでは、認証イベントにおける 2 つの当事者は、ユーザーとサービスプロバイダです。サービスプロバイダは、アイデンティティプロバイダとしても機能します。2 者モデルは、今日、最も頻繁に使われている方式です。ユーザーは、各サービスプロバイダに個別に登録し、登録プロセスを完了した後、デジタルクレデンシャル（通常はユーザー名とパスワード）を受け取ります。これらのクレデンシャルは、そのサービスプロバイダへの以後のログインに使われます。2 者モデルでは、ユーザーは、加入している各サービスのクレデンシャルを覚える（または携帯する）ことを強いられます。2 者モデルは、一般に、緩い解釈による場合や、エンタープライズのシングルサインオン（SSO）アプリケーションで使われる場合の拡張による場合を除いて、フェデレーションの一部ではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 1:</b> In enterprise SSO solutions, service providers receive an assertion that asserts a successful prior authentication event by the enterprise’s SSO authentication server. In cases where the session has been tampered with by an attacker<sup>1</sup> or in cases where the attackers compromised the credential (e.g., pharming or phishing attacks), a service provider or application may detect suspicious activities of the attacker. Based on this knowledge, the service provider may prevent further malicious activities with other service providers by reporting the incident to the enterprise’s SSO authentication server, resulting in a suspension of the credential. A reporting and revocation procedure, therefore, is beneficial to protecting the enterprise SSO environment in a two-party model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 1:</b> エンタープライズの SSO ソリューションでは、サービスプロバイダは、エンタープライズの SSO 認証サーバーによる以前の認証イベントの成功を表明するアサーションを受け取ります。攻撃者がセッションを改ざんした場合<sup>1</sup>や、攻撃者がクレデンシャルを危殆化させた場合（例: ファーミング攻撃やフィッシング攻撃）には、サービスプロバイダまたはアプリケーションが、攻撃者の疑わしい活動を検知する場合があります。この知見に基づき、サービスプロバイダは、インシデントをエンタープライズの SSO 認証サーバーに報告し、その結果クレデンシャルを一時停止することで、ほかのサービスプロバイダに対するそれ以上の悪意のある活動を防止してもよいです。したがって、報告と失効の手順は、2 者モデルにおけるエンタープライズの SSO 環境を保護するうえで有益です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.1. Delegation</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.1. 委任</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In some instances, a third-party application may provide services by accessing a user’s primary service. For example, a third-party smartphone application may offer a message consolidation service by gathering and displaying email, text messages, and instant messaging in one place—its application. The consolidation service requires the username and password for each service it consolidates in order to access, retrieve, and display the messages in its consolidation application.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>場合によっては、サードパーティのアプリケーションが、ユーザーの主要なサービスにアクセスすることでサービスを提供することがあります。たとえば、サードパーティのスマートフォンアプリケーションが、電子メール、テキストメッセージ、インスタントメッセージを 1 か所、つまり自身のアプリケーションに集めて表示することで、メッセージの統合サービスを提供する場合があります。この統合サービスでは、統合する各サービスのメッセージにアクセスし、取得して、統合アプリケーション内に表示するために、各サービスのユーザー名とパスワードが必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>By sharing a password and username (i.e., the credential and its secret) with a third-party service, the user gives the third-party application uncontrolled access to the user’s primary service. As much as possible, third-party services should not be used, as they give unlimited access to another party. In addition, should malicious activity occur that originated at the third party, the primary service is likely to revoke access privileges, and as a result, block the user out of the primary service.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パスワードとユーザー名（すなわちクレデンシャルとそのシークレット）をサードパーティのサービスと共有することで、ユーザーは、サードパーティのアプリケーションに、ユーザーの主要なサービスへの制御されないアクセスを与えることになります。サードパーティのサービスは、別の当事者に無制限のアクセスを与えるため、可能な限り使用すべきではありません。加えて、サードパーティを発端とする悪意のある活動が発生した場合、主要なサービスはアクセス権限を失効させる可能性が高く、その結果、ユーザーは主要なサービスから締め出されてしまいます。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0009" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> A session could be subject to man-in-the-middle attack or session hijacking. Other attacks originating at the service provider may include Cross-Site Request Forgery (CSRF) or Cross-Site Scripting (XSS).<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> セッションは、中間者攻撃やセッションハイジャックの対象となる場合があります。サービスプロバイダを発端とするその他の攻撃には、クロスサイトリクエストフォージェリ（CSRF）やクロスサイトスクリプティング（XSS）があります。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To disable a third-party application, a user can simply change the primary service’s credential (username and/or password).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サードパーティのアプリケーションを無効にするには、ユーザーは、主要なサービスのクレデンシャル（ユーザー名やパスワード）を変更するだけでよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 2:</b> In federated communities, delegation technologies should be considered. With delegation technologies, the service provider issues delegation credentials that are tailored for access to data and/or processes limited to third-party service, but exclude access rights to anything else, such as user settings and controls. With delegations, should malicious third party activities occur, the primary service revokes the delegated credential, while the user credential remains valid. At the same time, the user is protected from Denial of Service (DoS) attacks. Delegations of a service should also be time constrained by limiting the access of a third-party service to the time necessary to perform the delegated service.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 2:</b> フェデレーテッドなコミュニティでは、委任技術を検討すべきです。委任技術では、サービスプロバイダは、サードパーティのサービスに限定されたデータやプロセスへのアクセスのために調整された委任クレデンシャルを発行し、ユーザー設定や制御など、それ以外のものへのアクセス権は除外します。委任を用いれば、サードパーティによる悪意のある活動が発生した場合、主要なサービスは委任されたクレデンシャルを失効させ、ユーザーのクレデンシャルは有効なままです。同時に、ユーザーはサービス拒否（DoS）攻撃から保護されます。サービスの委任は、サードパーティのサービスのアクセスを、委任されたサービスの実行に必要な時間に限定することで、時間的にも制約すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 3:</b> A user or service provider in the federation should have the ability to terminate a delegated service through a delegation revocation procedure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 3:</b> フェデレーションの中のユーザーまたはサービスプロバイダは、委任の失効手順を通じて、委任されたサービスを終了できるようにすべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2. The Three-Party Model (three legged)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2. 3 者モデル（3 方向）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A three-party model involves a user, an independent identity provider, and a service provider. In general, the user authenticates to the identity provider. After successful authentication, the identity provider issues an assertion to the service provider indicating that the user has successfully authenticated to the identity provider. The service provider in this case outsources authentication to the identity provider and accepts the authentication assertion of the identity provider.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3 者モデルでは、ユーザー、独立したアイデンティティプロバイダ、サービスプロバイダが関与します。一般に、ユーザーはアイデンティティプロバイダに認証します。認証に成功すると、アイデンティティプロバイダは、ユーザーがアイデンティティプロバイダに認証に成功したことを示すアサーションを、サービスプロバイダに発行します。この場合のサービスプロバイダは、認証をアイデンティティプロバイダに外部委託し、アイデンティティプロバイダの認証アサーションを受け入れます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A service provider accepts a user’s access requests to its service based on a successful authentication assertion from the identity provider. As is the case with the two-party model, the service provider needs to protect its resources from unauthorized and malicious access. It employs a variety of defense mechanisms<sup>2</sup> to detect and guard against attacks such as phishing, cross-site scripting, and session hijacking as best as possible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サービスプロバイダは、アイデンティティプロバイダからの認証アサーションの成功に基づいて、ユーザーによる自らのサービスへのアクセス要求を受け付けます。2 者モデルの場合と同様に、サービスプロバイダは、不正で悪意のあるアクセスから自らのリソースを保護する必要があります。サービスプロバイダは、フィッシング、クロスサイトスクリプティング、セッションハイジャックなどの攻撃を、可能な限り検知して防御するために、さまざまな防御メカニズム<sup>2</sup>を採用しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Evidence of malicious activity at the service provider is not generally shared with the identity provider. This situation is unfortunate, as the service provider is at the forefront of attacks. It has all audit trails and knowledge of suspicious or malicious account activities. A user could potentially be a victim of a phishing attack in which an attacker directs the user to a mock identity provider for authentication, and thereby learns the username and/or password. With the phished username and password, the attacker authenticates to the actual identity provider to acquire an assertion. The attacker subsequently tries several service providers to access the user’s federated services and accounts. Unaware of the attack, a service provider accepts the assertion and grants access. The service provider, however, may detect unusual or suspicious account activities and block the user. With the feedback from the affected service provider, the identity provider could suspend the user and prevent further attacks at other federated services. Service provider feedback is especially useful and indicative in the federation since the feedback is likely reported by several service providers in the federation, thus providing strong evidence of credential compromise. The user as well as the service is saved time, money, and damage because of the service provider’s feedback and the identity provider’s suspension actions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サービスプロバイダでの悪意のある活動の証拠は、一般にアイデンティティプロバイダと共有されません。サービスプロバイダは攻撃の最前線にあり、すべての監査証跡と、疑わしい、または悪意のあるアカウント活動に関する知識を持っているため、この状況は残念です。ユーザーは、攻撃者がユーザーを偽のアイデンティティプロバイダに誘導して認証させ、それによってユーザー名やパスワードを知るというフィッシング攻撃の被害者になる可能性があります。攻撃者は、フィッシングで得たユーザー名とパスワードを使って、本物のアイデンティティプロバイダに認証し、アサーションを取得します。その後、攻撃者は、ユーザーのフェデレーテッドなサービスとアカウントにアクセスするために、複数のサービスプロバイダを試します。攻撃に気づいていないサービスプロバイダは、アサーションを受け付けて、アクセスを許可します。しかし、サービスプロバイダは、異常なアカウント活動や疑わしいアカウント活動を検知して、ユーザーをブロックする場合があります。影響を受けたサービスプロバイダからのフィードバックにより、アイデンティティプロバイダは、ユーザーを一時停止して、ほかのフェデレーテッドなサービスでのさらなる攻撃を防ぐことができます。サービスプロバイダのフィードバックは、フェデレーションの中の複数のサービスプロバイダから報告される可能性が高く、したがってクレデンシャルの危殆化の強力な証拠となるため、フェデレーションでは特に有用で、示唆に富みます。サービスプロバイダのフィードバックと、アイデンティティプロバイダの一時停止の措置により、ユーザーもサービスも、時間、費用、被害を節約できます。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0008-b0009" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> SP 800-63-1, Sections 9 and 10 describes specific threat mitigation techniques for authentication threats.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=8">原本 PDF p.8</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> SP 800-63-1 の第 9 節と第 10 節は、認証に対する脅威への具体的な緩和技術を説明しています。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 4:</b> In a three-party model, a reporting service for credential revocation/suspension is necessary in order for the service provider to provide feedback to the identity provider on malicious use of credentials.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 4:</b> 3 者モデルでは、サービスプロバイダが、クレデンシャルの悪意のある使用についてアイデンティティプロバイダにフィードバックを提供できるようにするため、クレデンシャルの失効／一時停止を報告するサービスが必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1. Single Sign-On Schemes</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1. シングルサインオン方式</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Service providers in the three-party model may be part of a federated SSO environment where an identity provider authenticates the user once on behalf of the service providers. All service providers accept the authentication assertions and give the user access to their services without the need for the user to re-authenticate for each service individually. The threats from assertion misuse are limited when identity providers issue short-term assertions for the service provider. While short-term assertions reduce benefits for attackers, they do not mitigate threats resulting from the user’s long-term credential that was used to authenticate to the identity provider. If the long-term credential has been compromised, an attacker could use the credential to authenticate to the identity provider and proceed undetected to exploit several service providers. A federated SSO environment therefore can benefit from service providers reporting suspicious or malicious account activities and for identity providers to suspend a credential based on the feedback.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>3 者モデルのサービスプロバイダは、アイデンティティプロバイダがサービスプロバイダに代わってユーザーを 1 度認証する、フェデレーテッドな SSO 環境の一部である場合があります。すべてのサービスプロバイダが認証アサーションを受け付け、ユーザーが各サービスで個別に再認証する必要なく、サービスへのアクセスを与えます。アイデンティティプロバイダがサービスプロバイダ向けに短期のアサーションを発行する場合、アサーションの悪用による脅威は限定されます。短期のアサーションは、攻撃者にとっての利益を減らしますが、アイデンティティプロバイダへの認証に使われたユーザーの長期のクレデンシャルに起因する脅威を緩和するものではありません。長期のクレデンシャルが危殆化した場合、攻撃者は、そのクレデンシャルを使ってアイデンティティプロバイダに認証し、検知されないまま、複数のサービスプロバイダを悪用していく可能性があります。したがって、フェデレーテッドな SSO 環境では、サービスプロバイダが疑わしい、または悪意のあるアカウント活動を報告すること、およびアイデンティティプロバイダがそのフィードバックに基づいてクレデンシャルを一時停止することが有益です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 5:</b> The previously described phishing attack and other attacks against long-term user credentials is a concern in a federated SSO environment. Based on the service provider’s audit trail and risk mitigation techniques, the service provider may be able to prevent further malicious activities for other service providers by reporting incidents to the identity provider. A reporting service for credential revocation/suspension, therefore, is beneficial to protecting the federated SSO environment in a three-party model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 5:</b> 前述のフィッシング攻撃や、ユーザーの長期のクレデンシャルに対するその他の攻撃は、フェデレーテッドな SSO 環境での懸念事項です。サービスプロバイダは、自らの監査証跡とリスク緩和技術に基づいて、アイデンティティプロバイダにインシデントを報告することで、ほかのサービスプロバイダでのさらなる悪意のある活動を防げる場合があります。したがって、クレデンシャルの失効／一時停止に関する報告サービスは、3 者モデルでフェデレーテッドな SSO 環境を保護するうえで有益です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.2. Privacy Enhancing Technologies</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.2. プライバシー強化技術</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Privacy enhancing models seek to minimize the exposure of user attributes and user information, thereby limiting attribute disclosure to service providers based on the “need-to-know” or “least privileged” security mantra. Privacy enhancing protocols also limit the identity provider and service provider’s ability to collect and link the user’s login habits. There is no transaction handle and the user can register and use pseudonyms with each service provider or even stay anonymous with a service provider. Most privacy enhancing authentication protocols are based on selective disclosure schemes where the user has more control to selectively present some attributes, while hiding (i.e., zero knowledge) other irrelevant attributes in the interaction with the service provider. Other schemes do not disclose an attribute value (say, date of birth) at all. Instead, these privacy enhancing technologies can dynamically calculate and prove a predicate/condition (above 21) for the service provider, instead of revealing the user attribute (the date of birth).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プライバシー強化モデルは、ユーザーの属性とユーザー情報の露出を最小限に抑え、それによって、「必要最小限の知得（need-to-know）」や「最小権限」というセキュリティの標語に基づいて、サービスプロバイダへの属性の開示を制限しようとします。プライバシー強化プロトコルは、アイデンティティプロバイダとサービスプロバイダが、ユーザーのログインの習慣を収集して関連付ける能力も制限します。トランザクションハンドルはなく、ユーザーは、各サービスプロバイダで仮名を登録して使用したり、サービスプロバイダに対して匿名のままでいたりすることもできます。ほとんどのプライバシー強化認証プロトコルは、選択的開示方式に基づいており、ユーザーは、サービスプロバイダとのやり取りで、一部の属性を選択して提示し、その他の無関係な属性を隠す（すなわち、ゼロ知識）ことを、より強く制御できます。ほかの方式では、属性値（たとえば生年月日）をまったく開示しません。その代わり、これらのプライバシー強化技術は、ユーザーの属性（生年月日）を明らかにする代わりに、サービスプロバイダに対して、述語／条件（21 歳以上）を動的に計算して証明できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Privacy enhancing protocols involve the identity provider only minimally. The identity provider signs the user’s attributes and issues zero-knowledge enabled credentials to the user. The user, in turn, establishes a login account with the service provider with a pseudonym or by establishing an anonymous login account. On subsequent logins, the user presents the credential with the service without further interaction/authentication with the identity provider. The identity provider therefore is out of the loop and cannot collect the user’s Internet footprint. Similarly, the service provider does not interact with the identity provider beyond simply verifying the identity provider’s signature on the credential. No transaction handle is involved.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プライバシー強化プロトコルでは、アイデンティティプロバイダの関与は最小限です。アイデンティティプロバイダは、ユーザーの属性に署名し、ゼロ知識に対応したクレデンシャルをユーザーに発行します。ユーザーは、その後、仮名を用いて、または匿名のログインアカウントを確立して、サービスプロバイダにログインアカウントを確立します。以降のログインでは、ユーザーは、アイデンティティプロバイダとのさらなるやり取り／認証を行わずに、サービスにクレデンシャルを提示します。したがって、アイデンティティプロバイダは蚊帳の外にあり、ユーザーのインターネット上の足跡を収集できません。同様に、サービスプロバイダは、クレデンシャル上のアイデンティティプロバイダの署名を単に検証する以上には、アイデンティティプロバイダとやり取りしません。トランザクションハンドルは関与しません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 6:</b> While privacy enhancing schemes offer enhancements to information disclosure, they suffer from the lack of identity provider involvement in the authentication event.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 6:</b> プライバシー強化方式は、情報開示の面で強化をもたらしますが、認証イベントにアイデンティティプロバイダが関与しないという欠点があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Without the identity provider’s involvement, the status of a user’s credential cannot be determined by the service provider. Where the status of a credential/attribute is important to the federation, therefore, a service provider may benefit from a blacklist as part of a federated revocation mechanism. Blacklists are posted by the identity provider and constructed primarily based on feedback received from users or based on individuals reporting a lost, stolen, or compromised credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アイデンティティプロバイダが関与しないと、サービスプロバイダは、ユーザーのクレデンシャルの状態を判断できません。したがって、クレデンシャル／属性の状態がフェデレーションにとって重要な場合、サービスプロバイダは、フェデレーテッドな失効メカニズムの一部としてのブラックリストから利益を得られる場合があります。ブラックリストは、アイデンティティプロバイダが公開し、主に、ユーザーから受け取ったフィードバックや、個人によるクレデンシャルの紛失、盗難、危殆化の報告に基づいて作成されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 7:</b> The blacklist mechanism is valuable, but seems to exclude service provider feedback. Service providers are the primary entities that have first-hand information about malicious account activities. With service provider feedback, malicious incidents could be reported by the service provider to the identity provider. As a result, the identity provider could suspend the credential and protect the user from further attacks. To implement this measure, a trusted third party (the revocation service of the federation) would have to perform the task of credential suspension/ revocation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 7:</b> ブラックリストのメカニズムは価値がありますが、サービスプロバイダのフィードバックを除外しているように見えます。サービスプロバイダは、悪意のあるアカウント活動について直接の情報を持つ主要なエンティティです。サービスプロバイダのフィードバックがあれば、サービスプロバイダは悪意のあるインシデントをアイデンティティプロバイダに報告できます。その結果、アイデンティティプロバイダは、クレデンシャルを一時停止して、ユーザーをさらなる攻撃から保護できます。この措置を実施するには、信頼できる第三者（フェデレーションの失効サービス）が、クレデンシャルの一時停止／失効のタスクを実行する必要があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3. The Four-Party Model (four legged)</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3. 4者モデル（4者間）</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the four-party authentication model, an attribute provider is introduced in addition to the identity provider, service provider, and user. The need for attributes, in addition to user identification and authentication, stems from access control models such as Attribute-Based Access Control (ABAC) and Role-Based Access Control (RBAC), where combinations of attributes (authorization attributes) are evaluated at the access decision point of the service to determine authorized access. The four-party model can be further sub-categorized in accordance with the source of the attributes: 1) single-source, where the service provider relies on a single source to provide attributes in an authentication event, and 2) multi source, where the service provider relies on several independent attribute providers to provide attributes in an authentication and authorization event. Single-source and multi-source attribute providers are further discussed below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>4 者認証モデルでは、アイデンティティプロバイダ、サービスプロバイダ、ユーザーに加えて、属性プロバイダが導入されます。ユーザーの識別と認証に加えて属性が必要になるのは、属性ベースのアクセス制御（ABAC）やロールベースのアクセス制御（RBAC）などのアクセス制御モデルでは、サービスのアクセス決定ポイントで、属性（認可属性）の組み合わせが評価されて、許可されるアクセスが判断されるためです。4 者モデルは、属性の提供元に応じて、さらに次のように分類できます。1) 単一ソース。サービスプロバイダが、認証イベントで属性を提供する単一の提供元に依拠します。2) 複数ソース。サービスプロバイダが、認証と認可のイベントで属性を提供する複数の独立した属性プロバイダに依拠します。単一ソースと複数ソースの属性プロバイダについては、以下でさらに説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.3.1. Single-Source Attribute Providers</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.3.1. 単一ソースの属性プロバイダ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most common single-source attribute provider is the identity provider. Single-source attribute providers in federated communities have generally pre-agreed authorization attributes. These attributes are maintained by the user’s identity provider (issuer) and sent to the service provider as part of an authentication event to provide authorization context in the form of assertions. An example of this model is the Backend Attribute Exchange (BAE), an interagency attribute exchange mechanism used in addition to PIV cardholder authentication, where a federal agency service provider can request additional attributes about a PIV cardholder from other agencies (e.g., the issuer/identity provider) to enhance authentication and determine access control privileges. Another example is the First/Emergency Response Official (F/ERO) system where attributes such as knowledge, skills, and abilities of first responders are verified at incident control sites. The arriving first responder presents his/her First Responder Access Card (FRAC) at the incident site, where he or she is authenticated using the digital credentials on the FRAC. The attributes are pre-loaded from the F/ERO Attribute Repository in the access control station and linked to the FRAC credentials at the authentication event, so that these attributes can be used for informed decision-making (for example, whether the first responder should be allowed access to a particular area during an emergency) .</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最も一般的な単一ソースの属性プロバイダは、アイデンティティプロバイダです。フェデレーテッドなコミュニティの単一ソースの属性プロバイダは、一般に、あらかじめ合意された認可属性を持ちます。これらの属性は、ユーザーのアイデンティティプロバイダ（発行者）が維持し、認可のコンテキストをアサーションの形で提供するために、認証イベントの一部としてサービスプロバイダに送られます。このモデルの例は、PIV カード所持者の認証に加えて使われる、機関間の属性交換メカニズムである Backend Attribute Exchange（BAE）です。これにより、連邦機関のサービスプロバイダは、認証を強化し、アクセス制御の権限を判断するために、PIV カード所持者に関する追加の属性を、ほかの機関（たとえば、発行者／アイデンティティプロバイダ）に要求できます。もう 1 つの例は、First/Emergency Response Official（F/ERO）システムで、ファーストレスポンダーの知識、技能、能力などの属性が、事案制御の現場で検証されます。到着したファーストレスポンダーは、事案の現場で First Responder Access Card（FRAC）を提示し、FRAC のデジタルクレデンシャルを使って認証されます。属性は、F/ERO 属性リポジトリからアクセス制御ステーションにあらかじめ読み込まれ、認証イベントで FRAC のクレデンシャルに関連付けられるため、これらの属性を、情報に基づく意思決定（たとえば、緊急時に、ファーストレスポンダーに特定の区域へのアクセスを許可すべきかどうか）に使うことができます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 8:</b> The types of attributes accepted by the federation are usually defined by the service providers of the federation. Attributes can be assigned by the identity provider to its users as either self-asserted or verified attributes. Where attributes serve a critical part in the roles or the functions a user is permitted to perform, it is important for attributes to be verified and up-to-date. The identity provider, therefore, should check the authoritative source(s) for attribute updates (e.g., changes in the attribute qualification, revocation, suspension).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 8:</b> フェデレーションが受け入れる属性の種類は、通常、フェデレーションのサービスプロバイダが定義します。属性は、アイデンティティプロバイダが、自己申告の属性または検証済みの属性のいずれかとして、ユーザーに割り当てることができます。属性が、ユーザーが実行を許可される役割や機能の重要な部分を担う場合、属性が検証されており、最新であることが重要です。したがって、アイデンティティプロバイダは、属性の更新（たとえば、属性の資格の変更、失効、一時停止）について、権威ある情報源を確認すべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.3.2. Multi-Source Attribute Providers</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.3.2. 複数ソースの属性プロバイダ</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are situations where the identity provider is not the attribute provider. Other authoritative sources are consulted independently. These sources may include credit bureaus or background investigation services. With multi-source attribute providers, therefore, the service provider aggregates attributes from several sources or receives aggregated attributes from an aggregation service to make an access decision. The multi-source attribute provider model is less common because of the added complexity and extended trust model required and the lack of a standards-based approach to multi-source attribute aggregation. The complexity, in part, is due to the lack of a standards-based aggregation technique that correlates the different sources to the same user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アイデンティティプロバイダが属性プロバイダではない状況があります。その場合、ほかの権威ある情報源が独立して照会されます。これらの情報源には、信用調査機関や身元調査サービスが含まれる場合があります。したがって、複数ソースの属性プロバイダでは、サービスプロバイダが、複数の情報源から属性を集約するか、集約サービスから集約された属性を受け取って、アクセスを決定します。複数ソースの属性プロバイダのモデルは、複雑さが増すこと、必要な信頼モデルが拡張されること、複数ソースの属性集約に対する標準ベースのアプローチがないことから、一般的ではありません。この複雑さは、一部には、異なる情報源を同じユーザーに対応付ける、標準ベースの集約技術がないことによるものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.3.2.1. Attribute Aggregation</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.3.2.1. 属性の集約</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An aggregation service collects all service provider-requested attributes. The collection of attributes is subsequently used by the service provider to determine access privileges. Attribute aggregator services are discussed below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>集約サービスは、サービスプロバイダが要求するすべての属性を収集します。収集された属性は、その後、サービスプロバイダがアクセス権限を判断するために使われます。属性集約サービスについては、以下で説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.3.2.2. Service Provider as the Aggregation Agent</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.3.2.2. 集約エージェントとしてのサービスプロバイダ</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When the service provider aggregates attributes, it accumulates the attributes from the attribute providers at the authentication event in order to determine access privileges to its services. Ideally, the user consents to the release of attributes by authenticating to each attribute provider individually and authorizing the release to the service provider. A mechanism to correlate and aggregate the different attribute assertions received for a user has to exist in this model in order for the service provider to link the attribute to the same person. A simple method to correlate attributes is to use the same credential throughout the authentication event—including authentication to the identity provider as well to all attribute providers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サービスプロバイダが属性を集約する場合、サービスプロバイダは、自らのサービスへのアクセス権限を判断するために、認証イベントで属性プロバイダから属性を蓄積します。理想的には、ユーザーが、各属性プロバイダに個別に認証し、サービスプロバイダへの開示を認可することで、属性の開示に同意します。このモデルでは、サービスプロバイダが属性を同じ人物に関連付けられるように、ユーザーについて受け取った異なる属性アサーションを対応付けて集約するメカニズムが存在しなければなりません。属性を対応付ける簡単な方法は、アイデンティティプロバイダへの認証と、すべての属性プロバイダへの認証を含め、認証イベント全体を通じて同じクレデンシャルを使うことです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 9:</b> As a benefit of using the same credential, and taking into account service provider feedback mechanisms, the authentication decisions by the attribute provider and identity provider should be based on the same status of the credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 9:</b> 同じクレデンシャルを使うことの利点として、また、サービスプロバイダのフィードバックメカニズムを考慮して、属性プロバイダとアイデンティティプロバイダによる認証の決定は、クレデンシャルの同じ状態に基づくべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h6>2.3.2.3. External Aggregation Agent</h6>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h6>
+2.3.2.3. 外部の集約エージェント</h6>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In this model, either the identity provider or an independent service acts as the aggregation agent by collecting the attributes on behalf of the service provider from various identity provider or attribute provider sources. The collection of attributes is subsequently provided to the service provider in a single transaction. A federation service (e.g., URRS, Section 3) can accumulate or correlate the credentials used for authentication of all parties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このモデルでは、アイデンティティプロバイダまたは独立したサービスのいずれかが、サービスプロバイダに代わって、さまざまなアイデンティティプロバイダまたは属性プロバイダの情報源から属性を収集することで、集約エージェントとして機能します。収集された属性は、その後、単一のトランザクションでサービスプロバイダに提供されます。フェデレーションのサービス（たとえば、第 3 節の URRS）は、すべての当事者の認証に使われるクレデンシャルを蓄積または対応付けることができます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. The Uniform Reliability and Revocation Service (URRS)</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 統一信頼性・失効サービス（URRS）</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In federations, service providers relinquish control of maintaining their own population of user credentials by accepting credentials managed by a third-party identity provider. These third-party credentials are not issued for the sole purpose of one service; they serve other service providers within the federation as well. To accept third-party credentials, therefore, involves some risks, even if a trust framework is established. There are threats from other service providers, the third-party identity provider, and the users. For example, service providers may be vulnerable to cross-site scripting, while users may be tricked into phishing schemes or subject to pharming. As a result (and because these credentials are accepted by many service providers), attacks geared at one service and its user are a threat to all other federated services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フェデレーションでは、サービスプロバイダは、サードパーティのアイデンティティプロバイダが管理するクレデンシャルを受け入れることで、自らのユーザークレデンシャル群を維持する制御を手放します。これらのサードパーティのクレデンシャルは、1 つのサービスのみを目的として発行されるものではなく、フェデレーション内のほかのサービスプロバイダにも利用されます。したがって、サードパーティのクレデンシャルを受け入れることには、トラストフレームワークが確立されていても、いくつかのリスクが伴います。ほかのサービスプロバイダ、サードパーティのアイデンティティプロバイダ、ユーザーからの脅威があります。たとえば、サービスプロバイダはクロスサイトスクリプティングに対して脆弱である場合があり、ユーザーはフィッシングの手口に欺かれたり、ファーミングの被害を受けたりする場合があります。その結果（およびこれらのクレデンシャルが多くのサービスプロバイダに受け入れられているため）、1 つのサービスとそのユーザーを狙った攻撃は、ほかのすべてのフェデレーテッドなサービスにとっての脅威になります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Uniform Reliability and Revocation Service (URRS) strives to mitigate some of the threats identified in Section 2 by providing a collaborative tool for all parties of the federated community to contribute to and participate in the credential reliability and revocation service, including the user and the service provider. Involving all parties will enhance acceptance and trust in the credentials by giving the stakeholders with the most risk (e.g., financial loss) the ability to monitor and report credentials. Participation by the user and service provider will lead to closely surveyed credentials and eventually to more trusted credentials. Attackers, on the other hand, will have limited success in repeat misuse of a credential because of the monitoring, reporting, and revocation features of the URRS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>統一信頼性・失効サービス（URRS）は、ユーザーとサービスプロバイダを含むフェデレーテッドなコミュニティのすべての当事者が、クレデンシャルの信頼性・失効サービスに貢献し、参加するための協調的なツールを提供することで、第 2 節で特定した脅威の一部を緩和することを目指します。すべての当事者を関与させることで、最もリスク（たとえば、金銭的損失）の大きい利害関係者に、クレデンシャルを監視して報告する能力を与えることにより、クレデンシャルの受け入れと信頼が高まります。ユーザーとサービスプロバイダが参加することで、クレデンシャルが綿密に監視され、最終的には、より信頼されるクレデンシャルになります。一方、攻撃者は、URRS の監視、報告、失効の機能により、クレデンシャルを繰り返し悪用することに、限られた成功しか収められなくなります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS provides revocation status information to and from identity providers, service providers, attribute providers, and users. Revocation services include traditional revocation checks such as Certificate Revocation Lists (CRL) or Online Certificate Status Protocol (OCSP) checks for PKI-based credentials. The URRS also includes credential revocation services that incorporate some of the missing requirements identified in Section 2 as a federation service. Inclusion of missing requirements in an URRS will depend on the type of model of the federated community. For example, a federated community without federated privacy enhancing technology would not include recommended features in Section 2.2.2.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS は、アイデンティティプロバイダ、サービスプロバイダ、属性プロバイダ、ユーザーとの間で、失効状態の情報を提供し合います。失効サービスには、PKI ベースのクレデンシャルに対する、証明書失効リスト（CRL）やオンライン証明書状態プロトコル（OCSP）の確認などの、従来の失効確認が含まれます。URRS には、フェデレーションのサービスとして、第 2 節で特定された不足している要件の一部を取り入れた、クレデンシャルの失効サービスも含まれます。URRS に不足している要件を含めるかどうかは、フェデレーテッドなコミュニティのモデルの種類によって異なります。たとえば、フェデレーテッドなプライバシー強化技術を持たないフェデレーテッドなコミュニティには、2.2.2 節で推奨した機能は含まれません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The service provider feedback to the URRS results in a credential’s reliability score that shows decreased reliability with each negative feedback, and that may cause the URRS to lower the credential status to ‘suspended’ should the score reach a pre-established low score. Suspension actions can be initiated by the identity provider or by the user regardless of the reliability score. The reliability score also serves as a tool for service providers to determine the suitability of a presented credential in an authentication event. The service provider may decline the credential if the reliability score is low. The reliability mechanism will limit, as a result, attackers’ success in repeat attack of a credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS へのサービスプロバイダのフィードバックにより、クレデンシャルの信頼性スコアが得られます。このスコアは、否定的なフィードバックのたびに信頼性の低下を示し、あらかじめ設定された低いスコアに達した場合に、URRS がクレデンシャルの状態を「suspended」に下げる場合があります。一時停止の措置は、信頼性スコアにかかわらず、アイデンティティプロバイダまたはユーザーが開始できます。信頼性スコアは、認証イベントで提示されたクレデンシャルの適合性を、サービスプロバイダが判断するためのツールとしても機能します。信頼性スコアが低い場合、サービスプロバイダは、そのクレデンシャルを拒否できます。その結果、信頼性メカニズムにより、クレデンシャルに対する攻撃者の繰り返しの攻撃の成功が制限されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In addition to the credential reliability and revocation service, the URRS also attempts to address revocation to a credential medium where the user has several credentials in one medium – e.g., smart card and revocation of derived credentials.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>クレデンシャルの信頼性・失効サービスに加えて、URRS は、ユーザーが 1 つの媒体（たとえば、スマートカード）に複数のクレデンシャルを持つ場合の、クレデンシャルの媒体に対する失効や、派生クレデンシャルの失効にも対処しようとします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS is designed to serve a federated system with a diverse set of federated identity types. The entities of the URRS are depicted in Figure 1 and their roles in universal revocation are described in more detail in Sections 3.1 through 3.7.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS は、多様なフェデレーテッドなアイデンティティの種類を持つフェデレーテッドなシステムに対応するように設計されています。URRS のエンティティは図 1 に示しており、ユニバーサルな失効におけるそれらの役割は、3.1 節から 3.7 節でより詳しく説明します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0013-b0004" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7817/p0013-figure-01.png" alt="Diagram of the URRS. A light-blue cloud labeled &quot;Universal Reliability and Revocation Service&quot; contains stacked cards labeled &quot;2-Party&quot;, &quot;3-Party&quot;, &quot;4-Party&quot; with &quot;Credentials with •Reliability score •Credential status •Attribute status •List of accounts (optional) •Media (optional)&quot;, linked by double arrows to boxes &quot;SCVP&quot; and &quot;PET - Black List&quot;. Around the cloud: &quot;Identity Provider&quot; (upper left) receives &quot;new update, suspend, revoke&quot; from and sends &quot;alert&quot; ... arrows with the cloud; a top box &quot;Single Sign on System&quot; with two &quot;SSO Service Provider&quot; boxes exchanges &quot;report suspicious activities&quot;, &quot;request status and score&quot; and &quot;report status and score&quot; with the cloud; &quot;Service Provider&quot; (upper right) has arrows &quot;Report status and score&quot; and &quot;Request status and score – or report suspicious activity&quot;; &quot;Credential Holder&quot; (lower left) sends &quot;suspend&quot; to and receives &quot;alert&quot; from the cloud and sends &quot;request revocation&quot; to the Identity Provider; &quot;Attribute Provider&quot; (lower right) exchanges &quot;alert&quot; and &quot;new update, suspend, revoke&quot; with the cloud."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS の構成図です。水色の雲「Universal Reliability and Revocation Service」の中に「2-Party」「3-Party」「4-Party」と書かれた重なったカードがあり、「Credentials with •Reliability score •Credential status •Attribute status •List of accounts (optional) •Media (optional)」と記されています。カードは「SCVP」と「PET - Black List」の箱と双方向の矢印で結ばれています。雲の周りには、左上の「Identity Provider」（雲との間に「new update, suspend, revoke」と「alert」の矢印）、上部の「Single Sign on System」と 2 つの「SSO Service Provider」の箱（雲との間に「report suspicious activities」「request status and score」「report status and score」の矢印）、右上の「Service Provider」（「Report status and score」と「Request status and score – or report suspicious activity」の矢印）、左下の「Credential Holder」（雲へ「suspend」、雲から「alert」、Identity Provider へ「request revocation」の矢印）、右下の「Attribute Provider」（雲との間に「alert」と「new update, suspend, revoke」の矢印）があります。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1 - Universal Reliability and Revocation Service (URRS)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 - ユニバーサル信頼性・失効サービス（URRS）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS in Figure 1 includes all possible entities in the federation. However, depending on the federation, only a few entities may be involved. For example, a federated community without federated privacy enhancing identities would not include the Privacy Enhancing Technology (PET) blacklist.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 の URRS には、フェデレーションで可能なすべてのエンティティが含まれています。ただし、フェデレーションによっては、少数のエンティティのみが関与する場合があります。たとえば、フェデレーテッドなプライバシー強化アイデンティティを持たないフェデレーテッドなコミュニティには、プライバシー強化技術（PET）のブラックリストは含まれません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1. URRS’s Role</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1. URRS の役割</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS is the central information collection and distribution point of credential status information and its reliability. The role of the URRS is to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS は、クレデンシャルの状態情報とその信頼性を収集して配布する、中心的な情報の集約・配布ポイントです。URRS の役割は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Maintain credential status (ACTIVE, SUSPENDED, REVOKED).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">クレデンシャルの状態（ACTIVE、SUSPENDED、REVOKED）を維持します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Communicate credential status and reliability scores to service providers in order for the service provider to make a risk based decision to accept or decline the proposed credential for authentication.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サービスプロバイダが、提示されたクレデンシャルを認証のために受け入れるか拒否するかを、リスクに基づいて判断できるように、クレデンシャルの状態と信頼性スコアをサービスプロバイダに伝えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Maintain reliability score for each ACTIVE credential and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACTIVE な各クレデンシャルの信頼性スコアを維持し、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0018-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lower the reliability score in cases where the pre-established reliability threshold has not been reached. The credential status in this case remains ACTIVE.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">あらかじめ設定された信頼性のしきい値に達していない場合に、信頼性スコアを下げます。この場合、クレデンシャルの状態は ACTIVE のままです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0018-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Update the credential status to SUSPENDED in cases where the pre-established reliability threshold has been reached or as requested by the user.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">あらかじめ設定された信頼性のしきい値に達した場合、またはユーザーから要求された場合に、クレデンシャルの状態を SUSPENDED に更新します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0013-b0018-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Update the credential status to REVOKED as requested by the identity provider.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">アイデンティティプロバイダから要求された場合に、クレデンシャルの状態を REVOKED に更新します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Communicate feedback from the service provider to the identity provider and the user, including the resulting actions (credential status and/or reliability score update).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">サービスプロバイダからのフィードバックを、結果として生じる措置（クレデンシャルの状態および／または信頼性スコアの更新）を含めて、アイデンティティプロバイダとユーザーに伝えます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Accept immediate SUSPENSION requests from the user for credentials that have not reached the pre-established reliability threshold.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">あらかじめ設定された信頼性のしきい値に達していないクレデンシャルについて、ユーザーからの即時の SUSPENSION 要求を受け付けます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Accept immediate REVOCATION requests from the identity provider for credentials that have not reached the pre-established reliability threshold.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">あらかじめ設定された信頼性のしきい値に達していないクレデンシャルについて、アイデンティティプロバイダからの即時の REVOCATION 要求を受け付けます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS automatically updates the reliability score with each feedback from the service provider. These updates are communicated to the identity provider and the user. The URRS automatically suspends the credential if a feedback causes the score to fall below the reliability score threshold. The threshold value is established and agreed upon by the identity providers and service providers when the URRS is set up.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS は、サービスプロバイダからのフィードバックのたびに、信頼性スコアを自動的に更新します。これらの更新は、アイデンティティプロバイダとユーザーに伝えられます。URRS は、フィードバックによってスコアが信頼性スコアのしきい値を下回った場合、クレデンシャルを自動的に一時停止します。しきい値は、URRS の設定時に、アイデンティティプロバイダとサービスプロバイダが定め、合意します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2. The User’s Role</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2. ユーザーの役割</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A user (credential holder) can benefit by monitoring his/her own credential. Monitoring services are a critical function for the user as his/her digital reputation is at stake. He/she can actively monitor the credential status and take actions to suspend the credential should the reliability score of the credential be unacceptable. Involving the credential holder will add an extra layer of surveillance and promote early detection of credential misuse, effectively mitigating further attacks as a result of early detection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ユーザー（クレデンシャルの保持者）は、自らのクレデンシャルを監視することで利益を得られます。ユーザーのデジタルな評判が懸かっているため、監視サービスはユーザーにとって重要な機能です。ユーザーは、クレデンシャルの状態を能動的に監視し、クレデンシャルの信頼性スコアが許容できない場合には、クレデンシャルを一時停止する措置をとることができます。クレデンシャルの保持者を関与させることで、監視の層がもう 1 つ加わり、クレデンシャルの悪用の早期検知が促進され、早期検知の結果として、さらなる攻撃が効果的に緩和されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The user’s responsibility is to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ユーザーの責任は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Monitor his/her profile of credentials through the user interface of the URRS.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">URRS のユーザーインタフェースを通じて、自らのクレデンシャルのプロファイルを監視します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">React to alerts sent by the URRS as necessary and request the URRS to suspend a credential as needed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">URRS から送られるアラートに、必要に応じて対応し、必要に応じて URRS にクレデンシャルの一時停止を要求します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Immediately report lost, stolen, or compromised credentials to the identity provider and URRS for suspension or revocation action at the URRS and identity provider.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">紛失、盗難、または危殆化したクレデンシャルを、URRS とアイデンティティプロバイダでの一時停止または失効の措置のために、直ちにアイデンティティプロバイダと URRS に報告します。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The user can suspend a credential at any point, even if the reliability threshold has not been reached. Reasons for immediate suspension may be necessary if the user’s credential has been lost. A user may also need to request immediate suspension upon detecting an attacker’s use of a stolen or compromised credential at a service provider.<sup>3</sup> The attacker may trigger an URRS alert, enabling the user to discover unauthorized use of the credential. In some circumstances, suspended credentials can be reactivated. A lost credential, for example may be recovered by the user, but if no activity has been reported by the URRS for the credential during the suspension period, the credential may be reactivated at the discretion of the identity provider.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ユーザーは、信頼性のしきい値に達していなくても、いつでもクレデンシャルを一時停止できます。ユーザーのクレデンシャルが紛失した場合などには、即時の一時停止が必要になる場合があります。ユーザーは、サービスプロバイダで、攻撃者が盗難または危殆化したクレデンシャルを使っていることを検知した場合にも、即時の一時停止を要求する必要が生じる場合があります。<sup>3</sup>攻撃者が URRS のアラートを発生させ、それによってユーザーが、クレデンシャルの不正な使用を発見できる場合があります。状況によっては、一時停止したクレデンシャルを再び有効にできます。たとえば、紛失したクレデンシャルをユーザーが取り戻した場合で、一時停止の期間中にそのクレデンシャルについて URRS から活動が報告されていなければ、アイデンティティプロバイダの裁量でクレデンシャルを再び有効にできる場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3. The Service Provider’s Role</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3. サービスプロバイダの役割</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As recommended in Section 2, service provider feedback in the two to four party models should be part of a revocation service. With a service provider feedback procedure, malicious use of a credential is effectively reported to the URRS. Other service providers are prevented from using the credential because 1) the credential has been flagged as revoked/suspended by the URRS or 2) the reliability score has been lowered to an unacceptable level. Thus, other service providers save time, money, and damage because of the URRS’s reliability score system and/or suspension/revocation action.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 2 節で推奨したとおり、2 者から 4 者のモデルにおけるサービスプロバイダのフィードバックは、失効サービスの一部とすべきです。サービスプロバイダのフィードバックの手順により、クレデンシャルの悪意のある使用は、URRS に効果的に報告されます。ほかのサービスプロバイダは、1) URRS によってクレデンシャルが失効／一時停止としてフラグ付けされているか、2) 信頼性スコアが許容できないレベルに下げられているため、そのクレデンシャルを使えなくなります。このように、ほかのサービスプロバイダは、URRS の信頼性スコアの仕組み、および／または一時停止／失効の措置により、時間と費用を節約し、被害を抑えられます。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0014-b0014" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>3</sup> The user may receive an unexpected out-of-band authentication request from the service or detect changes to the service’s user setting/activities.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=14">原本 PDF p.14</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>3</sup> ユーザーは、サービスから予期しない帯域外の認証要求を受け取るか、サービスのユーザー設定／活動の変更を検知する場合があります。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The service provider’s role is to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>サービスプロバイダの役割は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Report suspicious account activities to the URRS so that the URRS can either</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">URRS が次のいずれかを行えるように、疑わしいアカウント活動を URRS に報告します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lower the reliability score or</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">信頼性スコアを下げる、または</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Update the credential status to SUSPENDED or REVOKED</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">クレデンシャルの状態を SUSPENDED または REVOKED に更新する</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consult the URRS at authentication events for the credential status and reliability score in order to make a risk based decision to accept or decline the credential for authentication and subsequent login</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">認証とその後のログインのために、クレデンシャルを受け入れるか拒否するかを、リスクに基づいて判断するために、認証イベントで URRS にクレデンシャルの状態と信頼性スコアを照会します</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4. SSO Systems</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4. SSO システム</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>With SSO systems, an authentication server or identity provider authenticates the user on behalf of the service providers. The service providers accept the authentication assertion and give the user access to their services without the need to reauthenticate.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSO システムでは、認証サーバーまたはアイデンティティプロバイダが、サービスプロバイダに代わってユーザーを認証します。サービスプロバイダは、認証アサーションを受け付け、再認証を必要とせずに、ユーザーに自らのサービスへのアクセスを与えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The service providers unified under the SSO environment should:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSO 環境の下で統合されたサービスプロバイダは、次のようにすべきです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Report suspicious account activities to the URRS so that the URRS can either</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">URRS が次のいずれかを行えるように、疑わしいアカウント活動を URRS に報告します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lower the reliability score or</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">信頼性スコアを下げる、または</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0008-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Update the long term credential status to SUSPENDED or REVOKED</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">長期のクレデンシャルの状態を SUSPENDED または REVOKED に更新する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authentication server/identity provider’s role is to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>認証サーバー／アイデンティティプロバイダの役割は次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Consult the URRS at each authentication event and retrieve the credential status and reliability score in order to make a risk based decision to accept or decline the proposed credential for authentication and subsequent assertion provisioning for the unified service provider under the SSO environment.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SSO 環境の下の統合されたサービスプロバイダのために、認証とその後のアサーションの提供に向けて、提示されたクレデンシャルを受け入れるか拒否するかを、リスクに基づいて判断するために、認証イベントごとに URRS に照会し、クレデンシャルの状態と信頼性スコアを取得します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5. The Identity Provider and Attribute Provider’s Role</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5. アイデンティティプロバイダと属性プロバイダの役割</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In order for the URRS to be effective, the identity provider and attribute provider will interface with the URRS to:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS が効果的に機能するために、アイデンティティプロバイダと属性プロバイダは、次の目的で URRS とのインタフェースを持ちます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Provide credential/attribute updates (revoked, suspended) to the URRS in cases where the identity provider received reports of lost, stolen, or compromised credentials</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">アイデンティティプロバイダが、クレデンシャルの紛失、盗難、または危殆化の報告を受けた場合に、クレデンシャル／属性の更新（失効、一時停止）を URRS に提供する</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Receive reliability score updates from the URRS in order to alert the user and take revocation actions as needed</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ユーザーに警告し、必要に応じて失効の措置をとるために、URRS から信頼性スコアの更新を受け取る</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0015-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Issue new credential(s) or attributes after revocation and register the new credential at the URRS</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">失効後に新しいクレデンシャルまたは属性を発行し、新しいクレデンシャルを URRS に登録する</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The revocation procedure for the credential is initiated by the identity provider and communicated to the URRS. At the same time, the identity provider will issue a new credential to the user and register the credential at the URRS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>クレデンシャルの失効手順は、アイデンティティプロバイダが開始し、URRS に伝えられます。同時に、アイデンティティプロバイダは、ユーザーに新しいクレデンシャルを発行し、そのクレデンシャルを URRS に登録します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.6. Supplementary URRS Feature: Credential Media (Token) Revocations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.6. URRS の補足機能: クレデンシャルの媒体（トークン）の失効</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Credential media, such as smart cards and smartphones hold a user’s credentials and associated credential secret. Some credential media contain several credentials for multi factor authentication used for graduated authentication to access IT resources. An example is a smart card that holds PKI credentials as well as PIN and biometric credentials of the user. The management of the medium entails updating credentials in the medium, possibly at different times. Updates are necessary, for example, if one credential has been compromised, while other credentials remain secure and valid. The management of the medium also becomes more complex if there are several credential issuers sharing a medium. For example, an enterprise may have issued smart cards to its employees containing credentials that authenticate employees to the enterprise’s IT system. These cards also contain credentials for the cafeteria payment system and credentials to authenticate and pay for fares for the local transit agency. A lost or stolen card, in this situation, needs to be coordinated to the three entities or systems. The URRS can provide revocation services for lost, stolen, or compromised mediums and their credentials as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スマートカードやスマートフォンなどのクレデンシャルの媒体は、ユーザーのクレデンシャルと、関連するクレデンシャルのシークレットを保持します。一部のクレデンシャルの媒体は、IT 資源にアクセスするための段階的な認証に使われる多要素認証のために、複数のクレデンシャルを含みます。例は、ユーザーの PKI クレデンシャルに加えて、PIN と生体のクレデンシャルを保持するスマートカードです。媒体の管理には、媒体内のクレデンシャルの更新が伴い、更新は異なる時期に行われる場合があります。更新が必要になるのは、たとえば、1 つのクレデンシャルが危殆化しても、ほかのクレデンシャルは安全で有効なままである場合です。複数のクレデンシャルの発行者が媒体を共有する場合は、媒体の管理もいっそう複雑になります。たとえば、エンタープライズが従業員にスマートカードを発行し、そこに、従業員をエンタープライズの IT システムに認証するクレデンシャルが含まれているとします。これらのカードには、食堂の支払いシステムのクレデンシャルや、地元の交通機関で運賃を認証して支払うためのクレデンシャルも含まれています。この状況でカードを紛失または盗難された場合は、3 つの主体またはシステムに対して調整する必要があります。URRS は、紛失、盗難、または危殆化した媒体とそのクレデンシャルについて、次のように失効サービスを提供できます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lost/stolen medium: Immediate update of all credential statuses hosted by the medium to SUSPENDED or REVOKED state as requested by identity provider or medium holder.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">紛失／盗難された媒体: アイデンティティプロバイダまたは媒体の保持者から要求された場合、媒体が保持するすべてのクレデンシャルの状態を、直ちに SUSPENDED または REVOKED の状態に更新します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Communicate lost/stolen medium to all identity providers that issued a credential for the medium.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">紛失／盗難された媒体を、その媒体のクレデンシャルを発行したすべてのアイデンティティプロバイダに伝達します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Replace or update one or more credential states in cases where the credentials have been replaced due to credential compromise.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">クレデンシャルが危殆化のために置き換えられた場合に、1 つ以上のクレデンシャルの状態を置き換えるか更新します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.7. Supplementary URRS Feature: Derived Credential Revocation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.7. URRS の補足機能: 派生クレデンシャルの失効</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>User mobility enables employees to stay connected with the office while away from the office desktop computing environment. The laptop has been the medium of mobility, but it is slowly being taken over by smartphones, tablets, and other smaller portable devices. With hard and soft tokens, each of the mobile devices may need to be provisioned with secondary credentials to enable the user’s seamless connectivity to the office and its resources regardless of the medium currently in use (smartphone, tablet, etc.) These secondary credentials are called derived credentials<sup>4</sup> for the purpose of this document. A revocation or suspension of the primary credential may affect the derived credential as well.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ユーザーのモビリティにより、職員は、オフィスのデスクトップコンピューティング環境から離れていても、オフィスとの接続を保つことができます。ラップトップがモビリティの媒体でしたが、スマートフォン、タブレット、その他のより小型の携帯機器に、徐々に取って代わられつつあります。ハードトークンとソフトトークンを使う場合、現在使用中の媒体（スマートフォン、タブレットなど）にかかわらず、ユーザーがオフィスとその資源にシームレスに接続できるようにするために、各モバイル機器に二次的なクレデンシャルをプロビジョニングする必要がある場合があります。これらの二次的なクレデンシャルは、本文書の目的上、派生クレデンシャル<sup>4</sup>と呼ばれます。主要なクレデンシャルの失効または一時停止は、派生クレデンシャルにも影響を与える場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A derived credential may be tightly coupled with the primary credential. This will enable federated services to map the set of access control rules/roles to the same user regardless of whether the user used his/her primary or derived credential in the authentication event. Derived credentials also have their own token/credential secrets. Therefore, a compromised primary credential should not affect the derived credential because it has its own secret that is different (and in a different device) than the compromised primary credential. However, the derived credential’s association needs to be updated to the replacement primary credential, once the compromised credential is replaced. Similarly, reissuance and renewal of the primary credential triggers the same type of association update for the derived credentials.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>派生クレデンシャルは、主要なクレデンシャルと密接に結び付けられる場合があります。これにより、ユーザーが認証イベントで主要なクレデンシャルを使ったか派生クレデンシャルを使ったかにかかわらず、フェデレーテッドなサービスは、アクセス制御規則／ロールの集合を同じユーザーに対応付けることができます。派生クレデンシャルには、独自のトークン／クレデンシャルのシークレットもあります。したがって、危殆化した主要なクレデンシャルは、派生クレデンシャルに影響を与えるべきではありません。派生クレデンシャルは、危殆化した主要なクレデンシャルとは異なる（かつ別の機器にある）独自のシークレットを持つためです。ただし、危殆化したクレデンシャルが置き換えられたら、派生クレデンシャルの関連付けを、置き換え後の主要なクレデンシャルに更新する必要があります。同様に、主要なクレデンシャルの再発行や更新は、派生クレデンシャルに対して同じ種類の関連付けの更新を引き起こします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Termination of the primary credential, on the other hand, should lead to the derived credential’s termination. Unlike re-issuance and renewal, termination ends the user’s privileges to the primary credential and by inference leads to termination of all other derived credentials embedded in the mobility devices and used for the same application/services as the primary credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>一方、主要なクレデンシャルの終了は、派生クレデンシャルの終了につながるべきです。再発行や更新とは異なり、終了は、主要なクレデンシャルに対するユーザーの権限を終わらせ、その結果、モビリティ機器に組み込まれ、主要なクレデンシャルと同じアプリケーション／サービスに使われる、ほかのすべての派生クレデンシャルの終了につながります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The URRS can help maintain the derived credential’s association with the primary credential:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>URRS は、派生クレデンシャルと主要なクレデンシャルの関連付けの維持を、次のように支援できます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Maintain association of the primary credential and derived credential for renewal and reissuance.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">更新と再発行のために、主要なクレデンシャルと派生クレデンシャルの関連付けを維持します。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0016-b0011" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>4</sup> See SP 800-63-1 for a detailed definition of a derived credential.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>4</sup> 派生クレデンシャルの詳細な定義については、SP 800-63-1 を参照してください。        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Update derived credential identifier at each renewal or reissuance of the primary credential as indicated by the identity provider.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">アイデンティティプロバイダの指示に従って、主要なクレデンシャルの更新または再発行のたびに、派生クレデンシャルの識別子を更新します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mark all derived credentials as REVOKED in case the primary credential has been terminated.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">主要なクレデンシャルが終了した場合、すべての派生クレデンシャルを REVOKED とマークします。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—Recommendations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—推奨事項</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Section 2.1 The Two-Party Model – Enterprise SSO</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 節 2 者モデル – エンタープライズの SSO</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 1:</b> In enterprise SSO solutions, service providers receive an assertion that asserts a successful prior authentication event by the enterprise’s SSO authentication server. In cases where the session has been tampered with by an attacker<sup>5</sup> or in cases where the attackers compromised the credential (e.g., pharming or phishing attacks), a service provider or application may detect suspicious activities of the attacker. Based on this knowledge, the service provider may prevent further malicious activities with other service providers by reporting the incident to the enterprise’s SSO authentication server, resulting in a suspension of the credential. A reporting and revocation procedure, therefore, is beneficial to protecting the enterprise SSO environment in a two-party model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 1:</b> エンタープライズの SSO ソリューションでは、サービスプロバイダは、エンタープライズの SSO 認証サーバーによる以前の認証イベントの成功を表明するアサーションを受け取ります。攻撃者がセッションを改ざんした場合<sup>5</sup>や、攻撃者がクレデンシャルを危殆化させた場合（例: ファーミング攻撃やフィッシング攻撃）には、サービスプロバイダまたはアプリケーションが、攻撃者の疑わしい活動を検知する場合があります。この知見に基づき、サービスプロバイダは、インシデントをエンタープライズの SSO 認証サーバーに報告し、その結果クレデンシャルを一時停止することで、ほかのサービスプロバイダに対するそれ以上の悪意のある活動を防止してもよいです。したがって、報告と失効の手順は、2 者モデルにおけるエンタープライズの SSO 環境を保護するうえで有益です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Section 2.1.1 The Two-Party Model – Delegation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1.1 節 2 者モデル – 委任</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 2:</b> In federated communities, delegation technologies should be considered. With delegation technologies, the service provider issues delegation credentials that are tailored for access to data and/or processes limited to third-party service, but exclude access rights to anything else, such as user settings and controls. With delegations, should malicious third party activities occur, the primary service revokes the delegated credential, while the user credential remains valid. At the same time, the user is protected from Denial of Service (DoS) attacks. Delegations of a service should also be time constrained by limiting the access of a third-party service to the time necessary to perform the delegated service.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 2:</b> フェデレーテッドなコミュニティでは、委任技術を検討すべきです。委任技術では、サービスプロバイダは、サードパーティのサービスに限定されたデータやプロセスへのアクセスのために調整された委任クレデンシャルを発行し、ユーザー設定や制御など、それ以外のものへのアクセス権は除外します。委任を用いれば、サードパーティによる悪意のある活動が発生した場合、主要なサービスは委任されたクレデンシャルを失効させ、ユーザーのクレデンシャルは有効なままです。同時に、ユーザーはサービス拒否（DoS）攻撃から保護されます。サービスの委任は、サードパーティのサービスのアクセスを、委任されたサービスの実行に必要な時間に限定することで、時間的にも制約すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 3:</b> A user or service provider in the federation should have the ability to terminate a delegated service through a delegation revocation procedure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 3:</b> フェデレーションの中のユーザーまたはサービスプロバイダは、委任の失効手順を通じて、委任されたサービスを終了できるようにすべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Section 2.2 The Three-Party Model</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 節 3 者モデル</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 4:</b> In a three-party model, a reporting service for credential revocation/suspension is necessary in order for the service provider to provide feedback to the identity provider on malicious use of credentials.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 4:</b> 3 者モデルでは、サービスプロバイダが、クレデンシャルの悪意のある使用についてアイデンティティプロバイダにフィードバックを提供するために、クレデンシャルの失効／一時停止の報告サービスが必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 5:</b> The previously described phishing attack and other attacks against long-term user credentials is a concern in a federated SSO environment. Based on the service provider’s audit trail and risk mitigation techniques, the service provider may be able to prevent further malicious activities for other service providers by reporting incidents to the identity provider. A reporting service for credential revocation/suspension, therefore, is beneficial to protecting the federated SSO environment in a three-party model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 5:</b> 前に述べたフィッシング攻撃と、長期のユーザークレデンシャルに対するその他の攻撃は、フェデレーテッドな SSO 環境における懸念事項です。サービスプロバイダの監査証跡とリスク緩和手法に基づいて、サービスプロバイダは、インシデントをアイデンティティプロバイダに報告することで、ほかのサービスプロバイダに対するそれ以上の悪意のある活動を防止できる場合があります。したがって、クレデンシャルの失効／一時停止の報告サービスは、3 者モデルにおけるフェデレーテッドな SSO 環境を保護するうえで有益です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 6:</b> While privacy enhancing schemes offer enhancements to information disclosure, they suffer from the lack of identity provider involvement in the authentication event. Without the identity provider’s involvement, the status of a user’s credential cannot be determined by the service provider. Where the status of a credential/attribute is important to the federation, therefore, a service provider may benefit from a blacklist as part of a federated revocation mechanism. Blacklists are posted by the identity provider and constructed primarily based on feedback received from users or based on individuals reporting a lost, stolen, or compromised credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 6:</b> プライバシー強化方式は、情報開示に関する強化を提供しますが、認証イベントにアイデンティティプロバイダが関与しないという欠点があります。アイデンティティプロバイダの関与がないと、ユーザーのクレデンシャルの状態をサービスプロバイダが判断できません。したがって、クレデンシャルや属性の状態がフェデレーションにとって重要な場合、サービスプロバイダは、フェデレーテッドな失効の仕組みの一部としてのブラックリストから利益を得られる場合があります。ブラックリストは、アイデンティティプロバイダが掲示し、主として、ユーザーから受けたフィードバックや、クレデンシャルの紛失、盗難、危殆化を報告する個人に基づいて作成されます。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0018-b0011" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>5</sup> A session could be subject to man-in-the-middle attack or session hijacking. Other attacks originating at the service provider may include Cross-Site Request Forgery (CSRF) or Cross-Site Scripting (XSS).<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=18">原本 PDF p.18</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>5</sup> セッションは、中間者攻撃やセッションハイジャックの対象となる場合があります。サービスプロバイダを発端とするその他の攻撃には、クロスサイトリクエストフォージェリ（CSRF）やクロスサイトスクリプティング（XSS）があります。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 7:</b> The blacklist mechanism is valuable, but seems to exclude service provider feedback. Service providers are the primary entities that have first-hand information about malicious account activities. With service provider feedback, malicious incidents could be reported by the service provider to the identity provider. As a result, the identity provider could suspend the credential and protect the user from further attacks. To implement this measure, a trusted third party (the revocation service of the federation) would have to perform the task of credential suspension/ revocation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 7:</b> ブラックリストの仕組みは価値がありますが、サービスプロバイダのフィードバックを除外しているように見えます。サービスプロバイダは、悪意のあるアカウント活動についての一次情報を持つ主要な主体です。サービスプロバイダのフィードバックにより、悪意のあるインシデントは、サービスプロバイダからアイデンティティプロバイダに報告される可能性があります。その結果、アイデンティティプロバイダはクレデンシャルを一時停止し、ユーザーをそれ以上の攻撃から保護できます。この措置を実装するには、信頼できる第三者（フェデレーションの失効サービス）が、クレデンシャルの一時停止／失効のタスクを実行する必要があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Section 2.3 The Four-Party Model</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 節 4 者モデル</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 8:</b> The types of attributes accepted by the federation are usually defined by the service providers of the federation. Attributes can be assigned by the identity provider to its users as either self-asserted or verified attributes. Where attributes serve a critical part in the roles or the functions a user is permitted to perform, it is important for attributes to be verified and up-to-date. The identity provider, therefore, should check the authoritative source(s) for attribute updates (e.g., changes in the attribute qualification, revocation, suspension).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 8:</b> フェデレーションで受け入れられる属性の種類は、通常、フェデレーションのサービスプロバイダが定義します。属性は、アイデンティティプロバイダによって、ユーザーに対し、自己表明の属性または検証済みの属性のいずれかとして割り当てられます。属性が、ユーザーに許可される役割や機能の重要な部分を担う場合、属性が検証され、最新であることが重要です。したがって、アイデンティティプロバイダは、権威ある供給元に、属性の更新（例: 属性の資格、失効、一時停止の変更）を確認すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><b>Recommendation 9:</b> As a benefit of using the same credential, and taking into account service provider feedback mechanisms, the authentication decisions by the attribute provider and identity provider should be based on the same status of the credential.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><b>推奨事項 9:</b> 同じクレデンシャルを使用することの利点として、また、サービスプロバイダのフィードバックの仕組みを考慮に入れると、属性プロバイダとアイデンティティプロバイダによる認証の判断は、クレデンシャルの同じ状態に基づくべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B—頭字語</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>ABAC</td><td>Attribute Based Access Control</td></tr><tr><td>AP</td><td>Attribute Provider</td></tr><tr><td>BAE</td><td>Backend Attribute Exchange</td></tr><tr><td>CRL</td><td>Certificate Revocation List</td></tr><tr><td>CSRF</td><td>Cross-Site Request Forgery</td></tr><tr><td>DoS</td><td>Denial of Service</td></tr><tr><td>F/ERO</td><td>First/Emergency Response Official</td></tr><tr><td>FIPS</td><td>Federal Information Processing Standard</td></tr><tr><td>FRAC</td><td>First Responder Access Card</td></tr><tr><td>IdMS</td><td>Identity Management System</td></tr><tr><td>ITL</td><td>Information Technology Laboratory</td></tr><tr><td>NIST</td><td>National Institute of Standards and Technology</td></tr><tr><td>NISTIR</td><td>National Institute of Standards and Technology Interagency Report</td></tr><tr><td>OCSP</td><td>Online Certificate Status Protocol</td></tr><tr><td>PET</td><td>Privacy Enhancing Technology</td></tr><tr><td>PIV</td><td>Personal Identity Verification</td></tr><tr><td>PKI</td><td>Public Key Infrastructure</td></tr><tr><td>RBAC</td><td>Role Based Access Control</td></tr><tr><td>SCVP</td><td>Server-Based Certificate Validation Protocol</td></tr><tr><td>SP</td><td>Special Publication</td></tr><tr><td>SSO</td><td>Single Sign-On</td></tr><tr><td>URRS</td><td>Uniform Reliability and Revocation Service</td></tr><tr><td>XSS</td><td>Cross-Site Scripting</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>ABAC</td><td>Attribute Based Access Control</td></tr><tr><td>AP</td><td>Attribute Provider</td></tr><tr><td>BAE</td><td>Backend Attribute Exchange</td></tr><tr><td>CRL</td><td>Certificate Revocation List</td></tr><tr><td>CSRF</td><td>Cross-Site Request Forgery</td></tr><tr><td>DoS</td><td>Denial of Service</td></tr><tr><td>F/ERO</td><td>First/Emergency Response Official</td></tr><tr><td>FIPS</td><td>Federal Information Processing Standard</td></tr><tr><td>FRAC</td><td>First Responder Access Card</td></tr><tr><td>IdMS</td><td>Identity Management System</td></tr><tr><td>ITL</td><td>Information Technology Laboratory</td></tr><tr><td>NIST</td><td>National Institute of Standards and Technology</td></tr><tr><td>NISTIR</td><td>National Institute of Standards and Technology Interagency Report</td></tr><tr><td>OCSP</td><td>Online Certificate Status Protocol</td></tr><tr><td>PET</td><td>Privacy Enhancing Technology</td></tr><tr><td>PIV</td><td>Personal Identity Verification</td></tr><tr><td>PKI</td><td>Public Key Infrastructure</td></tr><tr><td>RBAC</td><td>Role Based Access Control</td></tr><tr><td>SCVP</td><td>Server-Based Certificate Validation Protocol</td></tr><tr><td>SP</td><td>Special Publication</td></tr><tr><td>SSO</td><td>Single Sign-On</td></tr><tr><td>URRS</td><td>Uniform Reliability and Revocation Service</td></tr><tr><td>XSS</td><td>Cross-Site Scripting</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix C—References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 C—参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[FIPS201] Federal Information Processing Standard 201-1, Change Notice 1, <i>Personal Identity Verification (PIV) of Federal Employees and Contractors</i>, March 2006. Or as amended (See http://csrc.nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[FIPS201] Federal Information Processing Standard 201-1, Change Notice 1, <i>Personal Identity Verification (PIV) of Federal Employees and Contractors</i>, March 2006. または改訂版（http://csrc.nist.gov を参照）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[SP800-63] NIST Special Publication 800-63-1, <i>Electronic Authentication Guideline</i>, December 2011 or as amended (See http://csrc.nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[SP800-63] NIST Special Publication 800-63-1, <i>Electronic Authentication Guideline</i>, December 2011 または改訂版（http://csrc.nist.gov を参照）</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2012/NIST.IR.7817.pdf">National Institute of Standards and Technology, IR 7817</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7817";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

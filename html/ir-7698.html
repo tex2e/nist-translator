@@ -1,0 +1,2132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7698 は、Common Platform Enumeration（CPE）適用性言語バージョン 2.3 の仕様を定義する報告書です。CPE 適用性言語は、IT 製品の記述と命名に関するさまざまなユースケースを支える CPE 仕様群の一部であり、そのデータモデルは、CPE のユーザーが IT プラットフォームを記述するために CPE 名の複雑なグループ化を構築できるようにします。これらのグループ化は、特定のガイダンスや方針などがどのプラットフォームに適用されるかを指定するために使用されるため、適用性ステートメントと呼ばれます。本報告書は、データモデルのセマンティクスに加えて、IT 製品および CPE 適用性言語文書が仕様に適合するために満たさなければならない要件を定義し、説明します。">
+  <title>共通プラットフォーム列挙：適用性言語仕様 バージョン 2.3 | NIST IR 7698 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0004" title="Common Platform Enumeration: Applicability Language Specification Version 2.3" data-search="common platform enumeration: 適用性言語仕様 バージョン 2.3 common platform enumeration: applicability language specification version 2.3">Common Platform Enumeration: 適用性言語仕様 バージョン 2.3</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="Reports on Computer Systems Technology" data-search="コンピューターシステム技術に関する報告書 reports on computer systems technology">コンピューターシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0005" title="Trademark Information" data-search="商標情報 trademark information">商標情報</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0037" title="List of Tables" data-search="表一覧 list of tables">表一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0006" title="1.1 Purpose and Scope" data-search="1.1 目的と適用範囲 1.1 purpose and scope">1.1 目的と適用範囲</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0009" title="1.2 Audience" data-search="1.2 対象読者 1.2 audience">1.2 対象読者</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001" title="1.3 Document Structure" data-search="1.3 文書の構成 1.3 document structure">1.3 文書の構成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0012" title="1.4 Document Conventions" data-search="1.4 文書の表記規則 1.4 document conventions">1.4 文書の表記規則</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2. Definitions and Abbreviations" data-search="2. 定義と略語 2. definitions and abbreviations">2. 定義と略語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0003" title="2.1 Definitions" data-search="2.1 定義 2.1 definitions">2.1 定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0009" title="2.2 Abbreviations" data-search="2.2 略語 2.2 abbreviations">2.2 略語</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001" title="3. Relationship to Existing Specifications and Standards" data-search="3. 既存の仕様および標準との関係 3. relationship to existing specifications and standards">3. 既存の仕様および標準との関係</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0003" title="3.1 Other CPE Version 2.3 Specifications" data-search="3.1 その他の cpe バージョン 2.3 仕様 3.1 other cpe version 2.3 specifications">3.1 その他の CPE バージョン 2.3 仕様</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0006" title="3.2 CPE Version 2.2" data-search="3.2 cpe バージョン 2.2 3.2 cpe version 2.2">3.2 CPE バージョン 2.2</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0011-b0001" title="4. Conformance" data-search="4. 適合性 4. conformance">4. 適合性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0004" title="4.1 Product Conformance" data-search="4.1 製品の適合性 4.1 product conformance">4.1 製品の適合性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0009" title="4.2 Organization Conformance" data-search="4.2 組織の適合性 4.2 organization conformance">4.2 組織の適合性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001" title="5. Data Model Overview" data-search="5. データモデルの概要 5. data model overview">5. データモデルの概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0003" title="5.1 The &lt;cpe:platform-specification&gt; Element" data-search="5.1 &lt;cpe:platform-specification&gt; 要素 5.1 the &lt;cpe:platform-specification&gt; element">5.1 &lt;cpe:platform-specification&gt; 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0006" title="5.2 The &lt;cpe:platform&gt; Element" data-search="5.2 &lt;cpe:platform&gt; 要素 5.2 the &lt;cpe:platform&gt; element">5.2 &lt;cpe:platform&gt; 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0009" title="5.3 The &lt;cpe:logical-test&gt; Element" data-search="5.3 &lt;cpe:logical-test&gt; 要素 5.3 the &lt;cpe:logical-test&gt; element">5.3 &lt;cpe:logical-test&gt; 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0004" title="5.4 The &lt;cpe:check-fact-ref&gt; Element" data-search="5.4 &lt;cpe:check-fact-ref&gt; 要素 5.4 the &lt;cpe:check-fact-ref&gt; element">5.4 &lt;cpe:check-fact-ref&gt; 要素</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001" title="6. Content Design Requirements and Recommendations" data-search="6. コンテンツ設計の要件と推奨事項 6. content design requirements and recommendations">6. コンテンツ設計の要件と推奨事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0003" title="6.1 CPE Applicability Language Document Contents" data-search="6.1 cpe 適用性言語文書の内容 6.1 cpe applicability language document contents">6.1 CPE 適用性言語文書の内容</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0006" title="6.2 The platform element" data-search="6.2 platform 要素 6.2 the platform element">6.2 platform 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0001" title="6.3 The logical-test element" data-search="6.3 logical-test 要素 6.3 the logical-test element">6.3 logical-test 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0011" title="6.4 The fact-ref element" data-search="6.4 fact-ref 要素 6.4 the fact-ref element">6.4 fact-ref 要素</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0001" title="6.5 The check-fact-ref element" data-search="6.5 check-fact-ref 要素 6.5 the check-fact-ref element">6.5 check-fact-ref 要素</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="7. Processing Requirements and Recommendations" data-search="7. 処理の要件と推奨事項 7. processing requirements and recommendations">7. 処理の要件と推奨事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0003" title="7.1 CPE Bound Name Conversions" data-search="7.1 cpe バウンド名の変換 7.1 cpe bound name conversions">7.1 CPE バウンド名の変換</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0005" title="7.2 Graceful Error Handling" data-search="7.2 エラーの適切な処理 7.2 graceful error handling">7.2 エラーの適切な処理</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0007" title="7.3 Evaluating Elements" data-search="7.3 要素の評価 7.3 evaluating elements">7.3 要素の評価</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0017-b0009" title="7.3.1 Evaluating a logical-test Element" data-search="7.3.1 logical-test 要素の評価 7.3.1 evaluating a logical-test element">7.3.1 logical-test 要素の評価</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0003" title="7.3.2 Evaluating a fact-ref Element" data-search="7.3.2 fact-ref 要素の評価 7.3.2 evaluating a fact-ref element">7.3.2 fact-ref 要素の評価</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0018-b0005" title="7.3.3 Evaluating a check-fact-ref Element" data-search="7.3.3 check-fact-ref 要素の評価 7.3.3 evaluating a check-fact-ref element">7.3.3 check-fact-ref 要素の評価</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="8. CPE Applicability Language Pseudocode" data-search="8. cpe 適用性言語の擬似コード 8. cpe applicability language pseudocode">8. CPE 適用性言語の擬似コード</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0003" title="8.1 Core Function" data-search="8.1 コア関数 8.1 core function">8.1 コア関数</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0004" title="8.2 Support Functions" data-search="8.2 サポート関数 8.2 support functions">8.2 サポート関数</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0022-b0001" title="Appendix A—References" data-search="付録 a—参考文献 appendix a—references">付録 A—参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0003" title="A.1 Normative References" data-search="a.1 規範的参考文献 a.1 normative references">A.1 規範的参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0009" title="A.2 Informative References" data-search="a.2 参考情報の文献 a.2 informative references">A.2 参考情報の文献</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0023-b0001" title="Appendix B—Change Log" data-search="付録 b—変更履歴 appendix b—change log">付録 B—変更履歴</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7698 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Common Platform Enumeration: Applicability Language Specification Version 2.3</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>共通プラットフォーム列挙：適用性言語仕様 バージョン 2.3</strong></span><br><span class="doc-panel-item">公開日 : 2011-08-19</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7698/final">https://csrc.nist.gov/pubs/ir/7698/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 207 / 221 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7698 は、Common Platform Enumeration（CPE）適用性言語バージョン 2.3 の仕様を定義する報告書です。CPE 適用性言語は、IT 製品の記述と命名に関するさまざまなユースケースを支える CPE 仕様群の一部であり、そのデータモデルは、CPE のユーザーが IT プラットフォームを記述するために CPE 名の複雑なグループ化を構築できるようにします。これらのグループ化は、特定のガイダンスや方針などがどのプラットフォームに適用されるかを指定するために使用されるため、適用性ステートメントと呼ばれます。本報告書は、データモデルのセマンティクスに加えて、IT 製品および CPE 適用性言語文書が仕様に適合するために満たさなければならない要件を定義し、説明します。</p></div>
+      </div>
+
+      <section class="row source-only pair figure" id="pdf-p0001-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report 7698</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 機関間報告書 7698</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Common Platform Enumeration: Applicability Language Specification Version 2.3</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+Common Platform Enumeration: 適用性言語仕様 バージョン 2.3</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David Waltermire<br>Paul Cichonski<br>Karen Scarfone</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David Waltermire<br>Paul Cichonski<br>Karen Scarfone</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Interagency Report 7698</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 機関間報告書 7698</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Common Platform Enumeration: Applicability Language Specification Version 2.3</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Common Platform Enumeration: 適用性言語仕様 バージョン 2.3</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>David Waltermire<br>Paul Cichonski<br>Karen Scarfone</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>David Waltermire<br>Paul Cichonski<br>Karen Scarfone</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>COMPUTER SECURITY</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピューターセキュリティ</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0008" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Division<br>Information Technology Laboratory<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピューターセキュリティ部門<br>情報技術研究所<br>米国国立標準技術研究所<br>Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>August 2011</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2011 年 8 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Rebecca M. Blank, Acting Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Rebecca M. Blank 長官代行</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Patrick D. Gallagher, Under Secretary for Standards and Technology and Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br>Patrick D. Gallagher、標準・技術担当商務次官兼所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Reports on Computer Systems Technology</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピューターシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analysis to advance the development and productive use of information technology. ITL’s responsibilities include the development of technical, physical, administrative, and management standards and guidelines for the cost-effective security and privacy of sensitive unclassified information in Federal computer systems. This Interagency Report discusses ITL’s research, guidance, and outreach efforts in computer security and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、国の計測・標準インフラストラクチャに技術的リーダーシップを提供することで、米国の経済と公共の福祉を促進しています。ITL は、情報技術の発展と生産的な利用を推進するため、テスト、テスト方法、参照データ、概念実証実装、技術分析を開発しています。ITL の責務には、連邦コンピューターシステムにおける機微な非機密情報の費用対効果の高いセキュリティとプライバシーを実現するための、技術的、物理的、管理的およびマネジメント上の標準とガイドラインの策定が含まれます。この機関間報告書は、コンピューターセキュリティに関する ITL の研究、ガイダンス、アウトリーチ活動、および産業界、政府、学術機関との協働活動について論じます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report 7698<br>23 pages (Aug. 2011)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 機関間報告書 7698<br>23 ページ（2011 年 8 月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験的な手順や概念を適切に説明するために、特定の商業事業者、機器、または資材を明示する場合があります。そのような明示は、米国国立標準技術研究所による推奨や支持を意味するものではなく、また、それらの事業者、資材、機器がその目的に利用可能なものの中で必ずしも最良であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors, David Waltermire and Paul Cichonski of the National Institute of Standards and Technology (NIST), and Karen Scarfone of Scarfone Cybersecurity wish to thank their colleagues who reviewed drafts of this document and contributed to its technical content. The authors would like to acknowledge Harold Booth of NIST, Brant A. Cheikes and Mary Parmelee of the MITRE Corporation, Adam Halbardier of Booz Allen Hamilton, Seth Hanford of Cisco Systems, Inc., Tim Keanini of nCircle, Kent Landfield of McAfee, Inc., Jim Ronayne of Varen Technologies, Shane Shaffer of G2, Inc., and Joseph L Wolfkiel of the US Department of Defense for their insights and support throughout the development of the document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者である米国国立標準技術研究所（NIST）の David Waltermire と Paul Cichonski、および Scarfone Cybersecurity の Karen Scarfone は、本書のドラフトをレビューし、その技術的内容に貢献してくれた同僚に感謝します。著者は、本書の策定を通じて洞察と支援を提供してくれた、NIST の Harold Booth、MITRE Corporation の Brant A. Cheikes と Mary Parmelee、Booz Allen Hamilton の Adam Halbardier、Cisco Systems, Inc. の Seth Hanford、nCircle の Tim Keanini、McAfee, Inc. の Kent Landfield、Varen Technologies の Jim Ronayne、G2, Inc. の Shane Shaffer、米国国防総省の Joseph L Wolfkiel に謝意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report defines the Common Platform Enumeration (CPE) Applicability Language version 2.3 specification. The CPE Applicability Language specification is part of a stack of CPE specifications that support a variety of use cases relating to IT product description and naming. The CPE Applicability Language data model builds on top of other CPE specifications to provide the functionality required to allow CPE users to construct complex groupings of CPE names to describe IT platforms. These groupings are referred to as applicability statements because they are used to designate which platforms particular guidance, policies, etc. apply to. This report defines the semantics of the CPE Applicability Language data model and the requirements that IT products and CPE Applicability Language documents must meet for conformance with the CPE Applicability Language version 2.3 specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、Common Platform Enumeration（CPE）適用性言語バージョン 2.3 の仕様を定義します。CPE 適用性言語仕様は、IT 製品の記述と命名に関するさまざまなユースケースを支える CPE 仕様群の一部です。CPE 適用性言語のデータモデルは、他の CPE 仕様の上に構築され、CPE のユーザーが IT プラットフォームを記述するために CPE 名の複雑なグループ化を構築できるようにするために必要な機能を提供します。これらのグループ化は、特定のガイダンスや方針などがどのプラットフォームに適用されるかを指定するために使用されるため、適用性ステートメントと呼ばれます。本報告書は、CPE 適用性言語データモデルのセマンティクスと、IT 製品および CPE 適用性言語文書が CPE 適用性言語バージョン 2.3 仕様に適合するために満たさなければならない要件を定義します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Trademark Information</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+商標情報</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CPE is a trademark of The MITRE Corporation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE は The MITRE Corporation の商標です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All other registered trademarks or trademarks belong to their respective organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>その他の登録商標または商標は、それぞれの組織に帰属します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. INTRODUCTION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0006">1.1 PURPOSE AND SCOPE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0006">1.1 目的と適用範囲</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0009">1.2 AUDIENCE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0009">1.2 対象読者</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1.3 DOCUMENT STRUCTURE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">1.3 文書の構成</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0012">1.4 DOCUMENT CONVENTIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0012">1.4 文書の表記規則</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. DEFINITIONS AND ABBREVIATIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. 定義と略語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1 DEFINITIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0003">2.1 定義</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0009">2.2 ABBREVIATIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0009">2.2 略語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. RELATIONSHIP TO EXISTING SPECIFICATIONS AND STANDARDS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001">3. 既存の仕様および標準との関係</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">3.1 OTHER CPE VERSION 2.3 SPECIFICATIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">3.1 その他の CPE バージョン 2.3 仕様</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">3.2 CPE VERSION 2.2</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">3.2 CPE バージョン 2.2</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">4. CONFORMANCE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0001">4. 適合性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">4.1 PRODUCT CONFORMANCE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0004">4.1 製品の適合性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">4.2 ORGANIZATION CONFORMANCE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">4.2 組織の適合性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">5. DATA MODEL OVERVIEW</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001">5. データモデルの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">5.1 THE &lt;CPE:PLATFORM-SPECIFICATION&gt; ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0003">5.1 &lt;CPE:PLATFORM-SPECIFICATION&gt; 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">5.2 THE &lt;CPE:PLATFORM&gt; ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0006">5.2 &lt;CPE:PLATFORM&gt; 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0009">5.3 THE &lt;CPE:LOGICAL-TEST&gt; ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0009">5.3 &lt;CPE:LOGICAL-TEST&gt; 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">5.4 THE &lt;CPE:CHECK-FACT-REF&gt; ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">5.4 &lt;CPE:CHECK-FACT-REF&gt; 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">6. CONTENT DESIGN REQUIREMENTS AND RECOMMENDATIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">6. コンテンツ設計の要件と推奨事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">6.1 CPE APPLICABILITY LANGUAGE DOCUMENT CONTENTS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">6.1 CPE 適用性言語文書の内容</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0006">6.2 THE PLATFORM ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0006">6.2 PLATFORM 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">6.3 THE LOGICAL-TEST ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">6.3 LOGICAL-TEST 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">6.4 THE FACT-REF ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0011">6.4 FACT-REF 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">6.5 THE CHECK-FACT-REF ELEMENT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0001">6.5 CHECK-FACT-REF 要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. PROCESSING REQUIREMENTS AND RECOMMENDATIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. 処理の要件と推奨事項</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0003">7.1 CPE BOUND NAME CONVERSIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0003">7.1 CPE バウンド名の変換</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0029">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0005">7.2 GRACEFUL ERROR HANDLING</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0005">7.2 エラーの適切な処理</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0030">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0007">7.3 EVALUATING ELEMENTS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0007">7.3 要素の評価</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0031">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0009">7.3.1 Evaluating a logical-test Element</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0009">7.3.1 logical-test 要素の評価</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0003">7.3.2 Evaluating a fact-ref Element</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0003">7.3.2 fact-ref 要素の評価</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0005">7.3.3 Evaluating a check-fact-ref Element</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0005">7.3.3 check-fact-ref 要素の評価</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0034">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">8. CPE APPLICABILITY LANGUAGE PSEUDOCODE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">8. CPE 適用性言語の擬似コード</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0003">8.1 CORE FUNCTION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0003">8.1 コア関数</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0036">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0004">8.2 SUPPORT FUNCTIONS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0004">8.2 サポート関数</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0037">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Tables</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+表一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0038">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0011">Table 1. Truth Table for Logical-Test Element</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0011">表 1. Logical-Test 要素の真理値表</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Common Platform Enumeration (CPE) is a standardized method of describing and identifying classes of applications, operating systems, and hardware devices present in an enterprise’s computing assets. CPE can be used as a source of information for enforcing and verifying IT management policies relating to these assets, such as vulnerability, configuration, and remediation policies. IT management tools can collect information about installed products, identify products using their CPE names, and use this standardized information to help make fully or partially automated decisions regarding the assets.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Common Platform Enumeration（CPE）は、エンタープライズのコンピューティング資産に存在するアプリケーション、オペレーティングシステム、ハードウェアデバイスのクラスを記述し識別するための、標準化された方法です。CPE は、脆弱性、構成、修復に関する方針など、これらの資産に関する IT 管理方針を適用し検証するための情報源として使用できます。IT 管理ツールは、インストールされている製品に関する情報を収集し、CPE 名を使って製品を識別し、この標準化された情報を使って、資産に関する完全または部分的に自動化された判断を行うのに役立てることができます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CPE consists of several modular specifications. Combinations of the specifications work together in layers to perform various functions. One of these specifications, CPE Applicability Language, defines a standardized way to describe IT platforms by forming complex logical expressions out of individual CPE names and references to checks. For example, CPE Applicability Language could combine the CPE name for an operating system (such as Microsoft Windows XP), the CPE name for an application running on that operating system (such as Microsoft Office 2007), and a reference to a check for a particular value of a certain configuration setting (such as the wireless network card being enabled in the operating system). These logical expressions are called <em>applicability statements</em>, because they are used to designate which platforms particular guidance, policies, etc. apply to. Applicability statements can be used by tools to determine whether a target system is an instance of a particular platform.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE は、いくつかのモジュール式の仕様で構成されています。これらの仕様の組み合わせは、層をなして連携し、さまざまな機能を実行します。これらの仕様の 1 つである CPE 適用性言語は、個々の CPE 名とチェックへの参照から複雑な論理式を作ることによって、IT プラットフォームを記述する標準化された方法を定義します。たとえば、CPE 適用性言語では、オペレーティングシステムの CPE 名（Microsoft Windows XP など）、そのオペレーティングシステム上で動作するアプリケーションの CPE 名（Microsoft Office 2007 など）、および特定の構成設定の特定の値（オペレーティングシステムでワイヤレスネットワークカードが有効になっていることなど）に対するチェックへの参照を組み合わせることができます。これらの論理式は、特定のガイダンスや方針などがどのプラットフォームに適用されるかを指定するために使用されるため、<em>適用性ステートメント</em>と呼ばれます。適用性ステートメントは、対象システムが特定のプラットフォームのインスタンスであるかどうかを判定するために、ツールによって使用できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The CPE names used by the CPE Applicability Language specification are bound forms of well-formed CPE names (WFNs), which are the abstract logical constructions for CPE names [CPE23-N:5.1]. The basic building block of the CPE Applicability Language specification is referred to as the <em>logical test</em>. This is a logical conjunction (AND) or disjunction (OR) of one or more CPE names and/or references to checks. Individual logical tests can also be negated (inverted). Nested logical tests allow the user to express a platform as any logical combination of individual CPE names and/or references to checks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語仕様で使用される CPE 名は、CPE 名の抽象的な論理構成体である整形式 CPE 名（WFN）[CPE23-N:5.1] のバウンド形式です。CPE 適用性言語仕様の基本的な構成要素は、<em>論理テスト</em>と呼ばれます。これは、1 つ以上の CPE 名やチェックへの参照の論理積（AND）または論理和（OR）です。個々の論理テストを否定（反転）することもできます。入れ子にした論理テストにより、ユーザーは、個々の CPE 名やチェックへの参照の任意の論理的な組み合わせとして、プラットフォームを表現できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that previous versions of CPE referred to the Applicability Language specification as simply the Language specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>なお、CPE の以前のバージョンでは、適用性言語仕様を単に言語仕様と呼んでいました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1 Purpose and Scope</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1 目的と適用範囲</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report defines the specification for CPE Applicability Language version 2.3. The report also defines and explains the requirements that producers of CPE Applicability Language-supporting implementations, such as software and services, and CPE Applicability Language content must meet to claim conformance with the CPE Applicability Language version 2.3 specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、CPE 適用性言語バージョン 2.3 の仕様を定義します。また、本報告書は、ソフトウェアやサービスなど、CPE 適用性言語をサポートする実装の提供者と、CPE 適用性言語のコンテンツが、CPE 適用性言語バージョン 2.3 仕様への適合を主張するために満たさなければならない要件を定義し、説明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report only applies to version 2.3 of CPE Applicability Language. All other versions are out of the scope of this report, as are all CPE specifications other than CPE Applicability Language.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、CPE 適用性言語のバージョン 2.3 にのみ適用されます。他のすべてのバージョンは、CPE 適用性言語以外のすべての CPE 仕様と同様に、本報告書の範囲外です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2 Audience</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2 対象読者</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report is intended for two main audiences: the authors and editors of CPE Applicability Language content (applicability statements), and IT management tool developers. Readers of this report should already be familiar with CPE naming and name matching concepts and conventions, as specified in [CPE23-N] and [CPE23-M].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、主に 2 つの読者を想定しています。CPE 適用性言語のコンテンツ（適用性ステートメント）の作成者および編集者と、IT 管理ツールの開発者です。本報告書の読者は、[CPE23-N] と [CPE23-M] で規定されている CPE の命名と名前照合の概念および規約に、すでに精通しているべきです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3 Document Structure</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3 文書の構成</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The remainder of this report is organized into the following major sections:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の残りの部分は、次の主要な節で構成されています。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 2 defines selected terms and abbreviations used within this specification.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 2 節は、本仕様内で使用される特定の用語と略語を定義します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 3 provides an overview of related specifications and standards.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 3 節は、関連する仕様と標準の概要を示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 4 defines the high-level conformance rules for this specification.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 4 節は、本仕様の高水準の適合規則を定義します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 5 describes the core CPE Applicability Language data model.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 5 節は、CPE 適用性言語のコアとなるデータモデルを説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 6 provides CPE Applicability Language content requirements and recommendations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 6 節は、CPE 適用性言語のコンテンツの要件と推奨事項を示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 7 provides CPE Applicability Language processing requirements and recommendations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 7 節は、CPE 適用性言語の処理の要件と推奨事項を示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 8 provides pseudocode that implements concepts defined in other sections of the specification.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 8 節は、本仕様の他の節で定義された概念を実装する擬似コードを示します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Appendix A lists normative and informative references.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">付録 A は、規範的参考文献と参考情報としての参考文献を列挙します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Appendix B provides a change log that documents significant changes to major drafts of the specification.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">付録 B は、本仕様の主要なドラフトへの重要な変更を文書化した変更履歴を示します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.4 Document Conventions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.4 文書の表記規則</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in Request for Comment (RFC) 2119.<sup>1</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書中のキーワード「MUST」、「MUST NOT」、「REQUIRED」、「SHALL」、「SHALL NOT」、「SHOULD」、「SHOULD NOT」、「RECOMMENDED」、「MAY」、「OPTIONAL」は、Request for Comment（RFC）2119<sup>1</sup> に記載されているとおりに解釈されるものとします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Text intended to represent computing system input, output, or algorithmic processing is presented in <code>fixed-width Courier font</code>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピューティングシステムの入力、出力、アルゴリズム処理を表すことを意図したテキストは、<code>固定幅の Courier フォント</code>で表示されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Normative references are listed in Appendix A. These references use the citation convention of a square bracket notation containing an abbreviation of the overall reference citation, followed by a colon and subsection citation where applicable (e.g., [CPE23-N:7.2] is a citation for the CPE 2.3 Naming specification, Section 7.2).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>規範的参考文献は付録 A に列挙されています。これらの参考文献は、参考文献全体の引用の略称を含む角括弧表記の後に、コロンと、該当する場合は小節の引用を続ける引用規約を使用します（たとえば、[CPE23-N:7.2] は、CPE 2.3 Naming 仕様の第 7.2 節の引用です）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This specification adheres to all rules and conventions defined lower in the CPE stack of specifications. The CPE Naming Specification defines the concept of a well-formed CPE name (WFN) that is a logical representation of a CPE name [CPE23-N:5.1]. Wherever possible, this specification uses WFN representation of CPE names to limit the dependency on any particular CPE name binding.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本仕様は、CPE 仕様スタックの下位で定義されたすべての規則と規約に従います。CPE Naming Specification は、CPE 名の論理的な表現である整形式 CPE 名（WFN）の概念を定義しています [CPE23-N:5.1]。可能な限り、本仕様は、特定の CPE 名のバインディングへの依存を制限するため、CPE 名の WFN 表現を使用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document uses an abstract pseudocode programming language to specify expected computational behavior. Pseudocode is intended to be straightforwardly readable and translatable into actual programming language statements. Note, however, that pseudocode specifications are not necessarily intended to illustrate efficient or optimized programming code; rather, their purpose is to clearly define the desired behavior, leaving it to implementers to choose the best language-specific design which respects that behavior. In some cases, particularly where standardized implementations exist for a given pseudocode function, we describe the function&#x27;s behavior in prose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、期待される計算動作を規定するために、抽象的な擬似コード言語を使用します。擬似コードは、容易に読み取ることができ、実際のプログラミング言語の文に変換しやすいことを意図しています。ただし、擬似コードによる仕様は、必ずしも効率的または最適化されたプログラムコードを示すことを意図したものではありません。むしろ、その目的は望ましい動作を明確に定義し、その動作に従う最適な言語固有の設計の選択を実装者に委ねることです。場合によっては、特に、ある擬似コード関数に標準化された実装が存在する場合は、その関数の動作を文章で記述します。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0018" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> RFC 2119, “Key words for use in RFCs to Indicate Requirement Levels”, is available at http://www.ietf.org/rfc/rfc2119.txt.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> RFC 2119, “Key words for use in RFCs to Indicate Requirement Levels” は、http://www.ietf.org/rfc/rfc2119.txt で入手できます。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When reading pseudocode the following should be kept in mind:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>擬似コードを読む際には、次の点に留意すべきです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0008-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">All pseudocode functions are <em>pass by value</em>, meaning that any changes applied to the supplied arguments within the scope of the function do not affect the values of the variables in the caller’s scope.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">すべての擬似コード関数は<em>値渡し</em>です。つまり、関数のスコープ内で、渡された引数に加えられた変更は、呼び出し元のスコープの変数の値に影響しません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">In a few cases, the pseudocode functions reference (more or less) standard library functions, particularly to support string handling. In most cases semantically equivalent functions can be found in the GNU C library, cf. http://www.gnu.org/software/libc/manual/html_node/index.html#toc_String-and-Array-Utilities.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">いくつかの場合、擬似コード関数は、特に文字列処理を支援するために、（おおむね）標準のライブラリ関数を参照します。ほとんどの場合、意味的に等価な関数は、GNU C ライブラリに見つかります。参照: http://www.gnu.org/software/libc/manual/html_node/index.html#toc_String-and-Array-Utilities。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document uses qualified names to refer to specific XML elements. A qualified name associates a named element with a namespace. The namespace identifies the XML model, and the XML schema is a definition and implementation of that model. A qualified name declares this schema to element association using the format ‘<em>prefix:element-name</em>’. The association of prefix to namespace is defined in the metadata of an XML document and varies from document to document. This document uses the conventional mappings listed below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、特定の XML 要素を参照するために、修飾名を使用します。修飾名は、名前を持つ要素を名前空間に関連づけます。名前空間は XML モデルを識別し、XML スキーマはそのモデルの定義と実装です。修飾名は、‘<em>prefix:element-name</em>’ という形式を使って、このスキーマと要素の関連づけを宣言します。プレフィックスと名前空間の関連づけは、XML 文書のメタデータで定義され、文書ごとに異なります。本書は、以下に示す慣例的なマッピングを使用します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Prefix</th><th>Namespace</th><th>Schema</th></tr></thead><tbody><tr><td>cpe</td><td>http:/<wbr/>/<wbr/>cpe<wbr/>.mitre<wbr/>.org/<wbr/>language/<wbr/>2<wbr/>.0</td><td>CPE Language 2.3 schema</td></tr><tr><td>xml</td><td>http:/<wbr/>/<wbr/>www<wbr/>.w3<wbr/>.org/<wbr/>XML/<wbr/>1998/<wbr/>namespace</td><td>Common XML attributes</td></tr><tr><td>xsd</td><td>http:/<wbr/>/<wbr/>www<wbr/>.w3<wbr/>.org/<wbr/>2001/<wbr/>XMLSchema</td><td>XML Schema</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>プレフィックス</th><th>名前空間</th><th>スキーマ</th></tr></thead><tbody><tr><td>cpe</td><td>http:/<wbr/>/<wbr/>cpe<wbr/>.mitre<wbr/>.org/<wbr/>language/<wbr/>2<wbr/>.0</td><td>CPE Language 2.3 スキーマ</td></tr><tr><td>xml</td><td>http:/<wbr/>/<wbr/>www<wbr/>.w3<wbr/>.org/<wbr/>XML/<wbr/>1998/<wbr/>namespace</td><td>共通の XML 属性</td></tr><tr><td>xsd</td><td>http:/<wbr/>/<wbr/>www<wbr/>.w3<wbr/>.org/<wbr/>2001/<wbr/>XMLSchema</td><td>XML スキーマ</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Definitions and Abbreviations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 定義と略語</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section defines selected terms and abbreviations used within the document. This section builds on the terms defined in the CPE Naming specification [CPE23-N] and the CPE Name Matching specification [CPE23-M], and does not repeat them here.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、本書内で使用される選定した用語と略語を定義します。この節は、CPE Naming 仕様 [CPE23-N] と CPE Name Matching 仕様 [CPE23-M] で定義された用語を土台としており、それらをここでは繰り返しません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Definitions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 定義</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Applicability Statement:</strong> A complex logical expression to describe an IT platform, formed out of individual CPE names and references to checks. Applicability statements are used to designate which platforms particular guidance, policies, etc. apply to.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Applicability Statement:</strong> 個々の CPE 名とチェックへの参照から構成される、IT プラットフォームを記述するための複雑な論理式。適用性ステートメントは、特定のガイダンスや方針などがどのプラットフォームに適用されるかを指定するために使用されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Check Fact Reference:</strong> An expression that refers to a check (e.g., OVAL check, OCIL check).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Check Fact Reference:</strong> チェック（OVAL チェック、OCIL チェックなど）を参照する式。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Fact Reference:</strong> An expression that refers to a bound CPE name.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Fact Reference:</strong> バウンド CPE 名を参照する式。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Logical Test:</strong> An expression comprised of logical operators and one or more expressions to be evaluated. The individual expressions within a logical test may be fact references, check fact references, and/or other logical tests.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Logical Test:</strong> 論理演算子と、評価される 1 つ以上の式で構成される式。論理テスト内の個々の式は、fact reference、check fact reference、または他の論理テストのいずれでもかまいません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Platform:</strong> In the context of the CPE Applicability Language specification only, a logical structure combining one or more bound CPE names through logical operators.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Platform:</strong> CPE 適用性言語仕様の文脈に限り、1 つ以上のバウンド CPE 名を論理演算子で組み合わせた論理構造。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Abbreviations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 略語</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td><strong>CPE</strong></td><td>Common Platform Enumeration</td></tr><tr><td><strong>IR</strong></td><td>Interagency Report</td></tr><tr><td><strong>IT</strong></td><td>Information Technology</td></tr><tr><td><strong>ITL</strong></td><td>Information Technology Laboratory</td></tr><tr><td><strong>NIST</strong></td><td>National Institute of Standards and Technology</td></tr><tr><td><strong>OCIL</strong></td><td>Open Checklist Interactive Language</td></tr><tr><td><strong>OVAL</strong></td><td>Open Vulnerability and Assessment Language</td></tr><tr><td><strong>RFC</strong></td><td>Request for Comment</td></tr><tr><td><strong>URI</strong></td><td>Uniform Resource Identifier</td></tr><tr><td><strong>WFN</strong></td><td>Well-Formed CPE Name</td></tr><tr><td><strong>XML</strong></td><td>Extensible Markup Language</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td><strong>CPE</strong></td><td>Common Platform Enumeration</td></tr><tr><td><strong>IR</strong></td><td>機関間報告書（Interagency Report）</td></tr><tr><td><strong>IT</strong></td><td>情報技術（Information Technology）</td></tr><tr><td><strong>ITL</strong></td><td>情報技術研究所（Information Technology Laboratory）</td></tr><tr><td><strong>NIST</strong></td><td>米国国立標準技術研究所（National Institute of Standards and Technology）</td></tr><tr><td><strong>OCIL</strong></td><td>Open Checklist Interactive Language</td></tr><tr><td><strong>OVAL</strong></td><td>Open Vulnerability and Assessment Language</td></tr><tr><td><strong>RFC</strong></td><td>Request for Comment</td></tr><tr><td><strong>URI</strong></td><td>Uniform Resource Identifier</td></tr><tr><td><strong>WFN</strong></td><td>整形式 CPE 名（Well-Formed CPE Name）</td></tr><tr><td><strong>XML</strong></td><td>Extensible Markup Language</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Relationship to Existing Specifications and Standards</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 既存の仕様および標準との関係</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section explains the relationships between this specification and related specifications or standards.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、本仕様と、関連する仕様または標準との関係を説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 Other CPE Version 2.3 Specifications</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 その他の CPE バージョン 2.3 仕様</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CPE version 2.3 was constructed using a modular, stack-based approach, with each major component defined in a separate specification. Functional capabilities are built by layering these modular specifications. This architecture opens opportunities for innovation, as novel capabilities can be defined by combining only the needed specifications, and the impacts of change can be better compartmentalized and managed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE バージョン 2.3 は、モジュール式のスタックベースの方法で構築されており、各主要コンポーネントが個別の仕様で定義されています。機能的な能力は、これらのモジュール式の仕様を層状に重ねることで構築されます。このアーキテクチャは、必要な仕様だけを組み合わせて新しい能力を定義でき、変更の影響をより適切に区画化して管理できるため、イノベーションの機会を開きます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The CPE Applicability Language version 2.3 specification builds upon the CPE Naming version 2.3 [CPE23-N] and CPE Name Matching version 2.3 [CPE23-M] specifications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語バージョン 2.3 仕様は、CPE Naming バージョン 2.3 [CPE23-N] 仕様と CPE Name Matching バージョン 2.3 [CPE23-M] 仕様を土台としています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 CPE Version 2.2</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 CPE バージョン 2.2</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The CPE version 2.3 specifications, including this specification, collectively replace [CPE22]. CPE version 2.3 is intended to provide all the capabilities made available by [CPE22] while adding new features suggested by the CPE user community.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本仕様を含む CPE バージョン 2.3 の仕様は、全体として [CPE22] を置き換えます。CPE バージョン 2.3 は、[CPE22] が提供するすべての能力を提供しつつ、CPE ユーザーコミュニティから提案された新しい機能を追加することを意図しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The primary difference between CPE Applicability Language versions 2.2 and 2.3 is the updated <code>namePattern</code> type in the version 2.3 schema, which allows for both formatted string and URI bindings of a WFN. Also, version 2.2 was called the CPE Language, not the CPE Applicability Language.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語のバージョン 2.2 と 2.3 の主な違いは、バージョン 2.3 のスキーマで更新された <code>namePattern</code> 型で、これにより WFN の書式化文字列バインディングと URI バインディングの両方が可能になります。また、バージョン 2.2 は、CPE 適用性言語ではなく、CPE Language と呼ばれていました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Conformance</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 適合性</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Products and organizations may want to claim conformance with this specification for a variety of reasons. For example, vulnerability researchers may want to assert that they provide vulnerability applicability statements in the form of CPE Applicability Language statements. In relation to this, implementers may want to assert that their products have the ability to process applicability statements written using the CPE Applicability Language.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>製品や組織は、さまざまな理由で、本仕様への適合を主張したいと考える場合があります。たとえば、脆弱性の研究者は、CPE 適用性言語のステートメントの形で脆弱性の適用性ステートメントを提供していると主張したい場合があります。これに関連して、実装者は、自らの製品が CPE 適用性言語を使って書かれた適用性ステートメントを処理する能力を持つと主張したい場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section provides the high-level requirements that a product or organization must meet if they are seeking conformance with this specification. The majority of the requirements listed in this section reference other sections in this document that fully define the high-level requirement.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、製品または組織が本仕様への適合を求める場合に満たさなければならない、高水準の要件を示します。この節に列挙された要件の大半は、その高水準の要件を完全に定義している、本書の他の節を参照しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1 Product Conformance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1 製品の適合性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All products claiming conformance with this specification MUST adhere to the following requirements:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本仕様への適合を主張するすべての製品は、次の要件に従わなければなりません（MUST）。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">If a product is reading valid CPE 2.3 Applicability Language content, then the product MUST process the content and interpret it according to the semantics of the data model defined in Section 5 and the additional requirements detailed in Section 7.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">製品が有効な CPE 2.3 適用性言語のコンテンツを読み取る場合、製品は、そのコンテンツを処理し、第 5 節で定義されたデータモデルのセマンティクスと第 7 節で詳述された追加の要件に従って解釈しなければなりません（MUST）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">If the product is generating content containing CPE Language constructs, then the product MUST output the content in the form of XML instance data that validates against the CPE Applicability Language version 2.3 schema, conforms to the semantics of the CPE Applicability Language data model defined in Section 5, and conforms to the CPE name requirements defined in [CPE23-N].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">製品が CPE Language の構成要素を含むコンテンツを生成する場合、製品は、CPE 適用性言語バージョン 2.3 スキーマに適合し、第 5 節で定義された CPE 適用性言語データモデルのセマンティクスに従い、[CPE23-N] で定義された CPE 名の要件に適合する XML インスタンスデータの形式で、そのコンテンツを出力しなければなりません（MUST）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">The product MUST make an explicit claim of conformance to this specification in any documentation provided to end users.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">製品は、エンドユーザーに提供するあらゆる文書で、本仕様への適合を明示的に主張しなければなりません（MUST）。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2 Organization Conformance</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2 組織の適合性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations creating or maintaining CPE 2.3 Applicability Language documents that claim conformance with this specification SHALL follow these requirements:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本仕様への適合を主張する CPE 2.3 適用性言語文書を作成または保守する組織は、次の要件に従わなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Adhere to the official CPE Applicability Language schema. Ensure that the CPE Applicability Language documents validate against the CPE Applicability Language version 2.3 schema and that the content conforms to the semantics of the CPE Applicability Language data model as defined in Section 5.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">公式の CPE 適用性言語スキーマに従ってください。CPE 適用性言語文書が CPE 適用性言語バージョン 2.3 スキーマに適合し、コンテンツが第 5 節で定義された CPE 適用性言語データモデルのセマンティクスに適合していることを確認してください。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Adhere to the syntax, structural, and other CPE Applicability Language document development requirements defined in Section 6.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">第 6 節で定義された、CPE 適用性言語文書の開発における構文、構造、その他の要件に従ってください。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Adhere to the requirements for CPE names (WFNs and bound forms) as defined in [CPE23-N].</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">[CPE23-N] で定義された CPE 名（WFN とバウンド形式）の要件に従ってください。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Data Model Overview</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. データモデルの概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section provides an overview of the data model that all CPE Applicability Language implementations MUST support. The data model does not prescribe a specific binding or implementation for itself. It merely describes the data that is required to support common CPE Applicability Language use cases. This section uses the term “element” to identify the classes within the data model, and the term “property” to identify any properties of a class. This section only defines selected aspects of the data model. The CPE Applicability Language XML schema, which is the authoritative XML binding definition, can be found at http://scap.nist.gov/schema/cpe/2.3/cpe-language_2.3.xsd. The tables below use the prefix “cpe” to refer to this schema.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、すべての CPE 適用性言語の実装がサポートしなければならない（MUST）データモデルの概要を示します。このデータモデルは、それ自体に特定のバインディングや実装を規定しません。一般的な CPE 適用性言語のユースケースをサポートするために必要なデータを記述するだけです。この節は、データモデル内のクラスを識別するために「要素」という用語を、クラスの任意のプロパティを識別するために「プロパティ」という用語を使用します。この節は、データモデルの選定した側面のみを定義します。権威ある XML バインディング定義である CPE 適用性言語の XML スキーマは、http://scap.nist.gov/schema/cpe/2.3/cpe-language_2.3.xsd にあります。以下の表は、このスキーマを参照するためにプレフィックス「cpe」を使用します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.1 The &lt;cpe:platform-specification&gt; Element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.1 &lt;cpe:platform-specification&gt; 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The <code>&lt;cpe:platform-specification&gt;</code> element is the root element of a CPE Applicability Language XML document and therefore acts as a container for child platform definitions. The table below describes the platform-specification element’s properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:platform-specification&gt;</code> 要素は、CPE 適用性言語 XML 文書のルート要素であり、したがって、子のプラットフォーム定義のコンテナーとして機能します。以下の表は、platform-specification 要素のプロパティを説明します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Element or Attribute</th><th>Type</th><th>Count</th><th>Description</th></tr></thead><tbody><tr><td>platform (element)</td><td>cpe:PlatformType</td><td>1-n</td><td>The description or qualifications of a particular IT platform type.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>要素または属性</th><th>型</th><th>個数</th><th>説明</th></tr></thead><tbody><tr><td>platform (要素)</td><td>cpe:PlatformType</td><td>1-n</td><td>特定の IT プラットフォームの種類の説明または該当条件。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.2 The &lt;cpe:platform&gt; Element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.2 &lt;cpe:platform&gt; 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The table below describes the <code>&lt;cpe:platform&gt;</code> element’s properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の表は、<code>&lt;cpe:platform&gt;</code> 要素のプロパティを説明します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Element or Attribute</th><th>Type</th><th>Count</th><th>Description</th></tr></thead><tbody><tr><td>id (attribute)</td><td>xsd:anyURI</td><td>1</td><td>A locally unique name for the platform. There is no defined format for this id; however, it MUST be unique within the containing CPE Applicability Language document.</td></tr><tr><td>title (element)</td><td>cpe:TextType</td><td>0-n</td><td>A human-readable title for a platform. To support uses intended for multiple languages, the <code>&lt;cpe:title&gt;</code> element supports the <code>@xml:lang</code> attribute. At most one <code>&lt;cpe:title&gt;</code> element MAY appear for each language.</td></tr><tr><td>remark (element)</td><td>cpe:TextType</td><td>0-n</td><td>An additional description. To support uses intended for multiple languages, the <code>&lt;cpe:remark&gt;</code> element supports the <code>@xml:lang</code> attribute. There MAY be multiple <code>&lt;cpe:remark&gt;</code> elements for a single language.</td></tr><tr><td>logical-test (element)</td><td>cpe:LogicalTestType</td><td>1</td><td>Definition of test using logical operators (AND, OR, negate).</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>要素または属性</th><th>型</th><th>個数</th><th>説明</th></tr></thead><tbody><tr><td>id (属性)</td><td>xsd:anyURI</td><td>1</td><td>プラットフォームのローカルで一意な名前。この id には定義された形式はありませんが、それを含む CPE 適用性言語文書内で一意でなければなりません（MUST）。</td></tr><tr><td>title (要素)</td><td>cpe:TextType</td><td>0-n</td><td>プラットフォームの人間が読めるタイトル。複数の言語を意図した用途をサポートするため、<code>&lt;cpe:title&gt;</code> 要素は <code>@xml:lang</code> 属性をサポートします。<code>&lt;cpe:title&gt;</code> 要素は、各言語につき最大 1 つまで出現してもよいです（MAY）。</td></tr><tr><td>remark (要素)</td><td>cpe:TextType</td><td>0-n</td><td>追加の説明。複数の言語を意図した用途をサポートするため、<code>&lt;cpe:remark&gt;</code> 要素は <code>@xml:lang</code> 属性をサポートします。1 つの言語に対して、複数の <code>&lt;cpe:remark&gt;</code> 要素があってもよいです（MAY）。</td></tr><tr><td>logical-test (要素)</td><td>cpe:LogicalTestType</td><td>1</td><td>論理演算子（AND、OR、否定）を使用したテストの定義。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.3 The &lt;cpe:logical-test&gt; Element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.3 &lt;cpe:logical-test&gt; 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The table below describes the <code>&lt;cpe:logical-test&gt;</code> element’s properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の表は、<code>&lt;cpe:logical-test&gt;</code> 要素のプロパティを説明します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Element or Attribute</th><th>Type</th><th>Count</th><th>Description</th></tr></thead><tbody><tr><td>operator (attribute)</td><td>cpe:operatorEnumeration</td><td>1</td><td>The operator applied to the results of evaluating the <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, and <code>&lt;cpe:logical-test&gt;</code> elements. The permitted operators are “AND” and “OR”.</td></tr><tr><td>negate (attribute)</td><td>xsd:boolean</td><td>1</td><td>Whether the result of applying the operator should be negated. Possible values are “TRUE” and “FALSE”. Ignored if the result of applying the operator is “ERROR”.</td></tr><tr><td>logical-test (element)</td><td>cpe:LogicalTestType</td><td>0-n</td><td>Definition of complex logical test using AND, OR, and/or negate operators. A <code>&lt;cpe:logical-test&gt;</code> element evaluates to TRUE, FALSE, or ERROR.</td></tr><tr><td>fact-ref (element)</td><td>cpe:CPEFactRefType</td><td>0-n</td><td>A reference to a bound form of a WFN; the reference always evaluates to TRUE or FALSE. The bindings contained within a <code>&lt;cpe:fact-ref&gt;</code> are meant to describe possible sets of products and are not meant to identify a unique product class.<br>The <code>&lt;cpe:fact-ref&gt;</code> element has a REQUIRED <code>@name</code> attribute of type <code>cpe:namePattern</code> (defines the format for acceptable CPE names) and an OPTIONAL <code>@description</code> attribute of type xsd:normalizedString (contains a human-readable description of what the <code>&lt;cpe:fact-ref&gt;</code> checks).</td></tr><tr><td>check-fact-ref (element)</td><td>cpe:CheckFactRefType</td><td>0-n</td><td>A reference to a check that evaluates to TRUE, FALSE, or ERROR. Examples of types of checks are OVAL and OCIL checks.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>要素または属性</th><th>型</th><th>個数</th><th>説明</th></tr></thead><tbody><tr><td>operator (属性)</td><td>cpe:operatorEnumeration</td><td>1</td><td><code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、<code>&lt;cpe:logical-test&gt;</code> 要素を評価した結果に適用される演算子。許可される演算子は「AND」と「OR」です。</td></tr><tr><td>negate (属性)</td><td>xsd:boolean</td><td>1</td><td>演算子を適用した結果を否定するかどうか。取りうる値は「TRUE」と「FALSE」です。演算子を適用した結果が「ERROR」の場合は無視されます。</td></tr><tr><td>logical-test (要素)</td><td>cpe:LogicalTestType</td><td>0-n</td><td>AND、OR、および/<wbr/>または否定の演算子を使用した、複雑な論理テストの定義。<code>&lt;cpe:logical-test&gt;</code> 要素は、TRUE、FALSE、または ERROR に評価されます。</td></tr><tr><td>fact-ref (要素)</td><td>cpe:CPEFactRefType</td><td>0-n</td><td>WFN のバウンド形式への参照。この参照は常に TRUE または FALSE に評価されます。<code>&lt;cpe:fact-ref&gt;</code> に含まれるバインディングは、製品の可能な集合を記述することを意図したものであり、一意の製品クラスを識別することを意図したものではありません。<br/><code>&lt;cpe:fact-ref&gt;</code> 要素には、型が <code>cpe:namePattern</code>（許容される CPE 名の形式を定義）の必須（REQUIRED）の <code>@name</code> 属性と、型が xsd:normalizedString（<code>&lt;cpe:fact-ref&gt;</code> が何をチェックするかについての人間が読める説明を含む）のオプション（OPTIONAL）の <code>@description</code> 属性があります。</td></tr><tr><td>check-fact-ref (要素)</td><td>cpe:CheckFactRefType</td><td>0-n</td><td>TRUE、FALSE、または ERROR に評価されるチェックへの参照。チェックの種類の例には、OVAL チェックと OCIL チェックがあります。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:logical-test&gt;</code> element can be nested within another <code>&lt;cpe:logical-test&gt;</code> element.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素は、別の <code>&lt;cpe:logical-test&gt;</code> 要素の中に入れ子にできます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, and <code>&lt;cpe:logical-test&gt;</code> MAY be omitted from the body of a <code>&lt;cpe:logical-test&gt;</code> element, at least one instance of one of them MUST appear as a property of each <code>&lt;cpe:logical-test&gt;</code> element.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、<code>&lt;cpe:logical-test&gt;</code> は、<code>&lt;cpe:logical-test&gt;</code> 要素の本体から省略してもよいですが（MAY）、各 <code>&lt;cpe:logical-test&gt;</code> 要素のプロパティとして、これらのいずれか 1 つのインスタンスが少なくとも 1 つ現れなければなりません（MUST）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>5.4 The &lt;cpe:check-fact-ref&gt; Element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+5.4 &lt;cpe:check-fact-ref&gt; 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The table below describes the <code>&lt;cpe:check-fact-ref&gt;</code> element’s properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の表は、<code>&lt;cpe:check-fact-ref&gt;</code> 要素のプロパティを説明します。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Element or Attribute</th><th>Type</th><th>Count</th><th>Description</th></tr></thead><tbody><tr><td>description (attribute)</td><td>xsd:normalizedString</td><td>0-1</td><td>A human-readable description of what the <code>&lt;cpe:check-fact-ref&gt;</code> checks.</td></tr><tr><td>system (attribute)</td><td>xsd:anyURI</td><td>1</td><td>The system identifier for the check system, such as “http:/<wbr/>/<wbr/>oval<wbr/>.mitre<wbr/>.org/<wbr/>XMLSchema/<wbr/>oval-definitions-5” or “http:/<wbr/>/<wbr/>scap<wbr/>.nist<wbr/>.gov/<wbr/>schema/<wbr/>ocil/<wbr/>2”<wbr/>.</td></tr><tr><td>href (attribute)</td><td>xsd:anyURI</td><td>1</td><td>The location of the check content, such as the OVAL or OCIL document holding the desired check.</td></tr><tr><td>id-ref (attribute)</td><td>xsd:token</td><td>1</td><td>The ID for the check to be evaluated, such as a specific OVAL definition ID or an OCIL questionnaire ID.</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>要素または属性</th><th>型</th><th>個数</th><th>説明</th></tr></thead><tbody><tr><td>description (属性)</td><td>xsd:normalizedString</td><td>0-1</td><td><code>&lt;cpe:check-fact-ref&gt;</code> が何をチェックするかについての、人間が読める説明。</td></tr><tr><td>system (属性)</td><td>xsd:anyURI</td><td>1</td><td>「http:/<wbr/>/<wbr/>oval<wbr/>.mitre<wbr/>.org/<wbr/>XMLSchema/<wbr/>oval-definitions-5」や「http:/<wbr/>/<wbr/>scap<wbr/>.nist<wbr/>.gov/<wbr/>schema/<wbr/>ocil/<wbr/>2」など、チェックシステムのシステム識別子。</td></tr><tr><td>href (属性)</td><td>xsd:anyURI</td><td>1</td><td>目的のチェックを保持する OVAL 文書や OCIL 文書など、チェックコンテンツの場所。</td></tr><tr><td>id-ref (属性)</td><td>xsd:token</td><td>1</td><td>特定の OVAL 定義 ID や OCIL 質問票 ID など、評価するチェックの ID。</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. Content Design Requirements and Recommendations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. コンテンツ設計の要件と推奨事項</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section defines content design requirements, including syntax and structural requirements, that an organization or product MUST follow to create and maintain a well-formed CPE Applicability Language version 2.3 document. This section also provides recommendations for CPE Applicability Language content. The requirements and recommendations presented in this section supplement the data model defined in Section 5.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、組織または製品が、整形式の CPE 適用性言語バージョン 2.3 文書を作成し保守するために従わなければならない（MUST）、構文と構造の要件を含むコンテンツ設計の要件を定義します。この節はまた、CPE 適用性言語のコンテンツに関する推奨事項も示します。この節で示す要件と推奨事項は、第 5 節で定義されたデータモデルを補足します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.1 CPE Applicability Language Document Contents</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.1 CPE 適用性言語文書の内容</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A CPE Applicability Language document instance SHALL hold exactly one <code>&lt;cpe:platform-specification&gt;</code> element. The <code>&lt;cpe:platform-specification&gt;</code> element SHALL be the root XML element of a CPE Applicability Language document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語文書のインスタンスは、<code>&lt;cpe:platform-specification&gt;</code> 要素をちょうど 1 つ保持しなければなりません（SHALL）。<code>&lt;cpe:platform-specification&gt;</code> 要素は、CPE 適用性言語文書のルート XML 要素でなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each CPE Applicability Language document SHALL validate against the CPE Applicability Language schema. CPE Applicability Language elements SHALL belong to the namespace “http://cpe.mitre.org/language/2.0”.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各 CPE 適用性言語文書は、CPE 適用性言語スキーマに対して検証できなければなりません（SHALL）。CPE 適用性言語の要素は、名前空間「http://cpe.mitre.org/language/2.0」に属さなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.2 The platform element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.2 platform 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each <code>&lt;cpe:platform&gt;</code> element SHALL have an identifier, as expressed using the <code>@id</code> attribute, that is unique within the CPE Applicability Language document and also provides a means to uniquely reference the platform from other models besides CPE. Each <code>&lt;cpe:platform&gt;</code> element SHALL be referenced through its identifier.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各 <code>&lt;cpe:platform&gt;</code> 要素は、<code>@id</code> 属性を使って表現される識別子を持たなければならず（SHALL）、この識別子は、CPE 適用性言語文書内で一意であり、かつ CPE 以外の他のモデルからそのプラットフォームを一意に参照する手段にもなります。各 <code>&lt;cpe:platform&gt;</code> 要素は、その識別子を通じて参照されなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each <code>&lt;cpe:platform&gt;</code> element SHALL have a single <code>&lt;cpe:logical-test&gt;</code> element defined directly within it. One or more additional <code>&lt;cpe:logical-test&gt;</code> elements MAY be nested within any <code>&lt;cpe:logical-test&gt;</code> element.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各 <code>&lt;cpe:platform&gt;</code> 要素は、その内部に直接定義された単一の <code>&lt;cpe:logical-test&gt;</code> 要素を持たなければなりません（SHALL）。任意の <code>&lt;cpe:logical-test&gt;</code> 要素の中に、1 つ以上の追加の <code>&lt;cpe:logical-test&gt;</code> 要素を入れ子にしてもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following is an example of the structure of a <code>&lt;cpe:platform&gt;</code> element:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下は、<code>&lt;cpe:platform&gt;</code> 要素の構造の例です。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>&lt;cpe:platform id="789"&gt;
+   &lt;cpe:title&gt;
+   Microsoft Windows XP with Internet Explorer 7.x or 8.x
+   &lt;/cpe:title&gt;
+   &lt;cpe:logical-test operator="AND" negate="FALSE"&gt;
+      &lt;cpe:fact-ref
+         name="cpe:2.3:o:microsoft:windows_xp:*:*:*:*:*:*:*:*"/&gt;
+      &lt;cpe:logical-test operator="OR" negate="FALSE"&gt;
+         &lt;cpe:fact-ref
+            name="cpe:2.3:a:microsoft:internet_explorer:7.*:*:*:*:
+             *:*:*:*"/&gt;
+         &lt;cpe:fact-ref
+            name="cpe:2.3:a:microsoft:internet_explorer:8.*:*:*:*:
+             *:*:*:*"/&gt;
+      &lt;/cpe:logical-test&gt;
+   &lt;/cpe:logical-test&gt;
+&lt;/cpe:platform&gt;</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.3 The logical-test element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.3 logical-test 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:logical-test&gt;</code> element MAY contain one or more <code>&lt;cpe:logical-test&gt;</code> elements, MAY contain one or more <code>&lt;cpe:fact-ref&gt;</code> elements, and MAY contain one or more <code>&lt;cpe:check-fact-ref&gt;</code> elements. Although <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, or <code>&lt;cpe:logical-test&gt;</code> MAY be omitted from a <code>&lt;cpe:logical-test&gt;</code> element, at least one instance of one of them MUST appear within the body of each <code>&lt;cpe:logical-test&gt;</code> element.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素は、1 つ以上の <code>&lt;cpe:logical-test&gt;</code> 要素を含んでもよく（MAY）、1 つ以上の <code>&lt;cpe:fact-ref&gt;</code> 要素を含んでもよく（MAY）、1 つ以上の <code>&lt;cpe:check-fact-ref&gt;</code> 要素を含んでもよいです（MAY）。<code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、<code>&lt;cpe:logical-test&gt;</code> は、<code>&lt;cpe:logical-test&gt;</code> 要素から省略してもよいですが（MAY）、各 <code>&lt;cpe:logical-test&gt;</code> 要素の本体内に、これらのいずれか 1 つのインスタンスが少なくとも 1 つ現れなければなりません（MUST）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:logical-test&gt;</code> element SHALL have an <code>@operator</code> attribute. This attribute SHALL be set to either “AND” or “OR”. The designated operation is applied to all the values of the <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, and <code>&lt;cpe:logical-test&gt;</code> elements within the <code>&lt;cpe:logical-test&gt;</code> element, resulting in a TRUE, FALSE, or ERROR value. More complex tests MAY be constructed by nesting <code>&lt;cpe:logical-test&gt;</code> elements and setting their <code>@operator</code> and <code>@negate</code> attributes appropriately.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素は、<code>@operator</code> 属性を持たなければなりません（SHALL）。この属性は、「AND」または「OR」のいずれかに設定しなければなりません（SHALL）。指定された演算は、<code>&lt;cpe:logical-test&gt;</code> 要素内のすべての <code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、<code>&lt;cpe:logical-test&gt;</code> 要素の値に適用され、TRUE、FALSE、または ERROR の値になります。<code>&lt;cpe:logical-test&gt;</code> 要素を入れ子にし、それらの <code>@operator</code> 属性と <code>@negate</code> 属性を適切に設定することで、より複雑なテストを構築してもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:logical-test&gt;</code> element SHALL have a <code>@negate</code> attribute. This attribute SHALL be set to either “TRUE” or “FALSE”. This attribute is ignored if the value of the <code>&lt;cpe:logical-test&gt;</code> element is set to “ERROR”. Otherwise, if set to “TRUE”, the value of the <code>&lt;cpe:logical-test&gt;</code> element is inverted, and if set to “FALSE”, the value of the <code>&lt;cpe:logical-test&gt;</code> element is unaffected.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素は、<code>@negate</code> 属性を持たなければなりません（SHALL）。この属性は、「TRUE」または「FALSE」のいずれかに設定しなければなりません（SHALL）。<code>&lt;cpe:logical-test&gt;</code> 要素の値が「ERROR」に設定されている場合、この属性は無視されます。それ以外の場合、「TRUE」に設定されていれば、<code>&lt;cpe:logical-test&gt;</code> 要素の値は反転され、「FALSE」に設定されていれば、<code>&lt;cpe:logical-test&gt;</code> 要素の値は影響を受けません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following example shows the <code>&lt;cpe:logical-test&gt;</code> element’s syntax and structure. In this example, first the two <code>&lt;cpe:fact-ref&gt;</code> elements will be evaluated. Next, an OR of their values will be done. The result will become the final value of the <code>&lt;cpe:logical-test&gt;</code> element, since the negate function is not enabled.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の例は、<code>&lt;cpe:logical-test&gt;</code> 要素の構文と構造を示します。この例では、まず 2 つの <code>&lt;cpe:fact-ref&gt;</code> 要素が評価されます。次に、それらの値の OR が取られます。否定機能が有効になっていないため、その結果が <code>&lt;cpe:logical-test&gt;</code> 要素の最終的な値になります。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>&lt;cpe:logical-test operator="OR" negate="FALSE"&gt;
+   &lt;cpe:fact-ref
+      name="cpe:2.3:a:microsoft:internet_explorer:7.*:*:*:*:*:*:*:*"/&gt;
+   &lt;cpe:fact-ref
+      name="cpe:2.3:a:microsoft:internet_explorer:8.*:*:*:*:*:*:*:*"/&gt;
+&lt;/cpe:logical-test&gt;</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The truth table in Section 7.3 defines how individual results are combined by a <code>&lt;cpe:logical-test&gt;</code> element into a final result.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 7.3 節の真理値表は、個々の結果が <code>&lt;cpe:logical-test&gt;</code> 要素によってどのように組み合わされて最終的な結果になるかを定義します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Implementations processing CPE Applicability Language content MAY optimize their performance by skipping elements that are not necessary. For example, in the example above, if the first <code>&lt;cpe:fact-ref&gt;</code> element evaluates to TRUE, then it is known that the <code>&lt;cpe:logical-test&gt;</code> element will evaluate to TRUE, even though the value of the second <code>&lt;cpe:fact-ref&gt;</code> element is not known. To take advantage of this efficiency, authors of CPE Applicability Language content MAY choose to plan the sequence of their <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, and <code>&lt;cpe:logical-test&gt;</code> elements, such as putting elements most likely to evaluate TRUE at the top of “OR” <code>&lt;cpe:logical-test&gt;</code> elements, and putting elements most likely to evaluate FALSE or ERROR at the top of “AND” <code>&lt;cpe:logical-test&gt;</code> elements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語のコンテンツを処理する実装は、必要のない要素をスキップすることで、性能を最適化してもよいです（MAY）。たとえば、上の例で、最初の <code>&lt;cpe:fact-ref&gt;</code> 要素が TRUE に評価される場合、2 番目の <code>&lt;cpe:fact-ref&gt;</code> 要素の値が分かっていなくても、<code>&lt;cpe:logical-test&gt;</code> 要素が TRUE に評価されることが分かります。この効率を活用するため、CPE 適用性言語のコンテンツの作成者は、<code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、<code>&lt;cpe:logical-test&gt;</code> 要素の順序を計画することを選んでもよいです（MAY）。たとえば、「OR」の <code>&lt;cpe:logical-test&gt;</code> 要素では、最も TRUE に評価されやすい要素を先頭に置き、「AND」の <code>&lt;cpe:logical-test&gt;</code> 要素では、最も FALSE または ERROR に評価されやすい要素を先頭に置きます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.4 The fact-ref element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.4 fact-ref 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:fact-ref&gt;</code> element SHALL have a <code>@name</code> attribute that holds a bound form of a valid WFN, as defined in [CPE23-N:6]. This SHOULD be a formatted string binding, but it MAY be a URI binding (for backward compatibility).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:fact-ref&gt;</code> 要素は、[CPE23-N:6] で定義された有効な WFN のバウンド形式を保持する <code>@name</code> 属性を持たなければなりません（SHALL）。これは書式化文字列バインディングであるべきですが（SHOULD）、（後方互換性のために）URI バインディングでもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.5 The check-fact-ref element</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.5 check-fact-ref 要素</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:check-fact-ref&gt;</code> element SHALL have the following attributes:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:check-fact-ref&gt;</code> 要素は、次の属性を持たなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A <code>@check-system</code> attribute that holds the system identifier for the check system. Examples of commonly used check system identifiers are “http://oval.mitre.org/XMLSchema/oval-definitions-5” for the OVAL check system and “http://scap.nist.gov/schema/ocil/2” for the OCIL check system. The <code>@check-system</code> attribute MAY refer to any check system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">チェックシステムのシステム識別子を保持する <code>@check-system</code> 属性。一般的に使用されるチェックシステム識別子の例は、OVAL チェックシステムの「http://oval.mitre.org/XMLSchema/oval-definitions-5」と、OCIL チェックシステムの「http://scap.nist.gov/schema/ocil/2」です。<code>@check-system</code> 属性は、任意のチェックシステムを参照してもよいです（MAY）。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A <code>@check-location</code> attribute that holds the location of the check content, such as the OVAL or OCIL document that contains the desired check.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">目的のチェックを含む OVAL 文書や OCIL 文書など、チェックコンテンツの場所を保持する <code>@check-location</code> 属性。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">A <code>@check-id</code> attribute that holds the ID for the check to be evaluated, such as an OVAL definition ID or an OCIL questionnaire ID.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">OVAL 定義 ID や OCIL 質問票 ID など、評価するチェックの ID を保持する <code>@check-id</code> 属性。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>When selecting a check for inclusion in CPE Applicability Language content, the author SHALL choose checks that only return results that can clearly be mapped to boolean values (TRUE and FALSE) and, optionally, error conditions (ERROR).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 適用性言語のコンテンツに含めるチェックを選択する際、作成者は、ブール値（TRUE と FALSE）に、また任意でエラー状態（ERROR）に、明確にマッピングできる結果のみを返すチェックを選ばなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7. Processing Requirements and Recommendations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7. 処理の要件と推奨事項</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section describes the processing requirements that a CPE Applicability Language implementation MUST follow to correctly process a CPE Applicability Language document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、CPE 適用性言語の実装が、CPE 適用性言語文書を正しく処理するために従わなければならない（MUST）処理の要件を説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.1 CPE Bound Name Conversions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.1 CPE バウンド名の変換</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The CPE 2.3 Applicability Language schema defines a <code>cpe:namePattern</code> type that supports two forms of bound names: formatted string bindings (defined in [CPE23-N:6.2]) and URI bindings (defined in [CPE23-N:6.1]). CPE 2.3 Applicability Language implementations MAY convert formatted string bindings into URI bindings and URI bindings into formatted string bindings. These conversions SHOULD comply with the appropriate function that implements this conversion process, either <code>convert_fs_to_uri</code> defined in [CPE23-N:7.1] or <code>convert_uri_to_fs</code> defined in [CPE23-N:7.1].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE 2.3 適用性言語スキーマは、2 つの形式のバウンド名、すなわち書式化文字列バインディング（[CPE23-N:6.2] で定義）と URI バインディング（[CPE23-N:6.1] で定義）をサポートする <code>cpe:namePattern</code> 型を定義しています。CPE 2.3 適用性言語の実装は、書式化文字列バインディングを URI バインディングに、URI バインディングを書式化文字列バインディングに変換してもよいです（MAY）。これらの変換は、この変換プロセスを実装する適切な関数、すなわち [CPE23-N:7.1] で定義された <code>convert_fs_to_uri</code> または [CPE23-N:7.1] で定義された <code>convert_uri_to_fs</code> に準拠すべきです（SHOULD）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.2 Graceful Error Handling</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.2 エラーの適切な処理</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A CPE Language implementation SHOULD NOT suddenly terminate its execution due to an error condition. CPE Language implementations SHOULD handle all exceptional conditions gracefully by performing proper error and exception handling and producing an informative error message.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CPE Language の実装は、エラー状態のために実行を突然終了すべきではありません（SHOULD NOT）。CPE Language の実装は、適切なエラー処理と例外処理を行い、有益なエラーメッセージを生成することで、すべての例外的な状態を適切に処理すべきです（SHOULD）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>7.3 Evaluating Elements</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+7.3 要素の評価</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following subsections discuss the evaluation process for <code>&lt;cpe:logical-test&gt;</code>, <code>&lt;cpe:fact-ref&gt;</code>, and <code>&lt;cpe:check-fact-ref&gt;</code> elements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の小節は、<code>&lt;cpe:logical-test&gt;</code>、<code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code> 要素の評価プロセスを論じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>7.3.1 Evaluating a logical-test Element</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+7.3.1 logical-test 要素の評価</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The results of evaluating the individual <code>&lt;cpe:fact-ref&gt;</code>, <code>&lt;cpe:check-fact-ref&gt;</code>, and nested <code>&lt;cpe:logical-test&gt;</code> elements within a <code>&lt;cpe:logical-test&gt;</code> element are combined to produce the final value for the <code>&lt;cpe:logical-test&gt;</code> element. Table 1 provides a truth table that defines how the results SHALL be combined. A “+” sign in the table denotes the specified value and any larger value. So, for example, “1+” means any value of 1 or greater.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素内の個々の <code>&lt;cpe:fact-ref&gt;</code>、<code>&lt;cpe:check-fact-ref&gt;</code>、入れ子の <code>&lt;cpe:logical-test&gt;</code> 要素を評価した結果は、組み合わされて、<code>&lt;cpe:logical-test&gt;</code> 要素の最終的な値になります。表 1 は、結果をどのように組み合わせなければならない（SHALL）かを定義する真理値表を示します。表中の「+」記号は、指定された値とそれより大きい任意の値を表します。たとえば、「1+」は、1 以上の任意の値を意味します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. Truth Table for Logical-Test Element</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1. Logical-Test 要素の真理値表</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0017-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th rowspan="2">Operator</th><th colspan="3">Number of Individual Results (logical-test, fact-ref, check-fact-ref)</th><th rowspan="2">Negate</th><th rowspan="2">Final Result</th></tr><tr><th>TRUE</th><th>FALSE</th><th>ERROR</th></tr></thead><tbody><tr><td rowspan="5">AND</td><td>1+</td><td>0</td><td>0</td><td>FALSE</td><td>TRUE</td></tr><tr><td>1+</td><td>0</td><td>0</td><td>TRUE</td><td>FALSE</td></tr><tr><td>1+</td><td>0</td><td>1+</td><td>TRUE or FALSE</td><td>ERROR</td></tr><tr><td>0+</td><td>1+</td><td>0+</td><td>FALSE</td><td>FALSE</td></tr><tr><td>0+</td><td>1+</td><td>0+</td><td>TRUE</td><td>TRUE</td></tr><tr><td rowspan="5">OR</td><td>1+</td><td>0+</td><td>0+</td><td>FALSE</td><td>TRUE</td></tr><tr><td>1+</td><td>0+</td><td>0+</td><td>TRUE</td><td>FALSE</td></tr><tr><td>0</td><td>1+</td><td>0</td><td>FALSE</td><td>FALSE</td></tr><tr><td>0</td><td>1+</td><td>0</td><td>TRUE</td><td>TRUE</td></tr><tr><td>0</td><td>1+</td><td>1+</td><td>TRUE or FALSE</td><td>ERROR</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th rowspan="2">演算子</th><th colspan="3">個々の結果の数（logical-test、fact-ref、check-fact-ref）</th><th rowspan="2">否定</th><th rowspan="2">最終結果</th></tr><tr><th>TRUE</th><th>FALSE</th><th>ERROR</th></tr></thead><tbody><tr><td rowspan="5">AND</td><td>1+</td><td>0</td><td>0</td><td>FALSE</td><td>TRUE</td></tr><tr><td>1+</td><td>0</td><td>0</td><td>TRUE</td><td>FALSE</td></tr><tr><td>1+</td><td>0</td><td>1+</td><td>TRUE または FALSE</td><td>ERROR</td></tr><tr><td>0+</td><td>1+</td><td>0+</td><td>FALSE</td><td>FALSE</td></tr><tr><td>0+</td><td>1+</td><td>0+</td><td>TRUE</td><td>TRUE</td></tr><tr><td rowspan="5">OR</td><td>1+</td><td>0+</td><td>0+</td><td>FALSE</td><td>TRUE</td></tr><tr><td>1+</td><td>0+</td><td>0+</td><td>TRUE</td><td>FALSE</td></tr><tr><td>0</td><td>1+</td><td>0</td><td>FALSE</td><td>FALSE</td></tr><tr><td>0</td><td>1+</td><td>0</td><td>TRUE</td><td>TRUE</td></tr><tr><td>0</td><td>1+</td><td>1+</td><td>TRUE または FALSE</td><td>ERROR</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An implementation evaluating a <code>&lt;cpe:logical-test&gt;</code> element MAY skip evaluating one or more of its components if their results are not necessary—for example, if a <code>&lt;cpe:logical-test&gt;</code> element has an OR operator, then evaluation of the element’s components MAY stop as soon as any component is found to be TRUE, since the final result for the element is already known. In other words, processing MAY stop as soon as there is only one row in Table 1 left as a possibility.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素を評価する実装は、その構成要素の 1 つ以上について、結果が必要ない場合は、評価をスキップしてもよいです（MAY）。たとえば、<code>&lt;cpe:logical-test&gt;</code> 要素に OR 演算子がある場合、その要素の最終結果はすでに分かっているため、いずれかの構成要素が TRUE であると分かった時点で、要素の構成要素の評価を止めてもよいです（MAY）。言い換えると、表 1 で可能性として残る行が 1 行だけになった時点で、処理を止めてもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An implementation processing a <code>&lt;cpe:logical-test&gt;</code> element MAY process individual components in any order; however, the implementation SHOULD process them in sequence to take advantage of sequencing choices made by content authors to help optimize evaluation performance.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:logical-test&gt;</code> 要素を処理する実装は、個々の構成要素を任意の順序で処理してもよいですが（MAY）、評価性能を最適化するためにコンテンツの作成者が行った順序の選択を活用するため、実装はそれらを順番に処理すべきです（SHOULD）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>7.3.2 Evaluating a fact-ref Element</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+7.3.2 fact-ref 要素の評価</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For a <code>&lt;cpe:fact-ref&gt;</code> element, the bound name in its <code>@name</code> attribute SHALL be the source matched against the target list. The target list SHALL consist of one or more bound names for valid WFNs, each of type <code>cpe:namePattern</code>. An implementation MAY process the target names in any sequence. The implementation SHALL perform a CPE name match, as defined in [CPE23-M], of each target name against the source name until either a match is found or all target names have been processed. A match SHALL occur only when the source name’s relation with the target name is determined to be either EQUAL or SUPERSET [CPE23-M:6.2]. A match SHALL result in a TRUE value for the <code>&lt;cpe:fact-ref&gt;</code> element, otherwise the element SHALL be given a value of FALSE.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:fact-ref&gt;</code> 要素については、その <code>@name</code> 属性のバウンド名が、ターゲットリストと照合されるソースでなければなりません（SHALL）。ターゲットリストは、それぞれ <code>cpe:namePattern</code> 型の、有効な WFN のバウンド名 1 つ以上で構成されなければなりません（SHALL）。実装は、ターゲット名を任意の順序で処理してもよいです（MAY）。実装は、一致が見つかるか、すべてのターゲット名が処理されるまで、各ターゲット名をソース名に対して、[CPE23-M] で定義された CPE 名の照合を実行しなければなりません（SHALL）。一致は、ソース名とターゲット名の関係が EQUAL または SUPERSET のいずれかであると判定された場合にのみ成立しなければなりません（SHALL）[CPE23-M:6.2]。一致した場合は、<code>&lt;cpe:fact-ref&gt;</code> 要素の値が TRUE にならなければならず（SHALL）、そうでない場合、その要素には FALSE の値が与えられなければなりません（SHALL）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>7.3.3 Evaluating a check-fact-ref Element</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+7.3.3 check-fact-ref 要素の評価</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A <code>&lt;cpe:check-fact-ref&gt;</code> element MAY use any check system that meets the basic requirements specified in Section 6.5. However, CPE Language implementations are not required to support all of these check systems. Implementations SHALL support the OVAL check system. Its use in content is indicated by the <code>&lt;cpe:check-fact-ref&gt;</code> element’s <code>@check-system</code> attribute being set to “http://oval.mitre.org/XMLSchema/oval-definitions-5”. Implementations MAY support additional check systems, such as OCIL.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><code>&lt;cpe:check-fact-ref&gt;</code> 要素は、第 6.5 節で規定された基本要件を満たす任意のチェックシステムを使用してもよいです（MAY）。ただし、CPE Language の実装は、これらすべてのチェックシステムをサポートする必要はありません。実装は、OVAL チェックシステムをサポートしなければなりません（SHALL）。コンテンツでの OVAL の使用は、<code>&lt;cpe:check-fact-ref&gt;</code> 要素の <code>@check-system</code> 属性が「http://oval.mitre.org/XMLSchema/oval-definitions-5」に設定されることで示されます。実装は、OCIL など、追加のチェックシステムをサポートしてもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For all check systems that an implementation supports, the implementation MUST be capable of referencing the check using the attributes specified for the <code>&lt;cpe:check-fact-ref&gt;</code> element and handling the result. The implementation SHALL accept results that clearly map to TRUE and FALSE. The implementation SHALL accept error condition results, such as “error” or “not applicable”, and SHALL treat them as ERROR results. Also, if an implementation does not support a check system that the <code>&lt;cpe:check-fact-ref&gt;</code> element uses, if the specified check content is not accessible, or if any other condition occurs that prevents evaluation of the check, the implementation SHALL treat it as an ERROR result. If a result from the <code>&lt;cpe:check-fact-ref&gt;</code> element is required to calculate a result for its parent <code>&lt;cpe:logical-test&gt;</code> element, then evaluation of the parent element MAY cease.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実装がサポートするすべてのチェックシステムについて、実装は、<code>&lt;cpe:check-fact-ref&gt;</code> 要素に規定された属性を使ってチェックを参照し、結果を処理できなければなりません（MUST）。実装は、TRUE と FALSE に明確にマッピングされる結果を受け付けなければなりません（SHALL）。実装は、「error」や「not applicable」などのエラー状態の結果を受け付けなければならず（SHALL）、それらを ERROR の結果として扱わなければなりません（SHALL）。また、実装が <code>&lt;cpe:check-fact-ref&gt;</code> 要素の使用するチェックシステムをサポートしていない場合、指定されたチェックコンテンツにアクセスできない場合、またはチェックの評価を妨げるその他の状態が生じた場合、実装は、それを ERROR の結果として扱わなければなりません（SHALL）。<code>&lt;cpe:check-fact-ref&gt;</code> 要素の結果が、その親の <code>&lt;cpe:logical-test&gt;</code> 要素の結果を算出するために必要な場合、親要素の評価は終了してもよいです（MAY）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8. CPE Applicability Language Pseudocode</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8. CPE 適用性言語の擬似コード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section specifies the required common applicability language capabilities in terms of an abstract pseudocode programming language. The input/output behavior of all functions defined in pseudocode should be considered normative. The pseudocode implementations themselves should be considered informative, as the algorithms are written for clarity and simplicity rather than for efficiency. Section 8.1 defines the core function for CPE applicability language statement matching, while Section 8.2 defines supporting functions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節は、必要な共通の適用性言語の能力を、抽象的な擬似コードのプログラミング言語で規定します。擬似コードで定義されたすべての関数の入出力の動作は、規範的とみなすべきです。擬似コードの実装自体は、アルゴリズムが効率よりも明確さと単純さを重視して書かれているため、参考情報とみなすべきです。第 8.1 節は、CPE 適用性言語ステートメントの照合のコア関数を定義し、第 8.2 節は、サポート関数を定義します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>8.1 Core Function</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+8.1 コア関数</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following pseudocode defines the required core CPE_App_Lang_Match function.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の擬似コードは、必要なコア関数 CPE_App_Lang_Match を定義します。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Begin CPE_App_Lang_Match function. Input argument E is an
+;; expression in the CPE Applicability Language, represented as the
+;; XML infoset for the platform element (see Section 5.2).
+;; Input argument K is a set of known CPE names, represented as
+;; CPE 2.3 formatted string bindings and/or URI bindings.
+;; Returns the result of evaluating E (TRUE, FALSE, ERROR).
+function CPE_App_Lang_Match(E, K)
+  if (element(E) = "platform") then
+    ;; Parse through E’s elements and ignore all but logical-test.
+    foreach C in children(E) do
+      if (element(C) = "logical-test") then
+        ;; Call the function again, but with logical-test as the
+        ;; root element.
+        return CPE_App_Lang_Match(C, K).
+    end.
+  else if (element(E) = "fact-ref") then
+    ;; fact-ref’s name attribute is a bound name,
+    ;; so we unbind it to a WFN before passing it.
+    return Fact_Ref_Eval(unbind(attribute(E, "name")), K).
+  else if (element(E) = "check-fact-ref") then
+    return Check_Fact_Ref_Eval(E).
+  else if (element(E) = "logical-test") then
+    count := 0.
+    len := 0.
+    answer := FALSE.
+    foreach C in children(E) do
+      len := len + 1.
+      result := CPE_App_Lang_Match(C, K).
+      if (result = TRUE) then
+        count := count + 1.
+      else if (result = ERROR) then
+        answer := ERROR.
+      end.
+    end.
+    if ((attribute(E, "operator") = "AND") and (count = len)) then
+      answer := TRUE.
+    else
+      if ((attribute(E, "operator") = "OR") and (count &gt; 0)) then
+        answer := TRUE.
+    if (attribute(E, "negate") = TRUE and answer != ERROR) then
+      answer := !answer.
+    return answer.
+  else
+    return FALSE.
+  endif.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>8.2 Support Functions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+8.2 サポート関数</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following pseudocode defines the support functions needed for the core function in Section 8.1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の擬似コードは、第 8.1 節のコア関数に必要なサポート関数を定義します。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Begin Fact_Ref_Eval function. Input argument factrefname is WFN.
+;; Input argument target is a list of CPE bound names.
+;; Returns TRUE if factrefname is a non-proper superset (true superset
+;; or equal to) any of the names in target, otherwise FALSE.
+function Fact_Ref_Eval(factrefname, target)
+  foreach N in target do
+    ;; Need to convert each N from bound form to WFN.
+    if (CPE_SUPERSET(factrefname, unbind(N)))
+      return TRUE.
+  end.
+  return FALSE.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Begin Check_Fact_Ref_Eval function. Input argument is the XML
+;; infoset for the check_fact_ref element (see Section 5.4).
+;; Returns the result (TRUE, FALSE, ERROR) of performing the specified
+;; check, unless the check isn’t supported, in which case it returns
+;; FALSE. ERROR is a catch-all for all results other than TRUE and
+;; FALSE.
+;;
+function Check_Fact_Ref_Eval(checkfactref)
+  checksystemID := attribute(checkfactref, "check-system").
+  if (checksystemID = "http://oval.mitre.org/XMLSchema/oval-
+definitions-5")
+    ;; Perform an OVAL check. First attribute is the URI of an OVAL
+    ;; definitions file. Second attribute is an OVAL definition ID.
+    return ovalcheck(attribute(checkfactref, "check-location"),
+                     attribute(checkfactref, "check-id")).
+  if (checksystemID = “http://scap.nist.gov/schema/ocil/2”)
+    ;; Perform an OCIL check. First attribute is the URI of an OCIL
+    ;; questionnaire file. Second attribute is OCIL questionnaire ID.
+    return ocilcheck(attribute(checkfactref, "check-location"),
+                     attribute(checkfactref, "check-id")).
+  ;; can add additional check systems here, with each returning a
+  ;; TRUE, FALSE, or ERROR value
+  return FALSE.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Unbinds a bound form to a WFN.
+function unbind(boundname)
+  if fs(boundname)
+    return(unbind_fs(boundname)).
+  else
+    return(unbind_URI(boundname)).
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Pseudocode for unbind_fs function is at [CPE23-N:6.2.3.2].
+function unbind_fs(fs)
+  ;; Unbinds a formatted string fs to a WFN.
+  ;; Input is formatted string, output is WFN.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Pseudocode for unbind_URI function is at [CPE23-N:6.1.3.2].
+function unbind_URI(uri)
+  ;; Unbinds a URI binding uri to a WFN.
+  ;; Input is URI binding, output is WFN.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Pseudocode for CPE_SUPERSET is at [CPE23-M:7.2].
+function CPE_SUPERSET(source,target)
+  ;; Returns TRUE if the set relation between source and target is
+  ;; SUPERSET, otherwise FALSE. Input arguments are WFNs.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Makes a structure for parsing a CPE Applicability Language
+;; expression.
+function children(langexpr)
+  ;; Holds the XML elements of the expression so that they can be
+  ;; parsed one at a time.
+  ;; Input is CPE Applicability Language expression, represented
+  ;; as the XML infoset for the platform element.
+  ;; Output is the structure holding the expression elements.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Checks the element type (platform, logical-test, etc.) of a
+;; CPE Applicability Language expression element.
+function element(langexprelement)
+  ;; Input is one element of a CPE Applicability Language
+  ;; expression, from the structure created by the children function.
+  ;; Output is the type of that element, represented as a string.
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>;; Returns the value of a particular attribute within a
+;; CPE Applicability Language expression.
+function attribute(langexpr, attribtype)
+  ;; Input is a CPE Applicability Language expression and an
+  ;; attribute type (operator, negate, etc.)
+  ;; Output is a string representing the value of that attribute (for
+  ;; example, the operator type could have a value of "AND" or "OR".
+end.</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following documents are indispensable references for understanding the application of this specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の文書は、本仕様の適用を理解するために不可欠な参考文献です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.1 Normative References</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.1 規範的参考文献</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CPE22] Buttner, A. and N. Ziring, <em>Common Platform Enumeration (CPE)—Specification,</em> Version 2.2, March 11, 2009. See http://cpe.mitre.org/specification/archive/version2.2/cpe-specification_2.2.pdf.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CPE22] Buttner, A. and N. Ziring, <em>Common Platform Enumeration (CPE)—Specification,</em> Version 2.2, March 11, 2009. 参照: http://cpe.mitre.org/specification/archive/version2.2/cpe-specification_2.2.pdf。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CPE23-D] Cichonski, P., Waltermire, D., and Scarfone, K., NIST Interagency Report 7697, <em>Common Platform Enumeration: Dictionary Specification Version 2.3</em>, August 2011. See http://csrc.nist.gov/publications/PubsNISTIRs.html.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CPE23-D] Cichonski, P., Waltermire, D., and Scarfone, K., NIST Interagency Report 7697, <em>Common Platform Enumeration: Dictionary Specification Version 2.3</em>, August 2011. 参照: http://csrc.nist.gov/publications/PubsNISTIRs.html。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CPE23-M] Parmelee, M., Booth, H., Waltermire, D., and Scarfone, K., NIST Interagency Report 7696, <em>Common Platform Enumeration: Name Matching Specification Version 2.3,</em> August 2011. See http://csrc.nist.gov/publications/PubsNISTIRs.html.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CPE23-M] Parmelee, M., Booth, H., Waltermire, D., and Scarfone, K., NIST Interagency Report 7696, <em>Common Platform Enumeration: Name Matching Specification Version 2.3,</em> August 2011. 参照: http://csrc.nist.gov/publications/PubsNISTIRs.html。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CPE23-N] Cheikes, B., Waltermire, D., and Scarfone, K., NIST Interagency Report 7695, <em>Common Platform Enumeration: Naming Specification Version 2.3,</em> August 2011. See http://csrc.nist.gov/publications/PubsNISTIRs.html.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CPE23-N] Cheikes, B., Waltermire, D., and Scarfone, K., NIST Interagency Report 7695, <em>Common Platform Enumeration: Naming Specification Version 2.3,</em> August 2011. 参照: http://csrc.nist.gov/publications/PubsNISTIRs.html。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[RFC2119] Bradner, S., <em>Key words for use in RFCs to Indicate Requirement Levels</em>, March 1997. See http://www.ietf.org/rfc/rfc2119.txt.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[RFC2119] Bradner, S., <em>Key words for use in RFCs to Indicate Requirement Levels</em>, March 1997. 参照: http://www.ietf.org/rfc/rfc2119.txt。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.2 Informative References</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.2 参考情報の文献</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[SP800-117] Quinn, S., Scarfone, K., Barrett, M., and Johnson, C., NIST Special Publication 800-117, <em>Guide to Adopting and Using the Security Content Automation Protocol</em>, July 2010. See http://csrc.nist.gov/publications/PubsSPs.html#800-117.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[SP800-117] Quinn, S., Scarfone, K., Barrett, M., and Johnson, C., NIST Special Publication 800-117, <em>Guide to Adopting and Using the Security Content Automation Protocol</em>, July 2010. 参照: http://csrc.nist.gov/publications/PubsSPs.html#800-117。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[SP800-126] Waltermire, D., Quinn, S., Scarfone, K., and Halbardier, A., NIST Special Publication 800-126 Revision 2, <em>The Technical Specification for the Security Content Automation Protocol (SCAP): SCAP Version 1.2</em>, July 2011. See http://csrc.nist.gov/publications/PubsSPs.html#800-126.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[SP800-126] Waltermire, D., Quinn, S., Scarfone, K., and Halbardier, A., NIST Special Publication 800-126 Revision 2, <em>The Technical Specification for the Security Content Automation Protocol (SCAP): SCAP Version 1.2</em>, July 2011. 参照: http://csrc.nist.gov/publications/PubsSPs.html#800-126。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Change Log</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B—変更履歴</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Release 0 – 2 June 2011</strong></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>リリース 0 – 2011 年 6 月 2 日</strong></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Initial draft specification released for public comment.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">パブリックコメント用に、最初のドラフト仕様を公開。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Release 1 – 30 August 2011</strong></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>リリース 1 – 2011 年 8 月 30 日</strong></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0003-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Final release of CPE Applicability Language 2.3 specification.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">CPE 適用性言語 2.3 仕様の最終リリース。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0003-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Made minor editorial changes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">軽微な編集上の変更を実施。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0003-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Added prefix/namespace/schema mapping table to Section 1; updated prefixes for consistency with corresponding XML schemas.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">プレフィックス/名前空間/スキーマのマッピング表を第 1 節に追加。対応する XML スキーマとの一貫性のため、プレフィックスを更新。</span></p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7698.pdf">National Institute of Standards and Technology, IR 7698</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7698";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
