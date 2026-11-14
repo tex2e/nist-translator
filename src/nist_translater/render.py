@@ -20,6 +20,8 @@ OFFICIAL_MARKS = {
                            "公的な標章のため"),
     "contains_us_seal": ("Figure that shows the Great Seal of the United States", "米国の国章が写っている図",
                          "公的な標章のため"),
+    "contains_official_mark": ("Figure that shows government marks or flags", "政府の標章が写っている図",
+                               "公的な標章のため"),
     "person_photo": ("Photograph of people", "人物の写真", "人物が写っているため"),
     "other_logo": ("Logo of an organization or program", "組織・プログラムのロゴ", "ロゴのため"),
     "decorative": ("Decorative picture", "装飾の画像", "本文を読むのに必要のない装飾のため"),
