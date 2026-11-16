@@ -1,0 +1,1486 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 7337 は、NIST が 2006 年 5 月 15 日から 6 月 14 日にかけて実施した個人識別検証（PIV）デモンストレーションの概要を示した報告書です。このデモンストレーションの目的は、FIPS 201 および付随する特別刊行物を支援する市販製品について、概念実証と相互運用性のデモンストレーションを示すことであり、44 社が共同研究開発契約（CRADA）を通じて任意で参加し、25 を超える連邦機関・省庁の職員が出席しました。デモンストレーションは 2 段階で行われ、第 1 段階で各企業が NIST の担当者に製品を実演し、第 2 段階で連邦機関・省庁が NIST の敷地を訪れました。報告書は、FIPS 201 の構成要素の分類ごとに、暗号モジュール検証の状況などを含む結果を述べ、参加企業の一覧と略語を付しています。">
+  <title>個人識別検証デモンストレーションの概要 | NIST IR 7337 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Personal Identity Verification Demonstration Summary" data-search="個人識別検証デモンストレーションの概要 personal identity verification demonstration summary">個人識別検証デモンストレーションの概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="REPORTS ON COMPUTER SYSTEMS TECHNOLOGY" data-search="コンピュータシステム技術に関する報告書 reports on computer systems technology">コンピュータシステム技術に関する報告書</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Acknowledgements" data-search="謝辞 acknowledgements">謝辞</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0006" title="List of Appendices" data-search="付録の一覧 list of appendices">付録の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0010" title="List of Figures" data-search="図の一覧 list of figures">図の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="2. Background" data-search="2. 背景 2. background">2. 背景</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0001" title="3. Summary" data-search="3. 概要 3. summary">3. 概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0011" title="3.1 PIV Cards" data-search="3.1 piv カード 3.1 piv cards">3.1 PIV カード</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0010" title="3.2 Enrollment and IDMS" data-search="3.2 登録および idms 3.2 enrollment and idms">3.2 登録および IDMS</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0013" title="3.3 Issuance, Management, and Printing" data-search="3.3 発行、管理、印刷 3.3 issuance, management, and printing">3.3 発行、管理、印刷</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0022" title="3.4 Contact Readers" data-search="3.4 接触式リーダー 3.4 contact readers">3.4 接触式リーダー</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0002" title="3.5 Contactless Readers and PACS" data-search="3.5 非接触式リーダーおよび pacs 3.5 contactless readers and pacs">3.5 非接触式リーダーおよび PACS</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0014" title="3.6 PKI" data-search="3.6 pki 3.6 pki">3.6 PKI</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0001" title="3.7 Biometrics" data-search="3.7 生体認証 3.7 biometrics">3.7 生体認証</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001" title="4. Conclusion" data-search="4. 結論 4. conclusion">4. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0001" title="Appendix A—Vendor Participants" data-search="付録 a—ベンダー参加者 appendix a—vendor participants">付録 A—ベンダー参加者</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001" title="Appendix B—Acronyms" data-search="付録 b—略語 appendix b—acronyms">付録 B—略語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0001" title="Appendix C—Bibliography" data-search="付録 c—参考文献 appendix c—bibliography">付録 C—参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 7337 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Personal Identity Verification Demonstration Summary</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>個人識別検証デモンストレーションの概要</strong></span><br><span class="doc-panel-item">公開日 : 2006-08-31</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/7337/final">https://csrc.nist.gov/pubs/ir/7337/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 156 / 158 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 7337 は、NIST が 2006 年 5 月 15 日から 6 月 14 日にかけて実施した個人識別検証（PIV）デモンストレーションの概要を示した報告書です。このデモンストレーションの目的は、FIPS 201 および付随する特別刊行物を支援する市販製品について、概念実証と相互運用性のデモンストレーションを示すことであり、44 社が共同研究開発契約（CRADA）を通じて任意で参加し、25 を超える連邦機関・省庁の職員が出席しました。デモンストレーションは 2 段階で行われ、第 1 段階で各企業が NIST の担当者に製品を実演し、第 2 段階で連邦機関・省庁が NIST の敷地を訪れました。報告書は、FIPS 201 の構成要素の分類ごとに、暗号モジュール検証の状況などを含む結果を述べ、参加企業の一覧と略語を付しています。</p></div>
+      </div>
+
+      <section class="row source-only pair figure" id="pdf-p0001-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[NIST logo — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=1">原本 PDF p.1</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［NIST のロゴ。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7337</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7337</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Personal Identity Verification Demonstration Summary</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+個人識別検証デモンストレーションの概要</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Erika McCallister</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Erika McCallister</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hildegard Ferraiolo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hildegard Ferraiolo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 7337</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 7337</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Personal Identity Verification Demonstration Summary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>個人識別検証デモンストレーションの概要</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Erika McCallister</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Erika McCallister</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hildegard Ferraiolo</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Hildegard Ferraiolo</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>COMPUTER SECURITY</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Gaithersburg, MD, 20899-8940</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Gaithersburg, MD, 20899-8940</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>August 2006</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2006年8月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Carlos M. Gutierrez, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Carlos M. Gutierrez 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>William A. Jeffrey, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所<br>William A. Jeffrey 所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>REPORTS ON COMPUTER SYSTEMS TECHNOLOGY</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コンピュータシステム技術に関する報告書</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Information Technology Laboratory (ITL) at the National Institute of Standards and Technology (NIST) promotes the U.S. economy and public welfare by providing technical leadership for the Nation’s measurement and standards infrastructure. ITL develops tests, test methods, reference data, proof of concept implementations, and technical analyses to advance the development and productive use of information technology. ITL’s responsibilities include the development of management, administrative, technical, and physical standards and guidelines for the cost-effective security and privacy of non-national security-related information in Federal information systems. This Interagency Report discusses ITL’s research, guidelines, and outreach efforts in information system security, and its collaborative activities with industry, government, and academic organizations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所（NIST）の情報技術研究所（ITL）は、米国の測定・標準基盤に対する技術的リーダーシップを提供することにより、米国の経済と公共の福祉を促進しています。ITL は、情報技術の発展と生産的な利用を推進するため、試験、試験方法、参照データ、概念実証の実装、技術分析を開発しています。ITL の責務には、連邦情報システムにおける国家安全保障に関係しない情報について、費用対効果の高いセキュリティとプライバシーを実現するための、管理面・運用面・技術面・物理面の標準およびガイドラインの策定が含まれます。この省庁間報告書は、情報システムセキュリティに関する ITL の研究、ガイドライン、アウトリーチの取り組みと、産業界、政府、学術機関との協力活動を扱います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology Interagency Report, 19 pages (August 2006)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国国立標準技術研究所 省庁間報告書、19ページ（2006年8月）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain commercial entities, equipment, or materials may be identified in this document in order to describe an experimental procedure or concept adequately. Such identification is not intended to imply recommendation or endorsement by the National Institute of Standards and Technology, nor is it intended to imply that the entities, materials, or equipment are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書では、実験の手順や概念を適切に説明するために、特定の商業的な事業体、装置、資材を示す場合があります。こうした表示は、米国国立標準技術研究所による推奨や承認を意味するものではなく、それらの事業体、資材、装置が目的に照らして必ずしも最良のものであることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The authors, Erika McCallister and Hildegard Ferraiolo of the National Institute of Standards wish to thank their colleagues who reviewed drafts of this document and contributed to its development. The authors also gratefully acknowledge and appreciate the many contributions from the product developers and integrators for participation in the PIV demonstration project.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>著者である米国国立標準技術研究所の Erika McCallister と Hildegard Ferraiolo は、本書の草案をレビューし、その作成に貢献した同僚に感謝します。また、PIV デモンストレーションプロジェクトに参加した製品開発者およびインテグレーターからの多くの貢献に対し、著者は深く感謝します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. INTRODUCTION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. BACKGROUND</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001">2. 背景</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. SUMMARY</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0001">3. 概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4. CONCLUSION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001">4. 結論</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Appendices</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">APPENDIX A— VENDOR PARTICIPANTS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">付録 A— ベンダー参加者</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">APPENDIX B— ACRONYMS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">付録 B— 略語</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">APPENDIX C— BIBLIOGRAPHY</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">付録 C— 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Figures</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+図の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0006">FIGURE 1: STATUS OF CRYPTOGRAPHIC MODULE VALIDATION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0006">図 1: 暗号モジュール検証の状況</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0012">FIGURE 2: IDMS INTERFACE TO PACS AND LACS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0012">図 2: IDMS と PACS・LACS のインタフェース</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">FIGURE 3: NUMBER OF IMPLEMENTED SECURITY FEATURES PER PRINTER</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0009">図 3: プリンターごとの実装済みセキュリティ機能の数</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">FIGURE 4: PACS CAPABLE TO READ THE EXPIRATION DATE FROM THE CHUID</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0011">図 4: CHUID から有効期限を読み取れる PACS</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0016">FIGURE 5: MINUTIAE TEMPLATE GENERATORS LISTED IN THE MINEX REPORT</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0016">図 5: MINEX 報告書に掲載されたミニューシャテンプレート生成器</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On August 27, 2004, the President signed Homeland Security Presidential Directive 12 (HSPD-12), entitled “Policy for a Common Identification Standard for Federal Employees and Contractors.” HSPD-12 required the development and implementation of a government-wide standard for secure and reliable forms of identification for Federal employees and contractors. As required by HSPD-12, the National Institute of Standards and Technology (NIST) issued Federal Information Processing Standard 201 (FIPS 201). Subsequently, NIST issued a number of Special Publications in support of FIPS 201 to enable interoperable implementations. To ensure interoperability, NIST created a conformance test suite for Personal Identity Verification (PIV) card applications and middleware, which is being used by independent laboratories to conduct the conformance testing.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2004年8月27日、大統領は、「連邦職員および契約業者のための共通身分証明基準に関する政策（Policy for a Common Identification Standard for Federal Employees and Contractors）」と題する国土安全保障大統領指令12（HSPD-12）に署名しました。HSPD-12 は、連邦職員および契約業者に対する、安全で信頼できる形態の身分証明について、政府全体の標準を策定し実装することを求めていました。HSPD-12 の要求に従い、米国国立標準技術研究所（NIST）は連邦情報処理標準201（FIPS 201）を発行しました。その後 NIST は、相互運用可能な実装を可能にするため、FIPS 201 を支援する複数の特別刊行物を発行しました。相互運用性を確保するため、NIST は個人識別検証（PIV）カードアプリケーションおよびミドルウェアの適合性試験スイートを作成しており、これは独立した試験所による適合性試験に使用されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>With the October 27, 2006, deadline for agencies to implement FIPS 201 fast approaching, NIST sought voluntary participation by companies offering products and services supporting FIPS 201 for the PIV Demonstration. The PIV Demonstration provided NIST the opportunity to conduct proof of concept and interoperability demonstrations of products supporting FIPS 201 and accompanying Special Publications. The demonstration resulted in a useful exchange of information among Federal agencies, vendors, and NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各機関が FIPS 201 を実装する期限である2006年10月27日が迫る中、NIST は、FIPS 201 を支援する製品およびサービスを提供する企業に、PIV デモンストレーションへの任意参加を求めました。PIV デモンストレーションにより、NIST は、FIPS 201 および付随する特別刊行物を支援する製品の概念実証と相互運用性を実演する機会を得ました。このデモンストレーションでは、連邦機関、ベンダー、NIST の間で有益な情報交換が行われました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Background</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 背景</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PIV Demonstration took place from May 15 to June 14, 2006. Forty-four companies voluntarily participated through a Cooperative Research and Development Agreement (CRADA) with NIST. The purpose of the demonstration was to show proof of concept and interoperability demonstrations of commercially available products that support FIPS 201 and the accompanying special publications. Personnel from over 25 different Federal agencies and departments attended the PIV Demonstration.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PIV デモンストレーションは、2006年5月15日から6月14日にかけて行われました。44社が、NIST との共同研究開発契約（CRADA）を通じて任意で参加しました。デモンストレーションの目的は、FIPS 201 および付随する特別刊行物に対応する市販製品について、概念実証と相互運用性を実証することでした。25を超える連邦機関・省庁の職員が PIV デモンストレーションに出席しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The demonstration was divided into two phases. During the first phase, each company met with NIST representatives for 2-3 hours to demonstrate and to discuss their FIPS 201 product solution. This provided NIST with a unique opportunity to observe and discuss current product capabilities. The companies were provided the opportunity to ask questions of NIST and to provide general input to NIST about the PIV Program. During the second phase of the demonstration, Federal agencies and departments were invited to the NIST campus to attend the PIV Demonstration. Agency representatives were provided the opportunity to meet with technical representatives from each of the companies to observe demonstrations of FIPS 201 solutions and to ask questions relevant to each agency’s implementation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>デモンストレーションは2つの段階に分かれていました。第1段階では、各企業が2〜3時間にわたって NIST の担当者と会い、FIPS 201 の製品ソリューションを実演し、議論しました。これにより NIST は、現在の製品の能力を観察し議論する貴重な機会を得ました。企業は、NIST に質問し、PIV プログラムについて NIST に一般的な意見を伝える機会を与えられました。デモンストレーションの第2段階では、連邦機関・省庁が NIST の敷地に招かれ、PIV デモンストレーションに出席しました。機関の代表者は、各企業の技術担当者と会って FIPS 201 ソリューションのデモンストレーションを見学し、各機関の実装に関連する質問をする機会を与えられました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As part of the CRADA, companies were required to make their products available for use by NIST for the entire one month period of the PIV Demonstration. NIST used this opportunity to further study the product capabilities. As part of the interoperability aspect of the demonstration, NIST tried each of the issued cards in the various readers provided to observe interoperability among PIV components.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CRADA の一環として、企業は、PIV デモンストレーションの1か月の期間全体にわたり、NIST が使用できるように製品を提供することを求められました。NIST はこの機会を利用して、製品の能力をさらに調べました。デモンストレーションの相互運用性の側面として、NIST は、発行された各カードを、提供されたさまざまなリーダーで試し、PIV の構成要素間の相互運用性を観察しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Summary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PIV Demonstration focused on FIPS 201 components in the following categories:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PIV デモンストレーションは、次の分類に属する FIPS 201 の構成要素に焦点を当てました。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PIV Cards</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">PIV カード</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Enrollment and Identity Management System (IDMS)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">登録および識別情報管理システム（IDMS）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Issuance, Management, and Printing</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">発行、管理、印刷</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Contact Readers</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">接触式リーダー</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Contactless Readers and Physical Access Control System (PACS)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">非接触式リーダーおよび物理アクセス制御システム（PACS）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Public Key Infrastructure (PKI)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">公開鍵基盤（PKI）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Biometrics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">生体認証</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following subsections provide summaries of the products from each category. The summaries are based on vendor presentations, demonstration, and product specifications<sup>1</sup>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下の各小節では、各分類の製品の概要を示します。この概要は、ベンダーの発表、デモンストレーション、製品仕様<sup>1</sup>に基づいています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 PIV Cards</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 PIV カード</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Nine companies presented ten PIV cards for the demonstration. The companies included smart card manufacturers, PIV card application developers capable of working with a variety of smart cards, and integrators capable of issuing a variety of PIV cards. All ten of the cards were either in process for conformance testing or had completed testing. Half of the cards had completed the PIV card application conformance testing through NIST PIV Program (NPIVP), while the cards’ cryptographic module validation for FIPS 140-2 compliance through the Cryptographic Validation Program (CMVP) is progressing as shown in figure 1:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>9社が10種類の PIV カードをデモンストレーションに出展しました。これらの企業には、スマートカードの製造者、さまざまなスマートカードで動作できる PIV カードアプリケーションの開発者、さまざまな PIV カードを発行できるインテグレーターが含まれていました。10種類のカードはすべて、適合性試験の手続き中か、試験を完了していました。半数のカードは、NIST PIV プログラム（NPIVP）による PIV カードアプリケーションの適合性試験を完了しており、暗号モジュール検証プログラム（CMVP）による FIPS 140-2 準拠のためのカードの暗号モジュール検証は、図 1 に示すように進行中です。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0008-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> NIST makes no guarantees, expressed or implied, about the reliability of the statements from the companies. The summary is for informational purposes only and does not represent an endorsement of any specific product, group or individual by NIST nor does it reflect the opinions or beliefs of NIST. <sup>1</sup><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=8">原本 PDF p.8</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> NIST は、企業の発言の信頼性について、明示的にも黙示的にも一切保証しません。この概要は情報提供のみを目的としており、特定の製品、団体、個人に対する NIST の承認を表すものではなく、NIST の意見や信条を反映するものでもありません。<sup>1</sup>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0009-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7337/p0009-drawing-01.png" alt="3-D pie chart in a frame with three slices: &quot;Validation complete 40%&quot;, &quot;Validation in process 40%&quot; and &quot;Validation in the near future 20%&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の立体の円グラフで、3 つの区分があります。「Validation complete 40%」（検証完了 40%）、「Validation in process 40%」（検証中 40%）、「Validation in the near future 20%」（近く検証予定 20%）です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1: Status of Cryptographic module validation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1: 暗号モジュール検証の状況</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Of the ten cards, twenty percent supported a transition interface, in addition to the endpoint interface specified in Special Publication 800-73 (SP 800-73), Interfaces for Personal Identity Verification. For the contact interface, sixty percent of the cards supported both transmission protocols T=0 and T=1, ten percent supported only T=1, and thirty percent of the cards supported only T=0. With respect to additional card interfaces, four cards claimed to have capabilities to support the 125 kHz interface. Four companies indicated that other types of interfaces could be added to the cards.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>10種類のカードのうち、20パーセントは、Special Publication 800-73（SP 800-73）、Interfaces for Personal Identity Verification に規定されたエンドポイントインタフェースに加えて、移行インタフェースに対応していました。接触式インタフェースについては、60パーセントのカードが伝送プロトコル T=0 と T=1 の両方に対応し、10パーセントは T=1 のみ、30パーセントのカードは T=0 のみに対応していました。追加のカードインタフェースについては、4種類のカードが125 kHz インタフェースに対応する能力があると主張していました。4社は、ほかの種類のインタフェースもカードに追加できると述べました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All of the cards supported the Rivest Shamir Adleman (RSA) algorithm, but the supported key lengths varied by company. Triple Data Encryption Standard (Triple-DES) was the most supported symmetric algorithm, and Advanced Encryption Standard (AES) was also common. Two companies supported elliptic curve cryptography (ECC) at the time of the demonstration.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのカードが Rivest Shamir Adleman（RSA）アルゴリズムに対応していましたが、対応する鍵長は企業によって異なっていました。共通鍵アルゴリズムでは Triple Data Encryption Standard（Triple-DES）への対応が最も多く、Advanced Encryption Standard（AES）も一般的でした。デモンストレーションの時点で楕円曲線暗号（ECC）に対応していたのは2社でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additionally, NIST learned of a possible issue with respect to the mapping of answer-to-reset (ATR) to the Cryptographic Service Provider (CSP) for Windows logon. The ATR of the PIV card is unspecified in the standard so it can vary among vendors. Therefore, if there are multiple CSPs on the Windows system, then the CSP could have problems connecting to the PIV card. A possible solution to avoid the problem is to set the PIV CSP as the default and registering other CSPs with specific ATRs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに NIST は、Windows ログオンにおける、リセット応答（ATR）から暗号サービスプロバイダー（CSP）へのマッピングに関して、起こりうる問題を把握しました。PIV カードの ATR は標準で規定されていないため、ベンダー間で異なる場合があります。したがって、Windows システムに複数の CSP がある場合、CSP が PIV カードに接続する際に問題が生じる可能性があります。この問題を避ける解決策として、PIV CSP を既定に設定し、ほかの CSP を特定の ATR で登録する方法が考えられます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Enrollment and IDMS</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 登録および IDMS</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fifteen companies provided products in this category. Some of the companies provided enrollment stations capable of sending data packages to other systems for management and issuance, while other companies provided a limited set of enrollment capabilities, such as the biometric capture. Several of the companies provided only IDMS functionality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この分類の製品を提供したのは15社でした。一部の企業は、管理および発行のためにデータパッケージをほかのシステムへ送信できる登録ステーションを提供し、ほかの企業は、生体情報の取得など、限られた登録機能を提供しました。数社は IDMS の機能のみを提供しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Eighty-seven percent of the systems were capable of recording the outcome of the National Agency Check with Inquiries (NACI). Of those capable systems, fifty-four percent recorded a binary indicator field, twenty-three percent stored the background investigation data, and fifteen percent were configurable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムの87パーセントが、身元照会付き国家機関調査（NACI）の結果を記録できました。記録できるシステムのうち、54パーセントは二値の指標フィールドを記録し、23パーセントは身元調査のデータを保存し、15パーセントは設定可能でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ninety-three percent of the systems were designed to enforce separation of duty, and the remaining seven percent indicated separation of duty enforcement would be a future capability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムの93パーセントは職務分離を強制するよう設計されており、残りの7パーセントは、職務分離の強制は将来の機能になると述べました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For biometric capture products, ninety-three percent of the companies indicated their systems perform 10-fingerprint captures. Of those products, seventy-one percent provided automated feedback to the enrollment station operator about the image quality. Sixty-two percent of the systems checked the minutiae against the image, and fifteen percent stated that this check was a configurable feature.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>生体情報の取得製品については、93パーセントの企業が、システムは10指の指紋画像を取得すると述べました。それらの製品のうち、71パーセントは、画像の品質に関する自動フィードバックを登録ステーションのオペレーターに提供しました。システムの62パーセントは、ミニューシャを画像と照合して確認しており、15パーセントは、この確認が設定可能な機能であると述べました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the IDMS product category, eighty-six percent of the products were capable of using their stored data to populate physical and logical access control systems as shown in figure 2:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IDMS 製品の分類では、図 2 に示すように、製品の86パーセントが、保存されたデータを使って物理アクセス制御システムおよび論理アクセス制御システムに情報を設定できました。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0010-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7337/p0010-drawing-01.png" alt="3-D pie chart in a frame with three slices and legend markers: &quot;IDMS populates PACS and LACS from user data 86%&quot;, &quot;IDMS does not interface with PACS/LACS 7%&quot; and &quot;PACS/LACS interface to be added in near future 7%&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の立体の円グラフで、凡例の印の付いた 3 つの区分があります。「IDMS populates PACS and LACS from user data 86%」（IDMS が利用者データから PACS と LACS に登録する 86%）、「IDMS does not interface with PACS/LACS 7%」（IDMS は PACS/LACS と連携しない 7%）、「PACS/LACS interface to be added in near future 7%」（PACS/LACS との連携を近く追加予定 7%）です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2: IDMS interface to PACS and LACS</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2: IDMS と PACS・LACS のインタフェース</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 Issuance, Management, and Printing</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 発行、管理、印刷</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Seventeen of the companies provided products in this category. The products included card issuance and management systems and card printers. Some of the issuance and management systems worked with specific enrollment systems, while others accepted packaged data from a variety of enrollment systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この分類の製品を提供したのは17社でした。製品には、カードの発行・管理システムとカードプリンターが含まれていました。発行・管理システムの一部は特定の登録システムと連携し、ほかのシステムは、さまざまな登録システムからパッケージ化されたデータを受け付けました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All of the card printers met the basic requirements, such as not printing in reserved areas, not interfering with the Integrated Circuit Chip (ICC), and providing anti-tampering features. As illustrated in figure 3, the printer solutions capability to produce anti tampering and counterfeiting security features ranges from one to up to five different features.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのカードプリンターが、予約領域に印刷しない、集積回路チップ（ICC）に干渉しない、改ざん防止機能を備えるといった基本要件を満たしていました。図 3 に示すように、プリンターのソリューションが備える改ざん・偽造防止のセキュリティ機能の数は、1種類から最大5種類までの範囲でした。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0011-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7337/p0011-drawing-01.png" alt="3-D pie chart in a frame with four slices: &quot;One security feature 37%&quot;, &quot;Two security features 27%&quot;, &quot;Four security features 18%&quot; and &quot;Five security features 18%&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の立体の円グラフで、4 つの区分があります。「One security feature 37%」（セキュリティ機能 1 つ 37%）、「Two security features 27%」（2 つ 27%）、「Four security features 18%」（4 つ 18%）、「Five security features 18%」（5 つ 18%）です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3: Number of implemented security features per printer</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3: プリンターごとの実装済みセキュリティ機能の数</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The implemented security features are a subset of the following anti tampering and counterfeiting measures:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実装されたセキュリティ機能は、次の改ざん・偽造防止手段の部分集合です。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Hologram</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ホログラム</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Microprinting</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">マイクロ印刷</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lense Manufacturing</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">レンズ製造</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Laminate</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ラミネート</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Foil</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">箔</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UV Printing</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">UV 印刷</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Covert Marking</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">隠しマーキング</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mediametrix</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mediametrix</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0011-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">OBD</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">OBD</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All of the companies asserted that their printers placed an industry-accepted amount of stress on the cards during printing, which would not affect the functionality of the chips.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべての企業が、自社のプリンターは印刷中、業界で認められた程度の負荷をカードに加えるものであり、チップの機能には影響しないと主張しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In the issuance and management category, all of the companies stated that their issued cards contained the mandatory data elements. Seventy-five percent indicated that their issued cards contained optional data elements, and seventeen percent pointed out that the optional data elements were configurable. For post-issuance updates, seventy-five percent of the companies indicated that their card management system performed a cryptographic challenge-response.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>発行・管理の分類では、すべての企業が、発行したカードに必須のデータ要素が含まれていると述べました。75パーセントは、発行したカードに任意のデータ要素が含まれていると述べ、17パーセントは、任意のデータ要素が設定可能であると指摘しました。発行後の更新については、75パーセントの企業が、自社のカード管理システムは暗号によるチャレンジレスポンスを実行すると述べました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4 Contact Readers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4 接触式リーダー</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Nine contact readers were provided by eight different companies. All companies asserted that their readers conform to the International Organization for Standardization (ISO) 7816 (ISO/IEC 7816).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>8社が9台の接触式リーダーを提供しました。すべての企業が、自社のリーダーは国際標準化機構（ISO）7816（ISO/IEC 7816）に適合していると主張しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Seventy-eight percent of the readers supported the Personal Computer / Smart Card (PC/SC). Of the readers connected to a PC, sixty percent claimed to be plug-n-play on the Windows platform.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>リーダーの78パーセントが、パーソナルコンピュータ/スマートカード（PC/SC）に対応していました。PC に接続されるリーダーのうち、60パーセントは Windows プラットフォームでプラグアンドプレイに対応していると主張しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.5 Contactless Readers and PACS</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.5 非接触式リーダーおよび PACS</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Eighteen companies provided products in this category. The products included standalone contactless readers and integrated PACS. Ninety-four percent of the contactless readers conformed to ISO 14443 (ISO 14443). Of those 14443 readers, ninety-three percent supported both type A and type B communication signal interfaces. Seven percent supported only type A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この分類の製品を提供したのは18社でした。製品には、単体の非接触式リーダーと統合型 PACS が含まれていました。非接触式リーダーの94パーセントが ISO 14443（ISO 14443）に適合していました。それらの14443 リーダーのうち、93パーセントはタイプ A とタイプ B の両方の通信信号インタフェースに対応し、7パーセントはタイプ A のみに対応していました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All of the companies asserted that their product could read the Cardholder Unique Identifier (CHUID). The contact readers and/or systems varied on which parts of the CHUID could be used after the initial read. Specifically, all indicated that the Federal Agency Smart Card Number (FASC-N) could be used, and some could additionally use the expiration date (figure 4) and Global Unique Identification Number (GUID).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべての企業が、自社の製品はカード所持者固有識別子（CHUID）を読み取れると主張しました。接触式リーダーまたはシステム、あるいはその両方は、最初の読み取りの後に CHUID のどの部分を使用できるかが異なっていました。具体的には、すべてが連邦機関スマートカード番号（FASC-N）を使用できると述べ、一部はさらに有効期限（図 4）およびグローバル固有識別番号（GUID）を使用できました。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0012-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7337/p0012-drawing-01.png" alt="3-D pie chart in a frame with three slices: &quot;PACS reads the expiration date 76%&quot;, &quot;Unknown 18%&quot; and &quot;Feature will be implemented in the near future 6%&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の立体の円グラフで、3 つの区分があります。「PACS が有効期限を読み取る 76%」、「不明 18%」、「機能は近い将来に実装予定 6%」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4: PACS capable of reading the expiration date from the CHUID</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4: CHUID から有効期限を読み取れる PACS</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>With respect to contact readers interfacing with the PACS, eighty-six percent included a Personal Identification Number (PIN) input component, and eighty-three percent were capable of biometric authentication. Moreover, fifty percent included PKI capabilities. These PACS were capable of verifying the signature on CHUID as well as perform the certificate status check.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PACS と連携する接触式リーダーについては、86パーセントが個人識別番号（PIN）の入力部を備え、83パーセントが生体認証に対応していました。さらに、50パーセントは PKI の機能を備えていました。これらの PACS は、CHUID の署名を検証できるほか、証明書の状態確認も実行できました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Most companies indicated that their readers were flash-programmable.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ほとんどの企業が、自社のリーダーはフラッシュ書き込み可能であると述べました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.6 PKI</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.6 PKI</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Six of the companies provided PKI functionality. Most of these companies provided card issuance capabilities and partnered with a Certificate Authority (CA). Eighty percent indicated that their CA was part of the Federal Bridge, and the remaining twenty percent stated that joining their CA to the Federal Bridge was in their future plans. At the time of the demonstration, sixty-seven percent of the companies issued certificates following the Common Policy. Eighty-three percent indicated that the FASC-N was contained in the subject alternative name extension of the PIV Authentication X.509 certificate.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>6社が PKI の機能を提供しました。これらの企業の多くは、カード発行の能力を提供し、認証局（CA）と提携していました。80パーセントは自社の CA が連邦ブリッジに属していると述べ、残りの20パーセントは、自社の CA を連邦ブリッジに加入させることが今後の計画にあると述べました。デモンストレーションの時点で、67パーセントの企業が共通ポリシーに従って証明書を発行していました。83パーセントは、PIV 認証 X.509 証明書のサブジェクト代替名拡張に FASC-N が含まれていると述べました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.7 Biometrics</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.7 生体認証</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Twelve of the companies provided biometric capabilities. Some of the companies were providers of biometric technologies, whereas others licensed the technologies for use within their integrated solutions. All of the companies were using multi-finger scanners certified by the Federal Bureau of Investigation (FBI). These yield fingerprints for background checks required for PIV applicants. Seventy-three percent were using a minutiae template generator that was subjected to the Minutiae Interoperability Exchange Test (MINEX<sup>2</sup>) testing as illustrated in figure 5.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>12社が生体認証の機能を提供しました。一部の企業は生体認証技術の提供者であり、ほかの企業は、自社の統合ソリューション内で使用するためにその技術のライセンスを受けていました。すべての企業が、連邦捜査局（FBI）の認証を受けた複数指スキャナーを使用していました。これらは、PIV 申請者に求められる身元調査用の指紋を生成します。73パーセントは、図 5 に示すように、ミニューシャ相互運用性交換試験（MINEX<sup>2</sup>）の試験を受けたミニューシャテンプレート生成器を使用していました。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0013-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-7337/p0013-drawing-01.png" alt="3-D pie chart in a frame with four slices: &quot;Template Generator is listed 73%&quot;, &quot;Template Generator is not listed 9%&quot;, &quot;Template Generator will be listed in future MINEX report 9%&quot; and &quot;Unknown 9%&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠の中の立体の円グラフで、4 つの区分があります。「テンプレート生成器が掲載されている 73%」、「テンプレート生成器が掲載されていない 9%」、「今後の MINEX 報告書にテンプレート生成器が掲載予定 9%」、「不明 9%」です。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 5: Minutiae Template Generators listed in the MINEX report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5: MINEX 報告書に掲載されたミニューシャテンプレート生成器</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0013-b0017" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> The MINEX homepage http://fingerprint.nist.gov/minex04/ documents performance tests of interoperable fingerprint templates.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> MINEX ホームページ http://fingerprint.nist.gov/minex04/ には、相互運用可能な指紋テンプレートの性能試験が記載されています。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PIV Demonstration successfully showed that based on vendor presentations, demonstration, and product specifications, current commercial products are available as FIPS 201 solutions to facilitate meeting HSPD-12 mandate for Federal Agencies. The demonstration enabled exchange of useful information between the participating companies and Federal agencies, which will aid agencies in their implementation of HSPD-12.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PIV デモンストレーションは、ベンダーの発表、デモンストレーション、製品仕様に基づき、現在の市販製品が、連邦機関による HSPD-12 の義務の達成を促進する FIPS 201 ソリューションとして利用可能であることを、うまく示しました。このデモンストレーションにより、参加企業と連邦機関の間で有益な情報が交換され、各機関による HSPD-12 の実装に役立つことになります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A—Vendor Participants</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A—ベンダー参加者</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following list identifies the companies that participated in the PIV Demonstration through the CRADA. This list does not represent an endorsement by NIST of the products or services offered by any of the companies. Additionally, NIST does not represent that the products or services offered by these companies are on the GSA Approved Products List (APL).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の一覧は、CRADA を通じて PIV デモンストレーションに参加した企業を示します。この一覧は、いずれかの企業が提供する製品やサービスに対する NIST の承認を表すものではありません。また、これらの企業が提供する製品やサービスが GSA 承認製品リスト（APL）に載っていることを、NIST が表明するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">3M</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">3M</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACI Worldwide, Inc.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ACI Worldwide, Inc.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ActivIdentity</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ActivIdentity</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ADT</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ADT</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AMAG Technology</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">AMAG Technology</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Aware, Inc.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Aware, Inc.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">BQT Solutions</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">BQT Solutions</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">BridgePoint Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">BridgePoint Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Centech Group</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Centech Group</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cogent Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cogent Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ColorID</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ColorID</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Condortech Services</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Condortech Services</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cross Match Technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Cross Match Technologies</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">EC4 Technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">EC4 Technologies</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Entrust</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Entrust</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Fargo Electronics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Fargo Electronics</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Giesecke &amp; Devrient (G&amp;D)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Giesecke &amp; Devrient (G&amp;D)</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gemplus Corporation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Gemplus Corporation</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Hirsch Electronics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Hirsch Electronics</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Honeywell</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Honeywell</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Identix</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Identix</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ImageWare Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ImageWare Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0015-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Integrated Engineering</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Integrated Engineering</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Intellisoft</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Intellisoft</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Intercede</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Intercede</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lenel Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lenel Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lockheed Martin</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Lockheed Martin</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">MDI</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">MDI</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Novell</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Novell</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oberthur Card Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Oberthur Card Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Probaris Technologies</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Probaris Technologies</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Quintron Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Quintron Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">RSA Security Inc.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">RSA Security Inc.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Sagem Morpho</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Sagem Morpho</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SCM Microsystems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SCM Microsystems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Secure Network Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Secure Network Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Software House</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Software House</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SETECS, Inc</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">SETECS, Inc</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">StepNexus</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">StepNexus</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TecSec</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TecSec</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ultra Electronics</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ultra Electronics</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Unisys</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Unisys</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Viscount Systems</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Viscount Systems</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">XTec</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">XTec</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B—Acronyms</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B—略語</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following acronyms and abbreviations are used throughout this document:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書全体で次の略語を使用しています。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>AES</td><td>Advanced Encryption Standard</td></tr><tr><td>APL</td><td>Approved Products List</td></tr><tr><td>ATR</td><td>Answer to Reset</td></tr><tr><td>CA</td><td>Certification Authority</td></tr><tr><td>CHUID</td><td>Cardholder Unique Identifier</td></tr><tr><td>CMVP</td><td>Cryptographic Module Validation Program</td></tr><tr><td>CRADA</td><td>Cooperative Research and Development Agreement</td></tr><tr><td>CRL</td><td>Certificate Revocation List</td></tr><tr><td>CSP</td><td>Cryptographic Service Provider</td></tr><tr><td>DES</td><td>Data Encryption Standard</td></tr><tr><td>ECC</td><td>Elliptic Curve Cryptography</td></tr><tr><td>ECDSA</td><td>Elliptic Curve Digital Signature Algorithm</td></tr><tr><td>FASC-N</td><td>Federal Agency Smart Credential Number</td></tr><tr><td>FBI</td><td>Federal Bureau of Investigation</td></tr><tr><td>FICC</td><td>Federal Identity Credentialing Committee</td></tr><tr><td>FIPS</td><td>Federal Information Processing Standards</td></tr><tr><td>GUID</td><td>Global Unique Identification Number</td></tr><tr><td>HSPD</td><td>Homeland Security Presidential Directive</td></tr><tr><td>ICC</td><td>Integrated Circuit Chip</td></tr><tr><td>ID</td><td>Identification</td></tr><tr><td>IDMS</td><td>Identity Management System</td></tr><tr><td>ISO</td><td>International Organization for Standardization</td></tr><tr><td>ITL</td><td>Information Technology Laboratory</td></tr><tr><td>MINEX</td><td>Minutiae Interoperability Exchange Test</td></tr><tr><td>NACI</td><td>National Agency Check with Inquiries</td></tr><tr><td>NIST</td><td>National Institute of Standards and Technology</td></tr><tr><td>NISTIR</td><td>National Institute of Standards and Technology Interagency Report</td></tr><tr><td>NPIVP</td><td>NIST’s Personal Identity Verification Program</td></tr><tr><td>OCSP</td><td>Online Certificate Status Protocol</td></tr><tr><td>PACS</td><td>Physical Access Control System</td></tr><tr><td>PC/SC</td><td>Personal Computer/Smart Card</td></tr><tr><td>PIN</td><td>Personal Identification Number</td></tr><tr><td>PIV</td><td>Personal Identity Verification</td></tr><tr><td>PKI</td><td>Public Key Infrastructure</td></tr><tr><td>RFU</td><td>Reserved for Future Use</td></tr><tr><td>RSA</td><td>Rivest Shamir Adleman</td></tr><tr><td>SP</td><td>Special Publication</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>AES</td><td>高度暗号化標準</td></tr><tr><td>APL</td><td>承認製品リスト</td></tr><tr><td>ATR</td><td>リセット応答</td></tr><tr><td>CA</td><td>認証局</td></tr><tr><td>CHUID</td><td>カード所持者固有識別子</td></tr><tr><td>CMVP</td><td>暗号モジュール検証プログラム</td></tr><tr><td>CRADA</td><td>共同研究開発契約</td></tr><tr><td>CRL</td><td>証明書失効リスト</td></tr><tr><td>CSP</td><td>暗号サービスプロバイダー</td></tr><tr><td>DES</td><td>データ暗号化標準</td></tr><tr><td>ECC</td><td>楕円曲線暗号</td></tr><tr><td>ECDSA</td><td>楕円曲線デジタル署名アルゴリズム</td></tr><tr><td>FASC-N</td><td>連邦機関スマート資格情報番号</td></tr><tr><td>FBI</td><td>連邦捜査局</td></tr><tr><td>FICC</td><td>連邦識別資格情報委員会</td></tr><tr><td>FIPS</td><td>連邦情報処理標準</td></tr><tr><td>GUID</td><td>グローバル固有識別番号</td></tr><tr><td>HSPD</td><td>国土安全保障大統領指令</td></tr><tr><td>ICC</td><td>集積回路チップ</td></tr><tr><td>ID</td><td>識別</td></tr><tr><td>IDMS</td><td>識別情報管理システム</td></tr><tr><td>ISO</td><td>国際標準化機構</td></tr><tr><td>ITL</td><td>情報技術研究所</td></tr><tr><td>MINEX</td><td>ミニューシャ相互運用性交換試験</td></tr><tr><td>NACI</td><td>身元照会付き国家機関調査</td></tr><tr><td>NIST</td><td>米国国立標準技術研究所</td></tr><tr><td>NISTIR</td><td>米国国立標準技術研究所省庁間報告書</td></tr><tr><td>NPIVP</td><td>NIST の個人識別検証プログラム</td></tr><tr><td>OCSP</td><td>オンライン証明書状態プロトコル</td></tr><tr><td>PACS</td><td>物理アクセス制御システム</td></tr><tr><td>PC/SC</td><td>パーソナルコンピュータ/スマートカード</td></tr><tr><td>PIN</td><td>個人識別番号</td></tr><tr><td>PIV</td><td>個人識別検証</td></tr><tr><td>PKI</td><td>公開鍵基盤</td></tr><tr><td>RFU</td><td>将来の使用のために予約</td></tr><tr><td>RSA</td><td>Rivest Shamir Adleman</td></tr><tr><td>SP</td><td>特別刊行物</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix C—Bibliography</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 C—参考文献</h3>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Citation Code</th><th>Document</th></tr></thead><tbody><tr><td>FIPS 201</td><td>Federal Information Processing Standard 201, Personal Identity Verification (PIV) of Federal Employees and Contractors, March 2006. (See http://csrc.nist.gov)</td></tr><tr><td>SP 800-73</td><td>NIST Special Publication 800-73, Interfaces for Personal Identity Verification, March 2006. (See http://csrc.nist.gov)</td></tr><tr><td>MINEX</td><td>Minutiae Interoperability Exchange Test. See http:/<wbr/>/<wbr/>fingerprint<wbr/>.nist<wbr/>.gov/<wbr/>minex04 and http:/<wbr/>/<wbr/>fingerprint<wbr/>.nist<wbr/>.gov/<wbr/>minex</td></tr><tr><td>HSPD-12</td><td>Policy for a Common Identification Standard for Federal Employees and Contractors. See http:/<wbr/>/<wbr/>www<wbr/>.whitehouse<wbr/>.gov/<wbr/>news/<wbr/>releases/<wbr/>2004/<wbr/>08/<wbr/>20040827-8<wbr/>.html</td></tr><tr><td>ISO/IEC 7816</td><td>ISO/IEC 7816, Identification cards - Integrated circuit(s) cards with contacts</td></tr><tr><td>ISO/IEC 14443</td><td>ISO/IEC 14443, Identification cards - Contactless integrated circuit(s) cards - Proximity cards</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>引用コード</th><th>文書</th></tr></thead><tbody><tr><td>FIPS 201</td><td>Federal Information Processing Standard 201, Personal Identity Verification (PIV) of Federal Employees and Contractors, March 2006<wbr/>.（http:/<wbr/>/<wbr/>csrc<wbr/>.nist<wbr/>.gov を参照）</td></tr><tr><td>SP 800-73</td><td>NIST Special Publication 800-73, Interfaces for Personal Identity Verification, March 2006<wbr/>.（http:/<wbr/>/<wbr/>csrc<wbr/>.nist<wbr/>.gov を参照）</td></tr><tr><td>MINEX</td><td>Minutiae Interoperability Exchange Test. http:/<wbr/>/<wbr/>fingerprint<wbr/>.nist<wbr/>.gov/<wbr/>minex04 および http:/<wbr/>/<wbr/>fingerprint<wbr/>.nist<wbr/>.gov/<wbr/>minex を参照</td></tr><tr><td>HSPD-12</td><td>Policy for a Common Identification Standard for Federal Employees and Contractors. http:/<wbr/>/<wbr/>www<wbr/>.whitehouse<wbr/>.gov/<wbr/>news/<wbr/>releases/<wbr/>2004/<wbr/>08/<wbr/>20040827-8<wbr/>.html を参照</td></tr><tr><td>ISO/IEC 7816</td><td>ISO/IEC 7816, Identification cards - Integrated circuit(s) cards with contacts</td></tr><tr><td>ISO/IEC 14443</td><td>ISO/IEC 14443, Identification cards - Contactless integrated circuit(s) cards - Proximity cards</td></tr></tbody></table>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir7337.pdf">National Institute of Standards and Technology, IR 7337</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 7337";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
