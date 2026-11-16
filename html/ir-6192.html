@@ -1,0 +1,1602 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 6192 は、ロールベースアクセス制御（RBAC）の一般モデルについて、元のモデルを見直し、表記上の問題を訂正し、指摘された相違点に対処する改訂モデルを定式化した報告書です。その目的は、元のモデルが持つ含意の理解を深め、モデルの利用や実装に関わるその後の活動に確かな基準を提供することです。改訂モデルの特性は、ロールのメンバーシップに対する制約を扱う静的な特性と、ロールの有効化に対する制約を扱う動的な特性という 2 つの主題に沿って整理されています。モデルの要素、写像と関係、ロール階層、コア RBAC の機能を取り上げ、システムや製品が改訂モデルの真の実体化と見なされるために必要な、推奨される最小限の特性の一覧も提案しています。">
+  <title>ロールベースアクセス制御の改訂モデル | NIST IR 6192 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002" title="A REVISED MODEL FOR ROLE-BASED ACCESS CONTROL" data-search="ロールベースアクセス制御の改訂モデル a revised model for role-based access control">ロールベースアクセス制御の改訂モデル</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0001" title="1. Introduction" data-search="1. 序論 1. introduction">1. 序論</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0005" title="2. Model Elements" data-search="2. モデルの要素 2. model elements">2. モデルの要素</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0020" title="3. Mappings &amp; Relations" data-search="3. 写像と関係 3. mappings &amp; relations">3. 写像と関係</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0005" title="4. Role Hierarchy" data-search="4. ロール階層 4. role hierarchy">4. ロール階層</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0008-b0010" title="5. Static Properties" data-search="5. 静的な特性 5. static properties">5. 静的な特性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0001" title="6. Dynamic Properties" data-search="6. 動的な特性 6. dynamic properties">6. 動的な特性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="7. Other Features and Properties" data-search="7. その他の機能と特性 7. other features and properties">7. その他の機能と特性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0004" title="8. Core RBAC Features" data-search="8. コア rbac の機能 8. core rbac features">8. コア RBAC の機能</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0001" title="9. Summary" data-search="9. まとめ 9. summary">9. まとめ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0004" title="10. References" data-search="10. 参考文献 10. references">10. 参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 6192 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">A Revised Model for Role Based Access Control</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>ロールベースアクセス制御の改訂モデル</strong></span><br><span class="doc-panel-item">公開日 : 1998-07-09</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/6192/final">https://csrc.nist.gov/pubs/ir/6192/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 179 / 179 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 6192 は、ロールベースアクセス制御（RBAC）の一般モデルについて、元のモデルを見直し、表記上の問題を訂正し、指摘された相違点に対処する改訂モデルを定式化した報告書です。その目的は、元のモデルが持つ含意の理解を深め、モデルの利用や実装に関わるその後の活動に確かな基準を提供することです。改訂モデルの特性は、ロールのメンバーシップに対する制約を扱う静的な特性と、ロールの有効化に対する制約を扱う動的な特性という 2 つの主題に沿って整理されています。モデルの要素、写像と関係、ロール階層、コア RBAC の機能を取り上げ、システムや製品が改訂モデルの真の実体化と見なされるために必要な、推奨される最小限の特性の一覧も提案しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 6192</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 6192</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>A REVISED MODEL FOR ROLE-BASED ACCESS CONTROL</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+ロールベースアクセス制御の改訂モデル</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>W. A. Jansen<br>July 9, 1998</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>W. A. Jansen<br>1998 年 7 月 9 日</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0003-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0003-b0001">1. 序論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0003-b0005">2. Model Elements</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0003-b0005">2. モデルの要素</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0004-b0020">3. Mappings &amp; Relations</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0004-b0020">3. 写像と関係</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0005">4. Role Hierarchy</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0005">4. ロール階層</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0010">5. Static Properties</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0010">5. 静的な特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">6. Dynamic Properties</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">6. 動的な特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. Other Features and Properties</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">7. その他の機能と特性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0004">8. Core RBAC Features</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0004">8. コア RBAC の機能</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">9. Summary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0001">9. まとめ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">10. References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0004">10. 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. 序論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Based Access Control (RBAC) is a term used to describe security mechanisms that mediate users’ access to computational resources based on role constructs. A role defines a set of allowable activities for users authorized its use. It can be thought of as a job title or position within an organization, which represents the authority needed to conduct the associated duties. For many types of organizations, RBAC provides a more intuitive and effective way to represent and manage authorization information than other forms of access control.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールベースアクセス制御（RBAC）は、ロールという構成概念に基づいて、利用者による計算資源へのアクセスを仲介するセキュリティの仕組みを表す用語です。ロールは、その使用を認可された利用者に許される一連の活動を定義します。ロールは、関連する職務を遂行するのに必要な権限を表す、組織内の職名や職位と考えることができます。多くの種類の組織にとって、RBAC は、ほかの形式のアクセス制御よりも、認可情報を直感的かつ効果的に表現し管理する方法を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A general model for RBAC, including essential features and the rationale for them, is specified in [1]. Since publication of the general model, a number of notational problems and inconsistencies have been noted, ranging in degree from trivial to serious. This report reviews the original RBAC model as defined in [1], corrects notational problems, and formulates a revised model to address noted discrepancies. The aim is to improve understanding of implications within the original model and to provide a firm baseline for subsequent activities involving the use or implementation of the model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>RBAC の一般モデルは、必須の機能とその根拠も含めて、[1] で規定されています。この一般モデルの公開以降、軽微なものから深刻なものまで、表記上の問題や不整合が数多く指摘されてきました。本報告書では、[1] で定義された元の RBAC モデルを見直し、表記上の問題を訂正し、指摘された相違点に対処するために改訂モデルを定式化します。その目的は、元のモデルが持つ含意の理解を深め、モデルの利用や実装に関わるその後の活動に確かな基準を提供することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Properties of the revised RBAC model are organized along two themes: static properties and dynamic properties. Static properties deal mainly with constraints on role membership, while dynamic properties deal with constraints on role activation [4]. With this perspective, several new properties are derived from those identified in the original model, and other new properties are proposed, taking into account aspects found in a number of related models [2, 3, 4, 8]. A list of minimum recommended properties, requisite for a system or product to be considered as a true instantiation of the revised model, is also proposed. Very little of the rationale given in [1] is repeated here; therefore, the reader is assumed to be familiar with its contents.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>改訂した RBAC モデルの特性は、静的な特性と動的な特性という 2 つの主題に沿って整理されています。静的な特性は主にロールのメンバーシップに対する制約を扱い、動的な特性はロールの有効化に対する制約を扱います [4]。この観点から、元のモデルで特定された特性からいくつかの新しい特性を導き、関連する複数のモデル [2, 3, 4, 8] に見られる側面を考慮して、ほかの新しい特性を提案します。また、システムや製品が改訂モデルの真の実体化と見なされるために必要な、推奨される最小限の特性の一覧も提案します。[1] で示された根拠は、ここではほとんど繰り返しません。したがって、読者は [1] の内容に精通していることを前提とします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Model Elements</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. モデルの要素</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The main components of the original model are User, Subject, Role, Function, Operation, and Object. The complete set of relationships among those components was not specified, however. Figure 1(a) gives a representation derived from the available information, whereby a single headed arrow represents a one-to-many, binary relationship between model components, and a double headed arrow represents a many-to-many, binary relationship.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>元のモデルの主な構成要素は、User、Subject、Role、Function、Operation、Object です。ただし、これらの構成要素間の関係の完全な集合は規定されていませんでした。図 1(a) は、入手できる情報から導いた表現で、片矢印はモデルの構成要素間の一対多の二項関係を表し、両矢印は多対多の二項関係を表します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One drawback of the original conceptual model is that it associates elements of Operation directly with those of Role, but independently of Object. In practice, elements of Operation and Object are closely coupled together when associated with an element of Role. This three-way association illustrated in Figure 1 (b) is more accurately represented as a ternary relation (i.e., many-to-many-to-many relationship) in the revised model.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>元の概念モデルの欠点の一つは、Operation の要素を Role の要素と直接関連づけ、Object とは独立に扱っていることです。実際には、Operation と Object の要素は、Role の要素と関連づけられるときに、密接に結び付いています。図 1(b) に示すこの三者の関連は、改訂モデルでは三項関係（すなわち多対多対多の関係）としてより正確に表現されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another drawback in the original model is the use of the Function component to define operational separation of duty (i.e., operations that are mutually exclusive of one another). There, the Function component identified a set of operations associated with a critical business function, whereby no single user was allowed to perform all elements in the set. Rather than treating Function as a component of the model, operational separation of duty can be defined instead as a constraint on Permission, similar to the treatment given other separation of duty properties in the original model. This approach has the benefit of simplifying the basic model, while unifying the form of the model specification. In summary, the components of the revised model are User, Subject, Role, Operation, and Object, as defined below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>元のモデルのもう一つの欠点は、Function 構成要素を使って操作の職務分離（すなわち互いに排他的な操作）を定義していることです。そこでは、Function 構成要素が、重要な業務機能に関連する一連の操作を特定し、単一の利用者がその集合のすべての要素を実行することは許されていませんでした。Function をモデルの構成要素として扱うのではなく、操作の職務分離は、元のモデルでほかの職務分離の特性に与えられている扱いと同様に、Permission に対する制約として定義できます。この方法には、基本モデルを単純にするとともに、モデルの仕様の形式を統一できるという利点があります。要約すると、改訂モデルの構成要素は、以下で定義する User、Subject、Role、Operation、Object です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>u : User<br>User = the set of people, both trusted (e.g., administrators) and untrusted, who use the system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>u : User<br>User = システムを使う人の集合。信頼される者（たとえば管理者）と信頼されない者の両方を含みます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>x, y : Subject<br>Subject = the set of active entities of the system, operating within roles on behalf of individual users.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>x, y : Subject<br>Subject = 個々の利用者に代わって、ロールの範囲内で動作する、システムの能動的なエンティティの集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>i, j, k : Role<br>Role = the set of named duties or job functions within an organization.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>i, j, k : Role<br>Role = 組織内の名前の付いた職務または職能の集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>op : Operation<br>Operation = the set of access modes or types permitted on objects of the system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>op : Operation<br>Operation = システムのオブジェクトに対して許可されるアクセスモードまたは種類の集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>o : Object<br>Object = the set of passive entities within the system, protected from unauthorized use.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>o : Object<br>Object = システム内の受動的なエンティティで、不正な使用から保護されるものの集合。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0004-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6192/p0004-drawing-01.png" alt="Two diagrams side by side, each made of shaded ellipses joined by arrows. Left (Figure 1(a), original relationships): a one-way arrow runs from &quot;User&quot; to &quot;Subject&quot;; &quot;User&quot; and &quot;Subject&quot; are each joined to &quot;Role&quot; by a double-headed arrow; &quot;Role&quot; is joined by a double-headed arrow down to &quot;Operation&quot;; &quot;Operation&quot; is joined by double-headed arrows to &quot;Function&quot; (lower left) and &quot;Object&quot; (lower right). Right (Figure 1(b), revised relationships): a one-way arrow runs from &quot;User&quot; to &quot;Subject&quot;; &quot;User&quot; and &quot;Subject&quot; are each joined to &quot;Role&quot; by a double-headed arrow; below &quot;Role&quot;, a forked arrow joins &quot;Role&quot; (arrowhead up) with both &quot;Operation&quot; and &quot;Object&quot; (arrowheads down). &quot;Function&quot; does not appear in the revised diagram."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>網掛けの楕円を矢印で結んだ 2 つの図が左右に並んでいます。左（図 1(a)、元の関係）では、「User」（ユーザー）から「Subject」（サブジェクト）へ一方向の矢印があり、User と Subject はそれぞれ「Role」（ロール）と両向きの矢印で結ばれています。Role は下の「Operation」（操作）と両向きの矢印で結ばれ、Operation は左下の「Function」（機能）と右下の「Object」（オブジェクト）とそれぞれ両向きの矢印で結ばれています。右（図 1(b)、改訂後の関係）では、User から Subject へ一方向の矢印があり、User と Subject はそれぞれ Role と両向きの矢印で結ばれています。Role の下では、二股に分かれた矢印が Role（上向きの矢じり）と「Operation」「Object」の両方（下向きの矢じり）を結んでいます。改訂後の図に Function はありません。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1(a): Original Relationships<br>Figure 1(b): Revised Relationships</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1(a): 元の関係<br>図 1(b): 改訂した関係</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Mappings &amp; Relations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 写像と関係</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The mappings from the original model are shown Figure 2. They further refine the general relationships among the components of the model given in Figure 1(a), and are used to express properties of the model. As clearly seen in Figure 2, some redundant mappings exist between some components, namely User and Role, and Subject and Role. While a particular mapping may be useful in expressing a specific property, only a subset of the mappings is needed to express all the properties of the model. Moreover, redundant mappings increase the difficulty of expressing properties unambiguously, which has led to inconsistencies. The reformulation given in this paper eliminates the authorized-roles and role-members functions, and expresses the original set of properties with the remaining functions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>元のモデルの写像を図 2 に示します。これらは、図 1(a) に示したモデルの構成要素間の一般的な関係をさらに精緻化したもので、モデルの特性を表現するために使われます。図 2 から明らかなように、一部の構成要素、すなわち User と Role、および Subject と Role の間には、冗長な写像が存在します。特定の写像は特定の特性の表現に役立つ場合がありますが、モデルのすべての特性を表現するには、写像の一部だけで足ります。さらに、冗長な写像は特性を曖昧さなく表現することを難しくし、不整合につながりました。本書で示す再定式化では、authorized-roles 関数と role-members 関数を除き、元の一連の特性を残りの関数で表現します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0005-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6192/p0005-drawing-01.png" alt="Mapping diagram with four rectangles: &quot;User&quot; (upper left), &quot;Subject&quot; (upper right), &quot;Role&quot; (middle) and &quot;Operation&quot; (bottom). The User rectangle holds a shaded ellipse &quot;u&quot;; the Subject rectangle holds the points &quot;s1&quot; and &quot;s2&quot;. Lines labeled &quot;subject-user&quot; run from s1 and from s2, each ending in an arrowhead at u. The Role rectangle holds three nested ellipses: a large shaded ellipse marked &quot;r&quot;, a hatched ellipse inside it, and a solid green ellipse innermost. The other mappings each end in a fork with two arrowheads: &quot;user-authorized-roles&quot; runs from u to the Role ellipses (one arrowhead on the left edge of the large ellipse, one at the top of the hatched ellipse); &quot;authorized-roles&quot; runs from s2 to the hatched ellipse; &quot;active-roles&quot; runs from s2 to the innermost green ellipse; &quot;role-members&quot; runs from r back up to u; and &quot;role-operations&quot; runs from r down to a shaded ellipse in the Operation rectangle."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=5">原本 PDF p.5</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>4 つの長方形からなる対応関係の図です。左上に「User」（ユーザー）、右上に「Subject」（サブジェクト）、中央に「Role」（ロール）、下に「Operation」（操作）の長方形があります。User の中には網掛けの楕円「u」、Subject の中には点「s1」「s2」があります。s1 と s2 からそれぞれ「subject-user」（サブジェクトのユーザー）と添えた線が出て、u に矢じりが付いています。Role の中には 3 重の楕円があり、外側の網掛けの大きな楕円に「r」、その内側に斜線の楕円、最も内側に緑の塗りつぶしの楕円があります。ほかの対応は、どれも二股に分かれた 2 つの矢じりで終わります。「user-authorized-roles」（ユーザーに認可されたロール）は u から Role の楕円へ向かい、矢じりの一つは大きな楕円の左端に、もう一つは斜線の楕円の上端にあります。「authorized-roles」（認可されたロール）は s2 から斜線の楕円へ、「active-roles」（活性なロール）は s2 から最も内側の緑の楕円へ向かいます。「role-members」（ロールのメンバー）は r から u へ戻り、「role-operations」（ロールの操作）は r から Operation の長方形の中の網掛けの楕円へ下りています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2: Original Mappings</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2: 元の写像</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Eliminating authorized-roles results in a significant simplification of the property that the active-roles of a subject must be a subset of its authorized-roles, which in turn must be a subset of the user-authorized-roles for the user associated with the subject (i.e., \(\text{active-roles}[s]\ \subseteq \ \text{authorized-roles}[s]\ \subseteq \ \text{user-authorized-roles}[\text{subject-user}[s]]\)). This property is represented in Figure 2 by the nested ellipses within the rectangle for the Role component. The new property, that the active-roles of a subject must be a subset of the user-authorized-roles for the user associated with the subject (i.e., \(\text{active-roles}[s]\ \subseteq \ \text{user-authorized-roles}[\text{subject-user}[s]]\)), while simpler, maintains the critical feature of the original (i.e., a subject is constrained by the authorization of its user).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>authorized-roles を除くことで、サブジェクトの active-roles は、その authorized-roles の部分集合でなければならず、authorized-roles は、そのサブジェクトに関連づけられた利用者の user-authorized-roles の部分集合でなければならない、という特性が大幅に単純化されます（すなわち \(\text{active-roles}[s]\ \subseteq \ \text{authorized-roles}[s]\ \subseteq \ \text{user-authorized-roles}[\text{subject-user}[s]]\)）。この特性は、図 2 では、Role 構成要素の長方形の中の入れ子になった楕円で表されています。新しい特性、すなわちサブジェクトの active-roles は、そのサブジェクトに関連づけられた利用者の user-authorized-roles の部分集合でなければならないという特性（すなわち \(\text{active-roles}[s]\ \subseteq \ \text{user-authorized-roles}[\text{subject-user}[s]]\)）は、より単純でありながら、元の特性の重要な特徴（すなわち、サブジェクトはその利用者の認可によって制約される）を維持しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Eliminating the role-member function doesn’t have as dramatic an effect on the model as with authorized-roles, but, in conjunction with the above changes, minimizes the number of mappings utilized. The overall result, shown in Figure 3, can be compared with Figure 2. Other choices for the minimal set of mappings may be selected. For example, user-authorized-roles could be eliminated in lieu of role-member. The set selected, however, closely models the actions of an administrator in assigning permissions to roles and roles to users. The selected mappings are intended to be illustrative only. While they are used to define model properties precisely, the mappings should not be considered a restriction on an actual implementation, since other equally effective alternatives exist, including those employing redundant mappings.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>role-member 関数を除くことは、authorized-roles を除く場合ほど劇的な影響をモデルに与えませんが、上記の変更とあわせて、使用する写像の数を最小限にします。全体的な結果を図 3 に示します。図 2 と比較できます。写像の最小限の集合として、ほかの選択肢を選ぶこともできます。たとえば、role-member の代わりに user-authorized-roles を除くこともできます。しかし、選んだ集合は、管理者がパーミッションをロールに、ロールを利用者に割り当てる動作を緊密にモデル化しています。選択した写像は説明のためのものです。モデルの特性を正確に定義するために使われますが、冗長な写像を用いるものなど、同様に有効な代替手段もあるため、実際の実装に対する制約と見なすべきではありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note the new model component, Permission, in Figure 3. For notational and conceptual purposes, the ternary relationship between Role, Operation, and Object is refined into a pair of binary relations: one between operations and objects, referred to as Permission; the other between Role and Permission. The reformulation is shown in Figure 4, where Permission is used to designate a set of Operation/Object pairs associated with Role elements. The use of Permission conforms with the notion of privilege or permission found in present day information systems [2, 8]. The reformulation allows a permission to represent a broad range of access controls ranging from basic read/write/execute rights on files to more extensive administrator rights on operating systems. In Figure 3, the role-permissions function has replaced role-operations of the original model for consistency with the new component, Permission.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3 の新しいモデル構成要素 Permission に注目してください。表記上および概念上の目的から、Role、Operation、Object の間の三項関係を、2 つの二項関係に精緻化します。1 つは操作とオブジェクトの間の関係で、Permission と呼びます。もう 1 つは Role と Permission の間の関係です。この再定式化を図 4 に示します。ここでは、Permission を、Role の要素に関連づけられる Operation と Object の組の集合を指すために使います。Permission の使用は、今日の情報システムに見られる特権や許可の概念に沿っています [2, 8]。この再定式化により、許可は、ファイルに対する基本的な読み取り・書き込み・実行の権利から、オペレーティングシステムに対するより広範な管理者の権利まで、幅広いアクセス制御を表現できます。図 3 では、新しい構成要素 Permission との整合性のために、元のモデルの role-operations の代わりに role-permissions 関数が使われています。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0006-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6192/p0006-drawing-01.png" alt="Mapping diagram with four rectangles: &quot;User&quot; (upper left), &quot;Subject&quot; (upper right), &quot;Role&quot; (middle) and &quot;Permission&quot; (bottom). The User rectangle holds a shaded ellipse &quot;u&quot;; the Subject rectangle holds the points &quot;s1&quot; and &quot;s2&quot;. Lines labeled &quot;subject-user&quot; run from s1 and from s2, each ending in an arrowhead at u. The Role rectangle holds a large shaded ellipse marked &quot;r&quot; with a solid green ellipse inside it. The other mappings each end in a fork with two arrowheads: &quot;user-authorized-roles&quot; runs from u to the large Role ellipse; &quot;active-roles&quot; runs from s2 to the inner green ellipse; and &quot;role-permissions&quot; runs from r down to a shaded ellipse in the Permission rectangle. Compared with Figure 2, there is no hatched ellipse and no authorized-roles or role-members mapping, and role-operations is replaced by role-permissions."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>4 つの長方形からなる対応関係の図です。左上に「User」（ユーザー）、右上に「Subject」（サブジェクト）、中央に「Role」（ロール）、下に「Permission」（パーミッション）の長方形があります。User の中には網掛けの楕円「u」、Subject の中には点「s1」「s2」があります。s1 と s2 からそれぞれ「subject-user」（サブジェクトのユーザー）と添えた線が出て、u に矢じりが付いています。Role の中には「r」と記した網掛けの大きな楕円があり、その内側に緑の塗りつぶしの楕円があります。ほかの対応は、どれも二股に分かれた 2 つの矢じりで終わります。「user-authorized-roles」（ユーザーに認可されたロール）は u から Role の大きな楕円へ、「active-roles」（活性なロール）は s2 から内側の緑の楕円へ、「role-permissions」（ロールのパーミッション）は r から Permission の長方形の中の網掛けの楕円へ向かいます。図 2 と比べると、斜線の楕円と authorized-roles・role-members の対応がなく、role-operations が role-permissions に置き換わっています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3: Revised Mappings</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3: 改訂した写像</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0006-g0002" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6192/p0006-drawing-02.png" alt="Diagram of shaded ellipses. At the top, an ellipse &quot;Role&quot; is joined by a thick double-headed arrow down to a large white ellipse labeled &quot;Permission&quot;. Inside the Permission ellipse, two shaded ellipses &quot;Operation&quot; and &quot;Object&quot; are joined by a thick double-headed arrow."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>網掛けの楕円の図です。上の楕円「Role」（ロール）が、太い両向きの矢印で下の白い大きな楕円「Permission」（パーミッション）と結ばれています。Permission の楕円の中では、網掛けの楕円「Operation」（操作）と「Object」（オブジェクト）が太い両向きの矢印で結ばれています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 4: Decomposition of Ternary Relationship</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4: 三項関係の分解</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The refined set of mappings for the basic model is given below, where “↑” is used to represent the power set of the exponent, and “℘” used to represent a subset of the indicated set.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基本モデルの精緻化した写像の集合を以下に示します。ここで「↑」は指数部の冪集合を表すために使い、「℘」は示された集合の部分集合を表すために使います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>user-authorized-roles: \(\text{User}\ \to \ 2{\uparrow}\text{Role}\)<br>user-authorized-roles[u] = the set of roles authorized for user u.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>user-authorized-roles: \(\text{User}\ \to \ 2{\uparrow}\text{Role}\)<br>user-authorized-roles[u] = 利用者 u に認可されたロールの集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Permission: \(\wp (\text{Operation}\times \text{Object})\)<br>p, q : Permission<br>permission = a set of ordered operation/object pairs, &lt;op,o&gt;, where op is an operation that can be applied to object o.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Permission: \(\wp (\text{Operation}\times \text{Object})\)<br>p, q : Permission<br>permission = 順序付けられた操作とオブジェクトの組 &lt;op,o&gt; の集合。op は、オブジェクト o に適用できる操作です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>role-permissions: \(\text{Role}\ \to \ 2{\uparrow}\text{Permission}\)<br>role-permissions[i] = the set of permissions authorized for role i.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>role-permissions: \(\text{Role}\ \to \ 2{\uparrow}\text{Permission}\)<br>role-permissions[i] = ロール i に認可された許可の集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>subject-user: \(\text{Subject}\ \to \ \text{User}\)<br>subject-user[x] = the user u associated with the subject x.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>subject-user: \(\text{Subject}\ \to \ \text{User}\)<br>subject-user[x] = サブジェクト x に関連づけられた利用者 u。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>active-roles: \(\text{Subject}\ \to \ 2{\uparrow}\text{Role}\)<br>active-roles[x] = the set of roles in which a subject x is active.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>active-roles: \(\text{Subject}\ \to \ 2{\uparrow}\text{Role}\)<br>active-roles[x] = サブジェクト x がアクティブなロールの集合。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Role Hierarchy</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. ロール階層</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To facilitate administration of access control privileges and constraints, a role may be defined in terms of one or more other roles, with additional characteristics added to distinguish the new role further. A role defined this way is said to contain the roles that comprise its baseline, since it automatically takes on or inherits their collective characteristics as the basis for the new role being defined. Containment is similar to inheritance in object-oriented systems, whereby the properties and constraints of a containing role are inclusive of the properties and constraints of any contained role. Containment is also recursive; one role can contain other roles, which contain others, etc., as illustrated in Figure 5(a). By definition, a role cannot contain itself.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アクセス制御の特権と制約の管理を容易にするため、ロールは、1 つ以上のほかのロールを用いて定義し、新しいロールをさらに区別する特性を加えることができます。このように定義されたロールは、定義される新しいロールの基礎として、その基盤を構成するロールの集合的な特性を自動的に引き受けるか継承するため、それらのロールを包含すると言われます。包含は、オブジェクト指向システムにおける継承に似ており、包含するロールの特性と制約は、包含されるロールの特性と制約を含みます。包含は再帰的でもあります。図 5(a) に示すように、1 つのロールがほかのロールを包含し、それらがさらにほかのロールを包含する、ということが可能です。定義により、ロールは自分自身を包含できません。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0007-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6192/p0007-drawing-01.png" alt="Two diagrams side by side. Left (Figure 5(a), containment relation): a shaded ellipse &quot;Role&quot; and a shaded diamond &quot;Containment&quot;. A line labeled &quot;contains&quot; runs from the top of the diamond over to an arrowhead at the top of Role, and a line labeled &quot;is contained by&quot; runs from the bottom of the diamond under to an arrowhead at the bottom of Role. Right (Figure 5(b), inheritance view of containment): a shaded circle &quot;Role A&quot; has an arrow to a box &quot;Permission 3&quot;; a thick green arrow points down from Role A to a shaded circle &quot;Role B&quot;, which has arrows to boxes &quot;Permission 1&quot; and &quot;Permission 2&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2 つの図が左右に並んでいます。左（図 5(a)、包含関係）には網掛けの楕円「Role」（ロール）と網掛けのひし形「Containment」（包含）があります。ひし形の上から「contains」（含む）と添えた線が回り込んで Role の上の矢じりへ向かい、ひし形の下から「is contained by」（含まれる）と添えた線が回り込んで Role の下の矢じりへ向かいます。右（図 5(b)、包含の継承としての見方）では、網掛けの円「Role A」（ロール A）から箱「Permission 3」（パーミッション 3）へ矢印があります。Role A から下の網掛けの円「Role B」（ロール B）へ太い緑の矢印が向かい、Role B から箱「Permission 1」（パーミッション 1）と「Permission 2」（パーミッション 2）へそれぞれ矢印があります。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 5(a): Containment Relation<br>Figure 5(b): Inheritance View of Containment</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5(a): 包含関係<br>図 5(b): 包含の継承としての見方</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Besides facilitating role administration, containment permits the substitution of role instances. For example, if role A contains role B, then instances of role A are treated as instances of role B for the purpose of access control. In Figure 5(b), users active within instances of Role A have the same capabilities as if they were active within instances of Role B, namely the access allowed through Permission 1 and Permission 2. In addition, users active within Role A also possess an additional capability, access allowed by Permission 3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールの管理を容易にすることに加え、包含により、ロールのインスタンスの置き換えが可能になります。たとえば、ロール A がロール B を包含する場合、アクセス制御の目的では、ロール A のインスタンスはロール B のインスタンスとして扱われます。図 5(b) では、ロール A のインスタンス内でアクティブな利用者は、ロール B のインスタンス内でアクティブな場合と同じ能力、すなわち Permission 1 と Permission 2 を通じて許されるアクセスを持ちます。さらに、ロール A 内でアクティブな利用者は、追加の能力、すなわち Permission 3 によって許されるアクセスも持ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Containment can be characterized through the notion of effective roles. The effective roles of any given role include that role plus the set of roles contained by that role. For any role, the effective role set represents the capabilities afforded a user authorized the role. In the example above, the effective roles for Role A are Role A and Role B. At times it is also useful to consider the effective roles associated with a given user (or subject), which is the set of roles authorized (active) for that user (subject) plus all roles contained by any authorized (active) role. For example, assume there is a role C in addition to the roles defined above, and a user is authorized for both Roles A and C. The effective roles for that user would be Roles A, B, C, and any roles contained by Role C. Similarly, the effective permissions can be defined for a role or a user, as the set of permissions authorized each member of the effective role set respectively, for that role or that user. In the example of Figure 5(b), the effective permissions for Role A are Permission 1, Permission 2, and Permission 3.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>包含は、実効ロールという概念を通じて特徴づけられます。任意のロールの実効ロールには、そのロール自身と、そのロールが包含するロールの集合が含まれます。どのロールでも、実効ロールの集合は、そのロールを認可された利用者に与えられる能力を表します。上の例では、ロール A の実効ロールは、ロール A とロール B です。特定の利用者（またはサブジェクト）に関連づけられた実効ロールを考えることが有用な場合もあります。これは、その利用者（サブジェクト）に認可された（有効な）ロールの集合に、認可された（有効な）ロールのいずれかが包含するすべてのロールを加えたものです。たとえば、上で定義したロールに加えてロール C があり、ある利用者がロール A と C の両方を認可されているとします。その利用者の実効ロールは、ロール A、B、C と、ロール C が包含するすべてのロールになります。同様に、実効許可は、ロールまたは利用者について、そのロールまたはその利用者の実効ロールの集合の各メンバーに認可された許可の集合として、それぞれ定義できます。図 5(b) の例では、ロール A の実効許可は、Permission 1、Permission 2、Permission 3 です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Hierarchy is formally defined in terms of the following mappings and relations:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロール階層は、次の写像と関係によって正式に定義されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Contains: \(\wp (\text{Role}\times \text{Role})\)<br>contains = the set of ordered role pairs &lt;i,j&gt; having a containment relation, written as \(i\succeq j\), where role i is said to contain role j, or alternatively, role j is said to be contained by i.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Contains: \(\wp (\text{Role}\times \text{Role})\)<br>contains = 包含関係を持つ、順序付けられたロールの組 &lt;i,j&gt; の集合。\(i\succeq j\) と書き、ロール i はロール j を包含する、または別の言い方では、ロール j は i に包含される、と言います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>effective-roles: \(\text{Subject}\ \to \ 2{\uparrow}\text{Role}\)<br>effective-roles[x] = the union of the set of active roles for a subject, x, together with the set of roles contained by each active role; i.e., \(\{j\ \backepsilon \ j\in \text{active-roles}[x]\ \lor \ i\in \text{active-roles}[x]\ \land \ i\succeq j\}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>effective-roles: \(\text{Subject}\ \to \ 2{\uparrow}\text{Role}\)<br>effective-roles[x] = サブジェクト x の有効なロールの集合と、各有効ロールが包含するロールの集合の和集合。すなわち \(\{j\ \backepsilon \ j\in \text{active-roles}[x]\ \lor \ i\in \text{active-roles}[x]\ \land \ i\succeq j\}\)。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>effective-permissions: \(\text{Role}\ \to \ 2{\uparrow}\text{Permission}\)<br>effective-permissions[i] = the set of permissions authorized each of the effective roles for role i; i.e., \(\forall j\ \{p\ \backepsilon \ p\in \text{role-permissions}[j]\ \land \ (j\succeq i\ \lor \ j=i)\}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>effective-permissions: \(\text{Role}\ \to \ 2{\uparrow}\text{Permission}\)<br>effective-permissions[i] = ロール i の各実効ロールに認可された許可の集合。すなわち \(\forall j\ \{p\ \backepsilon \ p\in \text{role-permissions}[j]\ \land \ (j\succeq i\ \lor \ j=i)\}\)。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Hierarchy (rule 1 redefined): The containment relation defines an irreflexive and transitive relation on Roles, forming a quasi ordering of the elements in the set. The containment relation can also be shown to be antisymmetric. The quasi ordering of Roles is referred to as a role hierarchy.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロール階層（規則 1 の再定義）: 包含関係は、Role 上の非反射的かつ推移的な関係を定義し、集合内の要素の擬順序を形成します。包含関係は反対称でもあることを示せます。Role の擬順序は、ロール階層と呼ばれます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\ \neg (i\succeq i)\quad\text{(irreflexive)}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\ \neg (i\succeq i)\quad\text{(irreflexive)}\]        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall k\ i\succeq j\ \land \ j\succeq k\ \rightarrow \ i\succeq k\quad\text{(transitive)}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall k\ i\succeq j\ \land \ j\succeq k\ \rightarrow \ i\succeq k\quad\text{(transitive)}\]        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Static Properties</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 静的な特性</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Static properties refer to properties of the model that do not involve either the Subject component or mappings from Subject to other basic components (vis., subject-user and active-roles). As their name implies, static properties apply early, at role authorization time, and are upheld throughout role activation. Hence, they are the most fundamental constraints and relationships expressed in the model, and also the strongest. Static properties include cardinality, separation of duty, and operational separation of duty. For each static property defined, a reference is given to a rule number, which corresponds to that appearing in the original model description [1]. Static properties are defined in terms of the mappings and relations below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>静的な特性とは、モデルの特性のうち、Subject 構成要素も、Subject からほかの基本構成要素への写像（すなわち subject-user と active-roles）も含まないものを指します。その名のとおり、静的な特性は、ロールの認可時という早い段階で適用され、ロールの有効化の間ずっと維持されます。したがって、これらはモデルで表現される最も基本的で、かつ最も強い制約と関係です。静的な特性には、基数、職務分離、操作上の職務分離が含まれます。定義する静的な特性ごとに、元のモデルの記述 [1] に現れる規則番号に対応する規則番号を示します。静的な特性は、以下の写像と関係によって定義されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>membership-limit: \(\text{Role}\ \to \ N\)<br>membership-limit[i] = the maximum number of users that may be authorized a role; the default value is the total number of system users.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>membership-limit: \(\text{Role}\ \to \ N\)<br>membership-limit[i] = ロールを認可できる利用者の最大数。デフォルト値は、システムの利用者の総数です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>authorized-members: \(\text{Role}\ \to \ N\)<br>authorized-members[i] = the number of users authorized either a given role or a role that contains the given role; i.e.; \(|\{u\ \backepsilon \ \exists j\ ((j\succeq i\ \lor \ j=i)\ \land \ j\in \text{user-authorized-roles}[u])\}|\), where the cardinality of a set is expressed by a pair of bars “| |” delimiting the defined set.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>authorized-members: \(\text{Role}\ \to \ N\)<br>authorized-members[i] = 与えられたロール、または与えられたロールを包含するロールのいずれかを認可された利用者の数。すなわち \(|\{u\ \backepsilon \ \exists j\ ((j\succeq i\ \lor \ j=i)\ \land \ j\in \text{user-authorized-roles}[u])\}|\)。ここで、集合の濃度は、定義された集合を区切る 1 対の縦棒「| |」で表します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SSD: \(\wp (\text{Role}\times \text{Role})\)<br>SSD = the symmetric set of role pairs &lt;i,j&gt; involved in a Static Separation of Duty (SSD) relationship (i.e., where i and j are mutually exclusive of one another for authorization to the same user due to an inherent conflict of interest); for a symmetric set &lt;i,j&gt; is a member iff &lt;j,i&gt; is also a member.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSD: \(\wp (\text{Role}\times \text{Role})\)<br>SSD = 静的職務分離（SSD）の関係にあるロールの組 &lt;i,j&gt; の対称集合（すなわち、本質的な利益相反のために、i と j が同じ利用者への認可について互いに排他的である場合）。対称集合では、&lt;i,j&gt; が要素であるのは、&lt;j,i&gt; も要素である場合に限ります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mutex-authorization: \(\wp (\text{Role}\times \text{Role})\)<br>mutex-authorization = the symmetric set of role pairs &lt;i,j&gt; mutually exclusive of one another for authorization to the same user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Mutex-authorization: \(\wp (\text{Role}\times \text{Role})\)<br>mutex-authorization = 同じ利用者への認可について互いに排他的なロールの組 &lt;i,j&gt; の対称集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mutex-permission: \(\wp (\text{Permission}\times \text{Permission})\)<br>mutex-permission = the symmetric set of permission pairs &lt;p,q&gt; mutually exclusive of one another for authorization to an individual role or to the set of roles authorized any user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Mutex-permission: \(\wp (\text{Permission}\times \text{Permission})\)<br>mutex-permission = 個々のロール、または任意の利用者に認可されたロールの集合に対して、相互に排他的な許可の組 &lt;p,q&gt; からなる対称集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SOSD: \(\wp (\text{Role}\times \text{Role})\)<br>SOSD = the symmetric set of role pairs &lt;i,j&gt; involved in a Static Operational Separation of Duty (SOSD) relationship, with respect to the permissions in Mutex-permission; i.e., \(\forall i\forall j\forall p\forall q\ \text{SOSD}\ =\ \{\langle i,j\rangle \ \backepsilon \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-permission}\}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SOSD: \(\wp (\text{Role}\times \text{Role})\)<br>SOSD = Mutex-permission の許可に関して、静的な操作の職務分離（SOSD）の関係にあるロールの組 &lt;i,j&gt; の対称集合。すなわち \(\forall i\forall j\forall p\forall q\ \text{SOSD}\ =\ \{\langle i,j\rangle \ \backepsilon \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-permission}\}\)。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cardinality (rule 3): The number of users authorized a role at any one time cannot exceed the capacity (i.e., membership limits) of the role. For example, a role with a capacity of one would be used exclusively by the single user who is assigned to it. In terms of the mappings defined, the cardinality of the set of users who are authorized the same role must be less than or equal to the membership limit of that role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基数（規則 3）: ある時点でロールを認可される利用者の数は、そのロールの容量（すなわちメンバーシップの上限）を超えることができません。たとえば、容量が 1 のロールは、割り当てられた 1 人の利用者だけが排他的に使うものになります。定義した写像の言葉で言えば、同じロールを認可された利用者の集合の濃度は、そのロールのメンバーシップの上限以下でなければなりません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\ \text{authorized-members}\ \leq \ \text{membership-limit}[i]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\ \text{authorized-members}\ \leq \ \text{membership-limit}[i]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cardinality Inheritance (new rule): Cardinality constraints are inherited by containing roles. A containing role must be assigned a membership limit less than or equal to that of any contained role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基数の継承（新規則）: 基数の制約は、包含するロールに継承されます。包含するロールには、包含されるどのロールのメンバーシップの上限以下の上限を割り当てなければなりません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ i\succeq j\ \rightarrow \ \text{membership-limit}[i]\ \leq \ \text{membership-limit}[j]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ i\succeq j\ \rightarrow \ \text{membership-limit}[i]\ \leq \ \text{membership-limit}[j]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Static Separation of Duty (rule 2): In many organizations, responsibilities are split among multiple roles as a countermeasure to fraud, misappropriation of assets, and other conflict of interest based policy deviations that require the collusion of two or more individuals. In commercial transactions, for example, one role may have the capability to input transaction requests, while another the capability to approve them. A group of roles may be designated through the Static Separation of Duty (SSD) property as mutually exclusive of one another with regard to role authorization. That is, to avoid a possible conflict of interest, a user may be authorized to only one of the distinct roles so designated. SSD involving multiple roles is expressed pairwise, using the SSD relation. If for example i, j, and k are such roles, then &lt;i,j&gt;, &lt;j,i&gt;, &lt;i,k&gt;, &lt;k,i&gt;, &lt;j,k&gt;, &lt;k,j&gt; are members of SSD. This representation of SSD differs syntactically but not semantically from the original model, which uses a function to return a mutually exclusive set of roles for a given role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>静的職務分離（規則 2）: 多くの組織では、不正、資産の流用、2 人以上の個人の共謀を必要とする利益相反に基づくその他の方針逸脱への対策として、責任が複数のロールに分割されています。たとえば商取引では、あるロールが取引要求を入力する能力を持ち、別のロールがそれを承認する能力を持つことがあります。一群のロールは、静的職務分離（SSD）の特性により、ロールの認可に関して互いに排他的であると指定できます。つまり、利益相反の可能性を避けるため、利用者は、そのように指定された異なるロールのうち 1 つだけを認可されることができます。複数のロールが関わる SSD は、SSD 関係を使って組ごとに表現されます。たとえば i、j、k がそのようなロールであれば、&lt;i,j&gt;、&lt;j,i&gt;、&lt;i,k&gt;、&lt;k,i&gt;、&lt;j,k&gt;、&lt;k,j&gt; が SSD の要素です。この SSD の表現は、与えられたロールに対して互いに排他的なロールの集合を返す関数を使う元のモデルとは、構文上は異なりますが、意味上は異なりません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{SSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{SSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{SSD}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{SSD}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SSD Safety (new rule): The Static Separation of Duty property, when applied, asserts there is a conflict of interest among the capabilities authorized a set of roles. Besides explicit SSD relationships, there may also be implicit SSD relationships regarding other roles possessing comparable capabilities. This property ensures that implicit SSD relationships, which can be inferred from explicit SSD relationships, are upheld. If a user is authorized a role, which has an SSD relationship with another role whose effective permissions are a subset of a third role’s, then the user cannot be authorized the third role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSD の安全性（新規則）: 静的職務分離の特性は、適用されると、ロールの集合に認可された能力の間に利益相反があることを主張します。明示的な SSD 関係のほかに、同等の能力を持つほかのロールに関する暗黙の SSD 関係もある場合があります。この特性は、明示的な SSD 関係から推論できる暗黙の SSD 関係が維持されることを保証します。利用者が、実効許可が第 3 のロールの実効許可の部分集合であるほかのロールと SSD 関係にあるロールを認可されている場合、その利用者は、第 3 のロールを認可されることができません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall u\forall i\forall j\forall p\ i\in \text{user-authorized-roles}[u]\ \land \ \langle i,j\rangle \in \text{SSD}\ \land \ \exists k(p\in \text{effective-permissions}[j]\ \rightarrow \ p\in \text{effective-permissions}[k])\ \rightarrow \ k\notin \text{user-authorized-roles}[u]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall u\forall i\forall j\forall p\ i\in \text{user-authorized-roles}[u]\ \land \ \langle i,j\rangle \in \text{SSD}\ \land \ \exists k(p\in \text{effective-permissions}[j]\ \rightarrow \ p\in \text{effective-permissions}[k])\ \rightarrow \ k\notin \text{user-authorized-roles}[u]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SSD Hierarchical Consistency (new rule): An SSD relationship cannot exist between roles that have a containment relation between them or are contained by another role in common. The rationale behind this property is that, by definition, an instance of a containing role is treated the same as an instance of any contained role (i.e., the effective roles of the containing role include the contained role); therefore, the conflict of interest asserted by an SSD relationship cannot exist without contradicting the capability intended by the containment relation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSD の階層的一貫性（新規則）: SSD 関係は、互いに包含関係にあるロールの間、または共通のほかのロールに包含されるロールの間には存在できません。この特性の根拠は、定義により、包含するロールのインスタンスは、包含されるどのロールのインスタンスとも同じに扱われる（すなわち、包含するロールの実効ロールに、包含されるロールが含まれる）ため、SSD 関係が主張する利益相反は、包含関係が意図する能力と矛盾することなしには存在できないことです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{SSD})\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{SSD})\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SSD Inheritance (new rule): SSD relationships are inherited by containing roles. If one role contains another role that has an SSD relationship with a third role, then the containing role also has an SSD relationship with the third role. This property must hold since a contradiction occurs if the effective roles for the containing role includes, in addition to the contained role, the third role. Through SSD Inheritance, distinct hierarchies of roles, isolated with regard to role authorization, are asserted from SSD relationships among a basic set of roles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SSD の継承（新規則）: SSD 関係は、包含するロールに継承されます。あるロールが、第 3 のロールと SSD 関係にある別のロールを包含する場合、包含するロールも第 3 のロールと SSD 関係にあります。包含するロールの実効ロールに、包含されるロールに加えて第 3 のロールが含まれると矛盾が生じるため、この特性は成り立たなければなりません。SSD の継承により、ロールの認可に関して分離された、ロールの異なる階層が、基本的なロールの集合の間の SSD 関係から導かれます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{SSD}\ \rightarrow \ \langle i,k\rangle \in \text{SSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{SSD}\ \rightarrow \ \langle i,k\rangle \in \text{SSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Static Mutual Exclusion (new rule): Static Mutual Exclusion (SME) is somewhat similar to SSD insofar as one group of roles may be completely segregated from another with regard to role authorization. However, the motivation behind mutual exclusion is not as a countermeasure to collusion, but rather as an administrative aid to codifying organizational policy. SME involving multiple roles is expressed pairwise, using Mutex-authorization. Because SME is primarily an administrative feature, and not one based on conflict of interest or other incompatibility among the capabilities authorized a set of roles, there is no need for any associated Safety or Hierarchical Consistency properties as with SSD. Omission of the latter property is significant, since, unlike SSD, it allows constraints to exist within as well as among hierarchies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>静的相互排他（新規則）: 静的相互排他（SME）は、ロールの認可に関して、あるロール群を別のロール群から完全に分離できるという点で、SSD といくぶん似ています。ただし、相互排他の動機は、共謀への対策ではなく、組織の方針を成文化するための管理上の補助です。複数のロールが関わる SME は、Mutex-authorization を使って組ごとに表現されます。SME は主に管理上の機能であり、ロールの集合に認可される能力の間の利益相反やその他の非両立性に基づくものではないため、SSD のような安全性や階層的一貫性の特性は必要ありません。後者の特性を省くことは重要です。SSD と異なり、階層の間だけでなく階層の中にも制約が存在することを許すからです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For example, in a hospital system a staff member role may be inherited by an intern role, which in turn may be inherited by physician role. If a doctor were assigned to both an intern and a physician role through either accident or intention, there would be no inherent conflict of interest, since a containment relationship exists between them. However, to avoid accounting inconsistencies, the hospital policy may require that a doctor on staff be classified as either a physician or an intern, but not both. It would be incorrect to use SSD to represent this policy, and also contradictory because of the containment relation. However, the policy can be correctly represented by designating the physician and intern roles mutually exclusive of one another through the SME property. SME can be considered as simply an additional type of constraint that can be applied among any set of roles, regardless of their fundamental capabilities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>たとえば、病院のシステムでは、職員ロールがインターンロールに継承され、そのインターンロールが医師ロールに継承されることがあります。医師が、偶然にせよ意図的にせよ、インターンと医師の両方のロールに割り当てられても、その間には包含関係があるため、本質的な利益相反はありません。しかし、会計上の不整合を避けるため、病院の方針では、職員の医師は医師かインターンのどちらかに分類し、両方にはしないよう求めることがあります。この方針を表すのに SSD を使うのは誤りであり、包含関係があるため矛盾も生じます。ただし、この方針は、SME の特性により、医師ロールとインターンロールを互いに排他的であると指定することで、正しく表現できます。SME は、ロールの根本的な能力にかかわらず、任意のロールの集合の間に適用できる、追加の種類の制約にすぎないと考えることができます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{Mutex-authorization}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{Mutex-authorization}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0011-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{Mutex-authorization}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{Mutex-authorization}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SME Inheritance (new rule): SME relationships are inherited by containing roles, if those relationships occur with roles outside the chain of containing roles or lower within the chain. If one role contains another role that has an SME relationship with a third role, then the containing role also has an SME relationship with the third role, provided that the third role does not contain either role and is not contained directly by the first role (i.e., only indirectly through the second role). As with SSD Inheritance, this property requires that a specific type of constraint be upheld among any containing roles. However, the way in which the constraint is upheld within a chain of containing roles is different in some cases. For example, for the \(\text{physician}\succeq \text{intern}\succeq \text{staff member}\) containment chain from the example above, a surgeon role is defined in terms of physician (i.e., \(\text{surgeon}\succeq \text{physician}\)). The designated SME relationship between physician and intern, through SME inheritance, would require an SME relationship to also exist between surgeon and intern, but not surgeon and physician.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SME の継承（新規則）: SME 関係は、その関係が、包含するロールの連鎖の外にあるロール、または連鎖内でより下位にあるロールとの間にある場合に、包含するロールに継承されます。あるロールが、第3のロールと SME 関係にある別のロールを包含する場合、第3のロールがいずれのロールも包含せず、最初のロールに直接包含されてもいない（すなわち、2番目のロールを通じて間接的にのみ包含される）ことを条件に、包含するロールも第3のロールと SME 関係にあります。SSD の継承と同様に、この特性は、包含するロールの間で特定の種類の制約が維持されることを求めます。ただし、包含するロールの連鎖内で制約が維持される方法は、場合によって異なります。たとえば、上の例の \(\text{physician}\succeq \text{intern}\succeq \text{staff member}\) という包含の連鎖に対して、外科医ロールが医師ロールによって定義される（すなわち、\(\text{surgeon}\succeq \text{physician}\)）とします。医師とインターンの間に指定された SME 関係は、SME の継承により、外科医とインターンの間にも SME 関係が存在することを求めますが、外科医と医師の間には求めません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \neg (k\succeq j)\ \land \ (j\succeq k\ \lor \ \neg (i\succeq k))\ \land \ \langle j,k\rangle \in \text{Mutex-authorization}\ \rightarrow \ \langle i,k\rangle \in \text{Mutex-authorization}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \neg (k\succeq j)\ \land \ (j\succeq k\ \lor \ \neg (i\succeq k))\ \land \ \langle j,k\rangle \in \text{Mutex-authorization}\ \rightarrow \ \langle i,k\rangle \in \text{Mutex-authorization}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Static Operational Separation of Duty (rule 8 restated): The rationale behind SOSD is that business tasks are composed of a number of operations, only a subset of which a single user may perform. SOSD is enforced by using permissions to represent allowable subsets of operations on objects involved in business tasks, and designating a group of permissions as mutually exclusive of one another with respect to the roles authorized any single user. Mutually exclusive permissions ensure that no single user may be authorized one or more roles having permissions involved in an SOSD relationship. One side effect of this property is that no role may be authorized more than one permission from a group of permissions designated mutually exclusive of one another. SOSD is expressed among multiple permissions through pairwise specification of members in a mutual exclusion set, Mutex-permission, which in turn determines the membership of the SOSD relation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>静的な操作の職務分離（規則 8 の再記述）: SOSD の根拠は、業務タスクが多数の操作で構成され、そのうち単一の利用者が実行してよいのは一部だけだということです。SOSD は、業務タスクに関わるオブジェクトに対して許される操作の部分集合を許可で表し、任意の単一の利用者に認可されるロールに関して、一群の許可を互いに排他的であると指定することで実施されます。互いに排他的な許可により、単一の利用者が、SOSD 関係に関わる許可を持つ 1 つ以上のロールを認可されることはなくなります。この特性の副作用の一つは、互いに排他的であると指定された許可の群から、1 つのロールが複数の許可を認可されることがなくなることです。SOSD は、相互排他集合 Mutex-permission のメンバーを組ごとに指定することで、複数の許可の間で表現され、これによって SOSD 関係のメンバーが決まります。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\forall p\forall q\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \land \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \rightarrow \ \langle p,q\rangle \notin \text{Mutex-permission}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\forall p\forall q\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \land \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \rightarrow \ \langle p,q\rangle \notin \text{Mutex-permission}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{SOSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ i\in \text{user-authorized-roles}[u]\ \land \ j\in \text{user-authorized-roles}[u]\ \rightarrow \ \langle i,j\rangle \notin \text{SOSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\forall p\forall q\ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-permission}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\forall p\forall q\ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-permission}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{SOSD}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall u\ \langle i,j\rangle \in \text{SOSD}\ \rightarrow \ (i\in \text{user-authorized-roles}[u]\ \rightarrow \ j\notin \text{user-authorized-roles}[u])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SOSD Hierarchical Consistency (new rule): An SOSD relationship cannot exist between roles that have a containment relation between them or are contained by another role in common.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SOSD の階層的一貫性（新規則）: SOSD 関係は、互いに包含関係にあるロールの間、または共通のほかのロールに包含されるロールの間には存在できません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{SOSD})\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{SOSD})\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Static Operational Separation of Duty Inheritance (new rule): SOSD relationships are inherited by containing roles. If one role contains another role that has an SOSD relationship with a third role, then the containing role also has an SOSD relationship with the third role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>静的な操作の職務分離の継承（新規則）: SOSD 関係は、包含するロールに継承されます。あるロールが、第 3 のロールと SOSD 関係にある別のロールを包含する場合、包含するロールも第 3 のロールと SOSD 関係にあります。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0012-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{SOSD}\ \rightarrow \ \langle i,k\rangle \in \text{SOSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{SOSD}\ \rightarrow \ \langle i,k\rangle \in \text{SOSD}\]        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. Dynamic Properties</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. 動的な特性</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic properties are used in conjunction with static properties to maintain additional constraints and relationships on the activities that can occur when a role is active (i.e., a subject is active in an authorized role on behalf of a user). Dynamic properties refer to properties of the model that involve either the Subject component or mappings from Subject to other basic components (i.e., subject-user and active-roles). For every static property, a corresponding dynamic property may be defined. Dynamic properties are in a sense weaker than their static property counterparts, since they come into play at role activation time rather than at role authentication time. Weaker doesn’t necessarily mean undesirable. Instead, they offer an additional degree of flexibility desirable in many contexts as either a substitute for, or complement to, static properties. Dynamic properties include role activation, cardinality, separation of duty, and operational separation of duty, and utilize the mappings and relations below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的な特性は、静的な特性と組み合わせて、ロールが有効なとき（すなわち、サブジェクトが、利用者に代わって認可されたロールで有効なとき）に起こりうる活動に対する追加の制約と関係を維持するために使われます。動的な特性とは、モデルの特性のうち、Subject 構成要素、または Subject からほかの基本構成要素への写像（すなわち subject-user と active-roles）のいずれかを含むものを指します。静的な特性のそれぞれに対して、対応する動的な特性を定義できます。動的な特性は、ロールの認証時ではなくロールの有効化時に作用するため、ある意味で、対応する静的な特性よりも弱いです。弱いことは、必ずしも望ましくないという意味ではありません。むしろ、多くの状況で、静的な特性の代わりとして、または補完として望ましい、追加の柔軟性を提供します。動的な特性には、ロールの有効化、基数、職務分離、操作の職務分離が含まれ、以下の写像と関係を利用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>exec: \(\text{Subject}\times \text{Operation}\times \text{Object}\ \to \ \{\text{True},\ \text{False}\}\)<br>exec[x,op,o] = True iff subject x can perform an operation op on object o; otherwise, False.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>exec: \(\text{Subject}\times \text{Operation}\times \text{Object}\ \to \ \{\text{True},\ \text{False}\}\)<br>exec[x,op,o] = サブジェクト x がオブジェクト o に対して操作 op を実行できる場合に限り True となり、そうでなければ False となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>active-membership-limit: \(\text{Role}\ \to \ N\)<br>active-membership-limit[i] = the maximum number of users that may be active in a role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>active-membership-limit: \(\text{Role}\ \to \ N\)<br>active-membership-limit[i] = ロールで有効になれる利用者の最大数。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>active-members: \(\text{Role}\ \to \ N\)<br>active-members[i] = the number of users active either in a given role or in a role that contains the given role; i.e.; \(|\{u\ \ni \ \forall x\exists j\ ((j\succeq i\ \lor \ j=i)\ \land \ j\in \text{active-roles}[x]\ \land \ u=\text{active-user}[x])\}|\)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>active-members: \(\text{Role}\ \to \ N\)<br>active-members[i] = 与えられたロール、または与えられたロールを包含するロールのいずれかで有効になっている利用者の数。すなわち \(|\{u\ \ni \ \forall x\exists j\ ((j\succeq i\ \lor \ j=i)\ \land \ j\in \text{active-roles}[x]\ \land \ u=\text{active-user}[x])\}|\)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DSD: \(\wp (\text{Role}\times \text{Role})\)<br>DSD = the symmetric set of role pairs &lt;i,j&gt; involved in a Dynamic Separation of Duty (DSD) relationship (i.e., where i and j mutually exclusive of one another for activation by the same user, due to an inherent conflict of interest).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DSD: \(\wp (\text{Role}\times \text{Role})\)<br>DSD = 動的職務分離（DSD）の関係にあるロールの組 &lt;i,j&gt; の対称集合（すなわち、本質的な利益相反のために、i と j が同じ利用者による有効化について互いに排他的である場合）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mutex-activation: \(\wp (\text{Role}\times \text{Role})\)<br>mutex-activation = the symmetric set of role pairs &lt;i,j&gt; mutually exclusive of one another for activation by the same user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Mutex-activation: \(\wp (\text{Role}\times \text{Role})\)<br>mutex-activation = 同じ利用者による有効化について互いに排他的なロールの組 &lt;i,j&gt; の対称集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Mutex-perm: \(\wp (\text{Permission}\times \text{Permission})\)<br>mutex-perm = the symmetric set of permission pairs &lt;p,q&gt; mutually exclusive of one another for activation by the same user, simultaneously within different roles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Mutex-perm: \(\wp (\text{Permission}\times \text{Permission})\)<br>mutex-perm = 同じ利用者が異なるロールで同時に有効化することについて互いに排他的な許可の組 &lt;p,q&gt; の対称集合。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DOSD: \(\wp (\text{Role}\times \text{Role})\)<br>DOSD = the symmetric set of role pairs &lt;i,j&gt;, involved in a Dynamic Operational Separation of Duty (DOSD) relationship with respect to the permissions in Mutex-perm; i.e., \(\forall i\forall j\forall p\forall q\ \text{DOSD}\ =\ \{\langle i,j\rangle \ \ni \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-perm}\}\).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DOSD: \(\wp (\text{Role}\times \text{Role})\)<br>DOSD = Mutex-perm の許可に関して、動的な操作の職務分離（DOSD）の関係にあるロールの組 &lt;i,j&gt; の対称集合。すなわち \(\forall i\forall j\forall p\forall q\ \text{DOSD}\ =\ \{\langle i,j\rangle \ \ni \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-perm}\}\)。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Authorization (rule 4, subsumes assumption 1 in original model, Consistent Subject): A subject cannot be active in a role that is not authorized for its associated user. Note, this rule should be renamed Role Activation for accuracy, since it only comes into play after authorization.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールの認可（規則 4。元のモデルの前提 1、Consistent Subject を包含）: サブジェクトは、関連づけられた利用者に認可されていないロールで有効になることはできません。なお、この規則は認可の後にしか作用しないため、正確を期すには「ロールの有効化」に改名すべきです。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall i\ i\in \text{active-roles}[x]\ \rightarrow \ i\in \text{user-authorized-roles}[\text{subject-user}[x]]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall i\ i\in \text{active-roles}[x]\ \rightarrow \ i\in \text{user-authorized-roles}[\text{subject-user}[x]]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Operation Authorization (rule 7 subsumes rule 5, Role Execution): A subject can perform an operation on an object if, and only if, the subject is acting within an effective role authorized that permission.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>操作の認可（規則 7 は規則 5、Role Execution を包含）: サブジェクトがオブジェクトに対して操作を実行できるのは、そのサブジェクトが、その操作とオブジェクトの組に対する許可を与えられた実効ロールの範囲内で動作している場合、かつその場合に限ります。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall \text{op}\forall o\ \text{exec}[x,\text{op},o]\ \equiv \ \exists i\ (i\in \text{effective-roles}[x]\ \land \ p\in \text{role-permissions}[i]\ \land \ \langle \text{op},o\rangle \in p)\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall \text{op}\forall o\ \text{exec}[x,\text{op},o]\ \equiv \ \exists i\ (i\in \text{effective-roles}[x]\ \land \ p\in \text{role-permissions}[i]\ \land \ \langle \text{op},o\rangle \in p)\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Cardinality (new rule): The number of users active in a role at any one time cannot exceed the dynamic capacity (i.e., active-membership-limit) of the role. This rule, though more difficult to implement than Static Cardinality, seems to be much more desirable, since the role capacity is maintained at activation time as opposed to authorization time. For example, a role with a dynamic capacity of one would allow at most a single role instance to be active at any time, ensuring consecutive use of the role’s capabilities by any assigned users.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的基数（新規則）: ある時点でロールで有効になっている利用者の数は、そのロールの動的な容量（すなわち active-membership-limit）を超えることができません。この規則は静的基数よりも実装が難しいものの、ロールの容量が認可時ではなく有効化時に維持されるため、はるかに望ましいと思われます。たとえば、動的な容量が 1 のロールは、任意の時点で有効なロールのインスタンスを多くても 1 つに限り、割り当てられた利用者がそのロールの能力を順番に利用できるようにします。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\ \text{active-members}[i]\ \leq \ \text{active-membership-limit}[i]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\ \text{active-members}[i]\ \leq \ \text{active-membership-limit}[i]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Cardinality Inheritance (new rule): Cardinality constraints are inherited by containing roles. If one role contains another role, then the containing role must have an active membership limit less than or equal to that of the contained role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的基数の継承（新規則）: 基数の制約は、包含するロールに継承されます。あるロールがほかのロールを包含する場合、包含するロールは、包含されるロールの有効メンバーシップの上限以下の上限を持たなければなりません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ i\succeq j\ \rightarrow \ \text{active-membership-limit}[i]\ \leq \ \text{active-membership-limit}[j]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ i\succeq j\ \rightarrow \ \text{active-membership-limit}[i]\ \leq \ \text{active-membership-limit}[j]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Separation of Duty (rule 6): A group of roles may be designated as mutually exclusive of one another with regard to role activation, ensuring that at any one time a user may be active in only one of the distinct roles so designated. Dynamic Separation of Duty (DSD) involving multiple roles is expressed pairwise, using the DSD relation. DSD is a memoryless property insofar as no history of activation is kept for a user. Although DSD roles are prevented from being activated simultaneously by a user, they may be activated consecutively by simply dropping one role and assuming another, negating the usefulness of the property for some environments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的職務分離（規則 6）: 一群のロールは、ロールの有効化に関して互いに排他的であると指定でき、ある時点で利用者がそのように指定されたロールのうち 1 つでのみ有効になれることを保証します。複数のロールが関わる動的職務分離（DSD）は、DSD 関係を使って組ごとに表現されます。DSD は、利用者の有効化の履歴が保持されないという点で、記憶を持たない特性です。DSD のロールは、利用者が同時に有効化することを妨げられますが、1 つのロールを手放して別のロールを引き受けるだけで逐次的に有効化でき、環境によっては、この特性の有用性が損なわれます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{DSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{DSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{DSD}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{DSD}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DSD Safety (new rule): As with SSD, there may also be implicit DSD relationships regarding other roles possessing comparable capabilities, besides explicit DSD relationships. This property ensures that implicit DSD relationships are upheld at activation time. If a user is active in a role, which has a DSD relationship with another role whose effective permissions are a subset of a third role’s, then the user cannot also be active in the third role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DSD の安全性（新規則）: SSD と同様に、明示的な DSD 関係のほかに、同等の能力を持つほかのロールに関する暗黙の DSD 関係もある場合があります。この特性は、暗黙の DSD 関係が有効化時に維持されることを保証します。利用者が、実効許可が第 3 のロールの実効許可の部分集合であるほかのロールと DSD 関係にあるロールで有効になっている場合、その利用者は、第 3 のロールでも同時に有効になることはできません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\forall p\ i\in \text{active-roles}[x]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \land \ \langle i,j\rangle \in \text{DSD}\ \land \ \exists k(p\in \text{effective-permissions}[j]\ \rightarrow \ p\in \text{effective-permissions}[k])\ \rightarrow \ k\notin \text{active-roles}[y]\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\forall p\ i\in \text{active-roles}[x]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \land \ \langle i,j\rangle \in \text{DSD}\ \land \ \exists k(p\in \text{effective-permissions}[j]\ \rightarrow \ p\in \text{effective-permissions}[k])\ \rightarrow \ k\notin \text{active-roles}[y]\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DSD Hierarchical Consistency (new rule): A DSD relationship cannot exist between two roles that have a containment relationship between them or are contained by another role in common. The same rationale that applied for SSD applies for DSD, namely that a DSD relationship cannot be asserted in such situations without contradicting the capability intended by the containment relation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DSD の階層的一貫性（新規則）: DSD 関係は、互いに包含関係にある 2 つのロールの間、または共通のほかのロールに包含される 2 つのロールの間には存在できません。SSD に当てはまったのと同じ根拠が DSD にも当てはまります。すなわち、そのような状況では、DSD 関係は、包含関係が意図する能力と矛盾することなしには主張できません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{DSD})\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{DSD})\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DSD Inheritance (new rule): DSD relationships are inherited by containing roles. If one role contains another role that has a DSD relationship with a third role, then the containing role also has a DSD relationship with the third role. Through DSD Inheritance, distinct hierarchies of roles, isolated with regard to role activation, are asserted from DSD relationships among a basic set of roles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DSD の継承（新規則）: DSD 関係は、包含するロールに継承されます。あるロールが、第 3 のロールと DSD 関係にある別のロールを包含する場合、包含するロールも第 3 のロールと DSD 関係にあります。DSD の継承により、ロールの有効化に関して分離された、ロールの異なる階層が、基本的なロールの集合の間の DSD 関係から導かれます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{DSD}\ \rightarrow \ \langle i,k\rangle \in \text{DSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{DSD}\ \rightarrow \ \langle i,k\rangle \in \text{DSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Mutual Exclusion (new rule): A group of roles may be designated as mutually exclusive of one another with regard to role activation, ensuring that at any one time a user may be active in only one of the distinct roles so designated. While Dynamic Mutual Exclusion is similar in function to DSD, the underlying motivation for isolating roles is not one of conflict of interest, but of codifying organizational policy. This distinction is subtle, but critical in differentiating associated properties. In particular, there is no need for any associated Safety or Hierarchical Consistency properties, since no fundamental incompatibilities exist among designated roles. As with DSD, this property is memoryless and of limited usefulness in some environments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的相互排他（新規則）: 一群のロールは、ロールの有効化に関して互いに排他的であると指定でき、ある時点で利用者がそのように指定された異なるロールのうち 1 つでのみ有効になれることを保証します。動的相互排他は、機能の点では DSD に似ていますが、ロールを分離する根本的な動機は、利益相反ではなく、組織の方針の成文化です。この違いは微妙ですが、関連する特性を区別するうえで決定的です。特に、指定されたロールの間に根本的な非両立性がないため、関連する安全性や階層的一貫性の特性は必要ありません。DSD と同様に、この特性は記憶を持たず、環境によっては有用性が限られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{Mutex-activation}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{Mutex-activation}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{Mutex-activation}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{Mutex-activation}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DME Inheritance (new rule): DME relationships are inherited by containing roles, if those relationships occur with roles outside the containment chain or lower in the chain. If one role contains another role that has a DME relationship with a third role, then the containing role also has a DME relationship with the third role, provided that the third role does not contain either role and is not contained directly by the first role (i.e., only indirectly through the second role). As with DSD Inheritance, this property requires that a specific type of constraint be upheld among any containing roles. However, the way in which the constraint is upheld within a chain of containing roles is different in some cases.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DME の継承（新規則）: DME 関係は、その関係が、包含の連鎖の外にあるロール、または連鎖内でより下位にあるロールとの間にある場合に、包含するロールに継承されます。あるロールが、第 3 のロールと DME 関係にある別のロールを包含する場合、第 3 のロールがどちらのロールも包含せず、最初のロールに直接包含されてもいない（すなわち 2 番目のロールを通じて間接的にのみ包含される）ことを条件に、包含するロールも第 3 のロールと DME 関係にあります。DSD の継承と同様に、この特性は、包含するロールの間で特定の種類の制約が維持されることを求めます。ただし、包含するロールの連鎖内で制約が維持される方法は、場合によって異なります。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \neg (k\succeq j)\ \land \ (j\succeq k\ \lor \ \neg (i\succeq k))\ \land \ \langle j,k\rangle \in \text{Mutex-activation}\ \rightarrow \ \langle i,k\rangle \in \text{Mutex-activation}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \neg (k\succeq j)\ \land \ (j\succeq k\ \lor \ \neg (i\succeq k))\ \land \ \langle j,k\rangle \in \text{Mutex-activation}\ \rightarrow \ \langle i,k\rangle \in \text{Mutex-activation}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Operational Separation of Duty (new rule): A group of permissions may be designated as mutually exclusive of one another with regard to the roles activated by a subject on behalf of any single user. One side effect of this property is that no role may be authorized more than one permission from a group of permissions designated mutually exclusive of one another. As with DSD, this property is memoryless and has limited utility in some environments.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的な操作の職務分離（新規則）: 一群の許可は、サブジェクトが任意の単一の利用者に代わって有効化したロールに関して、互いに排他的であると指定できます。この特性の副作用の一つは、互いに排他的であると指定された許可の群から、1 つのロールが複数の許可を認可されることがなくなることです。DSD と同様に、この特性は記憶を持たず、環境によっては有用性が限られます。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\forall p\forall q\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \land \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \rightarrow \ \langle p,q\rangle \notin \text{Mutex-perm}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\forall p\forall q\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \land \ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \rightarrow \ \langle p,q\rangle \notin \text{Mutex-perm}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{DOSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ i\in \text{active-roles}[x]\ \land \ j\in \text{active-roles}[y]\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ \langle i,j\rangle \notin \text{DOSD}\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\forall p\forall q\ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-perm}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\forall p\forall q\ p\in \text{role-permissions}[i]\ \land \ q\in \text{role-permissions}[j]\ \land \ \langle p,q\rangle \in \text{Mutex-perm}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>or alternatively</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>または別の表現として</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{DOSD}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall x\forall y\forall i\forall j\ \langle i,j\rangle \in \text{DOSD}\ \land \ \text{subject-user}[x]=\text{subject-user}[y]\ \rightarrow \ (i\in \text{active-roles}[x]\ \rightarrow \ j\notin \text{active-roles}[y])\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>DOSD Hierarchical Consistency (new rule): The same rationale that applied for SOSD applies for DOSD. If a containment relationship exists between two roles or a common heir to both exists, then a DOSD relationship cannot exist between them.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DOSD の階層的一貫性（新規則）: SOSD に当てはまったのと同じ根拠が DOSD にも当てはまります。2 つのロールの間に包含関係がある場合、または両方の共通の継承先が存在する場合、それらの間に DOSD 関係は存在できません。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{DOSD})\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\ (i\succeq j\ \lor \ \exists k\ (k\succeq i\ \land \ k\succeq j)\ \rightarrow \ \langle i,j\rangle \notin \text{DOSD})\]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dynamic Operational Separation of Duty Inheritance (new rule): DOSD relationships are inherited by containing roles. If one role contains another role that has a DOSD relationship with a third role, then the containing role also has a DOSD relationship with the third role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>動的な操作の職務分離の継承（新規則）: DOSD 関係は、包含するロールに継承されます。あるロールが、第 3 のロールと DOSD 関係にある別のロールを包含する場合、包含するロールも第 3 のロールと DOSD 関係にあります。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0016-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{DOSD}\ \rightarrow \ \langle i,k\rangle \in \text{DOSD}\]
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[\forall i\forall j\forall k\ i\succeq j\ \land \ \langle j,k\rangle \in \text{DOSD}\ \rightarrow \ \langle i,k\rangle \in \text{DOSD}\]        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7. Other Features and Properties</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7. その他の機能と特性</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The scope of both the original and revised models could be expanded in a variety of areas that for certain environments would prove useful. The areas include features related to administration, separation of duty, and role attributes. Though these features are not present in the revised model, they provide both an understanding of the limits of applicability of the current model and a direction for further enhancements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>元のモデルと改訂モデルのどちらの範囲も、さまざまな分野に拡張でき、特定の環境では有用になるでしょう。その分野には、管理、職務分離、ロールの属性に関連する機能が含まれます。これらの機能は改訂モデルにはありませんが、現在のモデルの適用範囲の限界の理解と、さらなる拡張の方向性の両方を提供します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Administration: RBAC can be treated as either a discretionary or non-discretionary access control method. The treatment given in this paper is oriented toward the latter method. The model implicitly requires administration roles to be distinct from user roles, insofar as their permissions deal solely with the policy attribute components of the model: User-to-Role and Role-to-Permission mappings, containment relations, cardinality constraints, and separation of duty constraints. Personnel not authorized administration roles are denied these permissions and must operate within the confines of the roles defined for and assigned to them by an administrator. Conversely, personnel who are authorized administration roles are restricted to administration of policy attribute components when active in those roles. Administrators are expected to maintain strict separation of roles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>管理: RBAC は、任意アクセス制御の方法としても、非任意アクセス制御の方法としても扱えます。本書での扱いは、後者の方法に向けたものです。このモデルは、管理ロールの許可が、モデルの方針属性の構成要素、すなわち User から Role への写像と Role から Permission への写像、包含関係、基数の制約、職務分離の制約だけを扱うという点で、管理ロールが利用者ロールとは別のものであることを暗黙のうちに求めます。管理ロールを認可されていない要員は、これらの許可を拒否され、管理者によって自分に定義され割り当てられたロールの範囲内で動作しなければなりません。逆に、管理ロールを認可された要員は、それらのロールで有効になっているときは、方針属性の構成要素の管理に限られます。管理者は、ロールの厳密な分離を維持することが期待されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Division of roles in this manner supports the principle of Attenuation of Privileges, which states that subjects should not be able to increase their privilege or grant to other subjects privileges they themselves do not own. Separation of authorization aspects from policy attribute management is useful in practice since authorization must be relatively independent of how policy attributes, such as roles, are managed [3]. However, a circular dependency between authorization and policy attribute management exists in such models, since authorization requires defined policy attributes for controlling access, and specification of policy attributes requires authorization to that information.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このようにロールを分けることは、サブジェクトは自らの特権を増やしたり、自らが所有していない特権をほかのサブジェクトに付与したりすべきではないとする、特権の減衰の原則を支えます。認可の側面を方針属性の管理から分離することは、認可が、ロールなどの方針属性がどのように管理されるかから比較的独立していなければならないため、実際に有用です [3]。ただし、このようなモデルでは、認可と方針属性の管理の間に循環依存が存在します。認可にはアクセスを制御するための定義済みの方針属性が必要であり、方針属性の指定にはその情報への認可が必要だからです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Features of the model to support strict separation of user and administrator roles are lacking. In order to model the non-discretionary perspective, some additional administrative support properties could be defined. For example, the model could be extended to account for administration and user role distinctions with respect to both the type of objects accessed and the type of role accessing the objects. While motivated by the desire to distinguish between user and administrator domains within the model, these properties may also find utility in defining distinctive sub-domains within those domains.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>利用者ロールと管理者ロールの厳密な分離を支えるためのモデルの機能は不足しています。非任意の観点をモデル化するため、管理を支えるいくつかの追加の特性を定義できるでしょう。たとえば、アクセスされるオブジェクトの種類と、オブジェクトにアクセスするロールの種類の両方に関して、管理と利用者のロールの区別を考慮するよう、モデルを拡張できます。これらの特性は、モデル内で利用者と管理者の領域を区別したいという要望から生まれたものですが、それらの領域の中に特有の部分領域を定義するうえでも有用となる場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Separation of Duty: A of separation of duty properties have been defined for the revised model, the most basic and common being static and dynamic separation of duty. The rationale for separation of duty properties lies in the notion of conflict of interest avoidance. Users must not be placed in an environment where permitted actions allow a conflict of interest to occur. Each separation of duty property involves either mutually-exclusive collections of permissions (i.e., roles) or single permissions, and constraining the authorization or activation of users associated with those permissions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>職務分離: 改訂モデルには多数の職務分離の特性が定義されており、最も基本的で一般的なものは、静的および動的な職務分離です。職務分離の特性の根拠は、利益相反の回避という考え方にあります。利用者を、許可された行為によって利益相反が起こりうる環境に置いてはなりません。各職務分離の特性は、互いに排他的な許可の集まり（すなわちロール）、または単一の許可のいずれかを扱い、それらの許可に関連づけられた利用者の認可や有効化を制約します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In practice, the characteristics and security policy of one environment can be quite different from that of another, affecting the usefulness of a particular separation of duty property [6, 7]. One class of distinction already discussed is the authorization time vs. activation time differences between static and dynamic properties. In the revised model, all properties, including separation of duty, are memoryless with regard to the actions taken by a user active within a role or set of roles. That is, the properties form an assertion that must always hold during authorization or activation, regardless of the history of actions (viz., operations on objects) that may have occurred. While satisfactory for some environments, such as databases or operating systems where the set of operations and objects are somewhat uniform, in other environments, such as workflow applications, these properties may be inadequate in providing the desired controls.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実際には、ある環境の特性やセキュリティ方針は、別の環境のものとかなり異なる場合があり、特定の職務分離の特性の有用性に影響します [6, 7]。すでに論じた区別の一つの類型は、静的な特性と動的な特性の間の、認可時と有効化時の違いです。改訂モデルでは、職務分離を含むすべての特性は、ロールまたはロールの集合で有効になっている利用者が取った行動に関して、記憶を持ちません。つまり、特性は、行動（すなわちオブジェクトに対する操作）の履歴にかかわらず、認可または有効化の間、常に成り立たなければならない主張を形成します。操作とオブジェクトの集合が比較的一様なデータベースやオペレーティングシステムなど、一部の環境では満足のいくものですが、ワークフローアプリケーションなどのほかの環境では、これらの特性は、望ましい制御を提供するには不十分な場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In [4], a number of separation of duty properties are discussed, some of which are memoryfull, contingent upon the past actions taken by a user. While [4] gives a clear overview of both the variety and richness of this topic, it also points out situations where history-based constraints prove useful not only for conflict of interest avoidance, but also for control of workflow. History-based constraints include maintaining the strict sequence of actions taken on an object or collection of objects; restricting users to m of n actions on an object or collection of objects, regardless of the sequence in which roles are activated; and requiring m multiple users acting in m distinct roles to collaborate on a set of actions on an object or collection of objects. For example, the second constraint above prevents a user assigned two roles involved in a memoryfull DSD relationship, from acting on an object in one role and then the other, sequentially, or while simultaneously active in both roles. A normal DSD relationship only prevents the latter from occurring.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] では、多数の職務分離の特性が論じられており、その一部は、利用者が過去に取った行動に依存する、記憶を持つものです。[4] は、この話題の多様さと豊かさの両方を明確に概観するとともに、履歴に基づく制約が、利益相反の回避だけでなく、ワークフローの制御にも有用であることがわかる状況も指摘しています。履歴に基づく制約には、オブジェクトまたはオブジェクトの集まりに対して取られた行動の厳密な順序を維持すること、ロールが有効化される順序にかかわらず、オブジェクトまたはオブジェクトの集まりに対する n 個の行動のうち m 個に利用者を限定すること、オブジェクトまたはオブジェクトの集まりに対する一連の行動について、m 個の異なるロールで動作する m 人の複数の利用者の協力を求めること、があります。たとえば、上記の 2 番目の制約は、記憶を持つ DSD 関係にある 2 つのロールを割り当てられた利用者が、一方のロールで、次に他方のロールで、逐次的に、または両方のロールで同時に有効になっている間に、オブジェクトに対して行動することを防ぎます。通常の DSD 関係が防ぐのは、後者だけです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Attributes: The only class of attribute that has been defined for roles in the revised model is membership limits for both static and dynamic cardinality. Other similar characteristics could easily be added to the model, extending its applicability to other environments. These characteristics include constraints on the start and stop activation time for the role, whether a second authentication is needed to assume the role (e.g., to require a stronger form of authentication), and whether user acknowledgments are needed for actions being taken by a role (e.g., to counter a Trojan horse). The type of role, either user or administrator, is another possible attribute already mentioned in this section.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールの属性: 改訂モデルでロールに対して定義されている属性の類型は、静的基数と動的基数の両方のメンバーシップの上限だけです。同様のほかの特性もモデルに容易に追加でき、その適用範囲をほかの環境に広げられます。これらの特性には、ロールの有効化の開始時刻と終了時刻に対する制約、ロールを引き受けるのに 2 回目の認証が必要かどうか（たとえば、より強力な形式の認証を求めるため）、ロールが行う行動について利用者の確認応答が必要かどうか（たとえば、トロイの木馬に対抗するため）が含まれます。ロールの種類、すなわち利用者か管理者かも、この節ですでに述べた、起こりうる属性の一つです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8. Core RBAC Features</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8. コア RBAC の機能</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Because there is a wealth of properties that one can define in an RBAC model, one question that commonly arises is whether a minimal subset of properties can be considered as the essential or core features of an RBAC implementation. While any determination of core features is subjective, it is, nevertheless, worthwhile to attempt such a categorization in the hopes of reaching an eventual consensus among developers, vendors, and consumers of RBAC systems. A general consensus is important to avoid the situation where products advertise RBAC capabilities, yet only support an alternative mechanism such as user/group access control lists that can be configured to simulate a particular configuration of roles.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>RBAC モデルで定義できる特性は豊富にあるため、よく生じる疑問の一つは、最小限の特性の部分集合を、RBAC の実装の不可欠な機能またはコアの機能と見なせるかどうかです。コアの機能の決定はどれも主観的ですが、それでも、RBAC システムの開発者、ベンダー、消費者の間で最終的な合意に至ることを期待して、そのような分類を試みることには価値があります。製品が RBAC の能力を宣伝しながら、実際には、特定のロールの構成を模倣するよう設定できる利用者・グループのアクセス制御リストなどの代替の仕組みしかサポートしないという状況を避けるため、全般的な合意は重要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One example of where a core feature list could be applied is the NIST RBAC protection profile [5]. The profile identifies minimal security requirements for controlling access to programs, transactions, and information, according to a user’s assigned organizational role. The intent of the profile is to form the basis for evaluations of products claiming to meet the functionality and assurance requirements specified.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コアの機能の一覧を適用できる例の一つが、NIST の RBAC プロテクションプロファイル [5] です。このプロファイルは、利用者に割り当てられた組織上のロールに従って、プログラム、トランザクション、情報へのアクセスを制御するための最小限のセキュリティ要件を特定しています。プロファイルの意図は、規定された機能要件と保証要件を満たすと主張する製品の評価の基礎を形成することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1 summarizes the basic properties of the RBAC model specified in this paper. The entries within the table indicate whether the property identified from the row and column headings is considered a core feature (i.e., ✓) or not (i.e., ✗). While nearly all properties have static and dynamic counterparts, a couple of them are solely dynamic in nature and blocked out accordingly within the table.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1 は、本書で規定した RBAC モデルの基本的な特性をまとめたものです。表中の項目は、行と列の見出しから特定される特性がコアの機能と見なされるか（すなわち ✓）、見なされないか（すなわち ✗）を示します。ほぼすべての特性には静的なものと動的なものがありますが、いくつかは本質的に動的なものだけであり、表中では、それに応じて塗りつぶしてあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1: Summary of Core RBAC Features</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1: コア RBAC の機能のまとめ</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Property</th><th>Static</th><th>Dynamic</th></tr></thead><tbody><tr><td>Role Hierarchy</td><td colspan="2">✓</td></tr><tr><td>Role Authorization</td><td rowspan="2"></td><td>✓</td></tr><tr><td>Operation Authorization</td><td>✓</td></tr><tr><td>Cardinality</td><td>✓</td><td>✓</td></tr><tr><td>Cardinality Inheritance</td><td>✓</td><td>✓</td></tr><tr><td>Separation of Duty</td><td>✓</td><td>✓</td></tr><tr><td>Separation of Duty Safety</td><td>✗</td><td>✗</td></tr><tr><td>Separation of Duty Hierarchical Consistency</td><td>✓</td><td>✓</td></tr><tr><td>Separation of Duty Inheritance</td><td>✓</td><td>✓</td></tr><tr><td>Mutual Exclusion</td><td>✗</td><td>✗</td></tr><tr><td>Mutual Exclusion Inheritance</td><td>✗</td><td>✗</td></tr><tr><td>Operational Separation of Duty</td><td>✗</td><td>✗</td></tr><tr><td>Operational Separation of Duty Hierarchical Consistency</td><td>✗</td><td>✗</td></tr><tr><td>Operational Separation of Duty Inheritance</td><td>✗</td><td>✗</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>特性</th><th>静的</th><th>動的</th></tr></thead><tbody><tr><td>ロール階層</td><td colspan="2">✓</td></tr><tr><td>ロールの認可</td><td rowspan="2"></td><td>✓</td></tr><tr><td>操作の認可</td><td>✓</td></tr><tr><td>基数</td><td>✓</td><td>✓</td></tr><tr><td>基数の継承</td><td>✓</td><td>✓</td></tr><tr><td>職務分離</td><td>✓</td><td>✓</td></tr><tr><td>職務分離の安全性</td><td>✗</td><td>✗</td></tr><tr><td>職務分離の階層的一貫性</td><td>✓</td><td>✓</td></tr><tr><td>職務分離の継承</td><td>✓</td><td>✓</td></tr><tr><td>相互排他</td><td>✗</td><td>✗</td></tr><tr><td>相互排他の継承</td><td>✗</td><td>✗</td></tr><tr><td>操作の職務分離</td><td>✗</td><td>✗</td></tr><tr><td>操作の職務分離の階層的一貫性</td><td>✗</td><td>✗</td></tr><tr><td>操作の職務分離の継承</td><td>✗</td><td>✗</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One of the main motivations for RBAC is the ease and flexibility it provides for administering system privileges for large numbers of users. Roles can easily be established and modified independently of the user assignments. Role hierarchies further simplify the definition and maintenance of roles, by allowing many subtle differences in capabilities to be captured and represented within a system through the containment relation. The ability to maintain distinctions among roles easily, supports the principle of least privilege, since users can be assigned the exact set of permissions necessary to perform their assigned tasks under the exact set of constraints. Although many systems claiming to be RBAC implementations do not currently support role hierarchies, this property is seen as fundamental for sound administration practices and, therefore, included in the core features.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>RBAC の主な動機の一つは、多数の利用者に対するシステム特権の管理が容易で柔軟になることです。ロールは、利用者の割り当てとは独立に、容易に確立し修正できます。ロール階層は、包含関係を通じて、能力の多くの微妙な違いをシステム内で捉えて表現できるようにすることで、ロールの定義と維持をさらに単純にします。ロール間の違いを容易に維持できることは、最小権限の原則を支えます。利用者に、割り当てられたタスクを遂行するのに必要な許可の集合を、正確な制約の集合のもとで、ちょうど割り当てられるからです。RBAC の実装を標榜する多くのシステムは、現在ロール階層をサポートしていませんが、この特性は、健全な管理慣行にとって基本的なものと見られており、したがってコアの機能に含まれています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Role Authorization and Operation Authorization are essential to properly activate a role and, once activated, performing actions (i.e., operations on objects) within the system. Without any doubt, they are mandatory core features. Role Authorization is defined independently of Role Hierarchy, while Operation Authorization is defined explicitly to account for containment relationships within the role hierarchy in terms of the effective-roles function.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ロールの認可と操作の認可は、ロールを適切に有効化し、有効化された後にシステム内で行動（すなわちオブジェクトに対する操作）を実行するために不可欠です。疑いなく、これらは必須のコア機能です。ロールの認可はロール階層とは独立に定義されますが、操作の認可は、effective-roles 関数の観点からロール階層内の包含関係を考慮するよう明示的に定義されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The remaining items from the set of basic properties are Cardinality, Separation of Duty, Mutual Exclusion, Operational Separation of Duty, and Separation of Duty Safety. Note that with the inclusion of Role Hierarchy in the core set, any Separation of Duty or Operational Separation of Duty property selected causes all associated properties involving role hierarchies (i.e., Hierarchical Consistency and Inheritance properties) to be selected as well.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基本的な特性の集合のうち残る項目は、基数、職務分離、相互排他、操作の職務分離、職務分離の安全性です。コアの集合にロール階層を含めたことで、選択された職務分離または操作の職務分離の特性はいずれも、ロール階層に関わる関連特性（すなわち階層的一貫性と継承の特性）のすべてが選択される原因となることに注意してください。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cardinality is perhaps the most difficult property to categorize. The dynamic form is more flexible than the static form, yet more difficult to implement. Its use ranges from controlling the number of user employing a software package for software licensing restrictions, to limiting a role to a single member for managements positions where either the manager or a subordinate acting for the manager may be active, or a number of managers rotate into the role (e.g., during shifts). The static form is simple to implement, but has limited use (e.g., establishing a private role for a single user). As mentioned earlier, the Cardinality property is only one of several constraints associated with role attributes that could be specified. Since it is the only representative from this important class of properties, both the static and dynamic forms are included in the core set. With their inclusion, come the associated Cardinality Inheritance properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基数は、おそらく最も分類が難しい特性です。動的な形式は静的な形式より柔軟ですが、実装はより難しいです。その用途は、ソフトウェアのライセンス制限のためにソフトウェアパッケージを使う利用者の数を制御することから、管理職の職位においてロールのメンバーを1人に限定することまで幅広くあります。後者では、管理者本人または管理者の代理を務める部下のいずれかが有効になる場合や、複数の管理者がロールを交替で務める場合（たとえば交替勤務の間）があります。静的な形式は実装が簡単ですが、用途は限られます（たとえば、1人の利用者のための私的なロールを確立する場合）。先に述べたように、基数の特性は、指定できるロール属性に関連するいくつかの制約のうちの1つにすぎません。この重要な特性群を代表する唯一の特性であるため、静的な形式と動的な形式の両方がコアの集合に含まれています。これらを含めることで、関連する基数の継承特性も含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Separation of Duty is a long-standing security principal and one of the earliest motivations for RBAC [9]. Both Static and Dynamic forms of Separation of Duty properties are well understood and have a broad base of consistent specification [1, 2, 4, 9]; therefore, they are included in the core RBAC properties. Operational Separation of Duty properties, on the other hand, are omitted from the core properties, since they are relatively newer and lack consistency in definition among various models. As mentioned above, with the inclusion of Separation of Duty also come the associated Hierarchical Consistency and Inheritance properties.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>職務分離は、古くからあるセキュリティ原則であり、RBACが生まれた最初期の動機の一つです [9]。職務分離特性の静的形式と動的形式はどちらもよく理解されており、幅広い一貫した仕様があります [1, 2, 4, 9]。したがって、これらはコアRBAC特性に含まれています。一方、操作の職務分離特性は比較的新しく、さまざまなモデル間で定義に一貫性がないため、コア特性から省かれています。上述のとおり、職務分離を含めることで、関連する階層的一貫性と継承の特性も含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Separation of Duty Safety is a new property, not specified in any of the references. While an important feature in some environments, its effects are more subtle and can be mimicked by disciplined administration practices. For this reason, it is omitted from the core set of properties. For similar reasons, all forms of Mutual Exclusion and their associated Inheritance properties are also omitted from the core set.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>職務分離の安全性は新しい特性で、どの参考文献にも規定されていません。一部の環境では重要な機能ですが、その効果はより微妙であり、規律ある管理慣行によって模倣できます。このため、コアの特性の集合からは省かれています。同様の理由から、あらゆる形式の相互排他と、関連する継承の特性もコアの集合から省かれています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>9. Summary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+9. まとめ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report has carefully reexamined the original RBAC model and improved it in a number of areas. The first of these is perfecting the specification by eliminating redundant mappings between model components and correcting errors in the statement of basic properties, such as Dynamic Separation of Duty. The second area is the array of additional properties generated by applying the static and dynamic distinctions to the properties in the original model to state new counterparts. Dynamic Cardinality is an example of an extremely useful property generated in this fashion. A third, and perhaps the most significant area of improvement, is the set of additional properties developed to extend and complete the model. These properties are the Safety properties for Static and Dynamic Separation of Duty, Mutual Exclusion properties, and the Inheritance and Hierarchical Consistency properties for those basic properties affected by role hierarchies.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、元のRBACモデルを慎重に再検討し、いくつかの分野で改善しました。最初の改善は、モデルの構成要素間の冗長な写像を除き、動的職務分離などの基本的な特性の記述にある誤りを訂正して、仕様を改善したことです。2つ目は、元のモデルの特性に静的と動的の区別を適用し、新たな対応特性を示すことで生まれた一連の追加特性です。動的基数は、この方法で生まれた極めて有用な特性の一例です。3つ目の、おそらく最も重要な改善は、モデルを拡張し完成させるために開発された追加特性の集合です。これらの特性は、静的および動的職務分離の安全性特性、相互排他特性、およびロール階層の影響を受ける基本特性に対する継承特性と階層的一貫性特性です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The report also describes the rationale behind a number of potential areas for enhancement, as a means for understanding the limitations of the revised model. The enhancements identified are the addition of subject/object domains, role attributes, and action histories. The report concludes with the identification of a core set of properties considered the minimum set necessary for a system to be called an RBAC system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、改訂モデルの限界を理解する手段として、拡張の可能性のある多数の分野の根拠も説明しています。特定された拡張は、サブジェクトとオブジェクトの領域、ロールの属性、行動の履歴の追加です。報告書は、システムが RBAC システムと呼ばれるために必要な最小限の集合と考えられる、コアの特性の集合を特定して結びとしています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>10. References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+10. 参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Role-Based Access Control (RBAC): Features and Motivations, David Ferraiolo et al., Computer Security Applications Conference, December 1995.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Role-Based Access Control (RBAC): Features and Motivations, David Ferraiolo et al., Computer Security Applications Conference, December 1995.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Role-Based Access Control Models, Ravi S. Sandhu et al., IEEE Computer, February 1996.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Role-Based Access Control Models, Ravi S. Sandhu et al., IEEE Computer, February 1996.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] The RBAC Security Policy Model, Virgil Gligor et al., unpublished paper, http://cspa09.ncsl.nist.gov/disk2/rbac/docs/model.ps, December 1995.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] The RBAC Security Policy Model, Virgil Gligor et al., unpublished paper, http://cspa09.ncsl.nist.gov/disk2/rbac/docs/model.ps, December 1995.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Separation of Duty in Role-Based Environments, Richard T. Simon &amp; Mary Ellen Zurko, Proceedings of the Second New Security Foundations Workshop, June 1997.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Separation of Duty in Role-Based Environments, Richard T. Simon &amp; Mary Ellen Zurko, Proceedings of the Second New Security Foundations Workshop, June 1997.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Role-Based Access Control Protection Profile (PP), National Institute for Standards and Technology, http://csrc.nist.gov/nistpubs/cc/pp/pplist.htm/#RBAC, December 1997.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Role-Based Access Control Protection Profile (PP), National Institute for Standards and Technology, http://csrc.nist.gov/nistpubs/cc/pp/pplist.htm/#RBAC, December 1997.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] The Chinese Wall Security Policy, David Brewer &amp; Michael J. Nash, Proceedings IEEE Symposium on Security and Privacy, May 1989, pp.206-214.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] The Chinese Wall Security Policy, David Brewer &amp; Michael J. Nash, Proceedings IEEE Symposium on Security and Privacy, May 1989, pp.206-214.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] Some Conundrums Concerning Separation of Duty, Michael J. Nash &amp; Keith R. Poland, Proceedings IEEE Symposium on Security and Privacy, May 1990, pp.201-207.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] Some Conundrums Concerning Separation of Duty, Michael J. Nash &amp; Keith R. Poland, Proceedings IEEE Symposium on Security and Privacy, May 1990, pp.201-207.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] Access Rights Administration in Role-based Security Systems, M. Nyanchama &amp; S. Osborn, in Database Security VIII: Status and Prospects, Elsevier Science B.V. North-Holland, 1994</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] Access Rights Administration in Role-based Security Systems, M. Nyanchama &amp; S. Osborn, in Database Security VIII: Status and Prospects, Elsevier Science B.V. North-Holland, 1994</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] Security Considerations for an Automated Command and Control Information System: Baseline Definition, Frank Mayer, Trusted Information Systems, Report 201, NATO Unclassified, May 1989.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] Security Considerations for an Automated Command and Control Information System: Baseline Definition, Frank Mayer, Trusted Information Systems, Report 201, NATO Unclassified, May 1989.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6192.pdf">National Institute of Standards and Technology, IR 6192</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 6192";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

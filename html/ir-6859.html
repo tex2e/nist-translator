@@ -1,0 +1,1366 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 6859 は、産業用途で使われるネットワーク接続されたデジタル制御システムの情報技術（IT）セキュリティの向上に向けた NIST の取り組みを述べた論文です。この取り組みは、国家情報保証プログラム（NIAP）の下で組織された産業界のグループであるプロセス制御セキュリティ要件フォーラム（PCSRF）を通じて進められています。本稿は、プロセス制御産業で使われるコンピュータ制御システムとその類似点、ネットワークアーキテクチャを取り上げ、産業用プロセス制御システムのための汎用的なネットワークシステムアーキテクチャの組を示しています。あわせて、これらのシステムに関連する脆弱性と IT 脅威、コモンクライテリア（ISO/IEC 15408）の想定される用途、PCSRF の現状と今後の取り組みを論じています。">
+  <title>産業用制御システムの IT セキュリティ | NIST IR 6859 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="IT Security for Industrial Control Systems" data-search="産業用制御システムの it セキュリティ it security for industrial control systems">産業用制御システムの IT セキュリティ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0014" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="Introduction" data-search="はじめに introduction">はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0005" title="Process Control Computer Systems" data-search="プロセス制御コンピュータシステム process control computer systems">プロセス制御コンピュータシステム</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0002" title="Process Control Industry Overview" data-search="プロセス制御産業の概観 process control industry overview">プロセス制御産業の概観</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0012" title="Process Control System Vulnerabilities and IT Threats" data-search="プロセス制御システムの脆弱性と it 脅威 process control system vulnerabilities and it threats">プロセス制御システムの脆弱性と IT 脅威</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0009" title="Common Criteria Based Approach" data-search="コモンクライテリアに基づくアプローチ common criteria based approach">コモンクライテリアに基づくアプローチ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0004" title="PCSRF Activities" data-search="pcsrf の活動 pcsrf activities">PCSRF の活動</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0002" title="Summary" data-search="まとめ summary">まとめ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="Appendix I" data-search="付録 i appendix i">付録 I</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0002" title="Generic Composite Industrial Control System Network Architecture - Glossary" data-search="汎用的な複合産業用制御システムのネットワークアーキテクチャ - 用語集 generic composite industrial control system network architecture - glossary">汎用的な複合産業用制御システムのネットワークアーキテクチャ - 用語集</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0001" title="Appendix II" data-search="付録 ii appendix ii">付録 II</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="General Threats from the Common Criteria Toolkit" data-search="common criteria toolkit の一般的な脅威 general threats from the common criteria toolkit">Common Criteria Toolkit の一般的な脅威</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="References" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 6859 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">IT Security for Industrial Control Systems</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>産業用制御システムの IT セキュリティ</strong></span><br><span class="doc-panel-item">公開日 : 2002-02-28</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/6859/final">https://csrc.nist.gov/pubs/ir/6859/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 146 / 146 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 6859 は、産業用途で使われるネットワーク接続されたデジタル制御システムの情報技術（IT）セキュリティの向上に向けた NIST の取り組みを述べた論文です。この取り組みは、国家情報保証プログラム（NIAP）の下で組織された産業界のグループであるプロセス制御セキュリティ要件フォーラム（PCSRF）を通じて進められています。本稿は、プロセス制御産業で使われるコンピュータ制御システムとその類似点、ネットワークアーキテクチャを取り上げ、産業用プロセス制御システムのための汎用的なネットワークシステムアーキテクチャの組を示しています。あわせて、これらのシステムに関連する脆弱性と IT 脅威、コモンクライテリア（ISO/IEC 15408）の想定される用途、PCSRF の現状と今後の取り組みを論じています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 6859</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 6859</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IT Security for Industrial Control Systems</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業用制御システムの IT セキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>J. Falco<br>K. Stouffer<br>A. Wavering<br>F. Proctor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>J. Falco<br>K. Stouffer<br>A. Wavering<br>F. Proctor</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>Intelligent Systems Division<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術局<br>インテリジェントシステム部門<br>国立標準技術研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Technology Administration<br>U.S. Department of Commerce</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>技術局<br>米国商務省</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0015-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 6859</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 6859</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IT Security for Industrial Control Systems</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業用制御システムの IT セキュリティ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>J. Falco<br>K. Stouffer<br>A. Wavering<br>F. Proctor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>J. Falco<br>K. Stouffer<br>A. Wavering<br>F. Proctor</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>Intelligent Systems Division<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術局<br>インテリジェントシステム部門<br>国立標準技術研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>February 2002</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2002 年 2 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Donald L. Evans, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Donald L. Evans 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TECHNOLOGY ADMINISTRATION<br>Phillip J. Bond, Under Secretary for Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>技術局<br>Phillip J. Bond 技術担当次官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>Arden L. Bement, Jr., Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>Arden L. Bement, Jr. 所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>IT Security for Industrial Control Systems</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+産業用制御システムの IT セキュリティ</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Joe Falco, Keith Stouffer, Albert Wavering, Frederick Proctor<br>Intelligent Systems Division<br>National Institute of Standards and Technology (NIST)<br>Gaithersburg, MD</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Joe Falco, Keith Stouffer, Albert Wavering, Frederick Proctor<br>インテリジェントシステム部門<br>国立標準技術研究所（NIST）<br>Gaithersburg, MD</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Email: (joseph.falco@nist.gov, keith.stouffer@nist.gov, albert.wavering@nist.gov, frederick.proctor@nist.gov)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Email: (joseph.falco@nist.gov, keith.stouffer@nist.gov, albert.wavering@nist.gov, frederick.proctor@nist.gov)</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In coordination with the Process Control Security Requirements Forum (PCSRF)<br>(http://www.isd.mel.nist.gov/projects/processcontrol/)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御セキュリティ要件フォーラム（PCSRF）と連携<br>(http://www.isd.mel.nist.gov/projects/processcontrol/)</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST) is working to improve the information technology (IT) security of networked digital control systems used in industrial applications. This effort is being carried out through the Process Control Security Requirements Forum (PCSRF), an industry group organized under the National Information Assurance Program (NIAP). The PCSRF is working with security professionals to assess the vulnerabilities and establish appropriate strategies for the development of policies to reduce IT security risk within the U.S. process controls industry. The outcome of this work will be the development and dissemination of best practices and ultimately Common Criteria, ISO/IEC 15408 based security specifications that will be used in the procurement, development, and retrofit of industrial control systems. In support of this work this paper addresses the computer control systems used within process control industries, their similarities, and network architectures. A generic set of networking system architectures for industrial process control systems is presented. The vulnerabilities associated with these systems and the IT threats these systems are exposed to are also presented along with a discussion of the Common Criteria and its intended use for these efforts. The current status as well as future efforts of the PCSRF are also discussed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）は、産業用途で使われるネットワーク接続されたデジタル制御システムの情報技術（IT）セキュリティの向上に取り組んでいます。この取り組みは、国家情報保証プログラム（NIAP）の下で組織された産業界のグループである、プロセス制御セキュリティ要件フォーラム（PCSRF）を通じて進められています。PCSRF は、セキュリティの専門家とともに、脆弱性を評価し、米国のプロセス制御産業における IT セキュリティリスクを低減するための方針を策定するための適切な戦略を確立しています。この取り組みの成果は、ベストプラクティスの策定と普及、そして最終的には、産業用制御システムの調達、開発、後付け改修で使われる、コモンクライテリア（ISO/IEC 15408）に基づくセキュリティ仕様となります。この取り組みを支援するため、本稿では、プロセス制御産業で使われるコンピュータ制御システム、それらの類似点、およびネットワークアーキテクチャを取り上げます。産業用プロセス制御システムのための汎用的なネットワークシステムアーキテクチャの組を示します。これらのシステムに関連する脆弱性と、これらのシステムが晒されている IT 脅威も、これらの取り組みにおけるコモンクライテリアの想定される用途の議論とともに示します。PCSRF の現状と今後の取り組みについても論じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology (NIST), Intelligent Systems Division of the Manufacturing Engineering Laboratory is working with the NIST Information Technology Laboratory and the NIST Electrical and Electronics Engineering Laboratory to improve the IT security of networked digital control systems used in industrial applications. This effort is being carried out through the Process Control Security Requirements Forum (PCSRF), an industry group organized under the National Information Assurance Program (NIAP). NIAP is a joint effort between the NIST and the National Security Agency (NSA). As part of the Critical Infrastructure Protection Program, NIST and NSA are working to provide technical support and guidance to industry to improve the Nation&#x27;s security posture. The outcome of this work will be the development and dissemination of best practices and ultimately security specifications that will be used in the procurement, development, and retrofit of industrial control systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所（NIST）の製造工学研究所のインテリジェントシステム部門は、NIST の情報技術研究所および NIST の電気・電子工学研究所と協力して、産業用途で使われるネットワーク接続されたデジタル制御システムの IT セキュリティの向上に取り組んでいます。この取り組みは、国家情報保証プログラム（NIAP）の下で組織された産業界のグループである、プロセス制御セキュリティ要件フォーラム（PCSRF）を通じて進められています。NIAP は、NIST と国家安全保障局（NSA）の共同の取り組みです。重要インフラ防護プログラムの一環として、NIST と NSA は、国のセキュリティ態勢を向上させるため、産業界に技術的な支援と指針を提供する取り組みを進めています。この取り組みの成果は、ベストプラクティスの策定と普及、そして最終的には、産業用制御システムの調達、開発、後付け改修で使われるセキュリティ仕様となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Process Control Security Requirements Forum (PCSRF) is a working group comprising representative organizations from the various sectors that make up the U.S. Process Control Industry and the vendors that design, produce, and/or integrate components and systems for the industry. The PCSRF is working with security professionals to assess the vulnerabilities and establish appropriate strategies for the development of policies and countermeasures that the U.S. process controls industry would employ through a combination IT and non-IT mechanisms to reduce residual risk to an acceptable level. The Common Criteria for Information Technology Security Evaluation, also known as ISO/IEC 15408, is being used to document the results of this effort in the form of Common Criteria Protection Profile security specifications. Primary focus area of the group to improve the IT security of the computer control systems used in process industries, including electric utilities, petroleum (oil &amp; gas), water, waste, chemicals, pharmaceuticals, pulp &amp; paper, and metals &amp; mining with an emphasis on industries considered to be part of the Nation&#x27;s Critical Infrastructure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御セキュリティ要件フォーラム（PCSRF）は、米国のプロセス制御産業を構成するさまざまな分野の代表組織と、この産業向けの構成要素やシステムを設計、製造、または統合するベンダーで構成される作業部会です。PCSRF は、セキュリティの専門家と協力して脆弱性を評価し、米国のプロセス制御産業が IT と非 IT の仕組みを組み合わせて残存リスクを許容可能な水準まで低減するために用いる方針と対策を策定する適切な戦略を確立しています。情報技術セキュリティ評価のためのコモンクライテリア（ISO/IEC 15408 としても知られています）は、この取り組みの成果をコモンクライテリア・プロテクションプロファイルのセキュリティ仕様として文書化するために使われています。このグループの主な重点分野は、電力事業者、石油・ガス、水、廃棄物、化学、製薬、パルプ・紙、金属・鉱業を含むプロセス産業で使われるコンピュータ制御システムの IT セキュリティを向上させることであり、国の重要インフラの一部と見なされる産業に重点を置いています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper discusses the computer control systems used within process control industries, their similarities, and network architectures. A generic set of network system architectures for industrial process control systems is presented. The IT threats these systems are exposed to are also presented along with a discussion of the Common Criteria and its intended use for these efforts. The current status as well as future efforts of the PCSRF are also discussed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿では、プロセス制御産業で使われるコンピュータ制御システム、それらの類似点、およびネットワークアーキテクチャを論じます。産業用プロセス制御システムのための汎用的なネットワークシステムアーキテクチャの組を示します。これらのシステムが晒されている IT 脅威も、これらの取り組みにおけるコモンクライテリアの想定される用途の議論とともに示します。PCSRF の現状と今後の取り組みについても論じます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Process Control Computer Systems</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+プロセス制御コンピュータシステム</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Real-time computer control systems used in process control applications have many characteristics that are different than traditional information processing systems used in business applications. Foremost among these is design for efficiency and time-critical response. Security is generally not a strong design driver and therefore tends to be bypassed in favor of performance. Computing resources (including CPU time and memory) available to perform security functions tend to be very limited. Furthermore, the goals of safety and security sometimes conflict in the design and operation of control systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロセス制御アプリケーションで使われるリアルタイムのコンピュータ制御システムには、業務アプリケーションで使われる従来の情報処理システムとは異なる多くの特徴があります。最も顕著なのは、効率性と時間制約の厳しい応答を重視した設計です。セキュリティは一般に設計上の強い推進要因ではないため、性能を優先して後回しにされがちです。セキュリティ機能の実行に利用できる計算資源（CPU 時間やメモリを含む）は、非常に限られている傾向があります。さらに、制御システムの設計と運用では、安全性（safety）とセキュリティ（security）の目標が衝突することもあります。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0006-b0007" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">Commercial equipment and materials are identified, in order to adequately specify certain systems. In no case does such identification imply recommendation of endorsement by the National Institute of Standards and Technology, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+特定のシステムを適切に指定するため、商用の機器および材料を特定しています。そのような特定は、いかなる場合も国立標準技術研究所による推奨や承認を意味せず、特定された材料や機器がその目的に利用できる最良のものであることを必ずしも意味しません。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Digital industrial control systems can be either process-based or discrete-based. Process-based controls [1] are used to control a continuous process such as fuel or steam flow in a power plant or petroleum in a refinery. Discrete-based controls (otherwise known as batch controls) control discrete parts manufacturing or “batches” of material in a chemical plant. Both utilize the same types of control systems, sensors, and networks. While efforts of the PCSRF are currently geared toward continuous processing systems, results will likely be applicable to discrete based systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>デジタル産業用制御システムは、プロセスベースにも離散ベースにもなり得ます。プロセスベースの制御 [1] は、発電所の燃料や蒸気の流れ、製油所の石油などの連続プロセスを制御するために使われます。離散ベースの制御（バッチ制御とも呼ばれます）は、個別部品の製造や、化学プラントの材料の「バッチ」を制御します。どちらも同じ種類の制御システム、センサー、ネットワークを利用します。PCSRF の取り組みは現在、連続処理システムに向けられていますが、その結果は離散ベースのシステムにも適用できる可能性が高いです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The key control components of an industrial control system, including the control loop, the human - machine interface (HMI), and remote diagnostics and maintenance utilities, are shown in Figure 1. A control loop consists of sensors for measurement, control hardware, process actuators, and communication of measurement variables. Measurement variables are transmitted to the controller from the process sensors. The controller interprets the signals and generates corresponding control signals that it transmits to the process actuators. Process changes result in new sensor signals, identifying the state of the process, to again be transmitted to the controller. The human - machine interface allows a control engineer or operator to configure set points, control algorithms and parameters in the controller. The HMI also provides displays of process status information, including alarms and other means of notifying the operator of malfunctions. Diagnostic and maintenance tools, often made available via modem and Internet enabled interfaces, allow control engineers, operators and vendors to monitor and change controller, actuator, and sensor properties from remote locations. A typical industrial system contains a proliferation of control loops, HMIs and Remote Diagnostics and Maintenance tools built on an array of network protocols. Supervisory level loops and lower level loops operate continuously over the duration of a process at cycle times ranging on the order of minutes to milliseconds.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>制御ループ、ヒューマンマシンインタフェース（HMI）、遠隔診断および保守ユーティリティを含む、産業用制御システムの主要な制御構成要素を図 1 に示します。制御ループは、測定用センサー、制御ハードウェア、プロセスアクチュエーター、および測定変数の通信で構成されます。測定変数はプロセスセンサーからコントローラーに送信されます。コントローラーは信号を解釈し、対応する制御信号を生成してプロセスアクチュエーターに送信します。プロセスが変化すると、そのプロセスの状態を示す新しいセンサー信号が、再びコントローラーに送信されます。ヒューマンマシンインタフェースにより、制御エンジニアやオペレーターはコントローラー内の設定値、制御アルゴリズム、パラメーターを設定できます。HMI は、警報や故障をオペレーターに知らせるその他の手段を含む、プロセス状態情報を表示します。診断・保守ツールは、モデムやインターネット対応インタフェースを通じて提供されることが多く、制御エンジニア、オペレーター、ベンダーが遠隔地からコントローラー、アクチュエーター、センサーの特性を監視・変更できます。典型的な産業システムには、さまざまなネットワークプロトコル上に構築された多数の制御ループ、HMI、遠隔診断・保守ツールが含まれています。監視レベルのループと下位レベルのループは、プロセスの継続期間中、サイクル時間が分単位からミリ秒単位に及ぶ範囲で連続して動作します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0007-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6859/p0007-drawing-01.png" alt="Diagram of the key control components of an industrial control system. The scan has lost most lines and box outlines; only the labels, a few arrowheads, a dashed line and one shaded box remain visible. Labels: &quot;Human - Machine Interface (HMI)&quot; at the upper left and &quot;Remote Diagnostics and Maintenance&quot; at the upper right; &quot;Set points, Control algorithms, Parameter constraints, Process Data&quot; between the HMI and the &quot;Controller&quot; in the center; &quot;Controlled variables&quot; on the left leading down to &quot;Actuators&quot;; &quot;Measured variables&quot; on the right, above a dashed line, with &quot;Sensors&quot; below; at the bottom, &quot;Process inputs&quot; on the left, a shaded box &quot;Controlled Process&quot; in the center and &quot;Process outputs&quot; on the right; &quot;Disturbances&quot; below the controlled process."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業制御システムの主要な制御要素の図です。スキャンで線や箱の輪郭の大部分が失われ、ラベル、いくつかの矢じり、破線 1 本、網掛けの箱 1 つだけが見えます。左上に「Human - Machine Interface (HMI)」（ヒューマンマシンインターフェース）、右上に「Remote Diagnostics and Maintenance」（遠隔診断・保守）があります。HMI と中央の「Controller」（コントローラー）の間に「Set points, Control algorithms, Parameter constraints, Process Data」（設定値、制御アルゴリズム、パラメーターの制約、プロセスデータ）とあります。左の「Controlled variables」（操作変数）は下の「Actuators」（アクチュエーター）へ、右の「Measured variables」（測定変数）は破線の上にあり、その下に「Sensors」（センサー）があります。下段は、左に「Process inputs」（プロセスへの入力）、中央に網掛けの箱「Controlled Process」（制御対象のプロセス）、右に「Process outputs」（プロセスからの出力）があり、制御対象のプロセスの下に「Disturbances」（外乱）があります。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1 Key Control Components</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1 主要な制御構成要素</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In a large enterprise, there may be several geographically distributed industrial plants. Enterprise business operations can access plant information over the Internet or in some cases over a wide area network (WAN). The local area network (LAN) of a processing plant services all of the operations within the plant while the actual control system of the plant sits on a somewhat isolated peer-to-peer network. The systems at these levels can be categorized into two types of supervisory based control schemes, Distributed Control Systems (DCS) and Supervisory Control and Data Acquisition Systems (SCADA). DCS are used to control large, complex processes such as power plants, refineries, and chemical plants typically at a single site. SCADA are used to control more dispersed assets where centralized data acquisition is as important as control. Distribution operations including water systems, gas pipelines, and electrical lines use SCADA.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>大規模なエンタープライズには、地理的に分散した複数の産業プラントがある場合があります。エンタープライズの業務部門は、インターネット経由で、場合によっては広域ネットワーク（WAN）経由で、プラントの情報にアクセスできます。処理プラントのローカルエリアネットワーク（LAN）はプラント内のすべての業務にサービスを提供し、プラントの実際の制御システムは、やや隔離されたピアツーピアネットワーク上に置かれます。これらの階層のシステムは、2 種類の監視ベースの制御方式、すなわち分散制御システム（DCS）と、監視制御およびデータ収集システム（SCADA）に分類できます。DCS は、発電所、製油所、化学プラントなど、通常は 1 か所の拠点にある大規模で複雑なプロセスを制御するために使われます。SCADA は、集中的なデータ収集が制御と同じくらい重要な、より分散した資産を制御するために使われます。水道システム、ガスパイプライン、電力線などの配給業務は SCADA を使います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>PCSRF members have constructed diagrams of typical DCS and SCADA based control system network architectures derived from industrial plant visits, review of technical documents and workshop based discussions. Generic industrial control system network architectures are shown for both DCS and SCADA based control schemes in Figures 2 and 3 respectively. A glossary of terms describing the components found in the diagram can be found in the Appendix of this document. A comparison of these diagrams shows that at the higher level of the plant network architectures the plant operations are similar for plants containing either DCS or SCADA systems. At this level, everything resides on a local area network. Components include general purpose workstations, printers, plant database, application servers and domain controllers. Communication outside the plant is typically established via a firewall to the Internet or a wide area network (WAN). Modems are also available, usually to allow remote access to employees working from home or on the road. The DCS and local SCADA components of a plant system typically reside on a peer-to-peer network.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PCSRF のメンバーは、産業プラントの訪問、技術文書のレビュー、ワークショップでの議論から導いた、典型的な DCS および SCADA ベースの制御システムのネットワークアーキテクチャの図を作成しました。DCS と SCADA の両方の制御方式について、汎用的な産業用制御システムのネットワークアーキテクチャを、それぞれ図 2 と図 3 に示します。図にある構成要素を説明する用語集は、本書の付録にあります。これらの図を比較すると、プラントのネットワークアーキテクチャの上位階層では、DCS システムまたは SCADA システムのいずれを含むプラントでも、プラントの運用は同様であることがわかります。この階層では、すべてがローカルエリアネットワーク上にあります。構成要素には、汎用ワークステーション、プリンター、プラントデータベース、アプリケーションサーバー、ドメインコントローラーが含まれます。プラント外部との通信は通常、ファイアウォールを介してインターネットまたは広域ネットワーク（WAN）に接続することで確立されます。モデムも利用でき、通常は在宅勤務や出張中の従業員がリモートアクセスできるようにします。プラントシステムの DCS 構成要素とローカル SCADA 構成要素は、通常、ピアツーピアネットワーク上にあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A DCS is comprised of a supervisory layer of control and one to several distributed controllers contained within the same processing plant. The supervisory controller runs on the control server and communicates to its subordinates via a peer-to-peer network. The supervisor sends set points to and requests data from the distributed controllers. The distributed controllers control their process actuators based on requests from the supervisor and sensor feedback for process sensors. These controllers typically use a local field bus to communicate with actuators and sensors eliminating the need of point-to-point wiring between the controller and each device. There are several types of controllers used at the distributed control points of a DCS including machine controllers, programmable logic controllers, process controllers and single loop controllers depending on the application. Many of the distributed controllers on a DCS have the capability to be accessed directly via a modem allowing remote diagnostics and servicing by vendors as well as plant engineers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DCS は、監視制御層と、同じ処理プラント内にある 1 つまたは複数の分散コントローラーで構成されます。監視コントローラーは制御サーバー上で動作し、ピアツーピアネットワークを介して配下のコントローラーと通信します。監視コントローラーは、分散コントローラーに設定値を送り、そこからデータを要求します。分散コントローラーは、監視コントローラーからの要求とプロセスセンサーからのフィードバックに基づいて、プロセスアクチュエーターを制御します。これらのコントローラーは通常、ローカルのフィールドバスを使ってアクチュエーターやセンサーと通信するため、コントローラーと各デバイスとの間にポイントツーポイント配線は必要ありません。DCS の分散制御点で使われるコントローラーには、用途に応じて、機械コントローラー、プログラマブルロジックコントローラー、プロセスコントローラー、単一ループコントローラーなど、いくつかの種類があります。DCS 上の多くの分散コントローラーは、モデムを介して直接アクセスできるため、ベンダーやプラント技術者が遠隔診断や保守を行えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A SCADA typically consists of a Central Monitoring System (CMS), contained within the plant and one or more Remote Stations. The CMS houses the Control Server and the communications routers via a peer-to-peer network. The CMS collects and logs information gathered by the remote stations and generates necessary actions for events detected. A remote station consists of either a Remote Terminal Unit (RTU) or a Programmable Logic Controller (PLC) which controls actuators and monitors sensors. Remote stations, typically, have the added capability to be interfaced by field operators via hand held devices to perform diagnostic and repair operations. The communications network is the medium for transporting information between remote stations and the CMS. This is performed using telephone line, cable, or radio frequency. If the remote site is too isolated to be reached directly via a direct radio signal, a radio repeater is used to link the site.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SCADA は通常、プラント内にある中央監視システム（CMS）と、1 つ以上のリモートステーションで構成されます。CMS は、制御サーバーと、ピアツーピアネットワークを介して接続された通信ルーターを収容します。CMS は、リモートステーションが収集した情報を集めて記録し、検知されたイベントに対して必要な動作を生成します。リモートステーションは、アクチュエーターを制御しセンサーを監視するリモートターミナルユニット（RTU）またはプログラマブルロジックコントローラー（PLC）のいずれかで構成されます。通常、リモートステーションには、現場作業員が携帯機器を使って診断や修理を行うためのインタフェース機能もあります。通信ネットワークは、リモートステーションと CMS の間で情報を伝送する媒体です。この伝送には、電話回線、ケーブル、または無線周波数を使います。遠隔サイトが離れすぎていて直接の無線信号で到達できない場合は、無線中継器を使ってそのサイトを接続します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Process Control Industry Overview</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+プロセス制御産業の概観</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The computer control systems used in process industries, including electric utilities, oil &amp; gas, water, waste, chemicals, pharmaceuticals, pulp &amp; paper, and metals &amp; mining can be divided amongst the usage of either DCS or SCADA technology and implementation depends on the geographic distribution of the operation. Network architectures that encompass processing operations involving the transformation of raw materials into a usable product in a continuous fashion, follow the DCS scenario. On the other hand, the network architectures that encompass distribution operations of the usable products, typically over large distances, follow the SCADA scenario.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>電力事業者、石油・ガス、水、廃棄物、化学、製薬、パルプ・紙、金属・鉱業を含むプロセス産業で使われるコンピュータ制御システムは、DCS 技術または SCADA 技術の使用に基づいて分類でき、その実装は運用の地理的な分布に依存します。原材料を連続的に使用可能な製品へ変換する処理業務を含むネットワークアーキテクチャは、DCS のシナリオに従います。一方、使用可能な製品を通常は長距離にわたって配給する業務を含むネットワークアーキテクチャは、SCADA のシナリオに従います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The electrical power infrastructure is made up of power generation facilities as well as transmission and distribution grids that create and supply electricity to end-users. Power generation facilities using fossil fuel and hydroelectric turbine/generator systems to produce electricity use DCS. The electric power grid is a highly interconnected and dynamic system consisting of thousands of public and private utilities and rural cooperatives. A SCADA system manages electricity distribution by collecting data from and issuing commands to geographically remote field control stations from a centralized location.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>電力インフラは、発電設備と、最終利用者に電力を作り供給する送配電網で構成されます。化石燃料や水力のタービン／発電機システムで発電する発電設備は、DCS を使います。電力網は、数千の公営・民営の電力事業者と農村協同組合で構成される、高度に相互接続された動的なシステムです。SCADA システムは、集中した場所から、地理的に離れた現場の制御ステーションからデータを収集し、そこへコマンドを発行することで、電力の配給を管理します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Natural gas, crude, refined petroleum, and petroleum-derived fuels represent Oil and Gas substances. The Oil &amp; Gas infrastructure includes the production holding facilities, refining and processing facilities, and distribution mechanisms (including pipelines, ships, trucks, and rail systems) for such substances. Refining and processing facilities make use of DCS while holding facilities and distribution systems utilize SCADA technology.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>天然ガス、原油、精製石油、および石油由来の燃料が、石油・ガスの物質にあたります。石油・ガスのインフラには、これらの物質の生産・貯蔵施設、精製・処理施設、および（パイプライン、船舶、トラック、鉄道システムを含む）配給の仕組みが含まれます。精製・処理施設は DCS を使い、貯蔵施設と配給システムは SCADA 技術を使います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The water supply infrastructure encompasses water sources, holding facilities, filtration, cleaning and treatment systems and distribution systems. Like electric, oil and gas, the processing operations use DCS technology while the distribution operations use SCADA technology. A waste water treatment infrastructure is very similar to that of a water supply infrastructure. Chemical, pharmaceutical, pulp and paper, and metals and mining industries primarily fit into the category of processing facility and use DCS technology.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>給水インフラは、水源、貯水設備、ろ過、浄化・処理システム、および配水システムを含みます。電力や石油・ガスと同様に、処理業務は DCS 技術を使い、配給業務は SCADA 技術を使います。排水処理インフラは、給水インフラと非常によく似ています。化学、製薬、パルプ・紙、金属・鉱業は、主に処理施設の区分にあてはまり、DCS 技術を使います。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Process Control System Vulnerabilities and IT Threats</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+プロセス制御システムの脆弱性と IT 脅威</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IT security [2][3] has not been a significant issue within the process controls community. Systems were designed to meet performance, reliability, safety, and flexibility requirements and were typically physically isolated and based on proprietary hardware and communications. The introduction of Internet based information technology within the process controls industry has increased vulnerabilities to the industry&#x27;s computer systems. Centralized operation and remote maintenance of industry systems conducted freely over public telecommunication networks opens the door for threatening organizations to tamper with this critical infrastructure. DCS and SCADA systems that operate on commercial off-the-shelf hardware and software, combined with connections to external networks, allow for simplified invasion and possibly devastation of company production and distribution systems. Threats to these infrastructures could come from numerous sources: hostile governments, terrorist groups, disgruntled employees, malicious intruders, complexities, accidents, and natural disasters. A generalized list of IT threats, extracted from the Common Criteria Toolbox [4], can be found Appendix II.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IT セキュリティ [2][3] は、プロセス制御の分野では重大な問題ではありませんでした。システムは、性能、信頼性、安全性、柔軟性の要件を満たすよう設計され、通常は物理的に隔離され、独自のハードウェアと通信に基づいていました。プロセス制御産業にインターネットベースの情報技術が導入されたことで、この産業のコンピュータシステムの脆弱性が増大しました。産業システムの集中運用と遠隔保守が公衆電気通信ネットワーク上で自由に行われることで、脅威となる組織がこの重要インフラを改ざんする余地が生まれています。市販の既製ハードウェアおよびソフトウェア上で動作する DCS や SCADA システムは、外部ネットワークへの接続と相まって、企業の生産システムや配給システムへの侵入と、場合によっては壊滅的な被害を容易にします。これらのインフラへの脅威は、敵対的な政府、テロ組織、不満を持つ従業員、悪意ある侵入者、複雑性、事故、自然災害など、数多くの発生源から生じ得ます。Common Criteria Toolbox [4] から抽出した IT 脅威の一般的なリストは、付録 II にあります。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0010-f0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6859/p0010-figure-01.png" alt="Network diagram of a generic DCS-based industrial control system, printed sideways on a full page; many small labels are too faint to read in the scan. Upper part: a &quot;LAN&quot; connecting &quot;Workstations&quot;, &quot;Printer&quot;, &quot;Data&quot;, &quot;Application Server&quot;, &quot;Primary Domain Controller&quot; (with a backup), &quot;OPC Client/Server&quot;, &quot;Modem&quot;, a &quot;Wireless Device&quot; and a &quot;Hub/Switch&quot;, with a &quot;Firewall&quot; leading to &quot;Internet/WAN&quot; and a &quot;Distributed Plant&quot;. Left: &quot;Control Server&quot; (with a redundant server), &quot;Data Historian&quot;, &quot;Engineering Workstation&quot; and &quot;HMI&quot;. Lower part: a &quot;Peer to peer network&quot; linking a &quot;Machine Controller&quot; (with an HMI, a modem, and drives and motors on a field bus), a &quot;Programmable Logic Controller (PLC)&quot; (with a modem, HMI, I/O, sensors and motors), a &quot;Process Controller&quot; (with a modem and field devices on a process) and a &quot;Single Loop Controller&quot; (with a modem, a sensor and an actuator)."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>DCS を用いる一般的な産業制御システムのネットワーク構成図で、全面に横向きで印刷されています。スキャンが薄く、小さなラベルの多くは読めません。上部では「LAN」に「Workstations」（ワークステーション）、「Printer」（プリンター）、「Data」（データ）、「Application Server」（アプリケーションサーバー）、「Primary Domain Controller」（プライマリドメインコントローラー、バックアップ付き）、「OPC Client/Server」（OPC クライアント/サーバー）、「Modem」（モデム）、「Wireless Device」（無線機器）、「Hub/Switch」（ハブ/スイッチ）がつながり、「Firewall」（ファイアウォール）の先に「Internet/WAN」（インターネット/WAN）と「Distributed Plant」（分散した工場）があります。左には「Control Server」（コントロールサーバー、冗長サーバー付き）、「Data Historian」（データヒストリアン）、「Engineering Workstation」（エンジニアリングワークステーション）、「HMI」があります。下部では「Peer to peer network」（ピアツーピアネットワーク）が、「Machine Controller」（マシンコントローラー。HMI、モデム、フィールドバス上のドライブとモーター）、「Programmable Logic Controller (PLC)」（プログラマブルロジックコントローラー。モデム、HMI、入出力、センサー、モーター）、「Process Controller」（プロセスコントローラー。モデムとプロセスの現場機器）、「Single Loop Controller」（シングルループコントローラー。モデム、センサー、アクチュエーター）を結んでいます。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-c0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2 Generic Industrial Control System Network Architecture - DCS</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2 汎用的な産業用制御システムのネットワークアーキテクチャ - DCS</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0011-f0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-6859/p0011-figure-01.png" alt="Network diagram of a generic SCADA-based industrial control system, printed sideways on a full page; some small labels are too faint to read. Upper part (as in Figure 2): a &quot;LAN&quot; with &quot;Workstations&quot;, &quot;Printer&quot;, &quot;Data&quot;, &quot;Application Server&quot;, &quot;Primary Domain Controller&quot; (with a backup), &quot;OPC Client/Server&quot;, &quot;Modem&quot;, a &quot;Wireless Device&quot; and a &quot;Hub/Switch&quot;, with a &quot;Firewall&quot; leading to &quot;Internet/WAN&quot; and a &quot;Distributed Plant&quot;; &quot;Control Server&quot; (with a redundant server), &quot;Data Historian&quot;, &quot;Engineering Workstation&quot; and &quot;HMI&quot; on the &quot;Peer to peer network&quot;. Lower left, &quot;Electric Power Example&quot;: a &quot;Router&quot; and &quot;Wire&quot; link to two &quot;Remote Station&quot;s, each an &quot;RTU/PLC&quot; connected to a &quot;Circuit Breaker&quot;, a &quot;Current Sensor&quot;, a &quot;Voltage Sensor&quot; and a &quot;Relay&quot;, with a wireless device between them. Lower right, &quot;Oil&amp;Gas/Water Example&quot;: a &quot;Router&quot; and &quot;Radio&quot; link to two &quot;Remote Station&quot;s, each an &quot;RTU/PLC&quot; with a radio antenna, connected to a &quot;Valve&quot;, a &quot;Pump&quot;, a &quot;Level Sensor&quot;, a &quot;Pressure Sensor&quot; and a &quot;Flow Sensor&quot;."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SCADA を用いる一般的な産業制御システムのネットワーク構成図で、全面に横向きで印刷されています。小さなラベルの一部はスキャンが薄く読めません。上部は図 2 と同じで、「LAN」に「Workstations」（ワークステーション）、「Printer」（プリンター）、「Data」（データ）、「Application Server」（アプリケーションサーバー）、「Primary Domain Controller」（プライマリドメインコントローラー、バックアップ付き）、「OPC Client/Server」（OPC クライアント/サーバー）、「Modem」（モデム）、「Wireless Device」（無線機器）、「Hub/Switch」（ハブ/スイッチ）がつながり、「Firewall」（ファイアウォール）の先に「Internet/WAN」と「Distributed Plant」（分散した工場）があります。「Peer to peer network」（ピアツーピアネットワーク）上に「Control Server」（コントロールサーバー、冗長サーバー付き）、「Data Historian」（データヒストリアン）、「Engineering Workstation」（エンジニアリングワークステーション）、「HMI」があります。左下の「Electric Power Example」（電力の例）では、「Router」（ルーター）と「Wire」（有線）で 2 つの「Remote Station」（リモートステーション）につながり、それぞれの「RTU/PLC」に「Circuit Breaker」（遮断器）、「Current Sensor」（電流センサー）、「Voltage Sensor」（電圧センサー）、「Relay」（リレー）が接続され、間に無線機器があります。右下の「Oil&amp;Gas/Water Example」（石油・ガス・水道の例）では、「Router」と「Radio」（無線）で 2 つの「Remote Station」につながり、無線アンテナ付きの「RTU/PLC」に「Valve」（バルブ）、「Pump」（ポンプ）、「Level Sensor」（液位センサー）、「Pressure Sensor」（圧力センサー）、「Flow Sensor」（流量センサー）が接続されています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-c0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 3 Generic Industrial Control System Network Architecture - SCADA</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3 汎用的な産業用制御システムのネットワークアーキテクチャ - SCADA</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are several risks associated with IT threats to industrial control systems. The most consequential risks, those associated with the health and safety of human lives, primarily belong to the industries identified as part of the critical infrastructure. Cyber attacks on energy production and distribution systems including electric, oil, and gas, water treatment and distribution systems as well as on chemical plants containing potentially hazardous substances could endanger public health and safety as well as invoke serious damage to the environment. Attacks on any of the process control industries discussed could result in serious financial implications including loss of production, generation or distribution of a product, compromising of proprietary information and creation of liability issues.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>産業用制御システムへの IT 脅威には、いくつかのリスクが伴います。最も重大なリスク、すなわち人命の健康と安全に関わるリスクは、主に重要インフラの一部として特定された産業に属します。電力、石油、ガス、水処理・配水システムを含むエネルギーの生産・配給システムや、危険となり得る物質を含む化学プラントに対するサイバー攻撃は、公衆の健康と安全を危険にさらすとともに、環境に深刻な損害を引き起こす可能性があります。議論した、いずれのプロセス制御産業への攻撃も、生産、発電、製品の配給の損失、独自情報の危殆化、賠償責任の問題の発生など、深刻な財務上の影響をもたらす可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The introduction of Internet based IT and enterprise integration strategies coupled with lack of IT security knowledge has left process control systems vulnerable to cyber based attacks [4-6]. Control networks have been merged with corporate network connections to allow engineers to monitor and control systems from points on the corporate network. IT mechanisms are also in place to allow corporate, decision makers to obtain instant access to critical data. Network architecture modifications, often implemented without a full understanding of the corresponding security risks, can lead to control networks that are only as secure as the corporate network.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>インターネットベースの IT とエンタープライズ統合戦略の導入は、IT セキュリティに関する知識の不足と相まって、プロセス制御システムをサイバー攻撃に対して脆弱にしました [4-6]。技術者が企業ネットワーク上の地点からシステムを監視し制御できるように、制御ネットワークは企業ネットワークの接続と統合されてきました。企業の意思決定者が重要なデータに即座にアクセスできるようにする IT の仕組みも整備されています。ネットワークアーキテクチャの変更は、対応するセキュリティリスクを十分に理解しないまま実施されることが多く、その結果、制御ネットワークのセキュリティが企業ネットワークと同程度にとどまることがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Vulnerabilities are dependent on the existing network architectures, IT policies and risks associated with a particular industrial process control system. One initial focus of the PCSRF is to identify and document these vulnerabilities across the industries represented by the PCSRF. These vulnerabilities will be used in the development of best practices and security specifications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>脆弱性は、特定の産業用プロセス制御システムに関連する既存のネットワークアーキテクチャ、IT 方針、リスクに依存します。PCSRF の当初の重点の 1 つは、PCSRF が代表する産業全体にわたってこれらの脆弱性を特定し、文書化することです。これらの脆弱性は、ベストプラクティスとセキュリティ仕様の策定に使われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Vulnerabilities are often introduced into process control systems due to the lack of policy. Corporate IT policy can reduce vulnerabilities by mandating conducts such as password usage and maintenance or requirements for connecting modems to the process control system. Vulnerabilities could even exist because of poorly configured IT security equipment. Other vulnerabilities are associated with the public availability of information on widely used open communication protocols, techniques for the interconnection of DCS and SCADA and widely used, commercially available, Internet connectable, toolkits for implementing DCS and SCADA.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>脆弱性は、方針の欠如によってプロセス制御システムに持ち込まれることがよくあります。企業の IT 方針は、パスワードの使用と維持や、プロセス制御システムへのモデムの接続に関する要件などの行動を義務付けることで、脆弱性を減らせます。IT セキュリティ機器の設定が不適切なために脆弱性が存在することさえあります。その他の脆弱性は、広く使われているオープンな通信プロトコルに関する情報が公開されていること、DCS と SCADA を相互接続する技法、および DCS と SCADA を実装するための、広く使われている市販のインターネット接続可能なツールキットに関連しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Common Criteria Based Approach</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+コモンクライテリアに基づくアプローチ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Common Criteria (CC), ISO/IEC 15408 [7], is a meta-standard of criteria and constructs used to develop security specifications in support of the evaluation of products and systems. The specifications define and characterize the security problem including assumptions about the operational environment, threats that must be encountered and policies that must be enforced. Also characterized is the intended approach to eliminate, minimize or monitor defined threats, and enforce stated policy. The specification defines functional requirements, specifying what the system is to do and assurance requirements, specifying what is done to verify that the system does exactly what it is supposed to. These CC requirements, selected from a catalog of criteria, are independent of technology and implementation. The finished specification is a formal CC Protection Profile (PP) for a product or system. A PP is applied to serve as an acquisition/ procurement vehicle to specify the security requirements of a component or system design or to gauge the security features of available components or systems. A PP can also be applied to verify product compliance both at the component evaluation level and at the system certification level.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コモンクライテリア（CC）、すなわち ISO/IEC 15408 [7] は、製品やシステムの評価を支援するセキュリティ仕様を作成するために使われる基準と構成要素のメタ標準です。この仕様は、運用環境に関する前提条件、遭遇しなければならない脅威、実施しなければならない方針を含め、セキュリティ上の問題を定義し特徴付けます。また、定義された脅威を排除、最小化、または監視し、定められた方針を実施するための意図された手法も特徴付けます。この仕様は、システムが何をするかを指定する機能要件と、システムが想定どおりに動作することを検証するために何を行うかを指定する保証要件を定義します。基準のカタログから選択されるこれらの CC 要件は、技術にも実装にも依存しません。完成した仕様は、製品またはシステムの正式な CC プロテクションプロファイル（PP）です。PP は、構成要素やシステム設計のセキュリティ要件を指定する、または入手可能な構成要素やシステムのセキュリティ機能を評価するための、調達・購買の手段として適用されます。PP は、構成要素の評価レベルとシステムの認証レベルの両方で、製品の準拠を検証するためにも適用できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Initial PCSRF specifications are being documented using a variation of the CC Protection Profile (PP) methodology of developing security specifications. Rather than working directly within the context of the CC&#x27;s language and constructs, this effort will focus on developing and documenting requirements using the language of the process control industry operating domains. In turn, this intermediate specification will be translated into one or more CC-compliant protection profiles. This will enable the inclusion of safety critical and performance information in relation to the security aspects of the specification, topics that are not covered by the CC.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PCSRF の当初の仕様は、セキュリティ仕様を策定する CC プロテクションプロファイル（PP）の方法論の変形を用いて文書化されています。この取り組みでは、CC の言語と構成要素の文脈の中で直接作業するのではなく、プロセス制御産業の運用領域の言語を用いて要件を策定し文書化することに重点を置きます。その後、この中間仕様が、CC に準拠する 1 つ以上のプロテクションプロファイルに変換されます。これにより、仕様のセキュリティ面に関連して、安全性が重大な情報や性能の情報、すなわち CC が扱わない話題を含めることができます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>During initial information gathering exercises, the PCSRF plans to identify vulnerabilities across the diversities of the participating industry boundaries. Industry specific working groups will define vulnerabilities specific to their process control system based on a minimal set of system functions and capabilities defined by the PCSRF. The results of the individual vulnerability assessments will be analyzed and consolidated, by the PCSRF, into comprehensive statements of vulnerabilities to be used in the development of protection profile(s).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最初の情報収集の演習では、PCSRF は、参加する産業の境界を越えて多様な分野にわたる脆弱性を特定することを計画しています。産業別の作業部会は、PCSRF が定義するシステムの機能と能力の最小限の組に基づいて、自分たちのプロセス制御システムに特有の脆弱性を定義します。個々の脆弱性評価の結果は、PCSRF によって分析され、プロテクションプロファイルの策定に使われる、包括的な脆弱性の記述に統合されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>PCSRF Activities</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+PCSRF の活動</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PCSRF includes representatives from electric power, oil and gas, pulp &amp; paper, water treatment and distribution, and systems integration sectors. This representation comes from both industry as well as organizations such as the EPRI, the American Gas Association (AGA), the Association of Metropolitan Water Agencies (AMWA), the Society of Instrumentation, Systems, and Automation (ISA). Government participation includes NSA, DOE, and NIST. Participation from other industrial process control sectors is also being explored. The PCSRF has contracted a specialist in IT security requirements definition to assist in its efforts, conducted several meetings and established a web site at http://www.isd.mel.nist.gov/projects/processcontrol.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PCSRF には、電力、石油・ガス、パルプ・紙、水処理・配水、システム統合の各分野の代表者が参加しています。この代表は、産業界と、EPRI、American Gas Association（AGA）、Association of Metropolitan Water Agencies（AMWA）、Society of Instrumentation, Systems, and Automation（ISA）などの組織の両方から来ています。政府からの参加者は、NSA、DOE、NIST です。他の産業プロセス制御分野からの参加も検討されています。PCSRF は、取り組みを支援するために、IT セキュリティ要件定義の専門家と契約し、何度か会合を開き、Web サイト http://www.isd.mel.nist.gov/projects/processcontrol を開設しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PCSRF has initiated efforts toward its goals of developing best practices and security specifications for industrial control systems. PCSRF members visited an electric power generation facility, a pulp and paper manufacturing facility, and a manufacturer of industrial control systems. Based on these visits, the review of many technical documents and workshop based discussions, members have constructed diagrams of typical DCS and SCADA based control system network architectures and have developed initial fault/attack trees to examine typical sequences of events needed to cause catastrophic consequences to these systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PCSRF は、産業用制御システムのベストプラクティスとセキュリティ仕様を策定するという目標に向けた取り組みを開始しました。PCSRF のメンバーは、発電設備、パルプ・紙の製造設備、および産業用制御システムの製造業者を訪問しました。これらの訪問、多くの技術文書のレビュー、ワークショップでの議論に基づいて、メンバーは、典型的な DCS および SCADA ベースの制御システムのネットワークアーキテクチャの図を作成し、これらのシステムに壊滅的な結果をもたらすのに必要な典型的な事象の連鎖を検討するための、初期の障害・攻撃ツリーを作成しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Through interactions with the group and analysis of existing systems, the contracted security consultant is drafting a security profile specification document that defines the security environment, threats, vulnerabilities, and assumptions about a typical systems in the terminology used within the industrial control community. Along with this specification development, the intermediate task of performing vulnerability and threat analysis within the specific sector industries of the PCSRF is being conducted through working groups. Once the security profile specification is drafted, work will begin to translate it into a common set of formal information security requirements (Common Criteria, ISO/IEC 15408, Protection Profiles) and documented best practices for the systems described. Organization based members of the PCSRF are also discussing the future requirements of training and certification to insure the implementation of IT security in process control systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>契約したセキュリティコンサルタントは、グループとのやり取りと既存システムの分析を通じて、典型的なシステムにおけるセキュリティ環境、脅威、脆弱性、前提条件を、産業用制御の分野で使われる用語で定義するセキュリティプロファイル仕様書を起草しています。この仕様の策定とともに、PCSRF の特定の分野の産業内で脆弱性と脅威の分析を行う中間タスクが、作業部会を通じて進められています。セキュリティプロファイル仕様が起草された後は、それを、共通の正式な情報セキュリティ要件の組（コモンクライテリア、ISO/IEC 15408、プロテクションプロファイル）と、説明されたシステムについて文書化されたベストプラクティスに変換する作業が始まります。PCSRF の組織を基盤とするメンバーは、プロセス制御システムにおける IT セキュリティの実施を確実にするための、トレーニングと認証の今後の要件についても議論しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Summary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+まとめ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PCSRF is using the Common Criteria to develop IT security specifications for process control systems. During initial information gathering exercises, the PCSRF plans to identify IT vulnerabilities across the diversities of the participating industry boundaries. Participating industries include: electric utilities, petroleum (oil &amp; gas), water, waste, chemicals, pharmaceuticals, pulp &amp; paper, and metals &amp; mining with an emphasis on industries considered to be part of the Nation’s Critical Infrastructure. Industry specific working groups will define vulnerabilities specific to their process control system based on a minimal set of system functions and capabilities defined by the PCSRF. The results of the individual vulnerability assessments will be analyzed and consolidated, by the PCSRF, into comprehensive statements of vulnerabilities to be used in the development of Protection Profile(s). These Protection Profiles will be used in the procurement, development, and retrofit of industrial control systems to improve the Nation&#x27;s security posture.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PCSRF は、プロセス制御システムの IT セキュリティ仕様を策定するために、コモンクライテリアを使っています。最初の情報収集の演習では、PCSRF は、参加する産業の境界を越えて多様な分野にわたる IT の脆弱性を特定することを計画しています。参加している産業は、電力事業者、石油（石油・ガス）、水、廃棄物、化学、製薬、パルプ・紙、金属・鉱業で、国の重要インフラの一部と見なされる産業に重点を置いています。産業別の作業部会は、PCSRF が定義するシステムの機能と能力の最小限の組に基づいて、自分たちのプロセス制御システムに特有の脆弱性を定義します。個々の脆弱性評価の結果は、PCSRF によって分析され、プロテクションプロファイルの策定に使われる、包括的な脆弱性の記述に統合されます。これらのプロテクションプロファイルは、国のセキュリティ態勢を向上させるため、産業用制御システムの調達、開発、後付け改修で使われます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix I</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 I</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Generic Composite Industrial Control System Network Architecture - Glossary</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+汎用的な複合産業用制御システムのネットワークアーキテクチャ - 用語集</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>AC Drive</strong> - Alternating Current Drive synonymous with <em>Variable Frequency Drive (VFD)</em>.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>AC Drive</strong> - 交流ドライブ（Alternating Current Drive）。<em>Variable Frequency Drive (VFD)</em> と同義です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Application Server</strong> - A computer responsible for hosting applications to user workstations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Application Server</strong> - ユーザーのワークステーションにアプリケーションを提供する役割を担うコンピュータ。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Backup Domain Controller</strong> - Backup to the Primary Domain Controller.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Backup Domain Controller</strong> - プライマリドメインコントローラーのバックアップ。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Control Server</strong> - A server hosts the supervisory control system, typically a commercially available application for DCS or SCADA systems, and communicates data between the Peer-to-Peer network and the LAN.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Control Server</strong> - 監視制御システム（通常は DCS や SCADA システム向けの市販のアプリケーション）をホストし、ピアツーピアネットワークと LAN の間でデータを通信するサーバー。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Data</strong> - A repository of information that usually holds plant wide information including process data, recipes, personnel data and financial data.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Data</strong> - プロセスデータ、レシピ、人事データ、財務データなど、プラント全体の情報を通常保持する情報の保管庫。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>DC Servo Drive</strong> - A type of drive that works specifically with servo motors. Transmits commands to the motor and receives feedback from the servo motor&#x27;s resolver or encoder.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>DC Servo Drive</strong> - サーボモーターと連携して動作するドライブの一種。モーターにコマンドを送信し、サーボモーターのレゾルバーまたはエンコーダーからのフィードバックを受信します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Distributed Control System (DCS)</strong> - A supervisory control system typically controls and monitors set points to sub-controllers distributed geographically throughout a factory.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Distributed Control System (DCS)</strong> - 通常、工場全体に地理的に分散したサブコントローラーに対して、設定値を制御・監視する監視制御システム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Distributed Plant</strong> - A geographically distributed factory that is accessible through the Internet by an enterprise.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Distributed Plant</strong> - エンタープライズがインターネット経由でアクセスできる、地理的に分散した工場。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Domain Controller</strong> - A Windows NT server responsible for managing domain information, such as login IDs and passwords.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Domain Controller</strong> - ログイン ID やパスワードなどのドメイン情報の管理を担う Windows NT サーバー。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Enterprise</strong> - A business venture or company that encompasses one or more factories.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Enterprise</strong> - 1 つ以上の工場を含む事業体または会社。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Enterprise Resource Planning (ERP) System</strong> - A system that integrates enterprise-wide information including human resources, financials, manufacturing, and distribution as well as connect the organization to its customers and suppliers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Enterprise Resource Planning (ERP) System</strong> - 人事、財務、製造、配給を含むエンタープライズ全体の情報を統合し、組織を顧客や供給業者に接続するシステム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Fieldbus</strong> - A category of network that links sensors and other devices to a PC or PLC based controller. Use of Fieldbus technologies eliminates the need of point-to-point wiring between the controller and each device. A protocol is used to define messages over the fieldbus network with each message identifying a particular sensor on the network.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Fieldbus</strong> - センサーやその他のデバイスを PC または PLC ベースのコントローラーに接続するネットワークの分類。フィールドバス技術を使うと、コントローラーと各デバイスの間のポイントツーポイントの配線が不要になります。フィールドバスネットワーク上のメッセージを定義するためにプロトコルが使われ、各メッセージはネットワーク上の特定のセンサーを識別します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Firewall</strong> - A device on a communications network that can be programmed to filter information based on the information content, source or destination.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Firewall</strong> - 情報の内容、送信元、または宛先に基づいて情報をフィルタリングするようにプログラムできる、通信ネットワーク上の装置。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Human Machine Interface (HMI)</strong> - The hardware or software through which an operator interacts with a controller. An HMI can range from a physical control panel with buttons and indicator lights to an industrial PC with a color graphics display running dedicated HMI software.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Human Machine Interface (HMI)</strong> - オペレーターがコントローラーと対話するためのハードウェアまたはソフトウェア。HMI は、ボタンや表示灯を備えた物理的な制御盤から、専用の HMI ソフトウェアを実行しカラーグラフィックス表示を備えた産業用 PC まで、さまざまです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Internet</strong> - a system of linked networks that are worldwide in scope and facilitate data communication services. The Internet is currently a communications highway for millions of users.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Internet</strong> - 世界的な規模で相互接続され、データ通信サービスを促進するネットワークのシステム。インターネットは現在、数百万人の利用者にとっての通信の幹線です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Input/Output (I/O)</strong> - a module relaying information sent to the processor from connected devices (input) and to the connected devices from the processor (output).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Input/Output (I/O)</strong> - 接続されたデバイスからプロセッサーに送られる情報（入力）と、プロセッサーから接続されたデバイスに送られる情報（出力）を中継するモジュール。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Light Tower</strong> - A device containing series of indicator lights and an embedded controller used to indicate the state of a process based on an input signal.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Light Tower</strong> - 入力信号に基づいてプロセスの状態を示すために使われる、一連の表示灯と組み込みコントローラーを含む装置。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Local Area Network (LAN)</strong> - A network of computers that span a relatively small space. Each computer on the network is called a node, has its own hardware and runs its own programs, but can also access any other data or devices connected to the LAN. Printers, modems and other devices can also be separate nodes on a LAN.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Local Area Network (LAN)</strong> - 比較的狭い空間に広がるコンピュータのネットワーク。ネットワーク上の各コンピュータはノードと呼ばれ、それぞれ独自のハードウェアを持ち独自のプログラムを実行しますが、LAN に接続された他のあらゆるデータやデバイスにもアクセスできます。プリンター、モデム、その他のデバイスも、LAN 上の個別のノードになることができます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Machine Controller</strong> - A control system/motion network that electronically synchronizes drives within a machine system instead of relying on synchronization via mechanical linkage.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Machine Controller</strong> - 機械的な連結による同期に頼る代わりに、機械システム内のドライブを電子的に同期させる制御システム／モーションネットワーク。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Modem</strong> - A device that allows a computer to communicate through a phone line.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Modem</strong> - コンピュータが電話回線を通じて通信できるようにする装置。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Management Information System (MIS)</strong> - A software system for accessing data from production resources and procedures required to collect, process, and distribute data for use in decision making.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Management Information System (MIS)</strong> - 生産資源のデータにアクセスし、意思決定に使うデータの収集、処理、配布に必要な手順を実行するためのソフトウェアシステム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Manufacturing Execution System (MES)</strong> - Systems that use network computing to automate production control and process automation. By downloading “recipes” and work schedules and uploading production results, a MES bridges the gap between business and plant-floor or process-control systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Manufacturing Execution System (MES)</strong> - ネットワークコンピューティングを使って、生産管理とプロセス自動化を実現するシステム。MES は、「レシピ」と作業スケジュールをダウンロードし、生産結果をアップロードすることで、業務システムと工場現場またはプロセス制御システムとの間の隔たりを埋めます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>OPC Client/Server</strong> - A mechanism for providing interoperability between disparate field devices, automation/control, and business systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>OPC Client/Server</strong> - 異種のフィールドデバイス、自動化・制御システム、業務システムの間で相互運用性を提供するための仕組み。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Peer-to-Peer network</strong> - A networking configuration where there is no server, and computers connect with each other to share data. Each computer acts as both a client (information requestor) and a server (information provider).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Peer-to-Peer network</strong> - サーバーがなく、コンピュータが互いに接続してデータを共有するネットワーク構成。各コンピュータは、クライアント（情報の要求者）とサーバー（情報の提供者）の両方として動作します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Photo Eye</strong> - A light sensitive sensor utilizing photoelectric control that converts a light signal into an electrical signal ultimately producing a binary signal based on a interruption of a light beam.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Photo Eye</strong> - 光電制御を利用した光感知センサー。光信号を電気信号に変換し、最終的に光線の遮断に基づく 2 値信号を生成します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Pressure Regulator</strong> - A device used to control the pressure of a gas or liquid.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Pressure Regulator</strong> - 気体または液体の圧力を制御するために使われる装置。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Pressure Sensor</strong> - A sensor system that produces an electrical signal related to the pressure acting on it by its surrounding medium.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Pressure Sensor</strong> - 周囲の媒体から受ける圧力に関連する電気信号を生成するセンサーシステム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Primary Domain Controller</strong> - A Windows NT server responsible for managing domain information, such as login IDs and passwords.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Primary Domain Controller</strong> - ログイン ID やパスワードなどのドメイン情報の管理を担う Windows NT サーバー。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Printer</strong> - A device which converts digital data to human readable text on a paper medium.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Printer</strong> - デジタルデータを、紙の媒体上の人間が読めるテキストに変換する装置。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Process Controller</strong> - A proprietary, typically rack mounted, computer system that processes sensor input, executes control algorithms and computes actuator outputs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Process Controller</strong> - センサー入力を処理し、制御アルゴリズムを実行し、アクチュエーターの出力を計算する、独自仕様の、通常はラックマウント型のコンピュータシステム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Programmable Logic Controller (PLC)</strong> - A small industrial computer used in factories originally designed to replace relay logic of a process control system and has evolved into a controller having the functionality of a process controller.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Programmable Logic Controller (PLC)</strong> - 工場で使われる小型の産業用コンピュータ。もともとはプロセス制御システムのリレーロジックを置き換えるために設計され、プロセスコントローラーの機能を持つコントローラーへと進化しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Proximity Sensor</strong> - A non-contact sensor with the ability to detect the presence of a target, within a specified range.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Proximity Sensor</strong> - 指定された範囲内の対象の存在を検出できる非接触センサー。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Redundant Control Server</strong> - A backup to the control server that maintains the current state of the control server at all times.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Redundant Control Server</strong> - 制御サーバーの現在の状態を常に維持する、制御サーバーのバックアップ。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Remote Terminal Unit (RTU)</strong> - A computer with radio interfacing used in remote situations where communications via wire is unavailable. Usually used to communicate with remote field equipment. PLCs with radio communication capabilities are also used in place of RTUs.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Remote Terminal Unit (RTU)</strong> - 有線による通信が利用できない遠隔の状況で使われる、無線インタフェースを備えたコンピュータ。通常、遠隔の現場機器との通信に使われます。無線通信機能を持つ PLC も、RTU の代わりに使われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Servo Valve</strong> - An actuated valve whose position is controlled using a servo actuator.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Servo Valve</strong> - サーボアクチュエーターを使って位置が制御される作動弁。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Sensor</strong> - A device that senses or detects the value of a process variable and generates a signal related to the value. Additional transmitting hardware is required to convert the basic sensor signal to a standard transmission signal. Sensor is defined as the complete sensing and transmitting device.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Sensor</strong> - プロセス変数の値を感知または検出し、その値に関連する信号を生成する装置。基本的なセンサー信号を標準の伝送信号に変換するには、追加の送信ハードウェアが必要です。センサーは、感知と送信の完全な装置として定義されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Single Loop Controller</strong> - A controller that controls a very small process or a critical process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Single Loop Controller</strong> - 非常に小さなプロセス、または重要なプロセスを制御するコントローラー。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Solenoid Valve</strong> - a valve actuated by an electric coil. A solenoid valve typically has two states: open and closed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Solenoid Valve</strong> - 電気コイルによって作動する弁。ソレノイドバルブは通常、開と閉の 2 つの状態を持ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Supervisory Control and Data Acquisition System (SCADA)</strong> - Similar to a Distributed Control System with the exception of sub-control systems being geographically dispersed over large areas and accessed using Remote Terminal Servers.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Supervisory Control and Data Acquisition System (SCADA)</strong> - 分散制御システムに似ていますが、サブ制御システムが広い範囲に地理的に分散し、Remote Terminal Servers を使ってアクセスされる点が異なります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Temperature Sensor</strong> - A sensor system that produces an electrical signal related to its temperature and, as a consequence, senses the temperature of its surrounding medium.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Temperature Sensor</strong> - 自身の温度に関連する電気信号を生成し、その結果として周囲の媒体の温度を感知するセンサーシステム。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Variable Frequency Drive (VFD)</strong> - A type of drive that controls the speed, but not the precise position, of a non-servo, AC motor by varying the frequency of the electricity going to that motor. VFDs are typically used for applications where speed and power are important, but precise positioning in not.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Variable Frequency Drive (VFD)</strong> - サーボではない交流モーターに送る電気の周波数を変えることで、そのモーターの速度を制御する（正確な位置は制御しない）ドライブの一種。VFD は通常、速度と出力が重要で、正確な位置決めが重要でない用途に使われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Workstation</strong> - A computer used for tasks such as programming, engineering, and design.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Workstation</strong> - プログラミング、エンジニアリング、設計などの作業に使われるコンピュータ。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Wide Area Network</strong> - A network that spans a larger area than a LAN. It consists of two or more LANs connected to each other via telephone lines or some other means of connection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Wide Area Network</strong> - LAN より広い範囲に及ぶネットワーク。電話回線やその他の接続手段で互いに接続された、2 つ以上の LAN で構成されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><strong>Wireless Device</strong> - A device that can connect to a manufacturing system via radio or infrared waves to typically collect/monitor data, but also in cases to modify control set points.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><strong>Wireless Device</strong> - 無線または赤外線を介して製造システムに接続できる装置。通常はデータの収集・監視に使われますが、制御の設定値を変更するために使われる場合もあります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix II</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 II</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>General Threats from the Common Criteria Toolkit</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+Common Criteria Toolkit の一般的な脅威</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><strong>Administrative errors of commission</strong> (Admin_Err_Commit)<br>An administrator commits errors that directly compromise organizational security objectives or change the technical security policy enforced by the system or application.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body"><strong>作為による管理上の誤り</strong>（Admin_Err_Commit）<br>管理者が、組織のセキュリティ対策方針を直接損なう誤りを犯すか、システムやアプリケーションが実施する技術的なセキュリティポリシーを変更します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><strong>Administrative errors of omission</strong> (Admin_Err_Omit)<br>The system administrator fails to perform some function essential to security.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body"><strong>不作為による管理上の誤り</strong>（Admin_Err_Omit）<br>システム管理者が、セキュリティに不可欠な機能を実行しません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><strong>Hostile administrator modification of user or system data</strong> (Admin_Hostile_Modify)<br>An administrator maliciously obstructs organizational security objectives or modifies the system&#x27;s configuration to allow security violations to occur.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body"><strong>敵対的な管理者によるユーザーデータまたはシステムデータの改変</strong>（Admin_Hostile_Modify）<br>管理者が、組織のセキュリティ対策方針を悪意をもって妨害するか、セキュリティ違反が起こるようにシステムの構成を改変します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body"><strong>Administrator violates user privacy policy</strong> (Admin_UserPriv)<br>An administrator learns the identity (or other privacy related information) of user(s) in violation of user privacy policy. Privacy-related information is sensitive information associated with the identity of a user.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body"><strong>管理者によるユーザーのプライバシーポリシーの違反</strong>（Admin_UserPriv）<br>管理者が、ユーザーのプライバシーポリシーに違反して、ユーザーの識別情報（またはその他のプライバシー関連情報）を知ります。プライバシー関連情報とは、ユーザーの識別情報に関連する機微な情報です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body"><strong>A critical system component fails</strong> (Component_Failure)<br>Failure of one or more system components results in the loss of system-critical functionality.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body"><strong>重要なシステム構成要素の故障</strong>（Component_Failure）<br>1 つ以上のシステム構成要素の故障により、システムにとって重要な機能が失われます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body"><strong>Software containing security-related flaws</strong> (Dev_Flawed_Code)<br>A system or applications developer delivers code that does not perform according to specifications or contains security flaws.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body"><strong>セキュリティ関連の欠陥を含むソフトウェア</strong>（Dev_Flawed_Code）<br>システムまたはアプリケーションの開発者が、仕様に従って動作しない、またはセキュリティ上の欠陥を含むコードを納品します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body"><strong>Failure of a distributed system component</strong> (Failure_DS_Comp)<br>Failure of a component that is part of a distributed system will cause other parts of the distributed system to malfunction or provide unreliable results.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body"><strong>分散システム構成要素の故障</strong>（Failure_DS_Comp）<br>分散システムの一部である構成要素が故障すると、分散システムの他の部分が誤動作するか、信頼できない結果を提供するようになります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body"><strong>Hacker undetected system access</strong> (Hack_AC)<br>A hacker gains undetected access to a system due to missing, weak and/or incorrectly implemented access control causing potential violations of integrity, confidentiality, or availability.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body"><strong>ハッカーによる検知されないシステムへのアクセス</strong>（Hack_AC）<br>アクセス制御が欠如している、弱い、または誤って実装されているために、ハッカーが検知されずにシステムにアクセスし、完全性、機密性、または可用性が侵害される可能性があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body"><strong>Hacker attempts resource denial of service</strong> (Hack_Avl_Resource)<br>A hacker executes commands, sends data, or performs other operations that make system resources unavailable to system users. Resources that may be denied to users include bandwidth, processor time, memory, and data storage.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">9.</span><span class="list-body"><strong>ハッカーによるリソースのサービス拒否の試み</strong>（Hack_Avl_Resource）<br>ハッカーが、システムの利用者にシステムリソースを利用できなくさせるコマンドを実行したり、データを送信したり、その他の操作を行います。利用者が利用できなくなる可能性のあるリソースには、帯域幅、プロセッサー時間、メモリ、データストレージがあります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body"><strong>Hacker eavesdrops on user data communications</strong> (Hack_Comm_Eavesdrop)<br>Hacker obtains user data by eavesdropping on communications lines.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">10.</span><span class="list-body"><strong>ハッカーによるユーザーデータ通信の盗聴</strong>（Hack_Comm_Eavesdrop）<br>ハッカーが、通信回線を盗聴してユーザーデータを入手します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0018-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body"><strong>Cryptoanalysis for theft of information</strong> (Hack_Crypto)<br>A hacker performs cryptoanalysis on encrypted data in order to recover message content.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">11.</span><span class="list-body"><strong>情報窃取のための暗号解読</strong>（Hack_Crypto）<br>ハッカーが、メッセージの内容を復元するために、暗号化されたデータに対して暗号解読を行います。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0018-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body"><strong>Hacker masquerading as a legitimate user or as system process</strong> (Hack_Masq)<br>A hacker masquerades as an authorized user to perform operations that will be attributed to the authorized user or a system process.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">12.</span><span class="list-body"><strong>正規ユーザーまたはシステムプロセスになりすますハッカー</strong>（Hack_Masq）<br>ハッカーが、許可された利用者またはシステムプロセスになりすまし、その許可された利用者またはシステムプロセスの行為とされる操作を行います。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0018-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">13.</span><span class="list-body"><strong>Message content modification</strong> (Hack_Msg_Data)<br>A hacker modifies information intercepted from a communication link between two unsuspecting entities before passing it on, thereby deceiving the intended recipient.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">13.</span><span class="list-body"><strong>メッセージ内容の改変</strong>（Hack_Msg_Data）<br>ハッカーが、何も疑っていない 2 つのエンティティの間の通信リンクから傍受した情報を、転送する前に改変し、意図された受信者を欺きます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0018-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">14.</span><span class="list-body"><strong>Exploitation of vulnerabilities in the physical environment of the system</strong> (Hack_Phys)<br>A hacker physically interacts with the system to exploit vulnerabilities in the physical environment, resulting in arbitrary security compromises.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">14.</span><span class="list-body"><strong>システムの物理環境の脆弱性の悪用</strong>（Hack_Phys）<br>ハッカーが、システムと物理的にやり取りして物理環境の脆弱性を悪用し、任意のセキュリティ侵害を引き起こします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">15.</span><span class="list-body"><strong>Social engineering</strong> (Hack_Social_Engineer)<br>A hacker uses social engineering techniques to gain information about system entry, system use, system design, or system operation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">15.</span><span class="list-body"><strong>ソーシャルエンジニアリング</strong>（Hack_Social_Engineer）<br>ハッカーが、ソーシャルエンジニアリングの技法を使って、システムへの侵入、システムの利用、システムの設計、またはシステムの運用に関する情報を得ます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">16.</span><span class="list-body"><strong>Malicious code exploitation</strong> (Malicious_Code)<br>An authorized user, IT system, or hacker downloads and executes malicious code, which causes abnormal processes that violate the integrity, availability, or confidentiality of system assets.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">16.</span><span class="list-body"><strong>悪意あるコードの悪用</strong>（Malicious_Code）<br>許可された利用者、IT システム、またはハッカーが悪意あるコードをダウンロードして実行し、システム資産の完全性、可用性、または機密性を侵害する異常なプロセスを引き起こします。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">17.</span><span class="list-body"><strong>Unexpected disruption of system or component power</strong> (Power_Disrupt)<br>A human or environmental agent disrupts power causing the system to lose information or security protection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">17.</span><span class="list-body"><strong>システムまたは構成要素の電源の予期しない中断</strong>（Power_Disrupt）<br>人間または環境要因が電源を中断させ、システムが情報やセキュリティ保護を失います。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">18.</span><span class="list-body"><strong>Recipient denies receiving information</strong> (Repudiate_Receive)<br>The recipient of a message denies receiving the message, to avoid accountability for receiving the message or to avoid obligations incurred as a result of receiving the message.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">18.</span><span class="list-body"><strong>受信者による情報の受信の否認</strong>（Repudiate_Receive）<br>メッセージの受信者が、メッセージを受信したことに対する責任、またはメッセージの受信の結果として生じる義務を回避するために、メッセージの受信を否認します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">19.</span><span class="list-body"><strong>Sender denies sending information</strong> (Repudiate_Send)<br>The sender of a message denies sending the message to avoid accountability for sending the message or to avoid obligations incurred as a result of sending the message.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">19.</span><span class="list-body"><strong>送信者による情報の送信の否認</strong>（Repudiate_Send）<br>メッセージの送信者が、メッセージを送信したことに対する責任、またはメッセージの送信の結果として生じる義務を回避するために、メッセージの送信を否認します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">20.</span><span class="list-body"><strong>A participant denies performing a transaction</strong> (Repudiate_Transact)<br>A participant in a transaction denies participation in the transaction to avoid accountability for the transaction or for resulting obligations.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">20.</span><span class="list-body"><strong>参加者によるトランザクション実行の否認</strong>（Repudiate_Transact）<br>トランザクションの参加者が、そのトランザクション、またはその結果として生じる義務に対する責任を回避するために、トランザクションへの参加を否認します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">21.</span><span class="list-body"><strong>Legitimate system services are spoofed</strong> (Spoofing)<br>An attacker tricks users into interacting with spurious system services.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">21.</span><span class="list-body"><strong>正規のシステムサービスのなりすまし</strong>（Spoofing）<br>攻撃者が、利用者をだまして、偽のシステムサービスとやり取りさせます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">22.</span><span class="list-body"><strong>Hostile user acts cause confidentiality breaches</strong> (User_Abuse_Conf)<br>A user collects sensitive or proprietary information and removes it from the system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">22.</span><span class="list-body"><strong>敵対的な利用者の行為による機密性の侵害</strong>（User_Abuse_Conf）<br>利用者が、機微な情報または独自情報を収集し、システムから持ち出します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">23.</span><span class="list-body"><strong>User abuses authorization to collect data</strong> (User_Collect)<br>User abuses granted authorizations to improperly collect sensitive or security-critical data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">23.</span><span class="list-body"><strong>利用者による認可の悪用によるデータの収集</strong>（User_Collect）<br>利用者が、付与された認可を悪用して、機微なデータまたはセキュリティ上重要なデータを不適切に収集します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">24.</span><span class="list-body"><strong>User errors cause confidentiality breaches</strong> (User_Err_Conf)<br>A user commits errors that cause information to be delivered to the wrong place or wrong person.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">24.</span><span class="list-body"><strong>利用者の誤りによる機密性の侵害</strong>（User_Err_Conf）<br>利用者が、情報が誤った場所または誤った相手に配信される原因となる誤りを犯します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">25.</span><span class="list-body"><strong>User error makes data inaccessible</strong> (User_Err_Inaccess)<br>A user accidentally deletes user data or changes system data rendering user data inaccessible.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">25.</span><span class="list-body"><strong>利用者の誤りによるデータへのアクセス不能</strong>（User_Err_Inaccess）<br>利用者が、誤ってユーザーデータを削除するか、システムデータを変更し、ユーザーデータにアクセスできなくなります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">26.</span><span class="list-body"><strong>User errors cause integrity breaches</strong> (User_Err_Integrity)<br>A user commits errors that induce erroneous actions by the system and/or erroneous statements its users.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">26.</span><span class="list-body"><strong>利用者の誤りによる完全性の侵害</strong>（User_Err_Integrity）<br>利用者が、システムの誤った動作や、システム利用者の誤った言明（またはその両方）を引き起こす誤りを犯します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">27.</span><span class="list-body"><strong>User errors undermine the system&#x27;s security features</strong> (User_Err_Slf_Protect)<br>A user commits errors that cause the system or one of its applications to undermine the system&#x27;s security features.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">27.</span><span class="list-body"><strong>利用者の誤りによるシステムのセキュリティ機能の弱体化</strong>（User_Err_Slf_Protect）<br>利用者が、システムまたはそのアプリケーションの 1 つがシステムのセキュリティ機能を弱体化させる原因となる誤りを犯します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">28.</span><span class="list-body"><strong>User&#x27;s misuse causes denial of service</strong> (User_Misuse_Avl_Resc)<br>A user&#x27;s unauthorized use of resources causes an undue burden on an affected resource.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">28.</span><span class="list-body"><strong>利用者の不正使用によるサービス拒否</strong>（User_Misuse_Avl_Resc）<br>利用者によるリソースの無許可の使用が、影響を受けるリソースに過度の負担をかけます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">29.</span><span class="list-body"><strong>User abuses authorization to modify data</strong> (User_Modify)<br>A user abuses granted authorizations to improperly change or destroy sensitive or security-critical data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">29.</span><span class="list-body"><strong>利用者による認可の悪用によるデータの改変</strong>（User_Modify）<br>利用者が、付与された認可を悪用して、機微なデータまたはセキュリティ上重要なデータを不適切に変更または破壊します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0019-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">30.</span><span class="list-body"><strong>User abuses authorization to send data</strong> (User_Send)<br>A user abuses granted authorizations to improperly send sensitive or security-critical data.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">30.</span><span class="list-body"><strong>利用者による認可の悪用によるデータの送信</strong>（User_Send）<br>利用者が、付与された認可を悪用して、機微なデータまたはセキュリティ上重要なデータを不適切に送信します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Roy E. Fraser, Process Measurement and Control - Introduction to Sensors, Communication, Adjustment, and Control, Prentice-Hall, Inc., 2001.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Roy E. Fraser, Process Measurement and Control - Introduction to Sensors, Communication, Adjustment, and Control, Prentice-Hall, Inc., 2001.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Information Security Primer, EPRI Report TR-100797, September 2000</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">Information Security Primer, EPRI Report TR-100797, September 2000</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Bruce Schneier, Secrets &amp; Lies - Digital Security in a Networked World, John Wiley &amp; Sons, Inc., 2000.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Bruce Schneier, Secrets &amp; Lies - Digital Security in a Networked World, John Wiley &amp; Sons, Inc., 2000.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Common Criteria Toolbox, Version 6.0f, http://niap.nist.gov/tools/cctool.html.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">4.</span><span class="list-body">Common Criteria Toolbox, Version 6.0f, http://niap.nist.gov/tools/cctool.html.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">Information Assurance Task Force, Electric Power Risk Assessment, National Security Telecommunications Advisory Committee, http://www.ncs.gov/n5_hp/Reports/EPRA/EPRA.html.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">5.</span><span class="list-body">Information Assurance Task Force, Electric Power Risk Assessment, National Security Telecommunications Advisory Committee, http://www.ncs.gov/n5_hp/Reports/EPRA/EPRA.html.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">Understanding SCADA System Security Vulnerabilities, Riptech, http://www.riptech.com/industry/energy.html</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">6.</span><span class="list-body">Understanding SCADA System Security Vulnerabilities, Riptech, http://www.riptech.com/industry/energy.html</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">Paul Oman et al, Safeguarding IEDS, Substations, and SCADA Systems Against Electronic Intrusions, http://www.selinc.com/techpprs/6118.pdf.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">7.</span><span class="list-body">Paul Oman et al, Safeguarding IEDS, Substations, and SCADA Systems Against Electronic Intrusions, http://www.selinc.com/techpprs/6118.pdf.</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0020-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">Common Criteria for Information Technology Security Evaluation, Part1: Introduction and general model, CCIMB-99-031, Version 2.1, 1999.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">8.</span><span class="list-body">Common Criteria for Information Technology Security Evaluation, Part1: Introduction and general model, CCIMB-99-031, Version 2.1, 1999.</span></p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir6859.pdf">National Institute of Standards and Technology, IR 6859</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 6859";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

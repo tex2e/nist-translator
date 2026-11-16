@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 6390 は、次世代暗号標準（AES）の候補アルゴリズムの出力を、乱数生成器としての適性という観点からランダムネスについて評価した内部報告書です。15 の候補アルゴリズムのそれぞれについて 9 種類のデータセット（合計 135）を取り込み、128 ビット鍵に焦点を当てて NIST の統計的検定を適用しています。報告書は、ランダムな振る舞いを示す暗号アルゴリズムが備えているべき特性を挙げ、データの種別、経験的な結果、結果の解釈を順に説明しています。結果として、HPC はランダムでないように見え、Crypton、DEAL、Frog、RC6、Twofish は結論に至らず、残りのアルゴリズムはランダムネスからの逸脱がないことを示唆するとしています。">
+  <title>次世代暗号標準（Advanced Encryption Standard）候補アルゴリズムのランダムネス検定 | NIST IR 6390 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="Randomness Testing of the Advanced Encryption Standard Candidate Algorithms" data-search="次世代暗号標準（advanced encryption standard）候補アルゴリズムのランダムネス検定 randomness testing of the advanced encryption standard candidate algorithms">次世代暗号標準（Advanced Encryption Standard）候補アルゴリズムのランダムネス検定</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0002" title="Affiliation" data-search="所属 affiliation">所属</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0003" title="Abstract" data-search="概要 abstract">概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0002-b0005" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0002" title="2. AES Data" data-search="2. aes のデータ 2. aes data">2. AES のデータ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0003-b0006" title="2.1 128-Bit Key Avalanche and Plaintext Avalanche" data-search="2.1 128 ビット鍵の key avalanche と plaintext avalanche 2.1 128-bit key avalanche and plaintext avalanche">2.1 128 ビット鍵の Key Avalanche と Plaintext Avalanche</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0003-b0008" title="2.2 Plaintext/Ciphertext Correlation" data-search="2.2 plaintext/ciphertext correlation 2.2 plaintext/ciphertext correlation">2.2 Plaintext/Ciphertext Correlation</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0004-b0002" title="2.3 Cipher Block Chaining Mode" data-search="2.3 cipher block chaining mode 2.3 cipher block chaining mode">2.3 Cipher Block Chaining Mode</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0004-b0008" title="2.4 Random Plaintext/Random 128-Bit Keys" data-search="2.4 random plaintext/random 128-bit keys 2.4 random plaintext/random 128-bit keys">2.4 Random Plaintext/Random 128-Bit Keys</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0004-b0010" title="2.5 Low Density Plaintext and Low Density 128-Bit Keys" data-search="2.5 low density plaintext と low density 128-bit keys 2.5 low density plaintext and low density 128-bit keys">2.5 Low Density Plaintext と Low Density 128-Bit Keys</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0004-b0012" title="2.6 High Density Plaintext and High Density 128-Bit Keys" data-search="2.6 high density plaintext と high density 128-bit keys 2.6 high density plaintext and high density 128-bit keys">2.6 High Density Plaintext と High Density 128-Bit Keys</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0014" title="3. Empirical Analysis" data-search="3. 経験的分析 3. empirical analysis">3. 経験的分析</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0002" title="CRYPTON" data-search="crypton crypton">CRYPTON</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0005" title="DEAL" data-search="deal deal">DEAL</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0007" title="FROG" data-search="frog frog">FROG</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0009" title="HPC" data-search="hpc hpc">HPC</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0002" title="RC6" data-search="rc6 rc6">RC6</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0005" title="TWOFISH" data-search="twofish twofish">TWOFISH</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0008" title="4. Conclusion" data-search="4. 結論 4. conclusion">4. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0004" title="Acknowledgments" data-search="謝辞 acknowledgments">謝辞</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0006" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0001" title="Appendix: Description of the Statistical Tests" data-search="付録: 統計的検定の説明 appendix: description of the statistical tests">付録: 統計的検定の説明</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 6390 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Randomness Testing of the Advanced Encryption Standard Candidate Algorithms</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>次世代暗号標準（Advanced Encryption Standard）候補アルゴリズムのランダムネス検定</strong></span><br><span class="doc-panel-item">公開日 : 1999-09-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/6390/final">https://csrc.nist.gov/pubs/ir/6390/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 97 / 97 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 6390 は、次世代暗号標準（AES）の候補アルゴリズムの出力を、乱数生成器としての適性という観点からランダムネスについて評価した内部報告書です。15 の候補アルゴリズムのそれぞれについて 9 種類のデータセット（合計 135）を取り込み、128 ビット鍵に焦点を当てて NIST の統計的検定を適用しています。報告書は、ランダムな振る舞いを示す暗号アルゴリズムが備えているべき特性を挙げ、データの種別、経験的な結果、結果の解釈を順に説明しています。結果として、HPC はランダムでないように見え、Crypton、DEAL、Frog、RC6、Twofish は結論に至らず、残りのアルゴリズムはランダムネスからの逸脱がないことを示唆するとしています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 6390</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 6390</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Randomness Testing of the Advanced Encryption Standard Candidate Algorithms</h2>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+次世代暗号標準（Advanced Encryption Standard）候補アルゴリズムのランダムネス検定</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Juan Soto, Jr.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Juan Soto, Jr.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>100 Bureau Drive, Stop 8930<br>Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>100 Bureau Drive, Stop 8930<br>Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>September 1999</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1999年9月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>William M. Daley, Secretary<br>TECHNOLOGY ADMINISTRATION<br>Gary R. Bachula, Acting Under Secretary for Technology<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>Raymond G. Kammer, Director</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>William M. Daley 長官<br>技術管理局<br>Gary R. Bachula、商務次官代行（技術担当）<br>国立標準技術研究所<br>Raymond G. Kammer、所長</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Randomness Testing of the Advanced Encryption Standard Candidate Algorithms</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次世代暗号標準（Advanced Encryption Standard）候補アルゴリズムのランダムネス検定</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Affiliation</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+所属</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Juan Soto, Jr.<br>National Institute of Standards and Technology<br>100 Bureau Drive, Stop 8930<br>Gaithersburg, MD 20899-8930<br>(301) 975-4641 (Voice)<br>(301) 948-1233 (Fax)<br>soto@nist.gov</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Juan Soto, Jr.<br>国立標準技術研究所<br>100 Bureau Drive, Stop 8930<br>Gaithersburg, MD 20899-8930<br>(301) 975-4641 (Voice)<br>(301) 948-1233 (Fax)<br>soto@nist.gov</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One of the criteria used to evaluate the Advanced Encryption Standard candidate algorithms was their demonstrated suitability as random number generators. That is, the evaluation of their output utilizing statistical tests should not provide any means by which to computationally distinguish them from a truly random source. This internal report lists several characteristics which an encryption algorithm exhibiting random behavior should possess, describes how the output for each candidate algorithm was evaluated for randomness, discusses what has been learned utilizing the NIST statistical tests, and finally provides an interpretation of the results.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次世代暗号標準（AES）の候補アルゴリズムを評価するために用いられた基準の 1 つは、乱数生成器としての適性が実証されていることでした。すなわち、統計的検定を用いて候補アルゴリズムの出力を評価しても、それらを真にランダムな発生源から計算量的に区別する手段が得られてはなりません。この内部報告書は、ランダムな振る舞いを示す暗号アルゴリズムが備えているべき特性をいくつか挙げ、各候補アルゴリズムの出力をランダムネスについてどのように評価したかを説明し、NIST の統計的検定を用いて分かったことを論じ、最後に結果の解釈を示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One of the criteria used to evaluate the Advanced Encryption Standard (AES) candidate algorithms was their demonstrated suitability as random number generators. That is, the evaluation of their outputs utilizing statistical tests should not provide any means by which to computationally distinguish them from truly random sources. The evaluation reported on here focused on 128-bit keys. Future work will address the 192-bit and 256-bit key sizes.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次世代暗号標準（AES）の候補アルゴリズムを評価するために用いられた基準の 1 つは、乱数生成器としての適性が実証されていることでした。すなわち、統計的検定を用いて出力を評価したときに、それらを真にランダムな発生源から計算量的に区別できる手段が得られてはなりません。ここで報告する評価は、128 ビット鍵に焦点を当てました。今後の作業では、192 ビットと 256 ビットの鍵長を扱います。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper lists several characteristics that an encryption algorithm exhibiting random behavior should possess, describes how the output for each candidate algorithm was evaluated for randomness, discusses what has been learned utilizing the NIST statistical tests, and finally provides an interpretation of the results.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本稿は、ランダムな振る舞いを示す暗号アルゴリズムが備えているべき特性をいくつか挙げ、各候補アルゴリズムの出力をランダムネスについてどのように評価したかを説明し、NIST の統計的検定を用いて分かったことを論じ、最後に結果の解釈を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>At least 135 distinct data sets were obtained, analyzed and re-analyzed to ensure accuracy. In all, a total of 226,106,880 128-bit blocks (28,941,680,640 bits) were stored, processed and analyzed. File management and data management for this amount of data was always a major concern.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>少なくとも 135 の異なるデータセットを入手し、精度を確保するために分析と再分析を行いました。全体で、合計 226,106,880 個の 128 ビットブロック（28,941,680,640 ビット）を保存、処理、分析しました。この量のデータに対するファイル管理とデータ管理は、常に大きな懸念事項でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The NIST statistical tests were executed on several platforms in order to manage the volume of data. On many occasions, testing was discontinued due to seemingly non-random behavior. Such behavior could be attributed to any number of factors, which include the data, the data extraction source codes, the cryptographic algorithm source codes, and the statistical tests.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の統計的検定は、データ量を管理するために複数のプラットフォームで実行しました。多くの場合、ランダムでないように見える振る舞いのために、検定を中止しました。そのような振る舞いは、データ、データ抽出のソースコード、暗号アルゴリズムのソースコード、統計的検定など、さまざまな要因に起因し得ます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In Section 2.0, the categories of data are defined and described. In Section 3.0, the empirical results compiled to date are discussed. In Section 4.0, a summary of lessons learned and an interpretation of the test results is presented. Lastly, an appendix that briefly describes the individual statistical tests has been included.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2.0 節では、データの種別を定義し説明します。3.0 節では、これまでにまとめた経験的な結果を論じます。4.0 節では、得られた教訓のまとめと、検定結果の解釈を示します。最後に、個々の統計的検定を簡潔に説明する付録を含めています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. AES Data</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. AES のデータ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fifteen encryption algorithms were selected as candidates for the AES. NIST harnessed and analyzed nine different sets of data for each of these algorithms (135 data sets in all). These data sets were selected because it was believed that they would be useful in evaluating the randomness of cryptographic algorithms. Table 1 highlights these categories of data.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>15 の暗号アルゴリズムが、AES の候補として選ばれました。NIST は、これらのアルゴリズムのそれぞれについて、9 種類の異なるデータセットを利用して分析しました（合計 135 のデータセット）。これらのデータセットは、暗号アルゴリズムのランダムネスを評価するのに役立つと考えられたため、選ばれました。表 1 に、これらのデータの種別を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. Categories of Data</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1. データの種別</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>1. 128-Bit Key Avalanche</td></tr><tr><td>2. Plaintext Avalanche</td></tr><tr><td>3. Plaintext/Ciphertext Correlation</td></tr><tr><td>4. Cipher Block Chaining Mode</td></tr><tr><td>5. Random Plaintext/Random 128-Bit Keys</td></tr><tr><td>6. Low Density Plaintext</td></tr><tr><td>7. Low Density 128-Bit Keys</td></tr><tr><td>8. High Density Plaintext</td></tr><tr><td>9. High Density 128-Bit Keys</td></tr></tbody></table>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>1. 128ビット鍵のアバランシェ</td></tr><tr><td>2. 平文のアバランシェ</td></tr><tr><td>3. 平文と暗号文の相関</td></tr><tr><td>4. 暗号ブロック連鎖モード</td></tr><tr><td>5. ランダムな平文／ランダムな128ビット鍵</td></tr><tr><td>6. 低密度平文</td></tr><tr><td>7. 低密度128ビット鍵</td></tr><tr><td>8. 高密度平文</td></tr><tr><td>9. 高密度128ビット鍵</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 128-Bit Key Avalanche and Plaintext Avalanche</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 128 ビット鍵の Key Avalanche と Plaintext Avalanche</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To examine the sensitivity of individual algorithms to changes in input parameters (i.e., the key or the plaintext), 384 binary sequences were analyzed in each case. In the key avalanche case, 384 sequences (1,048,576 bits per sequence) were parsed from the resulting string, constructed as follows: given 24,576 random 128-bit keys, and a plaintext of all zeroes, 3,145,728 derived blocks were concatenated. Each derived block is based on the XOR of the “ciphertext formed using the fixed plaintext and a random 128-bit key,” and the “ciphertext formed using the fixed plaintext and the perturbed random 128-bit key with the i<sup>th</sup> bit changed, for \(1 \le i \le 128\).” In the case of the plaintext avalanche property, substitute “random plaintext(s)“ for “random 128-bit key(s)” in the above description, “128-bit key of all-zeroes” for “plaintext of all zeroes” and “fixed 128-bit key” for “fixed plaintext.”</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>入力パラメータ（すなわち、鍵または平文）の変化に対する個々のアルゴリズムの感度を調べるため、それぞれのケースで 384 個の 2 値系列を分析しました。Key Avalanche の場合、384 個の系列（1 系列あたり 1,048,576 ビット）は、次のように構成した文字列から切り出しました。24,576 個のランダムな 128 ビット鍵と、すべてゼロの平文が与えられたとき、3,145,728 個の派生ブロックを連結しました。各派生ブロックは、「固定の平文とランダムな 128 ビット鍵を用いて形成した暗号文」と、「固定の平文と、摂動を加えたランダムな 128 ビット鍵を用いて形成した暗号文（\(1 \le i \le 128\) に対して i 番目（i<sup>th</sup>）のビットを変更）」との XOR に基づいています。Plaintext Avalanche 特性の場合は、上記の説明の「ランダムな 128 ビット鍵」を「ランダムな平文」に、「すべてゼロの平文」を「すべてゼロの 128 ビット鍵」に、「固定の平文」を「固定の 128 ビット鍵」に置き換えます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Plaintext/Ciphertext Correlation</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 Plaintext/Ciphertext Correlation</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In order to study the correlation of plaintext/ciphertext pairs, 128 sequences (1,048,576 bits per sequence) were examined for each algorithm. Given a random 128-bit key and 8,128 random plaintext blocks, a binary sequence was constructed concatenating 8,128 derived blocks (where a derived block is the result of applying the XOR operator on the plaintext block and its corresponding ciphertext block computed in the ECB mode).</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>平文と暗号文のペアの相関を調べるため、各アルゴリズムについて 128 個の系列（1 系列あたり 1,048,576 ビット）を検査しました。ランダムな 128 ビット鍵と 8,128 個のランダムな平文ブロックが与えられたとき、8,128 個の派生ブロック（派生ブロックとは、平文ブロックと、ECB モードで計算したそれに対応する暗号文ブロックに XOR 演算子を適用した結果）を連結して、2 値系列を構成しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Using the 8,128 (previously selected) plaintext blocks, the procedure was repeated 127 times, i.e., once for each (additional) random 128-bit key.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>8,128 個の（先に選んだ）平文ブロックを使って、この手順を 127 回、すなわち（追加の）ランダムな 128 ビット鍵ごとに 1 回ずつ繰り返しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3 Cipher Block Chaining Mode</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 Cipher Block Chaining Mode</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Given a random 128-bit key, a 128-bit initialization vector (IV) of all zeroes, and a 128-bit plaintext block (PT) of all zeroes, a binary sequence of 1,048,576 bits was constructed using ciphertext computed in the CBC mode. That is, a binary sequence consisted of 8,192 concatenated 128-bit ciphertext blocks. The first ciphertext block (\(\mathrm{CT}_1\)) is defined by \(\mathrm{CT}_1 = E_k(\mathrm{IV} \oplus \mathrm{PT})\). Subsequent ciphertext blocks were defined by \(\mathrm{CT}_{i+1} = E_k(\mathrm{CT}_i \oplus \mathrm{PT})\) for \(1 \le i \le 8{,}191\). In all, 300 binary sequences were constructed, each with a different random 128-bit key.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ランダムな 128 ビット鍵、すべてゼロの 128 ビットの初期化ベクトル（IV）、およびすべてゼロの 128 ビット平文ブロック（PT）が与えられたとき、CBC モードで計算した暗号文を用いて、1,048,576 ビットの 2 値系列を構成しました。すなわち、2 値系列は、連結した 8,192 個の 128 ビット暗号文ブロックで構成されます。最初の暗号文ブロック（\(\mathrm{CT}_1\)）は、\(\mathrm{CT}_1 = E_k(\mathrm{IV} \oplus \mathrm{PT})\) で定義されます。それ以降の暗号文ブロックは、\(\mathrm{CT}_{i+1} = E_k(\mathrm{CT}_i \oplus \mathrm{PT})\)（\(1 \le i \le 8{,}191\)）で定義されました。全体で 300 個の 2 値系列を構成し、それぞれに異なるランダムな 128 ビット鍵を使いました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4 Random Plaintext/Random 128-Bit Keys</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4 Random Plaintext/Random 128-Bit Keys</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In order to examine the randomness of ciphertext (based on random plaintext and random 128-bit keys), 128 sequences were constructed. Each sequence was a result of the concatenation of 8,128 ciphertext blocks using 8,128 random plaintexts and a random 128-bit key in the ECB mode.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>（ランダムな平文とランダムな 128 ビット鍵に基づく）暗号文のランダムネスを調べるため、128 個の系列を構成しました。各系列は、ECB モードで 8,128 個のランダムな平文とランダムな 128 ビット鍵を使って得た、8,128 個の暗号文ブロックを連結した結果です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.5 Low Density Plaintext and Low Density 128-Bit Keys</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.5 Low Density Plaintext と Low Density 128-Bit Keys</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Two data sets were created based on low-density blocks used as either plaintext or 128-bit keys. Each data set consisted of 128 sequences. Each sequence consisted of 8,257 ciphertext blocks computed in the ECB mode. These ciphertext blocks were formed from one all zero plaintext block (128-bit key), 128 plaintext blocks (128-bit keys) of a single one and 127 zeroes (the one appearing in each of the possible 128 bit positions), and 8,128 plaintext blocks (128-bit keys) of two ones and 126 zeroes (the two ones appearing in each combination of two bit positions within the 128-bit positions).</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>平文または 128 ビット鍵のいずれかとして使う低密度ブロックに基づいて、2 つのデータセットを作成しました。各データセットは 128 個の系列で構成されました。各系列は、ECB モードで計算した 8,257 個の暗号文ブロックで構成されました。これらの暗号文ブロックは、すべてゼロの平文ブロック（128 ビット鍵）1 個、1 が 1 つと 0 が 127 個からなる平文ブロック（128 ビット鍵）128 個（この 1 は、取り得る 128 のビット位置のそれぞれに現れます）、および 1 が 2 つと 0 が 126 個からなる平文ブロック（128 ビット鍵）8,128 個（この 2 つの 1 は、128 のビット位置のうち 2 つのビット位置のあらゆる組み合わせに現れます）から形成しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.6 High Density Plaintext and High Density 128-Bit Keys</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.6 High Density Plaintext と High Density 128-Bit Keys</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Two data sets were created based on high-density blocks used as either plaintext or 128-bit keys. Each data set consisted of 128 sequences. Each sequence consisted of 8,257 ciphertext blocks computed in the ECB mode. These ciphertext blocks were formed from one all ones plaintext block (128-bit key), 128 plaintext blocks (128-bit keys) of a single zero and 127 ones (the zero appearing in each of the possible 128 bit positions), and 8,128 plaintext blocks (128-bit keys) of two zeroes and 126 ones (the two zeroes appearing in each combination of two bit positions within the 128-bit positions).</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>平文または 128 ビット鍵のいずれかとして使う高密度ブロックに基づいて、2 つのデータセットを作成しました。各データセットは 128 個の系列で構成されました。各系列は、ECB モードで計算した 8,257 個の暗号文ブロックで構成されました。これらの暗号文ブロックは、すべて 1 の平文ブロック（128 ビット鍵）1 個、0 が 1 つと 1 が 127 個からなる平文ブロック（128 ビット鍵）128 個（この 0 は、取り得る 128 のビット位置のそれぞれに現れます）、および 0 が 2 つと 1 が 126 個からなる平文ブロック（128 ビット鍵）8,128 個（この 2 つの 0 は、128 のビット位置のうち 2 つのビット位置のあらゆる組み合わせに現れます）から形成しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Empirical Analysis</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 経験的分析</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2 describes the breakdown of the simulation-input parameters per data category. The number of sequences utilized in the samples varied from 128 to 384. Based on earlier experiments conducted on pseudo-random number generators with sequences consisting of 1,000,000 bits, sequences consisting of \(2^{20}\) (i.e., 1,048,576) bits were chosen. In four instances, sequences consisting of 1,056,896 bits were chosen, which corresponded to the number of bits in 8,257 ciphertexts. The number of statistical tests applied varied from 59 to 187. The difference was due to the specification of alternative input parameters such as the number of templates to be used.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2 は、データ種別ごとのシミュレーション入力パラメータの内訳を示しています。標本に用いた系列の数は 128 から 384 までさまざまでした。1,000,000 ビットからなる系列を用いた擬似乱数生成器に対する以前の実験に基づき、\(2^{20}\)（すなわち 1,048,576）ビットからなる系列を選びました。4 つのケースでは、8,257 個の暗号文のビット数に相当する、1,056,896 ビットからなる系列を選びました。適用した統計的検定の数は 59 から 187 までさまざまでした。この違いは、使用するテンプレートの数などの、代替の入力パラメータの指定によるものでした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For each experiment, the significance level was fixed at 0.01, which implies that, ideally, no more than one binary sequence should be rejected for each sample of 100 binary sequences evaluated by a statistical test. However, in all likelihood, any given data set will deviate from this ideal case. A more realistic interpretation is to use a confidence interval (CI) for the “proportion of binary sequences” that should pass at the 0.01 level. Thus, a data set that fails more than 5% of the sequences is flagged as suspect.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各実験で、有意水準は 0.01 に固定しました。これは、理想的には、統計的検定で評価する 2 値系列 100 個の標本ごとに、棄却される 2 値系列は 1 個以下となることを意味します。しかし、実際には、どのデータセットもこの理想的なケースから逸脱する可能性が高いです。より現実的には、有意水準 0.01 で合格するはずの「2 値系列の割合」に対して信頼区間（CI）を用いて解釈します。したがって、系列の 5% を超えて不合格となるデータセットは、疑わしいものとして印を付けます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 2. Breakdown of the Numerical Simulation Input Parameters</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 2. 数値シミュレーション入力パラメータの内訳</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Data Category</th><th>Sample Size/<br>Sequence Length</th><th>Number of<br>Tests Applied</th></tr></thead><tbody><tr><td>128-Bit Key Avalanche</td><td>384/1,048,576</td><td>187</td></tr><tr><td>Plaintext Avalanche</td><td>384/1,048,576</td><td>187</td></tr><tr><td>Plaintext/Ciphertext Correlation</td><td>128/1,048,576</td><td>59</td></tr><tr><td>Cipher Block Chaining Mode</td><td>300/1,048,576</td><td>59</td></tr><tr><td>Random Plaintext/Random 128-Bit Key</td><td>128/1,048,576</td><td>59</td></tr><tr><td>Low Density Plaintext Input</td><td>128/1,056,896</td><td>59</td></tr><tr><td>Low Density 128-Bit Key Input</td><td>128/1,056,896</td><td>59</td></tr><tr><td>High Density Plaintext Input</td><td>128/1,056,896</td><td>59</td></tr><tr><td>High Density 128-Bit Key Input</td><td>128/1,056,896</td><td>59</td></tr></tbody></table>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>データ種別</th><th>標本サイズ/<br>系列長</th><th>適用した<br>検定の数</th></tr></thead><tbody><tr><td>128ビット鍵のアバランシェ</td><td>384/1,048,576</td><td>187</td></tr><tr><td>平文のアバランシェ</td><td>384/1,048,576</td><td>187</td></tr><tr><td>平文と暗号文の相関</td><td>128/1,048,576</td><td>59</td></tr><tr><td>暗号ブロック連鎖モード</td><td>300/1,048,576</td><td>59</td></tr><tr><td>ランダムな平文／ランダムな128ビット鍵</td><td>128/1,048,576</td><td>59</td></tr><tr><td>低密度平文入力</td><td>128/1,056,896</td><td>59</td></tr><tr><td>低密度128ビット鍵入力</td><td>128/1,056,896</td><td>59</td></tr><tr><td>高密度平文入力</td><td>128/1,056,896</td><td>59</td></tr><tr><td>高密度128ビット鍵入力</td><td>128/1,056,896</td><td>59</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 3 highlights the maximum number of binary sequences that are expected to be rejected at the chosen significance level. For example, if the sample consists of 128 sequences, the rejection rate should not exceed 4.657, or simply expressed, 4 sequences. The maximum number of rejections was computed using the formula:</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 3 は、選んだ有意水準で棄却されると予想される 2 値系列の最大数を示しています。たとえば、標本が 128 個の系列で構成される場合、棄却率は 4.657 を超えないはずであり、単純に表すと 4 系列です。棄却の最大数は、次の式で計算しました。</p>        </div>
+      </section>
+      <section class="row pair math" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+\[ s\left(\alpha + 3\sqrt{\frac{\alpha(1-\alpha)}{s}}\right), \]
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+\[ s\left(\alpha + 3\sqrt{\frac{\alpha(1-\alpha)}{s}}\right), \]        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>where s is the sample size and \(\alpha\) is the significance level.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ここで、s は標本サイズ、\(\alpha\) は有意水準です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 3. Decision Rules for the Determination of Non-Randomness</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 3. ランダムでないことを判定するための決定規則</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>Number of Sequences</th><th>Significance Level<br>\(\alpha = 0.01\)</th><th>Significance Level<br>\(\alpha = 0.01\) with CI</th></tr></thead><tbody><tr><td>128</td><td>1.28</td><td>4.657</td></tr><tr><td>300</td><td>3.00</td><td>8.170</td></tr><tr><td>384</td><td>3.84</td><td>9.689</td></tr></tbody></table>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>系列の数</th><th>有意水準<br>\(\alpha = 0.01\)</th><th>信頼区間（CI）を用いた有意水準<br>\(\alpha = 0.01\)</th></tr></thead><tbody><tr><td>128</td><td>1.28</td><td>4.657</td></tr><tr><td>300</td><td>3.00</td><td>8.170</td></tr><tr><td>384</td><td>3.84</td><td>9.689</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Based on the current version of the NIST statistical tests, each of the algorithms was evaluated. Those algorithms that did not demonstrate deviation from randomness include CAST-256, DFC, E2, LOKI-97, MAGENTA, MARS, RIJNDAEL, SAFER+, and SERPENT. The remaining algorithms appeared to have displayed<sup>1</sup> deviation from randomness. A case by case description follows.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST の統計的検定の現行版に基づいて、各アルゴリズムを評価しました。ランダムネスからの逸脱を示さなかったアルゴリズムは、CAST-256、DFC、E2、LOKI-97、MAGENTA、MARS、RIJNDAEL、SAFER+、SERPENT です。残りのアルゴリズムは、ランダムネスからの逸脱を示した<sup>1</sup>ように見えました。以下に個別のケースを説明します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>CRYPTON</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+CRYPTON</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) 128-Bit Key Avalanche: Preliminary analysis suggests too many rejections of the 001001111 non-periodic template. A total of 11 rejections was reported when the expected number should be no more than 9.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) 128-Bit Key Avalanche: 予備的な分析は、001001111 の非周期テンプレートの棄却が多すぎることを示唆しています。予想される数は 9 以下であるはずのところ、合計 11 個の棄却が報告されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(b) Random Plaintext/Random 128-Bit Keys: Preliminary analysis suggests a problem given an excessive number of visits to the states x = -3 and x = -4 in the random excursion test. In both instances, there were 4 rejections out of 76 sequences processed when the expected number should be no more than 3.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(b) Random Plaintext/Random 128-Bit Keys: 予備的な分析は、ランダムエクスカーション検定で状態 x = -3 と x = -4 への訪問回数が過度に多いことから、問題があることを示唆しています。どちらの場合も、処理した 76 個の系列のうち 4 個が棄却されましたが、予想される数は 3 以下であるはずです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>DEAL</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+DEAL</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) Random Plaintext/Random 128-Bit Keys: Preliminary analysis suggests a problem given an excessive number of visits to the state x = +2 in the random excursions test. In this instance, there were 4 rejections out of the 76 sequences processed when the expected number should be no more than 3.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) Random Plaintext/Random 128-Bit Keys: 予備的な分析は、ランダムエクスカーション検定で状態 x = +2 への訪問回数が過度に多いことから、問題があることを示唆しています。この場合、処理した 76 個の系列のうち 4 個が棄却されましたが、予想される数は 3 以下であるはずです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>FROG</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+FROG</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) Low Density 128-Bit Keys: Preliminary analysis suggests a problem given an excessive number of visits to the state x = +3 in the random excursions test. In this instance, there were 4 rejections out of the 71 sequences processed when the expected number should be no more than 3.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) Low Density 128-Bit Keys: 予備的な分析は、ランダムエクスカーション検定で状態 x = +3 への訪問回数が過度に多いことから、問題があることを示唆しています。この場合、処理した 71 個の系列のうち 4 個が棄却されましたが、予想される数は 3 以下であるはずです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>HPC</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+HPC</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) 128-Bit Key Avalanche: Preliminary analysis suggests that this algorithm dramatically fails many statistical tests. The specific tests that rejected the sample of 384 sequences follows, with the number of sequences rejected specified in parenthesis (in each case, the expected number of rejections should not exceed 9): frequency (75), block frequency (91), cumulative sum forward (71), cumulative sum reverse (75), runs (77), rank (29), universal statistical (92), approximate entropy (92), and Lempel-Ziv complexity (91). It has been determined that 1 in 256 (128-bit) keys is an equivalent key<sup>2</sup>. NIST’s experiments support this theoretical finding. Clearly, a rejection of 23.96% in one test (the largest rejection by any statistical test) is far too large. Hence, this algorithm failed, given the statistically significant results at the 0.01 level.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) 128-Bit Key Avalanche: 予備的な分析は、このアルゴリズムが多くの統計的検定で劇的に不合格となることを示唆しています。384 個の系列の標本を棄却した具体的な検定を、棄却された系列の数を括弧内に示して次に挙げます（いずれの場合も、棄却の予想される数は 9 を超えないはずです）。frequency (75)、block frequency (91)、cumulative sum forward (71)、cumulative sum reverse (75)、runs (77)、rank (29)、universal statistical (92)、approximate entropy (92)、Lempel-Ziv complexity (91) です。256 個に 1 個の（128 ビットの）鍵が等価鍵<sup>2</sup>であることが判明しています。NIST の実験は、この理論的な知見を裏付けています。1 つの検定で 23.96%（いずれの統計的検定による棄却でも最大）が棄却されるのは、明らかに大きすぎます。したがって、このアルゴリズムは、0.01 の水準で統計的に有意な結果が得られたことから、不合格となりました。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0006-b0011" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup> For example, the random excursion test and the random excursion variant test only apply whenever the number of cycles exceeds 500. If a sample has sequences with cycles fewer than 500, then they will not be evaluated by the random excursion tests, and thus the proportion of applicable sequences will be reduced (by as much as 42%). In this event, a small sample size may incorrectly suggest deviation from randomness. Whenever applicable, the actual sample size processed (for these two tests) is indicated in parentheses in the next section. It is important to keep in mind that only one sample was constructed for each algorithm and data category. In the unlikely event that a poor sample is observed, additional experimentation is warranted.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=6">原本 PDF p.6</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup> たとえば、ランダムエクスカーション検定とランダムエクスカーションバリアント検定は、サイクル数が 500 を超える場合にのみ適用されます。標本の中にサイクル数が 500 未満の系列がある場合、それらはランダムエクスカーション検定では評価されないため、適用可能な系列の割合は（最大 42% まで）減少します。この場合、標本サイズが小さいと、ランダムネスからの逸脱が誤って示唆される場合があります。該当する場合は、（これら 2 つの検定で）実際に処理された標本サイズを、次節の括弧内に示しています。アルゴリズムとデータ種別ごとに、標本は 1 つしか構成していないことに留意することが重要です。標本が不良であると観測される可能性は低いものの、その場合は追加の実験が必要です。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>RC6</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+RC6</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) 128-Bit Key Avalanche: Preliminary analysis suggests that there were too many rejections for the non-periodic templates test. There were three templates (01011011, 010111011, 110001010) which rejected 10, 10, and 11 binary sequences respectively. The expected number of rejections should not exceed 9.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) 128-Bit Key Avalanche: 予備的な分析は、非周期テンプレート検定で棄却が多すぎたことを示唆しています。3 つのテンプレート（01011011、010111011、110001010）が、それぞれ 10 個、10 個、11 個の 2 値系列を棄却しました。棄却の予想される数は 9 を超えないはずです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(b) High Density Plaintext: Preliminary analysis suggests a problem given 6 rejections for both the frequency test, and the cumulative sum forward test. The expected number of rejections should not exceed 4.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(b) High Density Plaintext: 予備的な分析は、frequency 検定と cumulative sum forward 検定の両方で 6 個の棄却があったことから、問題があることを示唆しています。棄却の予想される数は 4 を超えないはずです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>TWOFISH</h4>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+TWOFISH</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(a) Random Plaintext/Random 128-Bit Keys: Preliminary analysis suggests a problem given an excessive number of visits to the state x = +9 in the random excursions variant test. In this instance there were 4 rejections out of the 83 sequences processed when the expected number should not exceed 3.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(a) Random Plaintext/Random 128-Bit Keys: 予備的な分析は、ランダムエクスカーションバリアント検定で状態 x = +9 への訪問回数が過度に多いことから、問題があることを示唆しています。この場合、処理した 83 個の系列のうち 4 個が棄却されましたが、予想される数は 3 を超えないはずです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>(b) Low Density Plaintext: Preliminary analysis seems to indicate sensitivity to the cumulative sums forward test. The total number of rejections was 7, which represents over 5% of the sample. The expected number of rejections should not exceed 4.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>(b) Low Density Plaintext: 予備的な分析は、cumulative sums forward 検定に対する感度があることを示しているようです。棄却の総数は 7 個で、標本の 5% を超えています。棄却の予想される数は 4 を超えないはずです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Conclusion</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>During round one testing, numerous statistical tests were applied on 135 sets of data, which collectively span many well-known properties that any good cryptographic algorithm should satisfy. These properties include any detectable correlation between plaintext/ciphertext pairs, any detectable bias due to single bit changes to either a plaintext or a 128-bit key, in addition to many others.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>第 1 ラウンドの検定では、135 組のデータに多数の統計的検定を適用しました。これらは全体として、優れた暗号アルゴリズムが満たすべき多くのよく知られた性質を網羅しています。これらの性質には、平文と暗号文のペアの間に検出可能な相関がないこと、平文または 128 ビット鍵の 1 ビットの変化に起因する検出可能な偏りがないことなどが含まれ、そのほかにも多くあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It appears that the HPC algorithm is non-random given the statistically significant results obtained at the 0.01 level for the 128-bit key avalanche data set. Unfortunately, the results for five algorithms, Crypton<sup>3</sup>, DEAL<sup>4</sup>, Frog<sup>5</sup>, RC6<sup>6</sup> and Twofish<sup>7</sup> are inconclusive. Although preliminary testing suggests minor deviations from randomness<sup>8</sup> for these five algorithms, one sample alone cannot provide sufficient evidence. In each case more samples should be evaluated to determine whether statistically significant results are consistently present.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>HPC アルゴリズムは、128 ビット鍵の Key Avalanche データセットで 0.01 の水準で統計的に有意な結果が得られたことから、ランダムでないように見えます。残念ながら、5 つのアルゴリズム、Crypton<sup>3</sup>、DEAL<sup>4</sup>、Frog<sup>5</sup>、RC6<sup>6</sup>、Twofish<sup>7</sup> の結果は、結論に至りません。予備的な検定は、これら 5 つのアルゴリズムにランダムネスからのわずかな逸脱<sup>8</sup>があることを示唆していますが、標本が 1 つだけでは十分な証拠にはなりません。いずれの場合も、統計的に有意な結果が一貫して存在するかどうかを判定するために、より多くの標本を評価すべきです。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0011" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup> Carl D&#x27;Halluin, Gert Bijnens, Bart Preneel, Vincent Rijmen, “Equivalent Keys of HPC,” Katholieke Universiteit Leuven, ESAT-COSIC, 4/8/99.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup> Carl D&#x27;Halluin, Gert Bijnens, Bart Preneel, Vincent Rijmen, “Equivalent Keys of HPC,” Katholieke Universiteit Leuven, ESAT-COSIC, 4/8/99.        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0012" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>3</sup> The 128-bit key avalanche and random plaintext/random 128-bit key data sets.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>3</sup> 128-bit key avalanche と random plaintext/random 128-bit key のデータセットです。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>4</sup> The random plaintext/random 128-bit keys data set.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>4</sup> random plaintext/random 128-bit keys のデータセットです。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0014" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>5</sup> The low density 128-bit keys data set.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>5</sup> low density 128-bit keys のデータセットです。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0015" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>6</sup> The 128-bit key avalanche and high-density plaintext data set.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>6</sup> 128-bit key avalanche と high-density plaintext のデータセットです。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0016" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>7</sup> The random plaintext/random 128-bit keys and low-density plaintext data set.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>7</sup> random plaintext/random 128-bit keys と low-density plaintext のデータセットです。        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It is worth noting that the specific statistical tests that predominantly flagged several algorithms as suspect were the cumulative sums (cusum) test and the random excursion test. To further evaluate the cusum test, extensive simulations were conducted on the SHA-1 generator and the Twofish algorithm. The results suggest that data flagged as non-random for the Twofish and RC6 algorithms should be treated as statistical anomalies. Similarly, due to the natural filtering process for the random excursion test, small sample sizes may incorrectly lead one to commit a type I error, i.e., labeling data as nonrandom when it truly appears to be random.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>いくつかのアルゴリズムを疑わしいものとして主に指摘した具体的な統計的検定は、累積和（cusum）検定とランダムエクスカーション検定であったことは注目に値します。cusum 検定をさらに評価するため、SHA-1 生成器と Twofish アルゴリズムに対して大規模なシミュレーションを実施しました。その結果は、Twofish と RC6 のアルゴリズムでランダムでないと指摘されたデータは、統計的な異常として扱うべきであることを示唆しています。同様に、ランダムエクスカーション検定の自然なフィルタリング過程のため、標本サイズが小さいと、第一種の過誤、すなわち、データが真にランダムに見えるときにランダムでないとラベル付けする誤りを犯す場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For all of the remaining algorithms: CAST-256, DFC, E2, LOKI97, MAGENTA, MARS, RIJNDAEL, SAFER+, and SERPENT, the results to date suggest that there is no deviation from randomness.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>残りのすべてのアルゴリズム、すなわち CAST-256、DFC、E2、LOKI97、MAGENTA、MARS、RIJNDAEL、SAFER+、SERPENT については、これまでの結果は、ランダムネスからの逸脱がないことを示唆しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Acknowledgments</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+謝辞</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In particular, I would like to acknowledge the efforts of the RNG Technical Working Group, especially Dr. Andrew Rukhin who derived the statistical tests and Dr. Jim Nechvatal who proposed the categories of data to be analyzed. Additionally, I’d like to express my gratitude to Larry Bassham, Sharon Keller, Neil Molino and Murugiah Souppaya who have always provided their technical assistance.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特に、RNG Technical Working Group の尽力に感謝いたします。とりわけ、統計的検定を導出した Dr. Andrew Rukhin と、分析するデータの種別を提案した Dr. Jim Nechvatal に感謝いたします。さらに、常に技術的な支援を提供してくださった Larry Bassham、Sharon Keller、Neil Molino、Murugiah Souppaya に感謝の意を表します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] William Caelli, et. al., Crypt X Package Documentation, Information Security Research Centre and School of Mathematics, Queensland University of Technology, 1992.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] William Caelli, et. al., Crypt X Package Documentation, Information Security Research Centre and School of Mathematics, Queensland University of Technology, 1992.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] Carl D&#x27;Halluin, et. al., “Equivalent Keys of HPC,” Katholieke Universiteit Leuven, ESAT-COSIC, April 1999.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] Carl D&#x27;Halluin, et. al., “Equivalent Keys of HPC,” Katholieke Universiteit Leuven, ESAT-COSIC, April 1999.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Helen Gustafson, et. al., &quot;A computer package for measuring the strength of encryption algorithms,&quot; Computers &amp; Security, Volume 13, pp. 687-697, 1994.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Helen Gustafson, et. al., &quot;A computer package for measuring the strength of encryption algorithms,&quot; Computers &amp; Security, Volume 13, pp. 687-697, 1994.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] Alfred Menezes, et. al., Handbook of Applied Cryptography, CRC Press, 1997.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] Alfred Menezes, et. al., Handbook of Applied Cryptography, CRC Press, 1997.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] Andrew Rukhin, et. al., &quot;A Statistical Test Suite for the Validation of Cryptographic Random Number Generators,&quot; NIST Computer Security Division/Statistical Engineering Division Internal Document, September 1999.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] Andrew Rukhin, et. al., &quot;A Statistical Test Suite for the Validation of Cryptographic Random Number Generators,&quot; NIST Computer Security Division/Statistical Engineering Division Internal Document, September 1999.</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0008-b0012" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>8</sup> In the interest of foregoing analyzing hundreds or thousands of samples (for a particular algorithm and specific data type), the empirical rule, described in section 3.0, was introduced.<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=8">原本 PDF p.8</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>8</sup> 特定のアルゴリズムと特定のデータ種別について、数百から数千の標本を分析することを控えるため、3.0 節で説明した経験則を導入しました。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix: Description of the Statistical Tests</h3>
+<div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録: 統計的検定の説明</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Frequency Test: The purpose of this test is to determine whether the number of ones and zeros in a sequence are approximately the same as would be expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Frequency Test: この検定の目的は、系列中の 1 と 0 の数が、真にランダムな系列で期待される数とほぼ同じかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Block Frequency Test: The purpose of this test is to determine whether the frequency of m-bit blocks in a sequence appears as often as would be expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Block Frequency Test: この検定の目的は、系列中の m ビットブロックの頻度が、真にランダムな系列で期待されるのと同じ頻度で現れるかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Cumulative Sums Forward (Reverse) Test: The purpose of this test is to determine whether the maximum of the cumulative sums in a sequence is too large or too small; indicative of too many ones or zeroes in the early (late) stages.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Cumulative Sums Forward (Reverse) Test: この検定の目的は、系列中の累積和の最大値が大きすぎるか小さすぎるかを判定することです。これは、前（後）の段階で 1 または 0 が多すぎることを示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Runs Test: The purpose of this test is to determine whether the number of runs of ones and zeros of various lengths is as expected for a random sequence. In particular, this test determines whether the oscillation between such substrings is too fast or too slow.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Runs Test: この検定の目的は、さまざまな長さの 1 と 0 のランの数が、ランダムな系列で期待されるとおりかどうかを判定することです。特にこの検定は、そのような部分文字列の間の振動が速すぎるか遅すぎるかを判定します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Long Runs of Ones Test: The purpose of this test is to determine whether the distribution of long runs of ones agrees with the theoretical probabilities.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Long Runs of Ones Test: この検定の目的は、1 の長いランの分布が理論的な確率と一致するかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Rank Test: The purpose of this test is to determine whether the distribution of the rank of 32x32 bit matrices agrees with the theoretical probabilities.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Rank Test: この検定の目的は、32x32 ビット行列のランクの分布が理論的な確率と一致するかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Spectral (Discrete Fourier Transform) Test: The purpose of this test is to determine whether the spectral frequency of the binary sequence agrees with what would be expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Spectral (Discrete Fourier Transform) Test: この検定の目的は、2 値系列のスペクトル周波数が、真にランダムな系列で期待されるものと一致するかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Non-periodic Templates Test: The purpose of this test is to determine whether the number of occurrences for a specified nonperiodic template agrees with the number expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Non-periodic Templates Test: この検定の目的は、指定した非周期テンプレートの出現数が、真にランダムな系列で期待される数と一致するかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Overlapping Template Test: The purpose of this test is to determine whether the number of occurrences for a template of all ones agrees with what is expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Overlapping Template Test: この検定の目的は、すべて 1 のテンプレートの出現数が、真にランダムな系列で期待される数と一致するかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Universal Statistical Test: The purpose of this test is to determine whether a binary sequence does not compress beyond what is expected of a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Universal Statistical Test: この検定の目的は、2 値系列が、真にランダムな系列で期待される程度を超えて圧縮できないかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Approximate Entropy Test: The purpose of this test is to compare the frequency of overlapping blocks of two consecutive/adjacent lengths (m and m+1) against the expected result for a normally distributed sequence. In short, it determines whether a sequence appears more regular than is expected from a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Approximate Entropy Test: この検定の目的は、連続する（隣り合う）2 つの長さ（m と m+1）の重なるブロックの頻度を、正規分布に従う系列に対して期待される結果と比較することです。要するに、系列が、真にランダムな系列から期待されるよりも規則的に見えるかどうかを判定します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Random Excursion Test: The purpose of this test is to examine the number of cycles within a sequence and determine whether the number of visits to a given state, [-4, -1] and [1, 4], exceeds the expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Random Excursion Test: この検定の目的は、系列内のサイクル数を調べ、与えられた状態 [-4, -1] と [1, 4] への訪問回数が、真にランダムな系列で期待される回数を超えているかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Random Excursion Variant Test: The purpose of this test is to determine if the total number of visits to states, between [-9, -1] and [1, 9] exceeds the expected for a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Random Excursion Variant Test: この検定の目的は、[-9, -1] と [1, 9] の間の状態への訪問の総数が、真にランダムな系列で期待される数を超えているかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Lempel-Ziv Complexity Test: The purpose of this test is to determine whether or not the sequence compresses no more than a truly random sequence.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Lempel-Ziv Complexity Test: この検定の目的は、系列が、真にランダムな系列以上には圧縮されないかどうかを判定することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Linear Complexity Test: The purpose of this test is to determine whether or not the sequence is complex enough to be considered truly random.</p><div class="source-ref"><a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Linear Complexity Test: この検定の目的は、系列が、真にランダムと見なせるほど複雑かどうかを判定することです。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=151193">National Institute of Standards and Technology, IR 6390</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script defer src="vendor/katex/katex.min.js"></script>
+  <script defer src="vendor/katex/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.querySelector("main"), {
+        throwOnError: false,
+        strict: "ignore",
+        maxExpand: 20000,
+        trust: false
+      });
+    });
+  </script>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 6390";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

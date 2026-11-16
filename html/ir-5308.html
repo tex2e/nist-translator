@@ -1,0 +1,1814 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 5308 は、コンピュータセキュリティオブジェクト登録簿（CSOR）を運用するための、オブジェクトに依存しない手順を説明した文書です。コンピュータセキュリティオブジェクト（CSO）とは、コンピュータ化された環境でセキュリティの状態を維持するために使われる、資源、ツール、またはメカニズムの定義または表現です。NIST は、一意の名前で識別される安定したオブジェクト定義を提供するために CSO の登録簿を設立し、これによりセキュリティパラメータとアルゴリズムを曖昧さなく指定できるようになるとしています。手順は ISO/IEC Joint Technical Committee 1 と米国国家規格協会（ANSI）の登録に関するガイドラインに従っており、当初はネットワークセキュリティラベルというオブジェクトのファミリーが登録されます。">
+  <title>コンピュータセキュリティオブジェクトを登録するための一般手順 | NIST IR 5308 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+<label class="toc-show-all"><input type="checkbox" id="toc-show-all"> 深い階層も表示（1 件）</label>    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0004-s1" title="General Procedures for Registering Computer Security Objects" data-search="コンピュータセキュリティオブジェクトを登録するための一般手順 general procedures for registering computer security objects">コンピュータセキュリティオブジェクトを登録するための一般手順</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="Foreword" data-search="まえがき foreword">まえがき</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="Disclaimer" data-search="免責事項 disclaimer">免責事項</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0011-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0002" title="1.0 Introduction" data-search="1.0 はじめに 1.0 introduction">1.0 はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0003" title="1.1 Purpose" data-search="1.1 目的 1.1 purpose">1.1 目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0009" title="1.2 Scope" data-search="1.2 範囲 1.2 scope">1.2 範囲</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0003" title="1.3 Overview" data-search="1.3 概要 1.3 overview">1.3 概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0005" title="2.0 References" data-search="2.0 参考文献 2.0 references">2.0 参考文献</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0014" title="3.0 Definitions and Abbreviations" data-search="3.0 定義と略語 3.0 definitions and abbreviations">3.0 定義と略語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0014-b0015" title="3.1 Definitions" data-search="3.1 定義 3.1 definitions">3.1 定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0018" title="3.2 Abbreviations" data-search="3.2 略語 3.2 abbreviations">3.2 略語</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0001" title="4.0 Registration Authority" data-search="4.0 登録局 4.0 registration authority">4.0 登録局</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0010" title="5.0 Criteria for Eligibility" data-search="5.0 適格性の基準 5.0 criteria for eligibility">5.0 適格性の基準</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0013" title="6.0 Processing of Applications" data-search="6.0 申請の処理 6.0 processing of applications">6.0 申請の処理</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0015" title="6.1 Application for Registration" data-search="6.1 登録の申請 6.1 application for registration">6.1 登録の申請</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0004" title="6.2 Review of Application" data-search="6.2 申請の審査 6.2 review of application">6.2 申請の審査</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0018-b0002" title="6.3 Assignment of CSO Names" data-search="6.3 cso 名の割り当て 6.3 assignment of cso names">6.3 CSO 名の割り当て</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0001" title="7.0 Maintenance of the Register" data-search="7.0 登録簿の保守 7.0 maintenance of the register">7.0 登録簿の保守</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0009" title="8.0 Supplemental Services" data-search="8.0 補足サービス 8.0 supplemental services">8.0 補足サービス</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0011" title="8.1 Register Inquiry" data-search="8.1 登録簿への照会 8.1 register inquiry">8.1 登録簿への照会</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0001" title="8.2 Register Publication" data-search="8.2 登録簿の刊行 8.2 register publication">8.2 登録簿の刊行</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0004" title="9.0 Fees" data-search="9.0 手数料 9.0 fees">9.0 手数料</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0006" title="9.1 Registration Fee" data-search="9.1 登録手数料 9.1 registration fee">9.1 登録手数料</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0008" title="9.2 Inquiry Fee" data-search="9.2 照会手数料 9.2 inquiry fee">9.2 照会手数料</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0010" title="9.3 Publication Fee" data-search="9.3 刊行手数料 9.3 publication fee">9.3 刊行手数料</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0021-b0001" title="APPENDIX A - REGISTRATION AUTHORITY" data-search="付録 a - 登録局 appendix a - registration authority">付録 A - 登録局</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0022-b0001" title="APPENDIX B - INFORMATION REQUESTS AND NOTICES" data-search="付録 b - 情報の要求と通知 appendix b - information requests and notices">付録 B - 情報の要求と通知</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0004" title="B.1 Request for Registration Application" data-search="b.1 登録申請の請求 b.1 request for registration application">B.1 登録申請の請求</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0012" title="B.2 Registration Application Acknowledgement" data-search="b.2 登録申請の受領通知 b.2 registration application acknowledgement">B.2 登録申請の受領通知</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0022-b0018" title="B.3 Rejection of Application Notice" data-search="b.3 申請却下の通知 b.3 rejection of application notice">B.3 申請却下の通知</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0023-b0004" title="B.4 Registration Notice" data-search="b.4 登録通知 b.4 registration notice">B.4 登録通知</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0023-b0011" title="B.5 Inquiry Request" data-search="b.5 照会の要求 b.5 inquiry request">B.5 照会の要求</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0024-b0001" title="B.6 Inquiry Response" data-search="b.6 照会への回答 b.6 inquiry response">B.6 照会への回答</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0025-b0001" title="APPENDIX C - REGISTRATION REQUIREMENTS FOR SECURITY LABELS" data-search="付録 c - セキュリティラベルの登録要件 appendix c - registration requirements for security labels">付録 C - セキュリティラベルの登録要件</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0025-b0005" title="C.1 Required Information" data-search="c.1 必要な情報 c.1 required information">C.1 必要な情報</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0025-b0006" title="C.1.1 Applicant Information" data-search="c.1.1 申請者の情報 c.1.1 applicant information">C.1.1 申請者の情報</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0025-b0008" title="C.1.2 General Tag Set Information" data-search="c.1.2 一般的なタグ集合の情報 c.1.2 general tag set information">C.1.2 一般的なタグ集合の情報</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0025-b0013" title="C.1.3 Tag-Specific Information" data-search="c.1.3 タグ固有の情報 c.1.3 tag-specific information">C.1.3 タグ固有の情報</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0026-b0017" title="C.1.4 Security Object Usage Rules and Handling Instructions" data-search="c.1.4 セキュリティオブジェクトの使用規則と取り扱い手順 c.1.4 security object usage rules and handling instructions">C.1.4 セキュリティオブジェクトの使用規則と取り扱い手順</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0026-b0019" title="C.2 Security Tag Registration Rules" data-search="c.2 セキュリティタグの登録規則 c.2 security tag registration rules">C.2 セキュリティタグの登録規則</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0027-b0001" title="C.2.1 Special Rules for Bit Map Tags" data-search="c.2.1 ビットマップタグの特別規則 c.2.1 special rules for bit map tags">C.2.1 ビットマップタグの特別規則</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0027-b0005" title="C.2.2 Special Rules for Enumerated Tags" data-search="c.2.2 列挙タグの特別規則 c.2.2 special rules for enumerated tags">C.2.2 列挙タグの特別規則</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0027-b0008" title="C.2.3 Special Rules for Range Tags" data-search="c.2.3 範囲タグの特別規則 c.2.3 special rules for range tags">C.2.3 範囲タグの特別規則</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0027-b0011" title="C.2.4 Special Rules for Free Form Tags" data-search="c.2.4 自由形式タグの特別規則 c.2.4 special rules for free form tags">C.2.4 自由形式タグの特別規則</a>
+      <a class="toc-item toc-depth-4" href="#pdf-p0028-b0001" title="APPENDIX D - OBJECT-SPECIFIC REGISTRATION INFORMATION" data-search="付録 d - オブジェクト固有の登録情報 appendix d - object-specific registration information">付録 D - オブジェクト固有の登録情報</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 5308 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">General Procedures for Registering Computer Security Objects</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>コンピュータセキュリティオブジェクトを登録するための一般手順</strong></span><br><span class="doc-panel-item">公開日 : 1993-12-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/5308/final">https://csrc.nist.gov/pubs/ir/5308/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 193 / 193 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 5308 は、コンピュータセキュリティオブジェクト登録簿（CSOR）を運用するための、オブジェクトに依存しない手順を説明した文書です。コンピュータセキュリティオブジェクト（CSO）とは、コンピュータ化された環境でセキュリティの状態を維持するために使われる、資源、ツール、またはメカニズムの定義または表現です。NIST は、一意の名前で識別される安定したオブジェクト定義を提供するために CSO の登録簿を設立し、これによりセキュリティパラメータとアルゴリズムを曖昧さなく指定できるようになるとしています。手順は ISO/IEC Joint Technical Committee 1 と米国国家規格協会（ANSI）の登録に関するガイドラインに従っており、当初はネットワークセキュリティラベルというオブジェクトのファミリーが登録されます。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5308</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5308</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>General Procedures for Registering Computer Security Objects</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+コンピュータセキュリティオブジェクトを登録するための一般手順</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Noel A. Nazario<br>Editor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Noel A. Nazario<br>編集者</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>National Computer Systems Laboratory<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>国立コンピュータシステム研究所（NCSL）<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5308</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5308</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>General Procedures for Registering Computer Security Objects</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティオブジェクトを登録するための一般手順</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Noel A. Nazario<br>Editor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Noel A. Nazario<br>編集者</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>National Computer Systems Laboratory<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>国立コンピュータシステム研究所（NCSL）<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>December 1993</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1993年12月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Ronald H. Brown, Secretary<br>TECHNOLOGY ADMINISTRATION<br>Mary L. Good, Under Secretary for Technology<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>Arati Prabhakar, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Ronald H. Brown 長官<br>技術管理局<br>Mary L. Good、商務次官（技術担当）<br>国立標準技術研究所<br>Arati Prabhakar、所長</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>General Procedures for Registering Computer Security Objects</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティオブジェクトを登録するための一般手順</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Foreword</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+まえがき</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The National Institute of Standards and Technology is responsible, under the Computer Security Act of 1987, for the development of standards and guidelines to assure the cost-effective security and privacy of sensitive information in Federal computer systems. In meeting this responsibility, NIST promotes development of commercial products that meet Government security requirements for secure communication. The heterogeneous nature of existing Government systems highlights the need to adhere to standards to foster interoperability among communicating systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所は、1987 年のコンピュータセキュリティ法に基づき、連邦政府のコンピュータシステムにおける機微な情報のセキュリティとプライバシーを費用対効果よく確保するための標準とガイドラインの策定に責任を負っています。この責任を果たすにあたり、NIST は、安全な通信に関する政府のセキュリティ要件を満たす商用製品の開発を促進しています。既存の政府システムが異種混在であることは、通信するシステム間の相互運用性を促進するために、標準に従う必要性を浮き彫りにしています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The use of standards alone does not insure interoperability. Implementations of specific standards may fail to interoperate because they support incompatible sets of options, accept different parameters, or employ incompatible mechanisms. For instance, security standards that rely on cryptographic algorithms to provide a confidentiality service do not usually specify what algorithm to use. Furthermore, some cryptographic algorithms have various modes of operation. To improve chances of interoperability, some implementations handle multiple options. Such implementations require that such options be unambiguously identified and agreed upon by the communicating parties before data can be securely exchanged. The use of a common source for specifications of these optional elements should further interoperability.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>標準を使用するだけでは、相互運用性は保証されません。特定の標準の実装は、互換性のないオプションの集合をサポートしている、異なるパラメータを受け入れる、あるいは互換性のないメカニズムを用いているために、相互運用に失敗する場合があります。たとえば、機密性サービスを提供するために暗号アルゴリズムに依拠するセキュリティ標準は、通常、どのアルゴリズムを使用するかを規定していません。さらに、暗号アルゴリズムには、さまざまな動作モードを持つものがあります。相互運用の可能性を高めるため、一部の実装は複数のオプションを扱います。このような実装では、データを安全に交換できるようになる前に、そのようなオプションが、通信する当事者によって明確に識別され、合意されていることが必要です。これらの任意の要素の仕様について共通の情報源を使用することは、相互運用性をさらに高めるはずです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The elements referred to above are generically known as objects. A Computer Security Object (CSO) is the definition or representation of a resource, tool, or mechanism used to maintain a condition of security in computerized environments. This broad definition covers many elements referred to in standards that are either selected or defined by separate user communities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>上記の要素は、総称してオブジェクトとして知られています。コンピュータセキュリティオブジェクト（CSO）とは、コンピュータ化された環境でセキュリティの状態を維持するために使われる、資源、ツール、またはメカニズムの定義または表現です。この広い定義は、標準で言及される多くの要素を対象とし、それらは別々のユーザーコミュニティによって選択または定義されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is establishing a register for CSOs to provide stable object definitions identified by unique names. The use of this register will enable the unambiguous specification of security parameters and algorithms to be used in secure data exchanges.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、一意の名前で識別される安定したオブジェクト定義を提供するための、CSO の登録簿を設立しています。この登録簿を使用することで、安全なデータ交換で使用するセキュリティパラメータとアルゴリズムを、曖昧さなく指定できるようになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These &quot;General Procedures for Registering Computer Security Objects&quot; describe the object-independent procedures for operating the Computer Security Objects Register (CSOR). The CSOR services organizations and individuals seeking to use a common set of tools and techniques in the area of computer security. The procedures described herein follow guidelines for registration of the ISO/IEC Joint Technical Committee 1 (JTC1) and the American National Standards Institute (ANSI). The CSOR is not associated with a particular standard nor is it recognized by the ISO/IEC at the time of its establishment. In the future, however, NIST may turn the CSOR over to an organization recognized by the ISO/IEC for operation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この「コンピュータセキュリティオブジェクトを登録するための一般手順」は、コンピュータセキュリティオブジェクト登録簿（CSOR）を運用するための、オブジェクトに依存しない手順を説明しています。CSOR は、コンピュータセキュリティの分野で共通のツールと技法の集合を使いたい組織や個人にサービスを提供します。ここで説明する手順は、ISO/IEC Joint Technical Committee 1（JTC1）と米国国家規格協会（ANSI）の登録に関するガイドラインに従っています。CSOR は特定の標準に関連付けられておらず、設立の時点では ISO/IEC によって承認されてもいません。ただし、将来、NIST は、運用を ISO/IEC が承認した組織に引き渡す場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Initially, one family of objects will be registered in the CSOR: network security labels. Other families of security objects that eventually may be registered include cryptographic algorithm modes of operation, security association parameter sets, and authentication techniques. Procedures for registering specific families of objects appear as appendices to this document. Further details and additional appendices will be added by the registration authority as necessary and included in updates to this document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>当初、CSOR には、オブジェクトの 1 つのファミリー、すなわちネットワークセキュリティラベルが登録されます。最終的に登録される可能性のあるセキュリティオブジェクトの他のファミリーには、暗号アルゴリズムの動作モード、セキュリティアソシエーションのパラメータ集合、認証技法があります。特定のオブジェクトのファミリーを登録するための手順は、本書の付録として示されます。さらなる詳細と追加の付録は、必要に応じて登録局によって追加され、本書の更新版に含められます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Disclaimer</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+免責事項</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The registration service described in this document does not provide an endorsement or approval for techniques, algorithms, or products using the specifications maintained. Similarly, there is no explicit or implicit indication of the correctness or suitability of registered computer security objects for any use. Use of the Computer Security Objects Register (CSOR) is not mandatory, although recommended as a tool for achieving interoperability. Conflicts with ownership and/or rights over alpha-numeric object names and specifications must be resolved by applicants prior to the submission of a request for registration. The registration of a security object assigns the applicant no rights over the object or its name and is therefore no absolute proof of ownership. Registered objects and their names may be protected by copyrights and or patents and their use by others than the owner may require special arrangements without the involvement of the Registration Authority. Upon requesting registration, applicants give the Registration Authority permission to reproduce and distribute the names and specifications of all objects.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書で説明する登録サービスは、維持される仕様を用いる技法、アルゴリズム、製品を支持または承認するものではありません。同様に、登録されたコンピュータセキュリティオブジェクトが、いかなる用途に対しても正確または適切であることを、明示的にも暗黙的にも示すものではありません。コンピュータセキュリティオブジェクト登録簿（CSOR）の使用は必須ではありませんが、相互運用性を達成するためのツールとして推奨されます。英数字のオブジェクト名および仕様に関する所有権やその他の権利をめぐる競合は、申請者が登録申請を提出する前に解決しなければなりません。セキュリティオブジェクトの登録は、申請者にそのオブジェクトまたはその名前に対する権利を与えるものではなく、したがって所有権の絶対的な証明ではありません。登録されたオブジェクトとその名前は、著作権または特許、あるいはその両方によって保護されている場合があり、所有者以外による使用には、登録局が関与しない特別な取り決めが必要となる場合があります。登録を要求することにより、申請者は、すべてのオブジェクトの名前と仕様を複製し配布する許可を登録局に与えます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-multi" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0013-b0002">1.0 Introduction</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0003">1.1 Purpose</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0009">1.2 Scope</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0014-b0003">1.3 Overview</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0014-b0005">2.0 References</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0014-b0014">3.0 Definitions and Abbreviations</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0014-b0015">3.1 Definitions</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0015-b0018">3.2 Abbreviations</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0001">4.0 Registration Authority</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0010">5.0 Criteria for Eligibility</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0013">6.0 Processing of Applications</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0016-b0015">6.1 Application for Registration</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0017-b0004">6.2 Review of Application</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0018-b0002">6.3 Assignment of CSO Names</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0001">7.0 Maintenance of the Register</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0009">8.0 Supplemental Services</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0011">8.1 Register Inquiry</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0001">8.2 Register Publication</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0020-b0004">9.0 Fees</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0006">9.1 Registration Fee</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0008">9.2 Inquiry Fee</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0010">9.3 Publication Fee</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0021-b0001">APPENDIX A - REGISTRATION AUTHORITY</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0022-b0001">APPENDIX B - INFORMATION REQUESTS AND NOTICES</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0004">B.1 Request for Registration Application</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0012">B.2 Registration Application Acknowledgement</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0018">B.3 Rejection of Application Notice</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0023-b0004">B.4 Registration Notice</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0023-b0011">B.5 Inquiry Request</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0024-b0001">B.6 Inquiry Response</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0013-b0002">1.0 はじめに</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0003">1.1 目的</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0009">1.2 範囲</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0014-b0003">1.3 概要</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0014-b0005">2.0 参考文献</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0014-b0014">3.0 定義と略語</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0014-b0015">3.1 定義</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0015-b0018">3.2 略語</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0001">4.0 登録局</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0010">5.0 適格性の基準</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0016-b0013">6.0 申請の処理</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0016-b0015">6.1 登録の申請</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0017-b0004">6.2 申請の審査</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0018-b0002">6.3 CSO 名の割り当て</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0001">7.0 登録簿の保守</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0009">8.0 補足サービス</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0011">8.1 登録簿への照会</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0001">8.2 登録簿の刊行</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0020-b0004">9.0 手数料</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0006">9.1 登録手数料</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0008">9.2 照会手数料</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0020-b0010">9.3 刊行手数料</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0021-b0001">付録 A - 登録局</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0022-b0001">付録 B - 情報の要求と通知</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0004">B.1 登録申請書の請求</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0012">B.2 登録申請の受領通知</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0022-b0018">B.3 申請却下の通知</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0023-b0004">B.4 登録通知</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0023-b0011">B.5 照会の要求</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0024-b0001">B.6 照会への回答</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-multi" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0025-b0001">APPENDIX C - REGISTRATION REQUIREMENTS FOR SECURITY LABELS</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0025-b0005">C.1 Required Information</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0006">C.1.1 Applicant Information</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0008">C.1.2 General Tag Set Information</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0013">C.1.3 Tag-Specific Information</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0026-b0017">C.1.4 Security Object Usage Rules and Handling Instructions</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0026-b0019">C.2 Security Tag Registration Rules</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0001">C.2.1 Special Rules for Bit Map Tags</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0005">C.2.2 Special Rules for Enumerated Tags</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0008">C.2.3 Special Rules for Range Tags</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0011">C.2.4 Special Rules for Free Form Tags</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0028-b0001">APPENDIX D - OBJECT-SPECIFIC REGISTRATION INFORMATION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0025-b0001">付録 C - セキュリティラベルの登録要件</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0025-b0005">C.1 必要な情報</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0006">C.1.1 申請者の情報</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0008">C.1.2 一般的なタグ集合の情報</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0025-b0013">C.1.3 タグ固有の情報</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0026-b0017">C.1.4 セキュリティオブジェクトの使用規則と取り扱い手順</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0026-b0019">C.2 セキュリティタグの登録規則</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0001">C.2.1 ビットマップタグの特別規則</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0005">C.2.2 列挙タグの特別規則</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0008">C.2.3 範囲タグの特別規則</a><a class="ptoc-link ptoc-line ptoc-line-depth-3" href="#pdf-p0027-b0011">C.2.4 自由形式タグの特別規則</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0028-b0001">付録 D - オブジェクト固有の登録情報</a></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>General Procedures for Registering Computer Security Objects</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティオブジェクトを登録するための一般手順</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1.0 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1.0 はじめに</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1 Purpose</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1 目的</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Increasingly, the establishment and use of standards in the field of Open Systems Communications is based on the use of information objects that are unambiguously identifiable. To meet this requirement, ISO/IEC JTC1 has established a hierarchical structure (a tree) of Registration Authorities. This tree is the basis for a naming methodology that assures that an object may be unambiguously identified. Unique names are constructed by concatenating name components along the path from the root to the registered object. Each name component is guaranteed to be unique within each Registration Authority’s structure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>オープンシステム通信の分野における標準の確立と使用は、曖昧さなく識別できる情報オブジェクトの使用に、ますます基づくようになっています。この要件を満たすため、ISO/IEC JTC1 は、登録局の階層構造（ツリー）を確立しました。このツリーは、オブジェクトを曖昧さなく識別できることを保証する命名方法論の基礎です。一意の名前は、ルートから登録されたオブジェクトまでの経路に沿って、名前の構成要素を連結することで構成されます。各名前の構成要素は、各登録局の構造内で一意であることが保証されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ISO/IEC has designated the American National Standards Institute (ANSI) as the National Body organization to be the top level Registration Authority in the U.S. This document is based on the document, Procedures for Registering Organizational Names in the United States of America [1]. That document defines the procedures under which the U.S. Registration Authority operates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ISO/IEC は、米国における最上位の登録局となる国家機関として、米国国家規格協会（ANSI）を指定しました。本書は、Procedures for Registering Organizational Names in the United States of America [1] という文書に基づいています。その文書は、米国の登録局が運営される手順を定義しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The primary purpose of this register is to specify names that uniquely identify Computer Security Objects (CSOs). Unique names can be used to reference objects during the negotiation of security services for a transaction or application. The register is also a repository of parameters associated with the registered object.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この登録簿の主な目的は、コンピュータセキュリティオブジェクト（CSO）を一意に識別する名前を指定することです。一意の名前は、トランザクションやアプリケーションのためのセキュリティサービスの交渉の際に、オブジェクトを参照するために使用できます。登録簿は、登録されたオブジェクトに関連付けられたパラメータの保管庫でもあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Some CSOs cannot accommodate the size requirements of hierarchical names. Such CSOs require the use of fixed-length numeric names. To insure the uniqueness of numeric names assigned from such flat numbering space it is necessary to coordinate the assignment of names among the various registration authorities. The CSOR will provide such coordination by serving as the central clearing house for numeric names within shared numbering spaces.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CSO の中には、階層的な名前のサイズ要件に対応できないものがあります。このような CSO では、固定長の数値の名前を使う必要があります。このようなフラットな番号空間から割り当てられる数値の名前の一意性を確実にするには、さまざまな登録局の間で名前の割り当てを調整する必要があります。CSOR は、共有される番号空間内の数値の名前について、中央の交換機関として機能することで、そのような調整を提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2 Scope</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2 範囲</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document defines the principles of operation for the CSO Registration Authority. It establishes the role and responsibilities of both the Registration Authority and the applicant. Specifically, the procedures outlined in this document:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、CSO 登録局の運用原則を定義します。登録局と申請者の双方の役割と責任を定めます。具体的には、本書で概説する手順は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) limit the role of this Registration Authority to an administrative role;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) この登録局の役割を、管理上の役割に限定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) describe the way in which applications for registration of Computer Security Objects are handled, including mechanisms for assuring the assignment of unique names at this level in the hierarchy;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 階層のこのレベルでの一意の名前の割り当てを保証するメカニズムを含め、コンピュータセキュリティオブジェクトの登録申請の取り扱い方法を説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) specify the syntax of names assigned by this Registration Authority;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) この登録局が割り当てる名前の構文を規定します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) provide for the assignment of Computer Security Object names</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) コンピュータセキュリティオブジェクトの名前の割り当てを規定します</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3 Overview</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3 概要</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Authority provides unique Computer Security Object (CSO) name values in two forms: numeric and alphanumeric. The Registration Authority generates the unique numeric name value. The unique value in the alphanumeric name form may be requested by the applicant, but is assigned by the Registration Authority. These two values are associated with the same object.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局は、一意のコンピュータセキュリティオブジェクト（CSO）の名前の値を、数値と英数字の 2 つの形式で提供します。一意の数値の名前の値は、登録局が生成します。英数字の名前の形式における一意の値は、申請者が要求できますが、割り当てるのは登録局です。これら 2 つの値は、同じオブジェクトに関連付けられます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2.0 References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2.0 参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] ANSI Procedures for Registering Organizational Names in the United States of America, ISSB 989 Rev. 2, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] ANSI Procedures for Registering Organizational Names in the United States of America, ISSB 989 Rev. 2, 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] FIPS PUB 1-2 Code for Information Interchange, its Representations, Subsets, and Extensions, 1984.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] FIPS PUB 1-2 Code for Information Interchange, its Representations, Subsets, and Extensions, 1984.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] International Organization for Standardization (ISO), &quot;Information Technology - Open Systems Interconnection - Specification of Abstract Syntax Notation One (ASN.1),&quot; ISO/IEC 8824, 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] International Organization for Standardization (ISO), &quot;Information Technology - Open Systems Interconnection - Specification of Abstract Syntax Notation One (ASN.1),&quot; ISO/IEC 8824, 1990.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] ISO/IEC JTC1 N820 Guidelines for Procedure Standards for JTC1 Registration Authorities, 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] ISO/IEC JTC1 N820 Guidelines for Procedure Standards for JTC1 Registration Authorities, 1990.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3.0 Definitions and Abbreviations</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3.0 定義と略語</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 Definitions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 定義</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>applicant: An entity (organization or individual) that requests the assignment of a name from a Registration Authority [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請者（applicant）: 登録局に名前の割り当てを要求する主体（組織または個人）[4]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>computer security object: Information object used to maintain a condition of security in computerized environments. Examples are: representations of computer or communications systems resources, security label semantics, modes of operation for cryptographic algorithms, and one-way hashing functions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティオブジェクト（computer security object）: コンピュータ化された環境でセキュリティの状態を維持するために使われる情報オブジェクト。たとえば、コンピュータまたは通信システムの資源の表現、セキュリティラベルの意味論、暗号アルゴリズムの動作モード、一方向ハッシュ関数があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>information object: A well-defined piece of information, definition, or specification that requires a name to identify its use in an instance of communication [3].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>情報オブジェクト（information object）: 通信の 1 つの事例における用途を識別するために名前を必要とする、明確に定義された情報、定義、または仕様の一部 [3]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>name: A unique identifier associated with a registered object. This register assigns two of names, a numeric name and an alpha-numeric name, to each object.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>名前（name）: 登録されたオブジェクトに関連付けられた一意の識別子。この登録簿は、各オブジェクトに、数値の名前と英数字の名前という 2 種類の名前を割り当てます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>object identifier: A value (distinguishable from all other such values) that is associated with an information object [3].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>オブジェクト識別子（object identifier）: 情報オブジェクトに関連付けられた（他のすべての同様の値と区別できる）値 [3]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>register: A set of records (paper, electronic, or a combination) maintained by a Registration Authority containing assigned names and the associated information [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録簿（register）: 割り当てられた名前と関連情報を含み、登録局が維持する（紙、電子、またはその組み合わせの）記録の集合 [4]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>registration: The assignment of a name to an object [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録（registration）: オブジェクトへの名前の割り当て [4]。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Registration Authority: An organization approved by ISO/IEC for performing registration [4].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局（Registration Authority）: 登録を実施するものとして ISO/IEC に承認された組織 [4]。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Abbreviations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 略語</h4>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0015-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><tbody><tr><td>ANSI</td><td>American National Standards Institute</td></tr><tr><td>ASN.1</td><td>Abstract Syntax Notation One [3]</td></tr><tr><td>CSO</td><td>Computer Security Object</td></tr><tr><td>CSOR</td><td>Computer Security Objects Register</td></tr><tr><td>IEC</td><td>International Electrotechnical Commission</td></tr><tr><td>ISO</td><td>International Organization for Standardization</td></tr><tr><td>JTC1</td><td>Joint Technical Committee 1</td></tr><tr><td>OSI</td><td>Open Systems Interconnection</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><tbody><tr><td>ANSI</td><td>米国規格協会</td></tr><tr><td>ASN.1</td><td>抽象構文記法1 [3]</td></tr><tr><td>CSO</td><td>コンピュータセキュリティオブジェクト</td></tr><tr><td>CSOR</td><td>コンピュータセキュリティオブジェクト登録簿</td></tr><tr><td>IEC</td><td>国際電気標準会議</td></tr><tr><td>ISO</td><td>国際標準化機構</td></tr><tr><td>JTC1</td><td>第1合同技術委員会</td></tr><tr><td>OSI</td><td>開放型システム間相互接続</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4.0 Registration Authority</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4.0 登録局</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Authority (see Appendix A) maintains a register of Computer Security Objects known as the CSO Register. The Registration Authority assures that registration requests conform to the registration procedures. The Registration Authority, however, does not evaluate or make any judgement of the quality of protection provided by the registered object.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局（付録 A を参照）は、CSO 登録簿として知られるコンピュータセキュリティオブジェクトの登録簿を維持します。登録局は、登録要求が登録手順に適合していることを保証します。ただし、登録局は、登録されたオブジェクトが提供する保護の品質を評価したり、判断したりすることはありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Authority performs the following functions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局は、次の機能を実行します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) reviews, then accepts or rejects registration requests in accordance with the rules provided,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 定められた規則に従って、登録要求を審査し、受理または却下します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) assigns names to CSOs,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) CSO に名前を割り当てます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) adds or modifies register entries in accordance with the rules provided,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 定められた規則に従って、登録簿のエントリを追加または変更します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) provides copies of the register or information from the register.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 登録簿の写し、または登録簿の情報を提供します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5.0 Criteria for Eligibility</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5.0 適格性の基準</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Any organization or individual (i.e., applicant), U.S. or foreign, may request the Registration Authority to register Computer Security Objects provided that the applicant demonstrates ownership or control of the object. Applicants are required to submit a written statement asserting their ownership or control over the CSO being registered. Ownership or control is obtained either by creating the object or through delegation by the creator or owner.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国内外を問わず、あらゆる組織または個人（すなわち申請者）は、申請者がそのオブジェクトの所有権または管理権を示す限り、コンピュータセキュリティオブジェクトの登録を登録局に要求できます。申請者は、登録する CSO に対する所有権または管理権を主張する書面の声明を提出することが求められます。所有権または管理権は、オブジェクトを作成するか、作成者または所有者からの委任によって得られます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although commercial products are not eligible for registration, CSOs used by such products may be registered. The CSOR will not register U. S. classified CSOs nor hold any classified information regarding registered objects.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>商用製品は登録の対象になりませんが、そのような製品が使用する CSO は登録できます。CSOR は、米国の機密の CSO を登録せず、登録されたオブジェクトに関する機密情報も保持しません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6.0 Processing of Applications</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6.0 申請の処理</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section specifies the Registration Authority’s methods for processing registration requests. These processing guidelines are designed to assure openness and due process in the registration of name values.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節では、登録要求を処理するための登録局の方法を規定します。これらの処理ガイドラインは、名前の値の登録における公開性と適正な手続を保証するよう設計されています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.1 Application for Registration</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.1 登録の申請</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To request registration of a CSO, the applicant must submit a Request for Registration application and the appropriate registration fee to the Registration Authority. The content of this request is given in Appendix B. Object dependent information required for registration is outlined in Appendices C and D.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CSO の登録を要求するには、申請者は登録申請書と適切な登録手数料を登録局に提出しなければなりません。申請書の内容は付録 B に示します。登録に必要なオブジェクト依存情報は、付録 C と D に概説します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The applicant is required to provide a release statement giving the CSOR authorization to reproduce and distribute object information. Only information required for the correct implementation and handling of CSOs is registered; security policy-related procedures and guidelines for the usage of the objects are a local matter.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請者は、オブジェクト情報を複製し配布する権限を CSOR に与える、公開許諾の声明を提供することが求められます。CSO の正しい実装と取り扱いに必要な情報のみが登録されます。オブジェクトの使用に関するセキュリティポリシー関連の手順とガイドラインは、各所で扱う事項です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A registration fee must accompany all applications. This fee is used to defray the cost of operating the Registration Authority, and to discourage frivolous registration requests. If an application is rejected, the fee shall be returned minus any funds used for processing the application. <i>(See Section 9)</i></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録手数料は、すべての申請に添えなければなりません。この手数料は、登録局の運営費用を賄い、軽率な登録要求を抑止するために使われます。申請が却下された場合、申請の処理に使われた金額を差し引いて、手数料を返還しなければなりません。<i>（第 9 節を参照）</i></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.2 Review of Application</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.2 申請の審査</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An application for registration shall be reviewed as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録の申請は、次のように審査しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) The requested alphanumeric CSO name value will be compared against all previously registered or reserved names to assure a unique name value. <i>Note: Names may be reserved for sixty working days according to the procedure in Section 8.1.</i></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 要求された英数字の CSO 名の値は、一意の名前の値を保証するために、以前に登録または予約されたすべての名前と比較されます。<i>注: 名前は、第 8.1 節の手順に従い、60 就業日の間、予約できます。</i></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Because a suggested alphanumeric CSO name value may have a meaning outside the registration process, there may be challenges concerning the rights to the name. Consequently, the registration application must contain a signed statement asserting the applicant’s right to the object to be registered and to the requested name. If the statement is missing, the request will be rejected specifying the omission as the reason for rejection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 提案された英数字の CSO 名の値は、登録の過程の外で意味を持つ場合があるため、その名前に対する権利について異議が出る場合があります。したがって、登録申請には、登録するオブジェクトと要求した名前に対する申請者の権利を主張する署名入りの声明を含めなければなりません。声明がない場合、要求は却下され、却下の理由としてその欠落が明記されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) If an application does not contain the minimum information specified in Appendix B, the application shall be rejected. The rejection notice will indicate the omission as the reason for rejection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請に付録 B で規定された最小限の情報が含まれていない場合、その申請は却下しなければなりません。却下通知では、却下の理由としてその欠落が示されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) If the requesting organization does not meet the criteria for eligibility specified in Section 5, the application shall be rejected. The rejection notice will indicate the failure to meet the criteria in Section 5 as the reason for rejection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 申請する組織が第 5 節で規定された適格性の基準を満たさない場合、その申請は却下しなければなりません。却下通知では、却下の理由として、第 5 節の基準を満たしていないことが示されます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The contents of the Rejection of Application notice are specified in Appendix B. If the rejection is for reasons other than inability to demonstrate ownership, the applicant has ten working days from the date of rejection to submit any missing or incomplete information. Failure to submit the missing information during this period forfeits all fees and terminates the application process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請却下通知の内容は付録 B に規定します。却下の理由が、所有権を示せないこと以外である場合、申請者は、却下の日から 10 就業日以内に、不足している情報または不完全な情報を提出できます。この期間中に不足している情報を提出しない場合、すべての手数料は没収され、申請の手続は終了します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Each application is considered separately. Applications are reviewed for completeness and a written response regarding completeness shall be issued within ten working days from the date of receipt. This response consists of either a rejection for incompleteness or a statement indicating the status of the request. The Registration Request Acknowledgement described in Appendix B is used for this purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各申請は個別に検討されます。申請は完全性について審査され、完全性に関する書面の回答は、受領の日から 10 就業日以内に発行しなければなりません。この回答は、不完全であることによる却下か、要求の状況を示す声明のいずれかで構成されます。この目的には、付録 B に記載する登録要求の受領通知が使われます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Any possible appeals and objections shall be presented to the Registration Authority in writing within ten working days after the issue of the response eliciting the objection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申立てや異議の可能性があるものは、異議を引き起こした回答の発行後 10 就業日以内に、書面で登録局に提出しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>6.3 Assignment of CSO Names</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+6.3 CSO 名の割り当て</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The assignment of CSO Names is the result of the registration process. This action shall be reported to the applicant within thirty working days from the date of receipt of the application. The application process is concluded by issuing the Registration Notice described in Appendix B.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CSO 名の割り当ては、登録の過程の結果です。この措置は、申請の受領の日から 30 就業日以内に申請者に報告しなければなりません。申請の手続は、付録 B に記載する登録通知を発行することで完了します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The registered CSO name is recorded as two values - numeric and alphanumeric. The numeric value is intended to be easily processed by computers and the alphanumeric value is intended to be easily used by people. The numeric name may, for instance, be used to index a database of objects recognized by a computer system. The alphanumeric name could be used in system specifications for procurement purposes.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録された CSO 名は、数値と英数字の 2 つの値として記録されます。数値は、コンピュータで容易に処理できることを意図し、英数字の値は、人が容易に使えることを意図しています。数値の名前は、たとえば、コンピュータシステムが認識するオブジェクトのデータベースの索引として使われる場合があります。英数字の名前は、調達目的のシステム仕様で使用できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The applicant shall not submit a numeric name value for registration. The Registration Authority shall assign a number with a unique value that shall not be assigned to any other object. The syntax of the numeric names is one of two types: ISO-defined object identifiers [3], or an unsigned fixed-length integer. The hierarchical syntax of object identifiers guarantees the uniqueness of the name. The use of unsigned integers as numeric names requires coordination among registration authorities to insure their uniqueness. The numeric name is an index to the registration database.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請者は、数値の名前の値を登録のために提出してはなりません。登録局は、他のいかなるオブジェクトにも割り当てられない、一意の値を持つ番号を割り当てなければなりません。数値の名前の構文は、ISO が定義したオブジェクト識別子 [3] か、符号なし固定長整数の 2 種類のいずれかです。オブジェクト識別子の階層的な構文は、名前の一意性を保証します。符号なし整数を数値の名前として使う場合は、その一意性を確実にするために、登録局間の調整が必要です。数値の名前は、登録データベースへの索引です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The applicant may supply an alphanumeric name value. Applicant-supplied alphanumeric names shall be variable length character strings of not less than one non-blank character, nor more than sixty four characters. The characters within the name strings must be taken from the 95-character graphic subset identified in FIPS PUB 1-2 [2]. For name comparison purposes, multiple spaces are equated to a single space and letter case differences will be ignored.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請者は、英数字の名前の値を提供できます。申請者が提供する英数字の名前は、空白以外の文字 1 文字以上、64 文字以下の可変長の文字列でなければなりません。名前の文字列内の文字は、FIPS PUB 1-2 [2] で特定された 95 文字のグラフィック部分集合から取らなければなりません。名前の比較の目的では、連続する複数のスペースは 1 つのスペースと同一視され、英字の大文字と小文字の違いは無視されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>If the alphanumeric CSO name value does not meet the applicable syntax requirements the request shall be rejected specifying this as the reason for rejection. The supplied value shall be compared against all other alphanumeric values recorded in the registration database for that computer security object type. If the value is a duplicate, the request shall be rejected specifying duplication as the reason for rejection.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>英数字の CSO 名の値が、適用される構文要件を満たさない場合、要求は却下され、却下の理由としてこれが明記されなければなりません。提供された値は、そのコンピュータセキュリティオブジェクトの種類について登録データベースに記録されている他のすべての英数字の値と比較しなければなりません。その値が重複している場合、要求は却下され、却下の理由として重複が明記されなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>If the application is rejected, for either of the above reasons, the applicant shall be so notified. The contents of the Rejection of Application notice are specified in Appendix B. If the requested name is accepted, it shall be entered into the Register with the appropriate hierarchical identifier prefixed to it. This hierarchical prefix corresponds to the prefix for the numeric name.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請が上記のいずれかの理由で却下された場合、申請者にその旨を通知しなければなりません。申請却下通知の内容は付録 B に規定します。要求された名前が受理された場合は、適切な階層的識別子を接頭辞として付けて、登録簿に記入しなければなりません。この階層的な接頭辞は、数値の名前の接頭辞に対応します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7.0 Maintenance of the Register</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7.0 登録簿の保守</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Authority is responsible for defining its own internal methods. These methods include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局は、自らの内部の方法を定める責任を負います。これらの方法には、次のものが含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) mechanisms for maintaining the integrity and confidentiality of the registration database including adequate backup;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 適切なバックアップを含め、登録データベースの完全性と機密性を維持するためのメカニズム</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) the design of appropriate forms (paper, electronic or both), containing the data elements specified;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 規定されたデータ要素を含む、適切な書式（紙、電子、またはその両方）の設計</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) a process for auditing the registration database and financial accounts;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 登録データベースと財務会計を監査するためのプロセス</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) management of the object name space.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) オブジェクトの名前空間の管理</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ownership of a CSO name may be transferred. An official of the organization originally requesting registration of an object may request the Registration Authority to transfer ownership of the object and to update the register.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CSO 名の所有権は、移転できます。オブジェクトの登録を当初要求した組織の職員は、オブジェクトの所有権の移転と、登録簿の更新を登録局に要求できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Once registered, neither the numeric value nor the alphanumeric name value can be deleted from the register. However, they can be marked as no longer valid upon request of the owner. The process is called de-activation and it requires a written request from the owner of the CSO. De-activation requests shall include a reason for de-activation and an optional pointer to a superseding CSO.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>いったん登録されると、数値の値も英数字の名前の値も、登録簿から削除できません。ただし、所有者の要求により、それらを無効になったものとして印を付けることはできます。このプロセスは非アクティブ化と呼ばれ、CSO の所有者からの書面による要求が必要です。非アクティブ化の要求には、非アクティブ化の理由と、任意で、後継の CSO への参照を含めなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8.0 Supplemental Services</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8.0 補足サービス</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The services described below are optional and not an integral part of the Registration Authority Procedures.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以下に説明するサービスは任意であり、登録局の手順に不可欠な部分ではありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>8.1 Register Inquiry</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+8.1 登録簿への照会</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An inquiry service is available from the Registration Authority that allows potential applicants to determine if a name has already been registered. This saves the cost of submitting an Application for Registration specifying a CSO name that is already registered. If the name is not registered it is reserved for the originator of the inquiry for sixty working days.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局からは照会サービスが利用でき、これにより、潜在的な申請者は、名前がすでに登録されているかどうかを確認できます。これにより、すでに登録されている CSO 名を指定した登録申請を提出する費用を省けます。名前が登録されていない場合、その名前は、照会者のために 60 就業日の間予約されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To make an inquiry, an organization shall submit an Inquiry Request to the Registration Authority containing the data elements specified in Appendix B. The request shall be accompanied by an inquiry fee (see Section 9.2).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>照会を行うには、組織は、付録 B に規定されたデータ要素を含む照会要求を登録局に提出しなければなりません。要求には、照会手数料を添えなければなりません（第 9.2 節を参照）。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Authority shall respond to such an inquiry within ten working days of the receipt of the inquiry (as described in Appendix B).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録局は、そのような照会に対して、照会の受領後 10 就業日以内に（付録 B に記載のとおり）回答しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>8.2 Register Publication</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+8.2 登録簿の刊行</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A publication service is available to provide hard copies of the CSO Register for specific object types. Single copies or one-year subscriptions may be purchased. Every copy contains all registered information on a specific CSO type. Change pages will be issued to all subscription holders as new objects are added. In addition the CSOR shall be available on-line at no cost.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特定のオブジェクトの種類について、CSO 登録簿の印刷物を提供する刊行サービスが利用できます。1 部ずつ、または 1 年間の購読で購入できます。すべての部には、特定の CSO の種類について登録されたすべての情報が含まれます。新しいオブジェクトが追加されるたびに、購読者全員に差し替えページが発行されます。加えて、CSOR は、無料でオンラインで利用できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>9.0 Fees</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+9.0 手数料</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The fee structure is designed to recover the expenses of operating as a Registration Authority and to discourage frivolous and multiple requests. Information on the types of fees, method of payment and their amounts in United States dollars can be obtained from the Registration Authority (<i>See</i> Appendix A).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>手数料の体系は、登録局として運営するための費用を回収し、軽率で重複した要求を抑止するよう設計されています。手数料の種類、支払い方法、米ドルでの金額に関する情報は、登録局から入手できます（付録 A を<i>参照</i>）。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.1 Registration Fee</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.1 登録手数料</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The registration fee shall be submitted along with the Request for Registration. This fee varies according to the object being registered. The Registration Authority reserves the right to change or waive the registration fee.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録手数料は、登録の要求書と共に提出しなければなりません。この手数料は、登録されるオブジェクトによって異なります。登録局は、登録手数料を変更または免除する権利を留保します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.2 Inquiry Fee</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.2 照会手数料</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The inquiry fee is included by the applicant with the inquiry request. The Registration Authority reserves the right to change or waive the inquiry fee.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>照会手数料は、申請者が照会要求に含めます。登録局は、照会手数料を変更または免除する権利を留保します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.3 Publication Fee</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.3 刊行手数料</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The publication fee for one-time copies and yearly subscriptions is established by the Registration Authority according to the size of the volume. The Registration Authority reserves the right to change or waive the publication fee.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1 部ずつの購入と年間購読の刊行手数料は、登録局が、冊子の大きさに応じて定めます。登録局は、刊行手数料を変更または免除する権利を留保します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>APPENDIX A - REGISTRATION AUTHORITY</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A - 登録局</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Objects Register</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティオブジェクト登録簿</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Computer Systems Laboratory<br>Program Coordination and Support Group<br>Building 225, Room B151<br>Gaithersburg, Maryland 20899<br>Telephone: (301) 975-2821<br>Facsimile: (301) 948-1784</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>コンピュータシステム研究所<br>Program Coordination and Support Group<br>Building 225, Room B151<br>Gaithersburg, Maryland 20899<br>Telephone: (301) 975-2821<br>Facsimile: (301) 948-1784</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>APPENDIX B - INFORMATION REQUESTS AND NOTICES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B - 情報の要求と通知</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This appendix defines the information requests and notices used by the Registration Authority.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この付録では、登録局が使用する情報の要求と通知を定義します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.1 Request for Registration Application</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.1 登録申請の請求</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Request for Registration shall contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録の要求書には、次の情報を含めなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 申請者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 申請者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) statement on the releasability of the registered information (if applicable);</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 登録された情報の公開可能性に関する声明（該当する場合）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) statement asserting the ownership or control of the CSO for which registration is being requested and the rights over the proposed alpha-numeric name;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) 登録を要求している CSO の所有権または管理権と、提案する英数字の名前に対する権利を主張する声明</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) object-specific registration information (<i>See appendices</i>).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) オブジェクト固有の登録情報（付録を<i>参照</i>）</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.2 Registration Application Acknowledgement</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.2 登録申請の受領通知</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Application Acknowledgement shall contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録申請の受領通知には、次の情報を含めなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 申請者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 申請者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) status of the Request for Registration.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 登録申請の状況</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0022-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.3 Rejection of Application Notice</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.3 申請却下の通知</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0022-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Rejection of Application Notice shall contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請却下の通知には、次の情報を含めなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 申請者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 申請者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) requested alphanumeric CSO name value - if supplied;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 要求された英数字の CSO 名の値（提供された場合）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) stated reason for rejection.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) 記載された却下の理由</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.4 Registration Notice</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.4 登録通知</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Registration Notice is used to inform the applicant of the values that have been assigned and registered. This notice must be certifiable as authentic (e.g., a notary seal for paper, use of non-repudiation techniques for electronic messaging). It shall contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録通知は、割り当てられ登録された値を申請者に知らせるために使われます。この通知は、真正であることを証明できなければなりません（たとえば、紙であれば公証人の印、電子メッセージであれば否認防止技法の使用）。次の情報を含めなければなりません。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 申請者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 申請者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) assigned numeric CSO name;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 割り当てられた数値の CSO 名</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) assigned alphanumeric CSO name.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) 割り当てられた英数字の CSO 名</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.5 Inquiry Request</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.5 照会の要求</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Inquiry Request will contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>照会の要求には、次の情報が含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the inquiry originator;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 照会者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the inquiry originator;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 照会者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the inquiry originator;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 照会者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0023-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) queried alphanumeric CSO name.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 照会する英数字の CSO 名</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>B.6 Inquiry Response</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+B.6 照会への回答</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0024-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This Inquiry Response will contain the following information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この照会への回答には、次の情報が含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0024-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) name of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 申請者の名前</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0024-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) address of the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 申請者の住所</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0024-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) name, title, address, telephone, and facsimile number of the point of contact for the applicant;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 申請者の連絡窓口の名前、役職、住所、電話番号、ファクシミリ番号</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0024-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) queried alphanumeric CSO name value;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 照会した英数字の CSO 名の値</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0024-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) status of the queried alphanumeric CSO name (e.g., already in use or not in use).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) 照会した英数字の CSO 名の状況（たとえば、すでに使用中、または未使用）</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>APPENDIX C - REGISTRATION REQUIREMENTS FOR SECURITY LABELS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 C - セキュリティラベルの登録要件</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This appendix outlines object-specific registration procedures for security label Named Tag Sets as defined by FIPS ___ - Standard Security Label for the Government Open Systems Interconnection Profile (SSL). Object-specific registration procedures indicate details that must be provided to register CSOs of a certain type. The required information is limited to details necessary to implement correctly the objects. The information outlined in this appendix shall be included with the Request for Registration Application specified in Appendix B of this document.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この付録では、FIPS ___ - Standard Security Label for the Government Open Systems Interconnection Profile（SSL）で定義される、セキュリティラベルの名前付きタグ集合について、オブジェクト固有の登録手順を概説します。オブジェクト固有の登録手順は、特定の種類の CSO を登録するために提供しなければならない詳細を示します。必要な情報は、オブジェクトを正しく実装するために必要な詳細に限られます。この付録で概説する情報は、本書の付録 B で指定されている登録申請書とともに提出しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Register Fields are associated with local security policy, therefore policy-driven handling instructions and system responses to potential security events should be included in the registration information. The rationale for the handling instructions imposed and the meaning of the security information to the end system are local matters not to be included with the Request for Registration Application.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>登録フィールドはローカルなセキュリティポリシーに関連付けられているため、ポリシーに基づく取り扱い指示と、潜在的なセキュリティイベントに対するシステムの応答を、登録情報に含めるべきです。課される取り扱い指示の根拠と、エンドシステムにとってのセキュリティ情報の意味は、それぞれのローカルな事項であり、登録申請書に含めてはなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>C.1 Required Information</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+C.1 必要な情報</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.1.1 Applicant Information</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.1.1 申請者の情報</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Applicant name: ____<br>Point of contact: ____<br>Date: ____</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>申請者の名前: ____<br>連絡窓口: ____<br>日付: ____</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.1.2 General Tag Set Information</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.1.2 一般的なタグ集合の情報</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tag Set Name Format:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>タグ集合名の形式:</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[ ] Object Identifier (Layer 7 label syntax)<br>[ ] Unsigned Integer (Layer 3 label encoding)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[ ] オブジェクト識別子（レイヤ 7 のラベル構文）<br>[ ] 符号なし整数（レイヤ 3 のラベル符号化）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Requested Alpha-Numeric Name: ____</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>要求する英数字の名前: ____</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Maximum number of security tags: ____<br>Minimum number of security tags: ____<br>Tag combination and ordering rules: ____</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティタグの最大数: ____<br>セキュリティタグの最小数: ____<br>タグの組み合わせと順序の規則: ____</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.1.3 Tag-Specific Information</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.1.3 タグ固有の情報</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For each tag indicate:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>各タグについて、次を示してください。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tag number: ____ Is order significant? ____ (Yes/No)</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>タグ番号: ____ 順序に意味があるか: ____ （はい/いいえ）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Tag Type: ____ Is tag Optional or Mandatory?</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>タグの種類: ____ タグは任意ですか、必須ですか。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>List of valid attribute values: ____</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>有効な属性値の一覧: ____</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The table format in the following example may be used to describe each tag. TT stands for tag type and TL is the tag length. The types are given in the SSL document. Only the tag values indicated will be accepted by an implementation of the Tag Set. An optional mnemonic may be associated to the each attribute value, bit, or field on the tag. A default value for each tag may be given, if appropriate. An optional tag order indication within the set also may be given. The presence of the tag in the set may be marked mandatory or optional. A Tag Set that does not match the format associated with the Tag Set Name preceding it is in error and shall be treated as such by the implementation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の例に示す表形式を、各タグの説明に使用してもよいです。TT はタグの種類を、TL はタグの長さを表します。種類は SSL 文書に示されています。タグ集合の実装で受け入れられるのは、示されたタグ値だけです。タグ上の各属性値、ビット、またはフィールドには、任意のニーモニックを関連付けてもよいです。適切であれば、各タグの既定値を示してもよいです。集合内でのタグ順序を任意で示してもよいです。集合内にタグが存在することを必須または任意として指定してもよいです。それに先行するタグ集合名に関連付けられた形式に一致しないタグ集合は誤りであり、実装はそのように扱わなければなりません。</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0026-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>TT</th><th>TL</th><th>VALUE</th><th>MNEMONIC (Optional)</th><th>DEFAULT VALUE</th><th>ORDER</th><th>M/O</th></tr></thead><tbody><tr><td>01</td><td>01</td><td>(Security Level)</td><td></td><td></td><td>N/A</td><td>M</td></tr><tr><td></td><td></td><td>11011011</td><td>CRITICAL</td><td>00000000</td><td></td><td></td></tr><tr><td></td><td></td><td>10101010</td><td>RESTRICTED</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>01010101</td><td>PROTECTED</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>00100100</td><td>GENERIC</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>00000000</td><td>unmarked</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>(Bits)</td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B16, 1</td><td>FOR-OFFICIAL-USE-ONLY</td><td>0</td><td colspan="2">(May be omitted if all bits are 0)</td></tr><tr><td></td><td></td><td>B15, 1</td><td>CERTIFIED-COPIES-ONLY</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B14, 1</td><td>DO-NOT-COPY</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B13, 1</td><td>TIME-SENSITIVE</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>⋮</td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B01, 1</td><td>PROPRIETARY</td><td></td><td></td><td></td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>TT</th><th>TL</th><th>値</th><th>ニーモニック（任意）</th><th>既定値</th><th>順序</th><th>M/O</th></tr></thead><tbody><tr><td>01</td><td>01</td><td>（セキュリティレベル）</td><td></td><td></td><td>N/A</td><td>M</td></tr><tr><td></td><td></td><td>11011011</td><td>CRITICAL</td><td>00000000</td><td></td><td></td></tr><tr><td></td><td></td><td>10101010</td><td>RESTRICTED</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>01010101</td><td>PROTECTED</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>00100100</td><td>GENERIC</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>00000000</td><td>unmarked</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>（ビット）</td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B16, 1</td><td>FOR-OFFICIAL-USE-ONLY</td><td>0</td><td colspan="2">（すべてのビットが 0 の場合は省略できる）</td></tr><tr><td></td><td></td><td>B15, 1</td><td>CERTIFIED-COPIES-ONLY</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B14, 1</td><td>DO-NOT-COPY</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B13, 1</td><td>TIME-SENSITIVE</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>⋮</td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td>B01, 1</td><td>PROPRIETARY</td><td></td><td></td><td></td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0026-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.1.4 Security Object Usage Rules and Handling Instructions</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.1.4 セキュリティオブジェクトの使用規則と取り扱い手順</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0026-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section shall cover object usage rules, handling instructions, and implementation details or restrictions beyond those imposed by the base standard. The text in this section may be used to clarify security tag information appearing in the Format Table. Examples are error conditions and their required system response such as return of an error response and local event auditing. The processing rules in Appendix B of the Standard Security Label FIPS may be referenced in this section. Explicit omissions, additions, or refinements to the processing rules in the SSL document also must appear in this section.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節では、基底の標準が課すもの以外の、オブジェクトの使用規則、取り扱い手順、実装の詳細や制限を扱わなければなりません。この節の文章は、形式の表に現れるセキュリティタグ情報を明確にするために使用できます。例としては、エラー条件と、エラー応答の返却やローカルイベントの監査などの、必要なシステムの応答があります。この節では、Standard Security Label FIPS の付録 B の処理規則を参照してもよいです。SSL 文書の処理規則に対する明示的な省略、追加、または精緻化も、この節に記載しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0026-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>C.2 Security Tag Registration Rules</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+C.2 セキュリティタグの登録規則</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0027-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.2.1 Special Rules for Bit Map Tags</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.2.1 ビットマップタグの特別規則</h5>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">Bit maps are defined to include integer multiples of eight bits.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">ビットマップは、8 ビットの整数倍を含むように定義されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">All bits are numbered starting with one up to some upper bound, U, that follows the previous rule.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">すべてのビットは、1 から始まり、前の規則に従うある上限 U までの番号が付けられます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">Bits not included in the bit map tag definition that fall between 1 and U are reserved and should not be used. The value for these bits is set to the default value indicated.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">3.</span><span class="list-body">ビットマップタグの定義に含まれないビットのうち、1 から U の間にあるものは予約されており、使用すべきではありません。これらのビットの値は、示された既定値に設定されます。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0027-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.2.2 Special Rules for Enumerated Tags</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.2.2 列挙タグの特別規則</h5>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The registration entry must specify whether the security attributes specified are to be included or excluded from the set of attributes that apply to the data unit.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">登録エントリは、指定されたセキュリティ属性が、データ単位に適用される属性の集合に含められるのか、除外されるのかを指定しなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">If it were necessary to explicitly single out attributes for both inclusion and exclusion, they must appear in separate tags. To make the distinction, tag order shall be used.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">含めることと除外することの両方について属性を明示的に取り出す必要がある場合、それらは別々のタグに現れなければなりません。区別するために、タグの順序を使用しなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0027-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.2.3 Special Rules for Range Tags</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.2.3 範囲タグの特別規則</h5>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The registration entry must specify whether the security attributes in the specified range(s) are to be included or excluded from the set of attributes that apply to the data unit.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">登録エントリは、指定された範囲内のセキュリティ属性が、データ単位に適用される属性の集合に含められるのか、除外されるのかを指定しなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">If it were necessary to explicitly single out ranges for both inclusion and exclusion, they must appear in separate tags. To make the distinction, tag order shall be used.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">含めることと除外することの両方について範囲を明示的に取り出す必要がある場合、それらは別々のタグに現れなければなりません。区別するために、タグの順序を使用しなければなりません。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0027-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>C.2.4 Special Rules for Free Form Tags</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+C.2.4 自由形式タグの特別規則</h5>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">The unspecified nature of this tag requires that both the syntax and semantics be explicitly stated.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">1.</span><span class="list-body">このタグは規定されていない性質のため、構文と意味論の両方を明示的に述べる必要があります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0027-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">For this and all tag types, the distinction between tags of the same type with different interpretations is based on the relative order of the tags.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">2.</span><span class="list-body">この種類を含むすべてのタグの種類について、解釈が異なる同じ種類のタグは、タグの相対的な順序に基づいて区別されます。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0028-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>APPENDIX D - OBJECT-SPECIFIC REGISTRATION INFORMATION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=28">原本 PDF p.28</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 D - オブジェクト固有の登録情報</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0028-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This appendix is a place holder for the Registration Authority to provide additional object-specific registration procedures. Appendices will be added to these general procedures for each CSO family to be registered. Object-specific registration requirements indicate the list of technical details that must be provided in order to register objects of that type. The required information will be limited to details necessary to implement correctly the object.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf#page=28">原本 PDF p.28</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この付録は、登録局が追加のオブジェクト固有の登録手順を提供するための、予約領域です。登録される CSO のファミリーごとに、これらの一般手順に付録が追加されます。オブジェクト固有の登録要件は、その種類のオブジェクトを登録するために提供しなければならない技術的な詳細の一覧を示します。必要な情報は、オブジェクトを正しく実装するために必要な詳細に限られます。</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5308.pdf">National Institute of Standards and Technology, IR 5308</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 5308";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

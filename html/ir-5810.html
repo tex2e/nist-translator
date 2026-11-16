@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 5810 は、Trusted Mach（TMach）システムの多国間評価実験について、第 1 フェーズである開発評価フェーズに焦点を当てて説明した報告書です。実験は、B3 の TCSEC 格付けを目標とする TMach システムを ITSEC と TCSEC の両方に対して評価することで、両基準と付随する評価プロセスがどのように比較されるかを理解する手段として提案されたものです。報告書の目的は、この実験について論じ、これまでに得られた知見と成果を示す歴史的な記録を提供することで、取り組みの目的、参加者、評価の進め方、利点を述べています。TMach システムアーキテクチャの概要、評価基準と評価方法、政府・開発者・オブザーバー・評価者の役割、実施した作業と得られた結果も取り上げています。">
+  <title>TMACH 実験 第 1 フェーズ - 予備的な開発評価 | NIST IR 5810 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001-s1" title="The TMACH Experiment Phase I - Preliminary Developmental Evaluation" data-search="tmach 実験 第 1 フェーズ - 予備的な開発評価 the tmach experiment phase i - preliminary developmental evaluation">TMACH 実験 第 1 フェーズ - 予備的な開発評価</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="TABLE OF CONTENTS" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. INTRODUCTION" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001-s1" title="1.1 Purpose of Report" data-search="1.1 報告書の目的 1.1 purpose of report">1.1 報告書の目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001-s3" title="1.2 Purpose of the Experiment" data-search="1.2 実験の目的 1.2 purpose of the experiment">1.2 実験の目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001-s7" title="1.3 Project Authorization" data-search="1.3 プロジェクトの承認 1.3 project authorization">1.3 プロジェクトの承認</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0002-s1" title="1.4 Project Scope" data-search="1.4 プロジェクトの範囲 1.4 project scope">1.4 プロジェクトの範囲</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0008-b0002-s4" title="1.5 References" data-search="1.5 参考文献 1.5 references">1.5 参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001-s4" title="2. OVERVIEW OF THE TMACH SYSTEM ARCHITECTURE" data-search="2. tmach システムアーキテクチャの概要 2. overview of the tmach system architecture">2. TMACH システムアーキテクチャの概要</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001-s6" title="3. EVALUATION CRITERIA AND METHOD" data-search="3. 評価基準と評価方法 3. evaluation criteria and method">3. 評価基準と評価方法</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0001-s7" title="3.1 ITSEC" data-search="3.1 itsec 3.1 itsec">3.1 ITSEC</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0001-s9" title="3.2 Scheme" data-search="3.2 スキーム 3.2 scheme">3.2 スキーム</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001-s6" title="3.3 ITSEM" data-search="3.3 itsem 3.3 itsem">3.3 ITSEM</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0010-b0001-s8" title="4. ROLES AND OBJECTIVES" data-search="4. 役割と目的 4. roles and objectives">4. 役割と目的</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0001-s9" title="4.1 Governments" data-search="4.1 政府 4.1 governments">4.1 政府</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0002-s4" title="4.2 Developer" data-search="4.2 開発者 4.2 developer">4.2 開発者</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0002-s7" title="4.3 Observers" data-search="4.3 オブザーバー 4.3 observers">4.3 オブザーバー</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0012-b0001-s6" title="4.4 Evaluators" data-search="4.4 評価者 4.4 evaluators">4.4 評価者</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0012-b0001-s8" title="5. DESCRIPTION OF EVALUATION" data-search="5. 評価の説明 5. description of evaluation">5. 評価の説明</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0002" title="6. RELEVANT EVALUATION DELIVERABLES" data-search="6. 関連する評価成果物 6. relevant evaluation deliverables">6. 関連する評価成果物</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001-s10" title="7. ASSESSMENT OF APPROACH" data-search="7. アプローチの評価 7. assessment of approach">7. アプローチの評価</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0014-b0001-s15" title="8. WORK PERFORMED AND RESULTS OBTAINED" data-search="8. 実施した作業と得られた結果 8. work performed and results obtained">8. 実施した作業と得られた結果</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0016-b0002-s1" title="9. BENEFITS" data-search="9. 利点 9. benefits">9. 利点</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0002-s3" title="9.1 Understanding the European approach on IT security evaluation" data-search="9.1 it セキュリティ評価に対する欧州のアプローチの理解 9.1 understanding the european approach on it security evaluation">9.1 IT セキュリティ評価に対する欧州のアプローチの理解</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001-s1" title="9.2 Support of the development of new Criteria and U.S. Process" data-search="9.2 新しい基準と米国のプロセスの策定への支援 9.2 support of the development of new criteria and u.s. process">9.2 新しい基準と米国のプロセスの策定への支援</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0001-s4" title="9.3 TMach Analysis" data-search="9.3 tmach の分析 9.3 tmach analysis">9.3 TMach の分析</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 5810 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">The TMACH Experiment Phase 1 - Preliminary Developmental Evaluation</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>TMACH 実験 第 1 フェーズ - 予備的な開発評価</strong></span><br><span class="doc-panel-item">公開日 : 1996-06-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/5810/final">https://csrc.nist.gov/pubs/ir/5810/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 183 / 183 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 5810 は、Trusted Mach（TMach）システムの多国間評価実験について、第 1 フェーズである開発評価フェーズに焦点を当てて説明した報告書です。実験は、B3 の TCSEC 格付けを目標とする TMach システムを ITSEC と TCSEC の両方に対して評価することで、両基準と付随する評価プロセスがどのように比較されるかを理解する手段として提案されたものです。報告書の目的は、この実験について論じ、これまでに得られた知見と成果を示す歴史的な記録を提供することで、取り組みの目的、参加者、評価の進め方、利点を述べています。TMach システムアーキテクチャの概要、評価基準と評価方法、政府・開発者・オブザーバー・評価者の役割、実施した作業と得られた結果も取り上げています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5810</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5810</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>The TMACH Experiment Phase I - Preliminary Developmental Evaluation</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+TMACH 実験 第 1 フェーズ - 予備的な開発評価</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ellen Colvin Flahavin</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Ellen Colvin Flahavin</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sponsored by:<br>Advanced Research Projects Agency</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>後援:<br>Advanced Research Projects Agency</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5810</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5810</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The TMACH Experiment Phase I - Preliminary Developmental Evaluation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TMACH 実験 第 1 フェーズ - 予備的な開発評価</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ellen Colvin Flahavin</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Ellen Colvin Flahavin</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Sponsored by:<br>Advanced Research Projects Agency</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>後援:<br>Advanced Research Projects Agency</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>June 1996</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1996年6月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Michael Kantor, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Michael Kantor 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TECHNOLOGY ADMINISTRATION<br>Mary L. Good, Under Secretary for Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>技術管理局<br>Mary L. Good、商務次官（技術担当）</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>Arati Prabhakar, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所<br>Arati Prabhakar、所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>TABLE OF CONTENTS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0005-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>1. INTRODUCTION</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1. はじめに</p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s1">1.1 Purpose of Report</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s1">1.1 報告書の目的</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s3">1.2 Purpose of the Experiment</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s3">1.2 実験の目的</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s7">1.3 Project Authorization</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0001-s7">1.3 プロジェクトの承認</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002-s1">1.4 Project Scope</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002-s1">1.4 プロジェクトの範囲</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002-s4">1.5 References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0008-b0002-s4">1.5 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s4">2. OVERVIEW OF THE TMACH SYSTEM ARCHITECTURE</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s4">2. TMACH システムアーキテクチャの概要</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s6">3. EVALUATION CRITERIA AND METHOD</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s6">3. 評価基準と評価方法</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s7">3.1 ITSEC</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s7">3.1 ITSEC</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s9">3.2 Scheme</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001-s9">3.2 スキーム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s6">3.3 ITSEM</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s6">3.3 ITSEM</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s8">4. ROLES AND OBJECTIVES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s8">4. 役割と目的</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s9">4.1 Governments</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0001-s9">4.1 政府</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s14">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002-s4">4.2 Developer</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002-s4">4.2 開発者</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s15">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002-s7">4.3 Observers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0011-b0002-s7">4.3 オブザーバー</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s16">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001-s6">4.4 Evaluators</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001-s6">4.4 評価者</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s17">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001-s8">5. DESCRIPTION OF EVALUATION</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0001-s8">5. 評価の説明</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s18">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">6. RELEVANT EVALUATION DELIVERABLES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0002">6. 関連する評価成果物</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s19">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001-s10">7. ASSESSMENT OF APPROACH</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001-s10">7. アプローチの評価</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s20">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001-s15">8. WORKED PERFORMED AND RESULTS OBTAINED</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0001-s15">8. 実施した作業と得られた結果</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0001-s21">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002-s1">9. BENEFITS</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002-s1">9. 利点</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s22">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002-s3">9.1 Understanding the whole European approach on IT security evaluation</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002-s3">9.1 IT セキュリティ評価に対する欧州のアプローチ全体の理解</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s23">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001-s1">9.2 Support of the development of new Criteria and U.S. Process</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001-s1">9.2 新しい基準と米国のプロセスの策定への支援</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0001-s24">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001-s4">9.3 TMach Analysis</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001-s4">9.3 TMach の分析</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. INTRODUCTION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1 Purpose of Report</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1 報告書の目的</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This document describes the multi-national evaluation experiment of the Trusted Mach system. This report focuses on Phase I - The Developmental Evaluation Phase. The objective is to provide an historical journal discussing the experiment, and providing insight into what has been learned and accomplished thus far. Discussed are the objectives of the effort, the participants, how the evaluation has proceeded, and the benefits.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本書は、Trusted Mach システムの多国間評価実験について説明します。本報告書は、第 1 フェーズ、すなわち開発評価フェーズに焦点を当てています。目的は、この実験について論じ、これまでに得られた知見と成果を示す、歴史的な記録を提供することです。取り組みの目的、参加者、評価の進め方、および利点について述べます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2 Purpose of the Experiment</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2 実験の目的</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In 1983, the U.S. Department of Defense published the Trusted Computer System Evaluation Criteria (TCSEC). Since that time, the National Computer Security Center has been performing trusted system evaluations within the United States. In 1990, the Commission of European Communities published a draft version of a European developed criteria, the Information Technology Security Evaluation Criteria (ITSEC), that generalized and modified the TCSEC. Evaluations against the ITSEC were to be performed by Commercial Licensed Evaluation Facilities (CLEFs) that were controlled by National Authorities. Considerable debate ensued on how the TCSEC and ITSEC compared but the debate remained at a philosophic level for want of hard evidence based upon comparative evaluation experience. Although claims were made that the criteria were compatible with one another, there appeared to be no real basis for discussing reciprocity of rating among the various countries. If an ITSEC-rated systems were to be proposed for use within NATO, the United States would have little understanding of the rating.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1983年に、米国国防総省は Trusted Computer System Evaluation Criteria（TCSEC）を公表しました。それ以来、National Computer Security Center は、米国内で信頼されたシステムの評価を実施してきました。1990年に、欧州共同体委員会は、TCSEC を一般化し修正した、欧州で開発された基準である Information Technology Security Evaluation Criteria（ITSEC）の草案版を公表しました。ITSEC に対する評価は、各国の当局が管理する Commercial Licensed Evaluation Facilities（CLEF）によって実施されることになっていました。TCSEC と ITSEC がどのように比較されるかについて、かなりの議論が続きましたが、比較評価の経験に基づく確かな証拠がなかったため、議論は哲学的な水準にとどまっていました。これらの基準は互いに互換であると主張されていましたが、各国間の格付けの相互承認を論じる実質的な根拠はないように見えました。ITSEC で格付けされたシステムの使用が NATO 内で提案された場合、米国はその格付けについてほとんど理解できないでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Trusted Mach (TMach) system, targeted at a B3 TCSEC rating, was being developed under the U.S. Advanced Research Projects Agency (ARPA) funding at this time. Evaluation of the TMach system against both the ITSEC and TCSEC was suggested as a means for understanding how the criteria and their accompanying evaluation processes compared. Although the TMach evaluations would not definitively answer how the criteria compared at all levels, it would move the comparison into a concrete rather than philosophic discussion. By actually evaluating TMach against the criteria, the different requirements of each criterion and evaluation process would become visible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>B3 の TCSEC 格付けを目標とする Trusted Mach（TMach）システムは、当時、米国の Advanced Research Projects Agency（ARPA）の資金により開発されていました。TMach システムを ITSEC と TCSEC の両方に対して評価することは、それらの基準と付随する評価プロセスがどのように比較されるかを理解する手段として提案されました。TMach の評価は、すべての水準で両基準がどのように比較されるかに決定的な答えを与えるものではありませんが、比較を哲学的な議論から具体的な議論へと進めるものです。TMach を実際に両基準に照らして評価することで、各基準と評価プロセスの異なる要件が見えるようになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It is in the interest of the U.S. Government to understand how these two criteria differ in practice and how evaluations done under each may be compared. Efforts to reconcile the differences have been undertaken based upon detailed knowledge and understanding gained thus far. North America and Europe have agreed to develop a Common Criteria for Information Technology Security Evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これら 2 つの基準が実際にどのように異なり、それぞれの下で行われた評価がどのように比較できるかを理解することは、米国政府の利益になります。これまでに得られた詳細な知識と理解に基づいて、相違点を調整する取り組みが進められてきました。北米と欧州は、情報技術セキュリティ評価のための共通基準（Common Criteria）を策定することで合意しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3 Project Authorization</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3 プロジェクトの承認</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In November 1990, James Burrows, then the Director of the Computer Systems Laboratory of the National Institute of Standards and Technology (NIST), met with European officials and Steve Walker of Trusted Information Systems to discuss initiating a preliminary developmental evaluation of TMach against the ITSEC. As a result of this meeting, NIST finalized an agreement with the ARPA to coordinate and oversee the TMach evaluation work to be done by Germany and the United Kingdom (UK).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1990年11月に、当時国立標準技術研究所（NIST）のコンピュータシステム研究所の所長であった James Burrows は、欧州の当局者および Trusted Information Systems の Steve Walker と会合し、TMach を ITSEC に対して予備的に開発評価することの開始について協議しました。この会合の結果、NIST は、ドイツと英国（UK）が行う TMach 評価作業を調整し監督するための合意を ARPA と最終的にまとめました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Under the agreement, NIST received funds from ARPA for the evaluations and negotiated the contracts with appropriate organizations in those countries. NIST monitors the TMach evaluation contract performance for ARPA, and provides the contractual and management interface with the U.S. Government. NIST is responsible to ARPA as the U.S. Government agent for setting the evaluation tasks and coordinating the evaluation work.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この合意の下で、NIST は評価のための資金を ARPA から受け取り、それらの国の適切な組織と契約を交渉しました。NIST は、ARPA のために TMach 評価契約の履行を監視し、米国政府との契約上および管理上の窓口を提供します。NIST は、評価タスクを設定し評価作業を調整する米国政府の代理人として、ARPA に対して責任を負います。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.4 Project Scope</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.4 プロジェクトの範囲</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>On December 20, 1990, NIST published Commerce Business Daily (CBD) announcements notifying potential contractors of the solicitations for the TMach evaluation work. The intent of the contract work is to gain further understanding of the ITSEC and its evaluation process. The ITSEC evaluations of TMach began in September of 1991. These multiple evaluations have been undertaken with the objective of understanding the different criteria and evaluation processes by seeing how they relate to a single system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1990年12月20日に、NIST は、TMach の評価作業の公募を潜在的な契約者に通知する Commerce Business Daily（CBD）の告知を公表しました。この契約作業の意図は、ITSEC とその評価プロセスについての理解をさらに深めることです。TMach に対する ITSEC 評価は、1991年9月に開始されました。これらの複数の評価は、異なる基準と評価プロセスが単一のシステムにどのように関係するかを見ることで、それらを理解することを目的として実施されてきました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TMach, which will provide users with both high level trust and a Unix interface, is under evaluation by three different nations against two separate criteria. In the U.S., TMach is being evaluated at the B3 level against the TCSEC, and concurrent evaluations of TMach at F-B3/E5 against the ITSEC.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>利用者に高い水準の信頼性と Unix インタフェースの両方を提供する TMach は、2 つの別個の基準に照らして3か国で評価されています。米国では、TMach は TCSEC に対して B3 レベルで評価されており、ITSEC に対する F-B3/E5 レベルでの評価も並行して行われています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0008-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.5 References</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.5 参考文献</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BSI CERTIFICATION - Procedural Description- BSI 7125, April 1994.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BSI CERTIFICATION - Procedural Description- BSI 7125, April 1994.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TRUSTED COMPUTER SYSTEM EVALUATION CRITERIA (TCSEC), Department of Defense, DoD 5200.28-STD, December 1985.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TRUSTED COMPUTER SYSTEM EVALUATION CRITERIA (TCSEC), Department of Defense, DoD 5200.28-STD, December 1985.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>INFORMATION TECHNOLOGY SECURITY EVALUATION CRITERIA (ITSEC), Version 1.2, Commission of the European Communities, 28 June 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>INFORMATION TECHNOLOGY SECURITY EVALUATION CRITERIA (ITSEC), Version 1.2, Commission of the European Communities, 28 June 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>INFORMATION TECHNOLOGY SECURITY EVALUATION MANUAL (ITSEM), Version 1.0, Commission of the European Communities, 10 September 1993.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>INFORMATION TECHNOLOGY SECURITY EVALUATION MANUAL (ITSEM), Version 1.0, Commission of the European Communities, 10 September 1993.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>MANUAL OF COMPUTER SECURITY EVALUATION, UKSP 05, Part III, Issue 1.0, UK IT Security Evaluation and Certification Scheme Certification Body, 1 June 1994.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MANUAL OF COMPUTER SECURITY EVALUATION, UKSP 05, Part III, Issue 1.0, UK IT Security Evaluation and Certification Scheme Certification Body, 1 June 1994.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TRUSTED MACH EVALUATION WORK PROGRAMME, S. H. Hill, J.C. Straw, 6 December 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TRUSTED MACH EVALUATION WORK PROGRAMME, S. H. Hill, J.C. Straw, 6 December 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TRUSTED MACH SECURITY TARGET, Trusted Information Systems, Inc., 1992.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TRUSTED MACH SECURITY TARGET, Trusted Information Systems, Inc., 1992.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TRUSTED MACH SYSTEM ARCHITECTURE, Trusted Information Systems, Inc., September 23, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TRUSTED MACH SYSTEM ARCHITECTURE, Trusted Information Systems, Inc., September 23, 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>UK IT SECURITY EVALUATION AND CERTIFICATION SCHEME, UKSP 05, Part II, Standard Evaluation Work Programmes, Issue 1.0, UK IT Security Evaluation and Certification Scheme Certification Body, 14 December 1994.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>UK IT SECURITY EVALUATION AND CERTIFICATION SCHEME, UKSP 05, Part II, Standard Evaluation Work Programmes, Issue 1.0, UK IT Security Evaluation and Certification Scheme Certification Body, 14 December 1994.</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. OVERVIEW OF THE TMACH SYSTEM ARCHITECTURE</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. TMACH システムアーキテクチャの概要</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Trusted Mach (TMach) system is a secure server-based operating system implemented as a message passing microkernel and a set of servers. The servers provided operating system functionality that is traditionally found in the operating system kernel. The TMach system is layered in accordance with generally accepted software engineering principles. These principles require that abstract layers depend upon primitive layers and that the primitive layers shall not depend upon the abstract layers. TMach is designed to support information systems security and control requirements. Each protection layer provides abstractions and services to the layers above. Communication between the protection layers is performed over well-defined interfaces. Each individual component defines a separate task. Layers of tasks are used in order to protect the trusted computing base (TCB). Dependencies between the components, whether microkernel modules or TCB tasks, is strictly downwards, with no component depending on a higher component for its functionality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Trusted Mach（TMach）システムは、メッセージパッシング型マイクロカーネルと一連のサーバーとして実装された、サーバーベースのセキュアなオペレーティングシステムです。サーバーは、従来オペレーティングシステムのカーネルに備わっていた機能を提供していました。TMach システムは、一般に受け入れられているソフトウェア工学の原則に従って階層化されています。これらの原則では、抽象層は基本層に依存し、基本層は抽象層に依存してはならないとされています。TMach は、情報システムのセキュリティおよび制御の要件をサポートするよう設計されています。各保護層は、その上位の層に抽象化とサービスを提供します。保護層間の通信は、明確に定義されたインタフェースを通じて行われます。個々のコンポーネントは、それぞれ別個のタスクを定義します。信頼できる計算基盤（TCB）を保護するために、タスクの層が使われます。マイクロカーネルモジュールであれ TCB タスクであれ、コンポーネント間の依存関係は厳密に下向きであり、機能のために上位のコンポーネントに依存するコンポーネントはありません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. EVALUATION CRITERIA AND METHOD</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 評価基準と評価方法</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 ITSEC</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 ITSEC</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In May 1990, four members of the European Community, specifically the governments of France, Germany, the Netherlands, and the United Kingdom, developed a harmonized computer security evaluation criteria referred to as the ITSEC. The purpose of producing an international harmonized criteria was to accomplish international mutual recognition of evaluation results.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1990年5月に、欧州共同体の 4 つの加盟国、具体的にはフランス、ドイツ、オランダ、英国の政府が、ITSEC と呼ばれる調和されたコンピュータセキュリティ評価基準を策定しました。国際的に調和された基準を作成する目的は、評価結果の国際相互承認を達成することでした。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Scheme</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 スキーム</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0001-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In Europe, evaluations under the ITSEC are performed by commercially licensed facilities. Such facilities are managed and staffed by commercial organizations (parent companies) which have been licensed under the nation's Scheme, and a condition of license is that the facility must also be accredited by the nation's accreditation body .</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>欧州では、ITSEC に基づく評価は、商業的にライセンスを受けた機関によって実施されます。このような機関は、各国のスキームの下でライセンスを受けた商業組織（親会社）によって運営され、人員が配置されます。ライセンスの条件として、その機関は、各国の認定機関による認定も受けなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These facilities are subject to the rules of operation which forms part of the License Agreement. These rules govern:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの機関は、ライセンス契約の一部を成す運用規則の適用を受けます。これらの規則は、次の事項を規定します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">a. Licensing and Re-licensing of facilities;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">a. 施設へのライセンス付与および再ライセンス付与;</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">b. Security and Confidentiality;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">b. セキュリティおよび機密保持;</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">c. Quality and Management;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">c. 品質および管理;</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">d. Staff Qualifications and Training.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">d. 要員の資格およびトレーニング。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Licenses are granted to interested commercial companies which have been successfully assessed with regard to Quality, Management, Security and Technical Expertise.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ライセンスは、品質、管理、セキュリティおよび技術的専門性に関する評価を受けて合格した、関心のある商業企業に付与されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 ITSEM</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 ITSEM</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The German/United Kingdom evaluation methodologies respectively were identified as approaches to the TMach evaluation. Early in 1992, a draft of the ITSEM was completed by the same EC Member Nations which prepared the ITSEC to establish a common evaluation process to be used with the ITSEC. The ITSEC forms a companion piece for the conduct of product evaluations. The ITSEM contains a sufficient amount of information on evaluation, methods and procedures to enable technical equivalence of evaluations performed in different environments to be demonstrated.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ドイツおよび英国の評価方法論が、それぞれ TMach 評価のアプローチとして特定されました。1992年の初めに、ITSEC と共に用いる共通の評価プロセスを確立するため、ITSEC を作成したのと同じ EC 加盟国によって、ITSEM の草案が完成しました。ITSEC は、製品評価の実施に関する補完文書を構成します。ITSEM には、異なる環境で行われた評価の技術的な同等性を示せるようにするための、評価、方法、手順に関する十分な量の情報が含まれています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. ROLES AND OBJECTIVES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 役割と目的</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1 Governments</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1 政府</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ARPA - United States</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ARPA - 米国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ARPA's objective is to advance the technology of computer systems for the Department of Defense. The TMach Project began in the late-eighties with ARPA desiring a trusted operating system based upon the highly portable Mach microkernel. Through the ITSEC evaluation of the TMach system, ARPA will gain the knowledge to understand how ITSEC and TCSEC evaluations compare, information that may be essential to determine the acceptability of candidate NATO systems. The project provides insight to guide decisions for evaluation reciprocity. It will also result in a trusted operating system, TMach, that has been evaluated against both criteria and thus should be acceptable for both the United States and European markets. Also, the trust characteristics of TMach will fit into ARPA's evolutionary operating system goals.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ARPA の目的は、国防総省のためにコンピュータシステムの技術を進歩させることです。TMach プロジェクトは、ARPA が移植性の高い Mach マイクロカーネルに基づく信頼されたオペレーティングシステムを望んだことから、80 年代後半に始まりました。TMach システムの ITSEC 評価を通じて、ARPA は ITSEC 評価と TCSEC 評価がどのように比較されるかを理解するための知識を得ます。この情報は、NATO の候補システムの受け入れ可否を判断するうえで不可欠となる場合があります。このプロジェクトは、評価の相互承認に関する決定を導く知見を提供します。また、両方の基準に照らして評価された信頼されたオペレーティングシステムである TMach を生み出し、その結果、米国と欧州の両市場で受け入れられるはずです。さらに、TMach の信頼性の特性は、ARPA の進化的なオペレーティングシステムの目標に適合します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This experiment is scheduled as a four year effort level before going to formal evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この実験は、正式な評価に進む前の4年間の取り組みとして予定されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST - United States</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST - 米国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0001-s14">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST is responsible to ARPA as the U.S. Government agent for setting the evaluation tasks and coordinating the evaluation work. The benefits of this relationship include understanding of the practical differences between the ITSEC and the TCSEC, the opportunity to compare the evaluations done under each, the creation of worked examples to the ITSEC style of evaluations, and exploration of the practical aspects of reciprocity with the U.S. gaining an understanding of the European Process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、評価タスクを設定し評価作業を調整する米国政府の代理人として、ARPA に対して責任を負います。この関係の利点には、ITSEC と TCSEC の実務上の違いの理解、それぞれの下で行われた評価を比較する機会、ITSEC 形式の評価に対する作業例の作成、および米国が欧州のプロセスを理解することによる、相互承認の実務的な側面の探求が含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CESG/DTI - United Kingdom</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CESG/DTI - 英国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CESG intends to continue a joint operation to certify the results of evaluations of systems and products to common technical standards, and to deal with other nations on the mutual recognition of such certificates.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CESG は、共通の技術標準に照らしてシステムおよび製品の評価結果を認証する共同運用を継続し、そのような証明書の相互承認について他国と協議することを意図しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>BSI/GISA - Germany</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>BSI/GISA - ドイツ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The two major project objectives are performing a concurrent E5-evaluation and research on harmonization aspects. GISA has already gained experiences with ITSEC-evaluations, but because the TMach Project will be one of the first to reach an E5-level in a product evaluation, many questions will be answered concerning a common European interpretation of the criteria for concurrent evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>プロジェクトの2つの主な目的は、並行してE5評価を実施することと、調和に関する側面を研究することです。GISA はすでに ITSEC 評価の経験を積んでいますが、TMach プロジェクトは製品評価で E5 レベルに到達する最初の事例の1つとなるため、並行評価に用いる基準について共通の欧州解釈に関する多くの疑問に答えが出ることになります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2 Developer</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2 開発者</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TIS - United States</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TIS - 米国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TIS built TMach on the Mach microkernel, which was developed by Carnegie Mellon University (CMU) and used by the Open Software Foundation (OSF) as their future standard. TIS built a proof of concept prototype, submitted it to the National Security Agency (NSA) for a B3 evaluation, and came up with the idea of having a joint evaluation to compare the ITSEC and TCSEC. Among TIS's expectations are to evaluate the TMach architecture and trust strategy, to evaluate the TMach development process and practices, and to understand the similarities and differences between the evaluation criteria and evaluation process.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TIS は、Carnegie Mellon University（CMU）が開発し、Open Software Foundation（OSF）が将来の標準として用いる予定だった Mach マイクロカーネル上に TMach を構築しました。TIS は概念実証のプロトタイプを構築し、B3 評価のために National Security Agency（NSA）に提出したうえで、ITSEC と TCSEC を比較する共同評価を行うという考えに至りました。TIS が期待することには、TMach のアーキテクチャと信頼性戦略の評価、TMach の開発プロセスと慣行の評価、評価基準と評価プロセスの類似点および相違点の理解が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.3 Observers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.3 オブザーバー</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NSA - United States</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NSA - 米国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NSA agreed on the importance of achieving mutual recognition of different evaluation approaches and emphasized that no organization wants to initiate a dozen different reciprocity agreements. Concern was expressed regarding implications of government funded vs. commercially funded evaluations and the maintenance of certification quality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NSA は、異なる評価アプローチの相互承認を達成することの重要性に同意し、十二もの異なる相互承認協定を始めたい組織はないと強調しました。政府が資金を出す評価と商業的に資金が出される評価の違いがもたらす影響と、認証の品質の維持について、懸念が表明されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OSF - United States</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSF - 米国</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>OSF is composed of several international member companies, all interested in U.S./EC evaluations of OSF offerings. OSF wants two questions answered. First, when developing very high security in an operating system, will the system meet adequate performance goals? Second, will adequate security meet market requirements?</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSF は、OSF の提供物に対する米国と EC の評価に関心を持つ、複数の国際的な会員企業で構成されています。OSF は 2 つの問いへの答えを求めています。第 1 に、オペレーティングシステムで非常に高いセキュリティを開発する場合に、そのシステムは十分な性能目標を満たすでしょうか。第 2 に、十分なセキュリティは市場の要件を満たすでしょうか、という問いです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SCSSI - France</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SCSSI - フランス</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>SCSSI will become a certifying body in the near future. They believe the TMach project is an interesting one and are pleased to be invited to the meetings. Their national vendors have an interest, and support from SCSSI will continue in the form of attending these meetings.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SCSSI は、近い将来に認証機関になる予定です。SCSSI は、TMach プロジェクトを興味深いものと考えており、会合に招かれたことを喜んでいます。SCSSI の国内のベンダーには関心があり、SCSSI からの支援は、これらの会合への出席という形で続けられます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>CSSE - Canada</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>CSSE - カナダ</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Canada's interest in TMach is in the harmonizing of criteria, and in the reciprocity issues.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TMach に対するカナダの関心は、基準の調和と、相互承認の問題にあります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.4 Evaluators</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.4 評価者</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>IABG in Germany, Logica, and Secure Information Systems Limited in the UK are the facilities chosen to perform the evaluations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価を実施する機関として選ばれたのは、ドイツの IABG、および英国の Logica と Secure Information Systems Limited です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. DESCRIPTION OF EVALUATION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 評価の説明</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The current TMach evaluation is a concurrent evaluation, meaning that system development and evaluation are on-going at the same time. This form of evaluation was chosen since the criteria and evaluation processes were relatively unknown. With a concurrent evaluation there is an opportunity to make changes if issues exist.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現在の TMach の評価は並行評価であり、これはシステムの開発と評価が同時に進行していることを意味します。この形式の評価が選ばれたのは、基準と評価プロセスが比較的知られていなかったためです。並行評価では、問題があれば変更を加える機会があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A constraint on the evaluation is that not all of the deliverables necessary for an E5 evaluation are available. The evaluation is thus limited to those activities which may be performed using the available deliverables, both in terms of correctness and effectiveness analysis.. The main part of the evaluation is devoted to an examination of the Requirements, the Architecture and Detailed Design, and examination of Development of Procedures and Practices, as well as evaluators' assessment of the security target, the mathematical model, and the developer's effectiveness analysis.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価の制約として、E5 評価に必要な成果物がすべて揃っているわけではありません。したがって評価は、正確性と有効性の分析の両面について、利用可能な成果物を用いて実施できる活動に限られます。評価の主要部分は、要件、アーキテクチャと詳細設計の検査、開発の手順と慣行の検査、ならびに評価者によるセキュリティターゲット、数学的モデル、開発者の有効性分析の評価に充てられています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An additional constraint on the evaluation is that an upper limit is placed on the total evaluation effort (as funded by the sponsor of the evaluation). This means that the assurance of correctness or effectiveness obtained from an examination of those deliverables that are available may not necessarily be sufficient for Level E5.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価に対する追加の制約として、（評価の後援者が資金を提供する）評価全体の作業量に上限が設けられています。これは、利用可能な成果物の検査から得られる正確性または有効性の保証が、必ずしもレベル E5 に十分であるとは限らないことを意味します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0001-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Since this is a concurrent evaluation, and the dates on which the various deliverables are available may be subject to change, it is anticipated that the Evaluation Work Program (EWP) may need to undergo a number of revisions to reflect any changes in the schedule.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これは並行評価であり、さまざまな成果物が利用可能になる日付は変更される可能性があるため、スケジュールの変更を反映するため、評価作業計画（EWP）は何度か改訂が必要になる場合があると予想されます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. RELEVANT EVALUATION DELIVERABLES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. 関連する評価成果物</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Development Process<br>Requirements</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>開発プロセス<br>要件</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The security target for the Target of Evaluation (TOE)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">評価対象（TOE）のセキュリティターゲット</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Definition of or reference to an underlying formally specified model of security</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">基盤となる形式的に規定されたセキュリティモデルの定義、またはそれへの参照</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Informal interpretation of the underlying model in terms of the security target</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティターゲットの観点からの、基盤となるモデルの非形式的な解釈</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Architectural Design</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アーキテクチャ設計</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Semiformal description of the architecture of the TOE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TOE のアーキテクチャの半形式的な記述</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Semiformal description of the High Level Design and the Detailed Design</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">上位レベル設計と詳細設計の半形式的な記述</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Implementation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実装</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Test Documentation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">テスト文書</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Library of test programs and tools used for testing the TOE</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TOE のテストに使用するテストプログラムとツールのライブラリ</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Source code or hardware drawings for all security enforcing functions and security relevant components</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">すべてのセキュリティ実施機能とセキュリティに関連するコンポーネントのソースコードまたはハードウェア図面</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Development Environment</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>開発環境</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Configuration list identifying the version of the TOE for evaluation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">評価対象の TOE のバージョンを特定する構成リスト</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s14">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Information on the configuration control system and its tools</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">構成管理システムとそのツールに関する情報</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s15">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Audit information on modifications of all objects of the TOE subject to configuration control</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">構成管理の対象となる TOE のすべてのオブジェクトの変更に関する監査情報</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s16">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Information on the acceptance procedure</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">受け入れ手順に関する情報</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s17">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Information on the integration procedure</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">統合手順に関する情報</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s18">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Information on the security of the development environment</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">開発環境のセキュリティに関する情報</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s19">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Description of all implementation languages and compilers used</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">使用したすべての実装言語とコンパイラの説明</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s20">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Source code of all runtime libraries used</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">使用したすべての実行時ライブラリのソースコード</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s21">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Operation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>運用</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s22">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">User documentation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">利用者向け文書</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0002-s23">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Administration documentation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">管理者向け文書</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002-s24">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Operational Environment</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>運用環境</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Delivery and Configuration documentation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">配付と構成に関する文書</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Start-up and Operation Documentation</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">起動と運用に関する文書</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Effectiveness Criteria - Construction</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>有効性基準 - 構築</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Suitability Analysis</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">適合性の分析</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Binding Analysis</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">結合性の分析</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Strength of Mechanisms Analysis</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">メカニズムの強度の分析</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">List of known vulnerabilities in Construction</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">構築における既知の脆弱性の一覧</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Effectiveness Criteria - Operation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>有効性基準 - 運用</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Ease of Use Analysis</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">使いやすさの分析</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0001-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">List of known vulnerabilities in Operational Use</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">運用での使用における既知の脆弱性の一覧</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>7. ASSESSMENT OF APPROACH</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+7. アプローチの評価</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The section defines the approach taken for this concurrent evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節では、この並行評価で採用したアプローチを定義します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>a) An Evaluation Work Program (EWP) was written to form the detailed plan for the full evaluation of TMach, containing detailed specifications of individual Work Packages, timescales, resources required, and any assumptions or constraints on the evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>a) 評価作業計画（EWP）が作成され、TMach の完全な評価のための詳細な計画を構成しています。これには、個々の作業パッケージ、スケジュール、必要な資源、評価に関する前提条件や制約の詳細な仕様が含まれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>b) A Deliverables List accompanies the EWP and identifies all deliverable required for the evaluation (given a target evaluation level of E5), providing a mapping of the available deliverables on to the ITSEC E5 requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>b) 成果物一覧は EWP に付随し、評価に必要なすべての成果物を（目標評価レベルを E5 として）特定し、利用可能な成果物と ITSEC E5 の要件との対応関係を示しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s14">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>c) Evaluation Technical Reports contain the report of the assessment of the security target, the security policy model, implementation, development environment, operation and effectiveness for TMach against the ITSEC E5 and F-B3 requirements.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>c) 評価技術報告書には、ITSEC E5 と F-B3 の要件に対する TMach のセキュリティターゲット、セキュリティポリシーモデル、実装、開発環境、運用、有効性の評価の報告が含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0014-b0001-s15">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>8. WORK PERFORMED AND RESULTS OBTAINED</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+8. 実施した作業と得られた結果</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s16">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The evaluators have carried out an evaluation of the various aspects of the TMach development process, as follows:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価者は、TMach の開発プロセスのさまざまな側面について、次のとおり評価を実施しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s17">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>a) A complete evaluation of the TMach security target has been performed. This has confirmed that the ITSEC E5 requirements can be satisfied, subject to the clearance of a small number of minor errors. The security target's claimed compliance with ITSEC F-B3 has been confirmed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>a) TMach のセキュリティターゲットの完全な評価を実施しました。これにより、少数の軽微な誤りが解消されることを条件として、ITSEC E5 の要件を満たせることが確認されました。セキュリティターゲットが主張する ITSEC F-B3 への適合も確認されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001-s18">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>b) The TMach security policy model has been evaluated against ITSEC E5, identifying some minor problems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>b) TMach のセキュリティポリシーモデルを ITSEC E5 に対して評価し、いくつかの軽微な問題を特定しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>c) The evaluators have assessed the TMach architectural design against ITSEC E5. This has identified further requirements for evidence in terms of the use of semiformal notations and of traceability of SEFs at this level.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>c) 評価者は、TMach のアーキテクチャ設計を ITSEC E5 に対して評価しました。これにより、半形式的な記法の使用と、このレベルでの SEF のトレーサビリティに関して、さらなる証拠の要件が特定されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>d) High Level Design documents have been reviewed for the majority of the trusted servers. A sample of the low level design documentation has also been evaluated, together with an assessment of TIS's approach to traceability of SEFs at this level. The evaluation has highlighted areas where more evidence may be needed at this level, in order to satisfy ITSEC E5.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>d) 信頼されたサーバーの大部分について、上位レベル設計文書をレビューしました。下位レベル設計文書の標本も評価し、このレベルでの SEF のトレーサビリティに対する TIS のアプローチも評価しました。この評価は、ITSEC E5 を満たすために、このレベルでより多くの証拠が必要となる可能性のある領域を浮き彫りにしました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>e) A sample of the source code has been examined, indicating that there should be no major problems in terms of satisfying the E5 requirements in this area. TIS's proposed approach to testing, and provision of test evidence, has been assessed and discussed. An agreed interpretation of the ITSEC and ITSEM requirements has been reached.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>e) ソースコードの標本を検査したところ、この領域で E5 の要件を満たすうえで大きな問題はないはずだという見込みが示されました。TIS が提案するテストへのアプローチとテスト証拠の提供について、評価し、議論しました。ITSEC と ITSEM の要件について、合意された解釈に到達しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>f) The TMach development environment has been subjected to a preliminary assessment against ITSEC E5, providing feedback on the likelihood of the ITSEC E5 requirements being satisfied. The assessment has identified areas where further evidence and assessment will be required.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>f) TMach の開発環境は、ITSEC E5 に対する予備的な評価を受け、ITSEC E5 の要件が満たされる見込みについてのフィードバックを得ました。この評価は、さらなる証拠と評価が必要となる領域を特定しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The evaluation results have provided a basis for detailed discussions of the ITSEC E5 requirements as to where these differ from TCSEC B3. They have provided insight, and led to agreed interpretations, of the ITSEC requirements, particularly in the following areas:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価結果は、ITSEC E5 の要件が TCSEC B3 と異なる点について、詳細な議論を行うための基礎を提供しました。評価結果は、特に次の領域において、ITSEC の要件についての知見をもたらし、合意された解釈につながりました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>a) Specification of semiformal security enforcing functionality in the security target: the evaluators identified a possible approach to satisfying this ITSEC requirement, which TIS has successfully applied in their security target for TMach.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>a) セキュリティターゲットにおける半形式的なセキュリティ実施機能の仕様: 評価者は、この ITSEC の要件を満たすための可能なアプローチを特定し、TIS はそれを TMach のセキュリティターゲットでうまく適用しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>b) Use of semiformal notation in the various design levels: an agreed interpretation has been reached, with TIS adopting their own notation at the architectural level, and using PDL with a design syntax and semantics at the lowest level. It was also established that the standard approach used in the Interface Specifications also qualified as a semiformal notation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>b) 各設計レベルにおける半形式的な記法の使用: 合意された解釈に到達しました。TIS は、アーキテクチャレベルでは独自の記法を採用し、最下位レベルでは設計の構文と意味を備えた PDL を使用しています。また、インタフェース仕様で用いられている標準的なアプローチも、半形式的な記法に該当することが確認されました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>c) An agreement on the meaning of the term 'mechanism' used in various contexts throughout the ITSEC;</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>c) ITSEC の全体にわたってさまざまな文脈で使われる「メカニズム」という用語の意味についての合意。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>d) An agreed interpretation of the developer's security requirements has been reached: protection of the integrity of the target of evaluation (TOE) is the essential requirement, with protection of confidentiality aspects being a matter for the developer to decide.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>d) 開発者のセキュリティ要件についての合意された解釈に到達しました。評価対象（TOE）の完全性の保護が不可欠な要件であり、機密性の側面の保護は開発者が決定する事項です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These discussions and interpretations have had a significant impact on the development of the ITSEM and the Common Criteria.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの議論と解釈は、ITSEM と Common Criteria の策定に大きな影響を与えました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additionally, the evaluators have examined draft versions of the Security Administrator's Guide and Security Features User Guide: the initial assessment indicates that there should be no significant problems in satisfying the ITSEC E5 requirements in respect to Operation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>さらに、評価者は Security Administrator's Guide と Security Features User Guide の草案を検査しました。初期評価では、運用に関する ITSEC E5 の要件を満たすうえで、大きな問題はないと見込まれています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Finally, the evaluators have provided feedback on TIS's proposed approaches to addressing the ITSEC E5 effectiveness requirements. This discussion has served to clarify the ITSEC requirements, particularly in the areas of strength of mechanisms and binding analysis. The evaluators have also examined how the ITSEM approach to the evaluator's independent vulnerability analysis (which leads directly to penetration testing) should be applied on a full evaluation of TMach.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最後に、評価者は、ITSEC E5 の有効性要件に対処するための TIS の提案したアプローチについて、フィードバックを提供しました。この議論は、特にメカニズムの強度と結合性分析の領域で、ITSEC の要件を明確にするのに役立ちました。評価者はまた、評価者による独立した脆弱性分析（侵入テストに直結します）に関する ITSEM のアプローチを、TMach の完全な評価にどのように適用すべきかも検討しました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>9. BENEFITS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+9. 利点</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0002-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following benefits result from the TMach project:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TMach プロジェクトからは、次の利点が得られます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.1 Understanding the European approach on IT security evaluation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.1 IT セキュリティ評価に対する欧州のアプローチの理解</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The application of the European Criteria (ITSEC) to the evaluation of high assurance level (E5) has resulted in learning the strengths and weaknesses of the ITSEC.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">欧州の基準（ITSEC）を高い保証レベル（E5）の評価に適用した結果、ITSEC の長所と短所を知ることができました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The ITSEC assurance effectiveness concepts which are somewhat different than the TCSEC approach are being applied in a high assurance evaluation which has resulted in clarification of concepts and shared understanding of approaches.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TCSEC のアプローチとはやや異なる ITSEC の保証の有効性の概念が、高保証の評価に適用されており、その結果、概念が明確になり、アプローチについての共通理解が得られました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The application of the ITSEC criteria has led to an increased understanding of the new concepts of:</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ITSEC 基準の適用により、次の新しい概念についての理解が深まりました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0002-s7">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">separation of functionality and assurance</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">機能性と保証の分離</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0002-s8">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">traceability</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">トレーサビリティ</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-1" id="pdf-p0016-b0002-s9">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">security target</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">セキュリティターゲット</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s10">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The evaluation process as described in the ITSEM has been applied which has resulted in significant shared understanding.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ITSEM に記載された評価プロセスが適用され、その結果、共通理解が大幅に深まりました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s11">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The U.S. has gained understanding of the two most advanced European evaluation schemes (UK, Germany).</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">米国は、欧州で最も進んだ 2 つの評価スキーム（英国、ドイツ）についての理解を得ました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s12">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Participating in the evaluation process has shown the procedures used within the UK and Germany for criteria interpretation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">評価プロセスへの参加により、英国とドイツで基準の解釈に用いられている手順が明らかになりました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0016-b0002-s13">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Answering questions of interpretation of various aspects of the ITSEC and ITSEM has actually helped to shape the criteria and processes.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ITSEC と ITSEM のさまざまな側面の解釈に関する質問に答えることは、基準とプロセスの形成に実際に役立ちました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Dual evaluations of TMach with the UK and Germans in which meetings were held concurrently has resulted in significant communication between the UK and German evaluators and government officials. It appears that this has encouraged harmonization of processes within the two countries. Such harmonization makes the processes significantly easier for the U.S. to work with and understand.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">英国およびドイツと TMach の二重評価を実施し、会合を同時に開催したことで、英国とドイツの評価者および政府当局者の間で活発なコミュニケーションが生まれました。これにより、両国のプロセスの調和が促されたようです。このような調和により、米国にとって、プロセスの運用と理解が大幅に容易になります。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.2 Support of the development of new Criteria and U.S. Process</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.2 新しい基準と米国のプロセスの策定への支援</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001-s2">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The Common Criteria effort has profited significantly by the experiences gained within the TMach evaluation project.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Common Criteria の取り組みは、TMach 評価プロジェクトで得られた経験から大きな恩恵を受けました。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001-s3">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The U.S. development of the TTAP has been influenced by the experience of working with the European CLEFs.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">米国の TTAP の開発は、欧州の CLEF と協力した経験の影響を受けました。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001-s4">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>9.3 TMach Analysis</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+9.3 TMach の分析</h4>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001-s5">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">The TMach system has had the benefit of security analysis by a large collection of skilled evaluators. This will increase the confidence in the security of the system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">TMach システムは、多数の熟練した評価者によるセキュリティ分析の恩恵を受けました。これにより、システムのセキュリティに対する信頼が高まります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0017-b0001-s6">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Both the UK and German government officials have had the opportunity to learn about the TMach operating system which should improve its acceptability for use with their applications.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">英国とドイツの政府当局者はどちらも、TMach オペレーティングシステムについて知る機会を得ており、それにより、自国のアプリケーションで使用する場合の受容性が向上するはずです。</span></p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5810.pdf">National Institute of Standards and Technology, IR 5810</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 5810";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

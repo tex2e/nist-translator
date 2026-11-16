@@ -1,0 +1,1607 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 4939 は、市販のハードウェアとソフトウェアを使用するシステムに対する、悪意のあるコードと外部からの攻撃に関連する脅威を評価した報告書です。NIST が U.S. Army Computer Vulnerability/Survivability Study Team の参加者として担当した任務に基づくもので、Military Interdepartmental Purchase Request に基づく 2 番目で最後の成果物と位置づけられています。報告書は、ウイルスとワームという悪意のあるコードについて歴史と現在の防御を述べ、内部者による攻撃、ハッカー、フォンフリークという人間による脅威を取り上げています。悪意のあるコードと人間による脅威の両方について、将来の脅威の予測も示しています。">
+  <title>悪意のあるコードと外部からの攻撃の脅威評価 | NIST IR 4939 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0001" title="Threat Assessment of Malicious Code and External Attacks" data-search="悪意のあるコードと外部からの攻撃の脅威評価 threat assessment of malicious code and external attacks">悪意のあるコードと外部からの攻撃の脅威評価</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Contents" data-search="目次 contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0002" title="1 Introduction" data-search="1 はじめに 1 introduction">1 はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2 Malicious Code" data-search="2 悪意のあるコード 2 malicious code">2 悪意のあるコード</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0005" title="Basic Definitions" data-search="基本的な定義 basic definitions">基本的な定義</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0011" title="2.1 Viruses" data-search="2.1 ウイルス 2.1 viruses">2.1 ウイルス</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0010-b0006" title="2.1.1 History of Viruses" data-search="2.1.1 ウイルスの歴史 2.1.1 history of viruses">2.1.1 ウイルスの歴史</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0012-b0007" title="2.1.2 Current Protection Against Viruses" data-search="2.1.2 ウイルスに対する現在の防御 2.1.2 current protection against viruses">2.1.2 ウイルスに対する現在の防御</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0004" title="2.2 Worms" data-search="2.2 ワーム 2.2 worms">2.2 ワーム</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0013-b0012" title="2.2.1 History of Worms" data-search="2.2.1 ワームの歴史 2.2.1 history of worms">2.2.1 ワームの歴史</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0015-b0002" title="2.2.2 Current Protection Against Worms" data-search="2.2.2 ワームに対する現在の防御 2.2.2 current protection against worms">2.2.2 ワームに対する現在の防御</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0002" title="2.3 Trends for the Future" data-search="2.3 将来の傾向 2.3 trends for the future">2.3 将来の傾向</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0002" title="3 Human Threats" data-search="3 人間による脅威 3 human threats">3 人間による脅威</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0006" title="3.1 Insider Attacks" data-search="3.1 内部者による攻撃 3.1 insider attacks">3.1 内部者による攻撃</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0010" title="3.2 Hackers" data-search="3.2 ハッカー 3.2 hackers">3.2 ハッカー</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0003" title="3.3 Phone Phreaks" data-search="3.3 フォンフリーク 3.3 phone phreaks">3.3 フォンフリーク</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0007" title="3.4 Trends for the Future" data-search="3.4 将来の傾向 3.4 trends for the future">3.4 将来の傾向</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0019-b0008" title="3.4.1 Configuration Errors and Passwords" data-search="3.4.1 構成の誤りとパスワード 3.4.1 configuration errors and passwords">3.4.1 構成の誤りとパスワード</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0020-b0003" title="3.4.2 Internal Threats" data-search="3.4.2 内部の脅威 3.4.2 internal threats">3.4.2 内部の脅威</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0020-b0006" title="3.4.3 Connectivity" data-search="3.4.3 接続性 3.4.3 connectivity">3.4.3 接続性</a>
+      <a class="toc-item toc-depth-3" href="#pdf-p0021-b0003" title="3.4.4 Information Dissemination" data-search="3.4.4 情報の流布 3.4.4 information dissemination">3.4.4 情報の流布</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0023-b0002" title="4 Summary" data-search="4 まとめ 4 summary">4 まとめ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0025-b0003" title="References" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 4939 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Threat Assessment of Malicious Code and External Attacks</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>悪意のあるコードと外部からの攻撃の脅威評価</strong></span><br><span class="doc-panel-item">公開日 : 1992-10-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/4939/final">https://csrc.nist.gov/pubs/ir/4939/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 179 / 179 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 4939 は、市販のハードウェアとソフトウェアを使用するシステムに対する、悪意のあるコードと外部からの攻撃に関連する脅威を評価した報告書です。NIST が U.S. Army Computer Vulnerability/Survivability Study Team の参加者として担当した任務に基づくもので、Military Interdepartmental Purchase Request に基づく 2 番目で最後の成果物と位置づけられています。報告書は、ウイルスとワームという悪意のあるコードについて歴史と現在の防御を述べ、内部者による攻撃、ハッカー、フォンフリークという人間による脅威を取り上げています。悪意のあるコードと人間による脅威の両方について、将来の脅威の予測も示しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0000">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 4939</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 4939</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Threat Assessment of Malicious Code and External Attacks</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+悪意のあるコードと外部からの攻撃の脅威評価</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Lawrence E. Bassham<br>W. Timothy Polk</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Lawrence E. Bassham<br>W. Timothy Polk</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Computer Systems Laboratory<br>Computer Security Division<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>コンピュータシステム研究所<br>コンピュータセキュリティ部門<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 4939</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 4939</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Threat Assessment of Malicious Code and External Attacks</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>悪意のあるコードと外部からの攻撃の脅威評価</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Lawrence E. Bassham<br>W. Timothy Polk</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Lawrence E. Bassham<br>W. Timothy Polk</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Computer Systems Laboratory<br>Computer Security Division<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術管理局<br>国立標準技術研究所<br>コンピュータシステム研究所<br>コンピュータセキュリティ部門<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>October 1992</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1992年10月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Barbara Hackman Franklin, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Barbara Hackman Franklin 長官</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TECHNOLOGY ADMINISTRATION<br>Robert M. White, Under Secretary for Technology<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>John W. Lyons, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>技術管理局<br>Robert M. White、商務次官（技術担当）<br>国立標準技術研究所<br>John W. Lyons、所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">1 Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0007-b0002">1 はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 Malicious Code</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2 悪意のあるコード</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0011">2.1 Viruses</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0011">2.1 ウイルス</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.1.1 History of Viruses</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0006">2.1.1 ウイルスの歴史</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.1.2 Current Protection Against Viruses</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0007">2.1.2 ウイルスに対する現在の防御</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">2.2 Worms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0004">2.2 ワーム</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0012">2.2.1 History of Worms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0012">2.2.1 ワームの歴史</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0002">2.2.2 Current Protection Against Worms</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0002">2.2.2 ワームに対する現在の防御</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">2.3 Trends for the Future</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0002">2.3 将来の傾向</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">3 Human Threats</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0002">3 人間による脅威</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0023">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">3.1 Insider Attacks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0006">3.1 内部者による攻撃</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0025">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0010">3.2 Hackers</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0010">3.2 ハッカー</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0003">3.3 Phone Phreaks</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0003">3.3 フォンフリーク</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-2" id="pdf-p0005-b0029">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0007">3.4 Trends for the Future</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0007">3.4 将来の傾向</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0031">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0008">3.4.1 Configuration Errors and Passwords</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0008">3.4.1 構成の誤りとパスワード</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0033">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0003">3.4.2 Internal Threats</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0003">3.4.2 内部の脅威</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0006">3.4.3 Connectivity</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0006">3.4.3 接続性</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-3" id="pdf-p0005-b0037">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0021-b0003">3.4.4 Information Dissemination</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0021-b0003">3.4.4 情報の流布</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0039">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0023-b0002">4 Summary</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0023-b0002">4 まとめ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0041">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0025-b0003">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0025-b0003">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1 Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1 はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As a participant in the U.S. Army Computer Vulnerability/Survivability Study Team, the National Institute of Standards and Technology has been tasked with providing an assessment of the threats associated with commercial hardware and software. This document is the second and final deliverable under the Military Interdepartmental Purchase Request number: W43P6Q-92-EW138. This report provides an assessment of the threats associated with malicious code and external attacks on systems using commercially available hardware and software. The history of the threat is provided and current protection methods described. A projection of the future threats for both malicious code and human threats is also given.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国立標準技術研究所は、U.S. Army Computer Vulnerability/Survivability Study Team の参加者として、市販のハードウェアとソフトウェアに関連する脅威の評価を提供する任務を与えられました。本書は、Military Interdepartmental Purchase Request 番号 W43P6Q-92-EW138 に基づく 2 番目で最後の成果物です。本報告書は、市販のハードウェアとソフトウェアを使用するシステムに対する、悪意のあるコードと外部からの攻撃に関連する脅威の評価を提供します。脅威の歴史を示し、現在の防御方法を説明します。悪意のあるコードと人間による脅威の両方について、将来の脅威の予測も示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Today, computer systems are under attack from a multitude of sources. These range from malicious code, such as viruses and worms, to human threats, such as hackers and phone “phreaks.” These attacks target different characteristics of a system. This leads to the possibility that a particular system is more susceptible to certain kinds of attacks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>今日、コンピュータシステムは多数の発生源から攻撃を受けています。これらは、ウイルスやワームなどの悪意のあるコードから、ハッカーや「フォンフリーク（phone phreaks）」などの人間による脅威にまで及びます。これらの攻撃は、システムの異なる特性を標的にします。このため、特定のシステムが、ある種の攻撃に対してより影響を受けやすい可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Malicious code, such as viruses and worms, attack a system in one of two ways, either internally or externally. Traditionally, the virus has been an internal threat, while the worm, to a large extent, has been a threat from an external source.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスやワームなどの悪意のあるコードは、内部から、または外部からという 2 つの方法のいずれかでシステムを攻撃します。伝統的に、ウイルスは内部の脅威であり、ワームは、大部分において外部の発生源からの脅威でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Human threats are perpetrated by individuals or groups of individuals that attempt to penetrate systems through computer networks, public switched telephone networks or other sources. These attacks generally target known security vulnerabilities of systems. Many of these vulnerabilities are simply due to configuration errors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>人間による脅威は、個人または個人の集団が、コンピュータネットワーク、公衆交換電話網、その他の経路を通じてシステムへの侵入を試みることによって実行されます。これらの攻撃は、一般に、システムの既知のセキュリティ上の脆弱性を標的にします。これらの脆弱性の多くは、単に構成の誤りによるものです。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0007-b0008" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en">Certain commercial products are identified in this paper in order to adequately specify procedures being described. In no case does such identification imply recommendation or endorsement by the National Institute of Standards and Technology, nor does it imply that the material identified is necessarily the best for the purpose.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=7">原本 PDF p.7</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+説明されている手順を適切に特定するため、本稿では特定の市販製品を挙げています。このような記載は、いかなる場合も、国立標準技術研究所による推奨や支持を意味するものではなく、特定した製品が当該目的に必ずしも最適であることを意味するものでもありません。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2 Malicious Code</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2 悪意のあるコード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Viruses and worms are related classes of malicious code; as a result they are often confused. Both share the primary objective of replication. However, they are distinctly different with respect to the techniques they use and their host system requirements. This distinction is due to the disjoint sets of host systems they attack. Viruses have been almost exclusively restricted to personal computers, while worms have attacked only multi-user systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスとワームは悪意のあるコードの関連する種類であるため、しばしば混同されます。どちらも、複製という主たる目的を共有しています。しかし、使用する技法と、それぞれが要求するホストシステム要件に関して、両者は明確に異なります。この区別は、それらが攻撃するホストシステムの集合が互いに重ならないことによります。ウイルスは、ほとんど専らパーソナルコンピュータに限られてきたのに対し、ワームは、マルチユーザーシステムだけを攻撃してきました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A careful examination of the histories of viruses and worms can highlight the differences and similarities between these classes of malicious code. The characteristics shown by these histories can be used to explain the differences between the environments in which they are found. Viruses and worms have very different functional requirements; currently no class of systems simultaneously meets the needs of both.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスとワームの歴史を注意深く調べることで、これらの悪意のあるコードの種類の違いと類似点を浮き彫りにできます。これらの歴史が示す特性は、それぞれが見られる環境の違いを説明するために使えます。ウイルスとワームは、機能上の要件が大きく異なっており、現在のところ、両者のニーズを同時に満たすシステムの種類はありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A review of the development of personal computers and multi-tasking workstations will show that the gap in functionality between these classes of systems is narrowing rapidly. In the future, a single system may meet all of the requirements necessary to support both worms and viruses. This implies that worms and viruses may begin to appear in new classes of systems. A knowledge of the histories of viruses and worms may make it possible to predict how malicious code will cause problems in the future.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パーソナルコンピュータとマルチタスクのワークステーションの発展を振り返ると、これらのシステムの種類の間の機能の差が急速に縮まっていることがわかります。将来、単一のシステムが、ワームとウイルスの両方をサポートするために必要なすべての要件を満たすかもしれません。これは、ワームとウイルスが、新しい種類のシステムに現れ始める可能性があることを意味します。ウイルスとワームの歴史を知ることで、悪意のあるコードが将来どのように問題を引き起こすかを予測できるようになるかもしれません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Basic Definitions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+基本的な定義</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To provide a basis for further discussion, the following definitions will be used throughout the report.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>以降の議論の基礎を提供するため、本報告書の全体を通じて次の定義を使用します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>Trojan Horse</u> - a program which performs a useful function, but also performs an unexpected action as well.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>トロイの木馬</u> - 有用な機能を実行しますが、予期しない動作も実行するプログラム。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>Virus</u> - a code segment which replicates by attaching copies to existing executables.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>ウイルス</u> - 既存の実行可能ファイルにコピーを付加することで複製するコードの断片。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>Worm</u> - a program which replicates itself and causes execution of the new copy.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>ワーム</u> - 自分自身を複製し、新しいコピーの実行を引き起こすプログラム。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>Network Worm</u> - a worm which copies itself to another system by using common network facilities, and causes execution of the copy on that system.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body"><u>ネットワークワーム</u> - 一般的なネットワーク機能を使用して自分自身を別のシステムにコピーし、そのシステム上でそのコピーの実行を引き起こすワーム。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Viruses</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 ウイルス</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following are necessary characteristics of a virus:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスに必要な特性は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">replication</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">複製</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">requires a host program as a carrier</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">キャリアとしてホストプログラムが必要</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">activated by external action</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">外部からの動作によって活性化される</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">replication limited to (virtual) system</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">複製は（仮想の）システムに限定される</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In essence, a computer program which has been infected by a virus has been converted into a trojan horse. The program is expected to perform a useful function, but has the unintended side effect of viral code execution. In addition to performing the unintended task, the virus also performs the function of replication. Upon execution, the virus attempts to replicate and “attach” itself to another program. It is the unexpected and generally uncontrollable repliction that makes viruses so dangerous.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本質的に、ウイルスに感染したコンピュータプログラムは、トロイの木馬に変換されたことになります。プログラムは有用な機能を実行することが期待されますが、意図しない副作用としてウイルスのコードが実行されます。意図しない作業を実行することに加えて、ウイルスは複製の機能も実行します。実行されると、ウイルスは複製して別のプログラムに自分自身を「付加」しようとします。ウイルスを非常に危険なものにしているのは、予期しない、一般に制御できない複製です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Viruses are currently designed to attack single platforms. A platform is defined as the combination of hardware and the most prevalent operating system for that hardware. As an example, a virus can be referred to as an IBM-PC virus, referring to the hardware, or a DOS virus, referring to the operating system. “Clones” of systems are also included with the original platform.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスは現在、単一のプラットフォームを攻撃するように設計されています。プラットフォームは、ハードウェアと、そのハードウェアで最も普及しているオペレーティングシステムの組み合わせと定義されます。たとえば、ウイルスは、ハードウェアを指して IBM-PC ウイルスと呼ぶことも、オペレーティングシステムを指して DOS ウイルスと呼ぶこともできます。システムの「クローン」も、元のプラットフォームに含まれます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.1 History of Viruses</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.1 ウイルスの歴史</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The term “computer virus” was formally defined by Fred Cohen in 1983, while he performed academic experiments on a Digital Equipment Corporation VAX system. Viruses are classified as being one of two types: research or “in the wild.” A research virus is one that has been written for research or study purposes and has received almost no distribution to the public. On the other hand, viruses which have been seen with any regularity are termed “in the wild.” The first computer viruses were developed in the early 1980s. The first viruses found in the wild were Apple II viruses, such as Elk Cloner, which was reported in 1981 [Den90]. Viruses have now been found on the following platforms:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「コンピュータウイルス」という用語は、Fred Cohen が Digital Equipment Corporation の VAX システムで学術的な実験を行っていた 1983 年に、正式に定義されました。ウイルスは、研究用か、「野生（in the wild）」かのいずれかの種類に分類されます。研究用ウイルスとは、研究や学習の目的で書かれたもので、一般にはほとんど配布されていないものです。一方、ある程度の頻度で見られるウイルスは、「野生」と呼ばれます。最初のコンピュータウイルスは、1980 年代初頭に開発されました。野生で見つかった最初のウイルスは、1981 年に報告された Elk Cloner などの Apple II ウイルスでした [Den90]。ウイルスは現在、次のプラットフォームで見つかっています。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Apple II</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Apple II</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IBM PC</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">IBM PC</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Macintosh</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Macintosh</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Atari</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Atari</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Amiga</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Amiga</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Note that all viruses found in the wild target personal computers. As of today, the overwhelming number of virus strains are IBM PC viruses. However, as of August 1989, the number of PC, Atari ST, Amiga, and Macintosh viruses were almost identical (21, 22, 18, and 12 respectively [Den90]). Academic studies have shown that viruses are possible for multi-tasking systems, but they have not yet appeared. This point will be discussed later.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>野生で見つかったすべてのウイルスは、パーソナルコンピュータを標的にしていることに注意してください。現在のところ、圧倒的な数のウイルス株は IBM PC ウイルスです。しかし、1989 年 8 月の時点では、PC、Atari ST、Amiga、Macintosh のウイルスの数はほぼ同じでした（それぞれ 21、22、18、12 [Den90]）。学術的な研究は、マルチタスクシステムでもウイルスが可能であることを示していますが、それらはまだ現れていません。この点は後で論じます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Viruses have “evolved” over the years due to efforts by their authors to make the code more difficult to detect, disassemble, and eradicate. This evolution has been especially apparent in the IBM PC viruses; since there are more distinct viruses known for the DOS operating system than any other.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ウイルスは、コードを検出、逆アセンブル、駆除しにくくしようとする作者の努力により、長年にわたって「進化」してきました。この進化は、IBM PC ウイルスで特に顕著です。DOS オペレーティングシステム向けには、他のどのオペレーティングシステム向けよりも多くの異なるウイルスが知られているためです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first IBM-PC virus appeared in 1986 [Den90]; this was the <em>Brain</em> virus. <em>Brain</em> was a boot sector virus and remained resident. In 1987, <em>Brain</em> was followed by <em>Alameda</em> (<em>Yale</em>), <em>Cascade</em>, <em>Jerusalem</em>, <em>Lehigh</em>, and <em>Miami</em> (<em>South African Friday the 13th</em>). These viruses expanded the target executables to include COM and EXE files. <em>Cascade</em> was encrypted to deter disassembly and detection. Variable encryption appeared in 1989 with the <em>1260</em> virus. Stealth viruses, which employ various techniques to avoid detection, also first appeared in 1989, such as <em>Zero Bug</em>, <em>Dark Avenger</em> and <em>Frodo</em> (<em>4096</em> or <em>4K</em>). In 1990, self-modifying viruses, such as <em>Whale</em> were introduced. The year 1991 brought the <em>GP1</em> virus, which is “network-sensitive” and attempts to steal Novell NetWare passwords. Since their inception, viruses have become increasingly complex.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>最初の IBM-PC ウイルスは 1986 年に登場しました [Den90]。これは <em>Brain</em> ウイルスでした。<em>Brain</em> はブートセクタウイルスであり、常駐型でした。1987 年には、<em>Brain</em> に続いて、<em>Alameda</em>（<em>Yale</em>）、<em>Cascade</em>、<em>Jerusalem</em>、<em>Lehigh</em>、<em>Miami</em>（<em>South African Friday the 13th</em>）が登場しました。これらのウイルスは、標的とする実行可能ファイルを COM と EXE のファイルにまで広げました。<em>Cascade</em> は、逆アセンブルと検出を妨げるために暗号化されていました。可変暗号化は、1989 年に <em>1260</em> ウイルスで登場しました。検出を回避するためのさまざまな技法を用いるステルスウイルスも、<em>Zero Bug</em>、<em>Dark Avenger</em>、<em>Frodo</em>（<em>4096</em> または <em>4K</em>）のように、1989 年に初めて登場しました。1990 年には、<em>Whale</em> などの自己修正型ウイルスが導入されました。1991 年には <em>GP1</em> ウイルスが登場し、これは「ネットワークを認識する」もので、Novell NetWare のパスワードを盗もうとします。誕生以来、ウイルスはますます複雑になってきました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Examples from the IBM-PC family of viruses indicate that the most commonly detected viruses vary according to continent, but <em>Stoned</em>, <em>Brain</em>, <em>Cascade</em>, and members of the <em>Jerusalem</em> family, have spread widely and continue to appear. This implies that highly survivable viruses tend to be benign, replicate many times before activation, or are somewhat innovative, utilizing some technique never used before in a virus.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>IBM-PC ファミリーのウイルスの例は、最も一般的に検出されるウイルスが大陸によって異なることを示していますが、<em>Stoned</em>、<em>Brain</em>、<em>Cascade</em>、<em>Jerusalem</em> ファミリーのメンバーは、広く拡散し、現れ続けています。これは、生存性の高いウイルスは、無害であるか、活性化する前に何度も複製するか、あるいはウイルスで一度も使われたことのない何らかの技法を用いる、やや革新的なものである傾向があることを意味します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Personal computer viruses exploit the lack of effective access controls in these systems. The viruses modify files and even the operating system itself. These are “legal” actions within the context of the operating system. While more stringent controls are in place on multi-tasking, multi-user operating systems, configuration errors, and security holes (security bugs) make viruses on these systems more than theoretically possible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パーソナルコンピュータのウイルスは、これらのシステムに有効なアクセス制御がないことを悪用します。ウイルスは、ファイルを、さらにはオペレーティングシステム自体も改変します。これらはオペレーティングシステムの文脈では「正当な」動作です。マルチタスク、マルチユーザーのオペレーティングシステムでは、より厳格な制御が行われていますが、構成の誤りとセキュリティホール（セキュリティバグ）により、これらのシステムでウイルスが発生することは、理論上のものにとどまりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This leads to the following initial conclusions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このことから、次の初期の結論が導かれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Viruses exploit weaknesses in operating system controls and human patterns of system use/misuse.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ウイルスは、オペレーティングシステムの制御の弱点と、システムの使用・誤用における人間のパターンを悪用します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Destructive viruses are more likely to be eradicated.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">破壊的なウイルスは、駆除される可能性がより高くなります。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0011-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">An innovative virus may have a larger initial window to propagate before it is discovered and the “average” anti-viral product is modified to detect or eradicate it.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">革新的なウイルスは、発見されて「平均的な」アンチウイルス製品がそれを検出または駆除するように修正されるまでの間に、拡散するための初期の期間がより長くなる場合があります。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>It has been suggested that viruses for multi-user systems are too difficult to write. However, Fred Cohen required only “8 hours of expert work” [Hof90] to build a virus that could penetrate a UNIX<sup>1</sup> system. The most complex PC viruses required a great deal more effort.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>マルチユーザーシステム向けのウイルスは、書くのが難しすぎるという指摘がありました。しかし、Fred Cohen は、UNIX<sup>1</sup> システムに侵入できるウイルスを作成するのに、「専門家の作業 8 時間」[Hof90] しか要しませんでした。最も複雑な PC ウイルスには、はるかに多くの労力が必要でした。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Yet, if we reject the hypothesis that viruses do not exist on multi-user systems because they are too difficult to write, what reasons could exist? Perhaps the explosion of PC viruses (as opposed to other personal computer systems) can provide a clue. The population of PCs and PC compatibles is by far the largest. Additionally, personal computer users exchange disks frequently. Exchanging disks is not required if the systems are all connected to a network. In this case large numbers of systems may be infected through the use of shared network resources.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>しかし、ウイルスはマルチユーザーシステムでは書くのが難しすぎるために存在しない、という仮説を退けるならば、どのような理由があり得るでしょうか。おそらく、（他のパーソナルコンピュータシステムと比べた）PC ウイルスの爆発的な増加が、手がかりを提供してくれるでしょう。PC と PC 互換機の数は、群を抜いて最大です。さらに、パーソナルコンピュータのユーザーは、頻繁にディスクを交換します。システムがすべてネットワークに接続されていれば、ディスクの交換は不要です。この場合、共有されたネットワーク資源の使用を通じて、多数のシステムが感染する可能性があります。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0011-b0019" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>1</sup>UNIX is a registered trademark of AT&amp;T<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=11">原本 PDF p.11</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>1</sup>UNIX は AT&amp;T の登録商標です        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One of the primary reasons that viruses have not been observed on multi-user systems is that administrators of these systems are more likely to exchange source code rather than executables. They tend to be more protective of copyrighted materials, so they exchange locally developed or public domain software. It is more convenient to exchange source code, since differences in hardware architecture may preclude exchanging executables.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>マルチユーザーシステムでウイルスが観察されていない主な理由の 1 つは、これらのシステムの管理者が、実行可能ファイルよりもソースコードを交換する傾向が強いことです。管理者は著作権のある素材をより保護する傾向があるため、ローカルで開発したソフトウェアやパブリックドメインのソフトウェアを交換します。ハードウェアアーキテクチャの違いにより実行可能ファイルを交換できない場合があるため、ソースコードを交換するほうが便利です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The advent of remote disk protocols, such as NFS (Network File System) and RFS (Remote File System), have resulted in the creation of many small populations of multi-user systems which freely exchange executables. Even so, there is little exchange of executables between different “clusters” of systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NFS（Network File System）や RFS（Remote File System）などのリモートディスクプロトコルの登場は、実行可能ファイルを自由に交換する、マルチユーザーシステムの小さな集団を数多く生み出しました。それでも、システムの異なる「クラスター」の間では、実行可能ファイルの交換はほとんどありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following additional conclusions can be made:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>次の追加の結論が導かれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">To spread, viruses require a large population of homogeneous systems and exchange of executable software.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">拡散するために、ウイルスは、同質のシステムの大きな集団と、実行可能ソフトウェアの交換を必要とします。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.1.2 Current Protection Against Viruses</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.1.2 ウイルスに対する現在の防御</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although many anti-virus tools and products are now available, personal and administrative practices and institutional policies, particularly with regard to shared or external software usage, should form the first line of defense against the threat of virus attack. Users should also consider the variety of anti-virus products currently available.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現在では多くのアンチウイルスツールや製品が利用できますが、特に共有されたソフトウェアや外部のソフトウェアの使用に関して、個人および管理上の慣行と組織のポリシーが、ウイルス攻撃の脅威に対する第一の防衛線を形成すべきです。ユーザーはまた、現在利用できるさまざまなアンチウイルス製品を検討すべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are three classes of anti-virus products: detection tools, identification tools, and removal tools. Scanners are an example of both detection and identification tools. Vulnerability monitors and modification detection programs are both examples of detection tools. Disinfectors are examples of a removal tools. A detailed description of the tools is provided below.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アンチウイルス製品には、検出ツール、識別ツール、除去ツールの 3 つの種類があります。スキャナは、検出ツールと識別ツールの両方の例です。脆弱性モニタと変更検出プログラムは、どちらも検出ツールの例です。ディスインフェクタは、除去ツールの例です。これらのツールの詳細な説明を以下に示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Scanners and disinfectors, the most popular classes of anti-virus software, rely on a great deal of <em>a priori</em> knowledge about the viral code. Scanners search for “signature strings” or use algorithmic detection methods to identify known viruses. Disinfectors rely on substantial information regarding the size of a virus and the type of modifications to restore the infected file’s contents.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アンチウイルスソフトウェアの最も一般的な種類であるスキャナとディスインフェクタは、ウイルスのコードに関する多くの<em>アプリオリな</em>知識に依拠しています。スキャナは、「シグネチャ文字列」を探すか、アルゴリズムによる検出方法を用いて、既知のウイルスを識別します。ディスインフェクタは、ウイルスのサイズと改変の種類に関する多くの情報に依拠して、感染したファイルの内容を復元します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Vulnerability monitors, which attempt to prevent modification or access to particularly sensitive parts of the system, may block a virus from hooking sensitive interrupts. This requires a lot of information about “normal” system use, since personal computer viruses do not actually circumvent any security features. This type of software also requires decisions from the user.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムの特に機微な部分への改変やアクセスを防ごうとする脆弱性モニタは、ウイルスが機微な割り込みをフックすることを阻止できる場合があります。パーソナルコンピュータのウイルスは、実際にはセキュリティ機能を回避しないため、これには「通常の」システム使用に関する多くの情報が必要です。この種のソフトウェアは、ユーザーによる判断も必要とします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Modification detection is a very general method, and requires no information about the virus to detect its presence. Modification detection programs, which are usually checksum based, are used to detect virus infection or trojan horses. This process begins with the creation of a baseline, where checksums for clean executables are computed and saved. Each following iteration consists of checksum computation and comparison with the stored value. It should be noted that simple checksums are easy to defeat; cyclical redundancy checks (CRC) are better, but can still be defeated; cryptographic checksums provide the highest level of security.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>変更検出は非常に一般的な方法であり、ウイルスの存在を検出するためにウイルスに関する情報を必要としません。通常はチェックサムに基づく変更検出プログラムは、ウイルス感染やトロイの木馬を検出するために使われます。このプロセスは、クリーンな実行可能ファイルのチェックサムを計算して保存する、ベースラインの作成から始まります。その後の各反復は、チェックサムの計算と、保存された値との比較で構成されます。単純なチェックサムは破られやすいことに注意すべきです。巡回冗長検査（CRC）はそれより優れていますが、それでも破られる可能性があります。暗号チェックサムは、最高水準のセキュリティを提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Worms</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 ワーム</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The following are necessary characteristics of a worm:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームに必要な特性は、次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">replication</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">複製</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">self-contained; does not require a host</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">自己完結型であり、ホストを必要としない</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">activated by creating process (needs a multi-tasking system)</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">生成するプロセスによって活性化される（マルチタスクシステムが必要）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0013-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">for network worms, replication occurs across communication links</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ネットワークワームの場合、複製は通信リンクをまたいで行われる</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A worm is not a trojan horse; it is a program designed to replicate. The program may perform any variety of additional tasks as well. The first network worms were intended to perform useful network management functions [SH82]. They took advantage of system properties to perform useful action. However, a malicious worm takes advantage of the same system properties. The facilities that allow such programs to replicate do not always discriminate between malicious and good code.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームはトロイの木馬ではありません。複製するように設計されたプログラムです。プログラムは、それ以外にもさまざまな追加の作業を実行する場合があります。最初のネットワークワームは、有用なネットワーク管理機能を実行することを意図していました [SH82]。それらは、システムの特性を利用して、有用な動作を実行しました。しかし、悪意のあるワームは、同じシステムの特性を利用します。そのようなプログラムが複製できるようにする機能は、悪意のあるコードと良いコードを、必ずしも区別しません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.1 History of Worms</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.1 ワームの歴史</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Worms were first used as a legitimate mechanism for performing tasks in a distributed environment. Network worms were considered promising for the performance of network management tasks in a series of experiments at the Xerox Palo Alto Research Center in 1982. The key problem noted was “worm management;” controlling the number of copies executing at a single time. This would be experienced later by authors of malicious worms.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームは、最初は、分散環境でタスクを実行するための正当なメカニズムとして使われました。ネットワークワームは、1982 年の Xerox Palo Alto Research Center での一連の実験において、ネットワーク管理タスクの実行に有望であると考えられていました。注目された主な問題は「ワーム管理」、すなわち、同時に実行されるコピーの数を制御することでした。これは、後に悪意のあるワームの作者も経験することになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Worms were first noticed as a potential computer security threat when the <em>Christmas Tree Exec</em> [Den90] attacked IBM mainframes in December 1987. It brought down both the world-wide IBM network and BITNET. The <em>Christmas Tree Exec</em> wasn’t a true worm. It was a trojan horse with a replicating mechanism. A user would receive an e-mail Christmas card that included executable (REXX) code. If executed the program claimed to draw a Xmas tree on the display. That much was true, but it also sent a copy to everyone on the user’s address lists.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームが潜在的なコンピュータセキュリティの脅威として最初に認識されたのは、<em>Christmas Tree Exec</em> [Den90] が、1987 年 12 月に IBM のメインフレームを攻撃したときでした。それは、世界規模の IBM ネットワークと BITNET の両方を停止させました。<em>Christmas Tree Exec</em> は、真のワームではありませんでした。それは、複製の仕組みを持つトロイの木馬でした。ユーザーは、実行可能な（REXX）コードを含む電子メールのクリスマスカードを受け取りました。実行すると、そのプログラムは、画面にクリスマスツリーを描くと主張しました。それは本当でしたが、同時に、ユーザーのアドレス一覧にいる全員にコピーを送信しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The <em>Internet Worm</em> [Spa89] was a true worm. It was released on November 2, 1988. It attacked Sun and DEC UNIX systems attached to the Internet<sup>2</sup> (it included two sets of binaries, one for each system). It utilized the TCP/IP protocols, common application layer protocols, operating system bugs, and a variety of system administration flaws to propagate. Various problems with worm management resulted in extremely poor system performance and a denial of network service.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Internet Worm</em> [Spa89] は、真のワームでした。それは 1988 年 11 月 2 日に放出されました。インターネット<sup>2</sup>に接続された Sun と DEC の UNIX システムを攻撃しました（それぞれのシステム用に 1 組ずつ、2 組のバイナリを含んでいました）。それは、TCP/IP プロトコル、一般的なアプリケーション層のプロトコル、オペレーティングシステムのバグ、さまざまなシステム管理上の欠陥を利用して拡散しました。ワーム管理に関するさまざまな問題により、システムの性能が極端に低下し、ネットワークサービス拒否が発生しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The <em>Father Christmas</em> worm was also a true worm. It was first released onto the worldwide DECnet Internet in December of 1988. This worm attacked VAX/VMS systems on SPAN and HEPNET. It utilized the DECnet protocols and a variety of system administration flaws to propagate. The worm exploited TASK0, which allows outsiders to perform tasks on the system. This worm added an additional feature; it reported successful system penetration to a specific site.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><em>Father Christmas</em> ワームも、真のワームでした。それは、1988 年 12 月に、世界規模の DECnet インターネットへ最初に放出されました。このワームは、SPAN と HEPNET 上の VAX/VMS システムを攻撃しました。DECnet プロトコルとさまざまなシステム管理上の欠陥を利用して拡散しました。このワームは、部外者がシステム上でタスクを実行できる TASK0 を悪用しました。このワームは、システムへの侵入に成功したことを特定のサイトに報告するという追加の機能を加えていました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This worm made no attempt at secrecy; it was not encrypted and sent mail to every user on the system. About a month later another worm, apparently a variant of <em>Father Christmas</em>, was released on a private network. This variant searched for accounts with “industry standard” or “easily guessed” passwords.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このワームは、秘匿しようとはしておらず、暗号化されておらず、システム上のすべてのユーザーにメールを送信しました。約 1 か月後に、<em>Father Christmas</em> の亜種と思われる別のワームが、プライベートネットワークに放出されました。この亜種は、「業界標準」または「容易に推測される」パスワードを持つアカウントを探しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The history of worms displays the same increasing complexity found in the development of PC viruses. The <em>Christmas Tree Exec</em> wasn’t a true worm. It was a trojan horse with a replicating mechanism. The <em>Internet Worm</em> was a true worm; it exploited both operating system flaws and common system management problems. The DECnet worms attacked system management problems, and reported information about successful system penetration to a central site.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームの歴史は、PC ウイルスの発展に見られるのと同じ、複雑さの増大を示しています。<em>Christmas Tree Exec</em> は、真のワームではなく、複製の仕組みを持つトロイの木馬でした。<em>Internet Worm</em> は真のワームであり、オペレーティングシステムの欠陥と、一般的なシステム管理上の問題の両方を悪用しました。DECnet のワームは、システム管理上の問題を攻撃し、システムへの侵入に成功した情報を中央のサイトに報告しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Several conclusions can be drawn from this information:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この情報から、いくつかの結論を導くことができます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">worms exploit flaws (i.e, bugs) in the operating system or inadequate system management to replicate.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ワームは、複製するために、オペレーティングシステムの欠陥（すなわち、バグ）や、不適切なシステム管理を悪用します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0014-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">release of a worm usually results in brief but spectacular outbreaks, shutting down entire networks.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ワームの放出は通常、短いながらも劇的な大流行を引き起こし、ネットワーク全体を停止させます。</span></p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0014-b0010" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>2</sup>a large “network of networks” connecting smaller networks around the world<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=14">原本 PDF p.14</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>2</sup>世界中の小規模なネットワークを接続する、大規模な「ネットワークのネットワーク」        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>2.2.2 Current Protection Against Worms</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+2.2.2 ワームに対する現在の防御</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Protecting a system against a worm requires a combination of basic system security and good network security. There are a variety of procedures and tools which can be applied to protect the system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ワームからシステムを保護するには、基本的なシステムセキュリティと優れたネットワークセキュリティの組み合わせが必要です。システムを保護するために適用できる手順とツールは、さまざまにあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In basic system security, the most important means of defense against worms is the <strong>identification &amp; authentication</strong> (I&amp;A) controls, which are usually integrated into the system. If poorly managed, these controls become a vulnerability which is easily exploited. Worms are especially adept at exploiting such vulnerabilities; both the Internet and DECnet worms targeted I&amp;A controls.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>基本的なシステムセキュリティにおいて、ワームに対する最も重要な防御手段は、通常はシステムに統合されている<strong>識別と認証</strong>（I&amp;A）の統制です。管理が不十分だと、これらの統制は、容易に悪用される脆弱性となります。ワームは、そのような脆弱性を悪用することに特に長けており、Internet のワームと DECnet のワームは、どちらも I&amp;A の統制を標的にしました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Add-on tools include configuration review tools (such as COPS [GS91] for UNIX systems) and checksum-based change detection tools. Design of configuration review tools requires intimate knowledge of the system, but no knowledge of the worm code.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アドオンツールには、構成レビューツール（UNIX システム向けの COPS [GS91] など）と、チェックサムに基づく変更検出ツールがあります。構成レビューツールの設計には、システムに関する詳しい知識が必要ですが、ワームのコードに関する知識は必要ありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another class of add-on tools is the intrusion detection tool. This is somewhat analogous to the PC monitoring software, but is usually more complex. This tool reviews series of commands to determine if the user is doing something suspicious. If so, the system manager is notified.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>アドオンツールの別の種類は、侵入検知ツールです。これは PC の監視ソフトウェアにやや似ていますが、通常はより複雑です。このツールは、一連のコマンドをレビューして、ユーザーが疑わしいことを行っているかどうかを判断します。そうである場合は、システム管理者に通知されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One type of network security tool is the wrapper program. Wrapper programs can be used to “filter” network connections, rejecting or allowing certain types of connections (or connections from a pre-determined set of systems). This can prevent worm infections by “untrusted” systems. Overlaps in trust may still allow infection to occur (A trusts B but not C; B trusts C; C infects B which infects A) but the rate of propagation will be limited.<sup>3</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ネットワークセキュリティツールの 1 つの種類は、ラッパープログラムです。ラッパープログラムは、ネットワーク接続を「フィルタリング」し、特定の種類の接続（または、あらかじめ決められたシステムの集合からの接続）を拒否または許可するために使えます。これにより、「信頼されていない」システムによるワームの感染を防ぐことができます。信頼の重複により、感染が起こる可能性は依然としてありますが（A は B を信頼しますが C は信頼しません。B は C を信頼します。C が B に感染し、B が A に感染します）、拡散の速度は制限されます。<sup>3</sup></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These tools do not protect a system against the exploitation of flaws in the operating system. This issue must be dealt with at the time of procurement. After procurement, it becomes a procedural issue. Resources are available to system managers to keep them abreast of security bugs and bug fixes, such as the CERT<sup>4</sup> computer security advisories.<sup>5</sup></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらのツールは、オペレーティングシステムの欠陥の悪用に対しては、システムを保護しません。この問題は、調達の時点で対処しなければなりません。調達後は、手続上の問題になります。CERT<sup>4</sup> のコンピュータセキュリティ勧告<sup>5</sup>など、システム管理者がセキュリティバグとバグ修正についての最新情報を把握できるようにする資料が、システム管理者向けに用意されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another class of security tools can be employed to protect a <em>network</em> against worms. The <strong>firewall system</strong> [GS91] protects an organizational network from systems in the larger network world. Firewall systems are found in two forms: simple or intelligent. An intelligent firewall filters all connections between hosts on the organizational network and the world-at-large. A simple firewall disallows all connections with the outside world, essentially splitting the network into two different networks. To transfer information between hosts on the different networks, an account on the firewall system is required.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティツールの別の種類は、ワームから<em>ネットワーク</em>を保護するために使用できます。<strong>ファイアウォールシステム</strong> [GS91] は、より大きなネットワークの世界にあるシステムから、組織のネットワークを保護します。ファイアウォールシステムには、単純なものと、インテリジェントなものの 2 つの形態があります。インテリジェントなファイアウォールは、組織のネットワーク上のホストと外部の世界との間のすべての接続をフィルタリングします。単純なファイアウォールは、外部の世界とのすべての接続を許可せず、本質的にネットワークを 2 つの異なるネットワークに分割します。異なるネットワーク上のホスト間で情報を転送するには、ファイアウォールシステム上のアカウントが必要です。</p>        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0012" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>3</sup>Unlimited trust was a vulnerability exploited by the Internet Worm.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>3</sup>無制限の信頼は、Internet Worm が悪用した脆弱性でした。        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0012-s1" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>4</sup>Computer Emergency Response Team<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>4</sup>Computer Emergency Response Team        </div>
+      </section>
+      <section class="row source-only pair footnote" id="pdf-p0015-b0013" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><sup>5</sup>System managers without network access can obtain this information from the NIST Computer Security BBS at (301)948-5717.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=15">原本 PDF p.15</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<sup>5</sup>ネットワークにアクセスできないシステム管理者は、NIST の Computer Security BBS（(301)948-5717）からこの情報を入手できます。        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3 Trends for the Future</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 将来の傾向</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Personal computers have been immune to worms because they are single task systems. The increasing functionality of personal computer operating systems will soon change this. Personal computers will become true multi-tasking systems, and will inherit both the functionality and security vulnerabilities that those systems have exhibited.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パーソナルコンピュータは、単一タスクのシステムであるため、ワームに感染しませんでした。パーソナルコンピュータのオペレーティングシステムの機能が増大することで、まもなくこれは変わります。パーソナルコンピュータは真のマルチタスクシステムとなり、それらのシステムが示してきた機能とセキュリティ上の脆弱性の両方を受け継ぐことになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Multi-user systems have never been attractive virus targets, due to limited population, low software interchange rates, and because they use some form of access control. The advent of 486-class PCs is likely to change this. In addition to the increased performance of PC based machines, the UNIX workstation market is growing rapidly, producing high-performance machines at extremely affordable prices. Multi-user systems will be gaining market share, increasing their attractiveness to virus authors.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>マルチユーザーシステムは、台数が限られていること、ソフトウェアの交換率が低いこと、何らかの形のアクセス制御を使用していることから、ウイルスの標的として魅力的であったことはありません。486 クラスの PC の登場は、これを変える可能性があります。PC ベースの機械の性能向上に加えて、UNIX ワークステーションの市場は急速に成長しており、非常に手頃な価格で高性能の機械を生み出しています。マルチユーザーシステムは市場シェアを獲得し、ウイルスの作者にとっての魅力を高めるでしょう。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This large homogeneous population of multi-user systems will be an attractive target for both virus authors and worm developers. Personal computer worms or virus/worm hybrids may become the new threat the 90s. With a large homogeneous population of systems available, it is conceivable that authors of malicious code will combine the previously disjoint attacks of viruses and worms. An attack consisting of a worm traversing a network and dropping viruses on the individual hosts becomes a startling possibility.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このマルチユーザーシステムの大規模で同質な集団は、ウイルスの作者とワームの開発者の両方にとって魅力的な標的になるでしょう。パーソナルコンピュータのワーム、あるいはウイルスとワームのハイブリッドは、90年代の新たな脅威となる可能性があります。同質のシステムが大量に存在すれば、悪意のあるコードの作者が、それまで別々だったウイルスとワームの攻撃を組み合わせることが考えられます。ワームがネットワークを横断し、個々のホストにウイルスを仕掛ける攻撃も、驚くべき可能性となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As the functionality of personal computers continues to grow, new types of tools will be required to achieve the same degree of security. Scanners must be supplemented with configuration review tools. Identification &amp; authentication tools (non-existent or neglected on most PCs) will become an important security tool on personal computers. Intrusion detection tools may become applicable to personal computers. Change detection will also play an increased role.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パーソナルコンピュータの機能が増大し続けるにつれて、同じ程度のセキュリティを達成するために、新しい種類のツールが必要になります。スキャナは、構成レビューツールで補完しなければなりません。識別と認証のツール（ほとんどの PC には存在しないか、軽視されている）は、パーソナルコンピュータにおける重要なセキュリティツールとなります。侵入検知ツールも、パーソナルコンピュータに適用できるようになるかもしれません。変更検出も、より大きな役割を果たします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Administrators of personal computer networks must become familiar with a new set of practices, tools, and techniques, such as firewalls. They will need to draw upon the world of multi-user systems for this knowledge.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>パーソナルコンピュータのネットワークの管理者は、ファイアウォールなど、新しい一連の慣行、ツール、技法に習熟しなければなりません。管理者は、この知識を得るために、マルチユーザーシステムの世界から学ぶ必要があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>As the differences between PC and multi-user environments decreases, the likelihood of these environments facing similar threats will increase. Viruses will be more likely in the multi-user world; worms will become a threat in personal computer networks.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PC とマルチユーザー環境の違いが小さくなるにつれて、これらの環境が同様の脅威に直面する可能性は高まります。マルチユーザーの世界でウイルスが発生する可能性がより高くなり、ワームはパーソナルコンピュータのネットワークでの脅威となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3 Human Threats</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3 人間による脅威</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Insiders, hackers and “phone phreaks” are the main components of the human threat factor. Insiders are legitimate users of a system. When they use that access to circumvent security, that is known as an insider attack. Hackers are the most widely known human threat. Hackers are people who enjoy the challenge of breaking into systems. “Phreakers” are hackers whose main interest is in telephone systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>内部者、ハッカー、「フォンフリーク（phone phreaks）」が、人間による脅威要因の主な構成要素です。内部者は、システムの正規のユーザーです。内部者がそのアクセス権を使ってセキュリティを回避する場合、それは内部者による攻撃として知られます。ハッカーは、最も広く知られた人間による脅威です。ハッカーとは、システムに侵入するという挑戦を楽しむ人々です。「フリーカー（phreakers）」は、主な関心が電話システムにあるハッカーです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 Insider Attacks</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 内部者による攻撃</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The primary threat to computer systems has traditionally been the <em>insider attack</em>. Insiders are likely to have specific goals and objectives, and have legitimate access to the system. Insiders can plant trojan horses or browse through the file system. This type of attack can be extremely difficult to detect or protect against.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータシステムに対する主たる脅威は、伝統的に<em>内部者による攻撃</em>でした。内部者は、特定のゴールと目的を持っている可能性が高く、システムへの正規のアクセス権を持っています。内部者は、トロイの木馬を仕込んだり、ファイルシステムを閲覧したりできます。この種の攻撃は、検出することも、防御することも、極めて困難な場合があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The insider attack can affect all components of computer security. Browsing attacks the confidentiality of information on the system. Trojan horses are a threat to both the integrity and confidentiality of the system. Insiders can affect availability by overloading the system’s processing or storage capacity, or by causing the system to crash.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>内部者による攻撃は、コンピュータセキュリティのあらゆる構成要素に影響を及ぼし得ます。閲覧は、システム上の情報の機密性を攻撃します。トロイの木馬は、システムの完全性と機密性の両方に対する脅威です。内部者は、システムの処理能力や記憶容量に過負荷をかけたり、システムをクラッシュさせたりすることで、可用性に影響を与えられます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These attacks are possible for a variety of reasons. On many systems, the access control settings for security-relevant objects do not reflect the organization’s security policy. This allows the insider to browse through sensitive data or plant that trojan horse. The insider exploits operating system bugs to cause the system to crash. The actions are undetected because audit trails are inadequate or ignored.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの攻撃は、さまざまな理由で可能になります。多くのシステムでは、セキュリティに関連するオブジェクトのアクセス制御の設定が、組織のセキュリティポリシーを反映していません。このため、内部者が機微なデータを閲覧したり、そのトロイの木馬を仕込んだりできます。内部者は、オペレーティングシステムのバグを悪用して、システムをクラッシュさせます。監査証跡が不十分であるか、無視されているため、これらの動作は検出されません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Hackers</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 ハッカー</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The definition of the term “hacker” has changed over the years. A hacker was once thought of as any individual who enjoyed getting the most out of the the system he was using. A hacker would use a system extensively and study the system until he became proficient in all its nuances. This individual was respected as a source of information for local computer users; someone referred to as a “guru” or “wizard.” Now, however, the term hacker is used to refer to people who either break into systems for which they have no authorization or intentionally overstep their bounds on systems for which they do have legitimate access.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「ハッカー」という用語の定義は、長年にわたって変化してきました。かつてハッカーとは、使用しているシステムから最大限のものを引き出すことを楽しむ個人であると考えられていました。ハッカーは、システムを広範に使用し、そのあらゆる微妙な点に習熟するまで、システムを研究しました。この個人は、地元のコンピュータユーザーにとっての情報源として尊敬され、「グル」や「ウィザード」と呼ばれる人物でした。しかし現在では、ハッカーという用語は、権限のないシステムに侵入する人々、または、正規のアクセス権を持つシステムで意図的に自分の権限の範囲を踏み越える人々を指すために使われています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Methods used by hackers to gain unauthorized access to systems include:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ハッカーがシステムへの不正アクセスを得るために使う方法には、次のものがあります。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Password cracking</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">パスワードクラッキング</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Exploiting known security weaknesses</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">既知のセキュリティ上の弱点の悪用</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Network spoofing</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ネットワークスプーフィング</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0018-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">“Social engineering”</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">「ソーシャルエンジニアリング」</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The most common techniques used to gain unauthorized system access involve password cracking and the exploitation of known security weaknesses. Password cracking is a technique used to surreptitiously gain system access by using another users account. Users often select weak password. The two major sources of weakness in passwords are easily guessed passwords based on knowledge of the user (e.g. wife’s maiden name) and passwords that are susceptible to dictionary attacks (i.e. brute-force guessing of passwords using a dictionary as the source of guesses).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムへの不正アクセスを得るために使われる最も一般的な技法は、パスワードクラッキングと、既知のセキュリティ上の弱点の悪用に関わるものです。パスワードクラッキングは、他のユーザーのアカウントを使うことで、ひそかにシステムへのアクセスを得るために使われる技法です。ユーザーはしばしば、弱いパスワードを選びます。パスワードの弱点の 2 つの主な原因は、ユーザーに関する知識に基づいて容易に推測されるパスワード（たとえば、妻の旧姓）と、辞書攻撃（すなわち、辞書を推測の元としてパスワードを総当たりで推測すること）を受けやすいパスワードです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Another method used to gain unauthorized system access is the exploitation of known security weaknesses. Two type of security weaknesses exist: configuration errors, and security bugs. There continues to be an increasing concern over configuration errors. Configuration errors occur when a the system is set up in such a way that unwanted exposure is allowed. Then, according to the configuration, the system is at risk from even legitimate actions. An example of this would be that if a system “exports” a file system to the world (makes the contents of a file system available to all other systems on the network) , then any other machine can have full access to that file system (one major vendor ships systems with this configuration). Security bugs occur when unexpected actions are allowed on the system due to a loophole in some application program. An example would be sending a very long string of keystrokes to a screen locking program, thus causing the program to crash and leaving the system inaccessible.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムへの不正アクセスを得るために使われるもう 1 つの方法は、既知のセキュリティ上の弱点の悪用です。セキュリティ上の弱点には、構成の誤りとセキュリティバグの 2 種類があります。構成の誤りについては、懸念が高まり続けています。構成の誤りは、望ましくない露出を許すようにシステムが設定されているときに生じます。その場合、その構成によっては、システムは正当な動作からでさえ危険にさらされます。この例として、システムがファイルシステムを世界に向けて「エクスポート」する（ファイルシステムの内容を、ネットワーク上の他のすべてのシステムから利用できるようにする）場合、他のどのマシンも、そのファイルシステムへの完全なアクセスを持てることがあります（ある大手ベンダーは、この構成でシステムを出荷しています）。セキュリティバグは、あるアプリケーションプログラムの抜け穴のために、システム上で予期しない動作が許されるときに生じます。例としては、画面ロックプログラムに非常に長いキー入力の文字列を送ることで、プログラムをクラッシュさせ、システムにアクセスできない状態にすることがあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A third method of gaining unauthorized access is network spoofing. In network spoofing a system presents itself to the network as though it were a different system (system A impersonates system B by sending B’s address instead of its own). The reason for doing this is that systems tend to operate within a group of other “trusted” systems. Trust is imparted in a one-to-one fashion; system A trusts system B (this does not imply that system B trusts system A). Implied with this trust, is that the system administrator of the trusted system is performing his job properly and maintaining an appropriate level of security for his system. Network spoofing occurs in the following manner: if system A trusts system B and system C spoofs (impersonates) system B, then system C can gain otherwise denied access to system A.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムへの不正アクセスを得る 3 つ目の方法は、ネットワークスプーフィングです。ネットワークスプーフィングでは、システムがネットワークに対して、あたかも別のシステムであるかのように自らを提示します（システム A が、自分のアドレスの代わりに B のアドレスを送ることで、システム B になりすまします）。そうする理由は、システムが、他の「信頼された」システムのグループの中で動作する傾向があるためです。信頼は 1 対 1 の形で付与されます。システム A がシステム B を信頼しても、それはシステム B がシステム A を信頼することを意味しません。この信頼には、信頼されたシステムのシステム管理者が、職務を適切に果たし、自分のシステムに適切な水準のセキュリティを維持していることが含意されています。ネットワークスプーフィングは、次のようにして起こります。システム A がシステム B を信頼しており、システム C がシステム B をスプーフィング（なりすまし）すると、システム C は、そうでなければ拒否されるはずのシステム A へのアクセスを得られます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>“Social engineering” is the final method of gaining unauthorized system access. People have been known to call a system operator, pretending to be some authority figure, and demand that a password be changed to allow them access. One could also say that using personal data to guess a user’s password is social engineering.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「ソーシャルエンジニアリング」は、システムへの不正アクセスを得る最後の方法です。何らかの権威ある人物のふりをしてシステムオペレーターに電話をかけ、アクセスできるようにパスワードを変更するよう要求した人々がいることが知られています。ユーザーのパスワードを推測するために個人データを使うことも、ソーシャルエンジニアリングであると言えます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 Phone Phreaks</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 フォンフリーク</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The “phone phreak” (phreak for short) is a specific breed of hacker. A phreak is someone who displays most of the characteristics of a hacker, but also has a specific interest in the phone system and the systems that support its operations. Additionally, most of the machines on the Internet, itself a piece of the Public Switched Network, are linked together through dedicated, commercial phone lines. A talented phreak is a threat to not only the phone system, but to the computer networks it supports.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>「フォンフリーク（phone phreak）」（略して phreak）は、ハッカーの特定の種類です。フリークは、ハッカーの特徴の大部分を示すだけでなく、電話システムとその運用を支えるシステムに特定の関心を持つ人物です。さらに、それ自体が公衆交換網の一部であるインターネット上のほとんどの機械は、専用の商用電話回線を通じて互いに接続されています。有能なフリークは、電話システムだけでなく、それが支えるコンピュータネットワークにとっても脅威です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There are two advantages of attacking systems through the phone system. The first advantage is that, phone system attack are hard to trace. It is possible to make connections through multiple switching units or to use unlisted or unused phone numbers to confound a tracing effort. Also by being in the phone system, it is sometimes possible to monitor the phone company to see if a trace is initiated.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>電話システムを通じてシステムを攻撃することには、2 つの利点があります。第 1 の利点は、電話システムを通じた攻撃は追跡が難しいことです。複数の交換装置を経由して接続したり、非公開または未使用の電話番号を使ったりして、追跡の取り組みを混乱させることが可能です。また、電話システムの中にいることで、追跡が開始されたかどうかを確認するために電話会社を監視できる場合もあります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The second advantage to using the phone system is that a sophisticated host machine is not needed to originate an attack nor is direct access to the network to which the target system is attached. A simple dumb terminal connected to a modem can be used to initiate an attack. Often, an attack consists of several hops, a procedure whereby one system is broken into and from that system another system is broken into, etc. This again makes tracing more difficult.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>電話システムを使う第 2 の利点は、攻撃を開始するために高度なホストマシンも、標的のシステムが接続されているネットワークへの直接のアクセスも必要ないことです。モデムに接続された単純なダム端末があれば、攻撃を開始できます。多くの場合、攻撃は複数のホップで構成されます。これは、あるシステムに侵入し、そのシステムから別のシステムに侵入する、といった手順です。これも、追跡をより難しくします。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.4 Trends for the Future</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.4 将来の傾向</h4>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>3.4.1 Configuration Errors and Passwords</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+3.4.1 構成の誤りとパスワード</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Today, desktop workstations are becoming the tool of more and more scientists and professionals. Without proper time and training to administer these systems, vulnerability to both internal and external attacks will increase. Workstations are usually administered by individuals whose primary job description is not the administration of the workstation. The workstation is merely a tool to assist in the performance of the actual job tasks. As a result, if the workstation is up and running, the individual is satisfied.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>今日、デスクトップワークステーションは、ますます多くの科学者や専門家の道具になりつつあります。これらのシステムを管理するための適切な時間とトレーニングがなければ、内部からの攻撃と外部からの攻撃の両方に対する脆弱性が高まります。ワークステーションは通常、その主な職務内容がワークステーションの管理ではない個人によって管理されています。ワークステーションは、実際の職務の遂行を助けるための単なる道具です。その結果、ワークステーションが稼働していれば、その個人は満足します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This neglectful and permissive attitude toward computer security can be very dangerous. This user attitude has resulted in poor usage of controls and selection of easily guessed passwords. As these users become, in effect, workstation administrators, this will be compounded by configuration errors and a lax attitude towards security bug fixes. To correct this, systems should be designed so that security is the default and personnel should be equipped with adequate tools to verify that their systems are secure.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>コンピュータセキュリティに対するこの無頓着で寛容な態度は、非常に危険になり得ます。このユーザーの態度は、統制の不十分な使用と、容易に推測されるパスワードの選択をもたらしました。これらのユーザーが事実上ワークステーションの管理者となるにつれて、構成の誤りや、セキュリティバグの修正に対する緩い態度によって、問題はさらに悪化します。これを是正するために、システムは、セキュリティが既定となるように設計すべきです。要員には、システムが安全であることを検証するための適切なツールを備えさせるべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Of course, even with proper training and adequate tools threats will remain. New security bugs and attack mechanisms will be employed. Proper channels do not currently exist in most organizations for the dissemination of security related information. If organizations do not place a high enough priority on computer security, the average system will continue to be at risk from external threats.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>もちろん、適切なトレーニングと十分なツールがあっても、脅威は残ります。新しいセキュリティバグと攻撃メカニズムが用いられるでしょう。現在、ほとんどの組織には、セキュリティ関連情報を周知するための適切な経路が存在しません。組織がコンピュータセキュリティに十分高い優先度を置かなければ、平均的なシステムは、外部の脅威にさらされ続けます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>3.4.2 Internal Threats</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+3.4.2 内部の脅威</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>System controls are not well matched to the average organization’s security policy. As a direct result, the typical user is permitted to circumvent that policy on a frequent basis. The administrator is unable to enforce the policy because of the weak access controls, and cannot detect the violation of policy because of weak audit mechanisms. Even if the audit mechanisms are in place, the daunting volume of data produced makes it unlikely that the administrator will detect policy violations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>システムの統制は、平均的な組織のセキュリティポリシーとうまく合致していません。その直接の結果として、一般的なユーザーは、そのポリシーを頻繁に回避することが許されています。管理者は、アクセス制御が弱いためにポリシーを強制できず、監査の仕組みが弱いためにポリシー違反を検出できません。監査の仕組みが整っていても、生成されるデータの量が膨大であるため、管理者がポリシー違反を検出する可能性は低くなります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Ongoing research in integrity and intrusion detection promise to fill some of this gap. Until these research projects become available as products, systems will remain vulnerable to internal threats.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>完全性と侵入検知に関する進行中の研究は、このギャップの一部を埋めると期待されています。これらの研究プロジェクトが製品として利用可能になるまで、システムは内部の脅威に対して脆弱なままです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>3.4.3 Connectivity</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+3.4.3 接続性</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Connectivity allows the hacker unlimited, virtually untraceable access to computer systems. Registering a network host is akin to listing the system’s modem phone numbers in the telephone directory. No one should do that without securing their modem lines (with dial-back modems or encryption units). Yet, most network hosts take no special security precautions for network access. They do not attempt to detect spoofing of systems; they do not limit the hosts that may access specific services.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>接続性により、ハッカーは、コンピュータシステムに対する無制限の、事実上追跡不可能なアクセスを得られます。ネットワークホストを登録することは、システムのモデムの電話番号を電話帳に載せることに等しいです。モデム回線を（コールバック式のモデムや暗号化装置で）保護せずに、そうするべきではありません。それでも、ほとんどのネットワークホストは、ネットワークアクセスに対して特別なセキュリティ上の予防措置を講じていません。システムのスプーフィングを検出しようとせず、特定のサービスにアクセスできるホストを制限していません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A number of partial solutions to network security problems do exist. Examples include Kerberos, Secure NFS [GS91], RFC 931 authentication tools [Joh85] and “tcp wrapper” programs (access controls for network services with host granularity). However, these tools are not widely used because they are partial solutions or because they severely reduce functionality.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ネットワークセキュリティの問題に対する部分的な解決策は、数多く存在します。例として、Kerberos、Secure NFS [GS91]、RFC 931 認証ツール [Joh85]、「tcp wrapper」プログラム（ホスト単位でのネットワークサービスのアクセス制御）があります。しかし、これらのツールは、部分的な解決策であるか、機能を大幅に低下させるため、広く使われていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>New solutions for organizations are becoming available, such as the Distributed Intrusion Detection System (DIDS) [L<sup>+</sup>92] or filtering network gateways. DIDS monitors activities on a subnet. The filtering gateways are designed to enforce an organization’s network policy at the interface to the outside network. Such solutions may allow the organization to enjoy most (if not all) of the benefits of network access but limit the hackers’ access.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Distributed Intrusion Detection System（DIDS）[L<sup>+</sup>92] やフィルタリングネットワークゲートウェイなど、組織向けの新しい解決策が利用可能になりつつあります。DIDS は、サブネット上の活動を監視します。フィルタリングゲートウェイは、外部ネットワークとの境界で、組織のネットワークポリシーを強制するよう設計されています。このような解決策により、組織は、ネットワークアクセスの利点の（すべてではないにせよ）大部分を享受しつつ、ハッカーのアクセスを制限できるかもしれません。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h5>3.4.4 Information Dissemination</h5>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h5>
+3.4.4 情報の流布</h5>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Forum of Incident Response and Security Teams (FIRST), an organization whose members work together voluntarily to deal with computer security problems and their prevention, has established valuable channels for the dissemination of security information. It is now possible to obtain security bug fix information in a timely fashion. The percentage of system administrators receiving this information is still low, but is improving daily.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Forum of Incident Response and Security Teams（FIRST）は、メンバーが自発的に協力してコンピュータセキュリティの問題とその予防に取り組む組織であり、セキュリティ情報を周知するための貴重な経路を確立しました。現在では、セキュリティバグの修正情報を適時に入手することが可能です。この情報を受け取るシステム管理者の割合は依然として低いものの、日々改善しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Hackers continue to make better use of the information channels than the security community. Publications such as “Phrack” and “2600” are well established and move information effectively throughout the hacking community. Bulletin boards and Internet archive sites are available to disseminate virus code, hacking information, and hacking tools.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ハッカーは、セキュリティコミュニティよりも、情報経路をうまく使い続けています。「Phrack」や「2600」などの出版物は確立されており、ハッキングのコミュニティ全体に効果的に情報を流通させています。電子掲示板やインターネットのアーカイブサイトは、ウイルスのコード、ハッキングの情報、ハッキングのツールを流布するために利用できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4 Summary</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4 まとめ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Poor administrative practices and the lack of education, tools, and controls combine to leave the average system vulnerable to attack. Research promises to alleviate the inadequate supply of tools and applicable controls. These controls, however, tend to be add-on controls. There is a need for the delivery of secure systems, rather than the ability to build one from parts. The average administrator has little inclination to perform these modifications, and no idea how to perform them.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>不適切な管理慣行と、教育、ツール、統制の不足とが相まって、平均的なシステムは攻撃に対して脆弱なままです。研究は、ツールと適用可能な統制の供給の不足を緩和すると期待されています。しかし、これらの統制は、アドオンの統制になりがちです。部品から安全なシステムを構築する能力ではなく、安全なシステムの提供が必要です。平均的な管理者は、これらの改変を行う意欲がほとんどなく、その方法もまったくわかりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The joint NIST/NSA Federal Criteria project holds the most promise to drive the creation of reasonably secure systems. By building upon the various criteria projects that precede it (the TCSEC, the ITSEC, and the Canadian criteria), this project intends to address security requirements for commercial systems in a meaningful way. The initial version, which will focus on criteria for operating systems, will include extensions/enhancements in integrity, communications, and other areas. Future versions will address criteria for distributed systems.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST と NSA の共同の Federal Criteria プロジェクトは、ある程度安全なシステムの創出を推進するうえで、最も期待が持てます。先行するさまざまな基準のプロジェクト（TCSEC、ITSEC、カナダの基準）を土台とすることで、このプロジェクトは、商用システムのセキュリティ要件に意味のある形で対処することを意図しています。オペレーティングシステムの基準に焦点を当てる最初の版には、完全性、通信、その他の分野における拡張・強化が含まれます。将来の版では、分散システムの基準に対処します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Extensive connectivity increases system access for hackers. Until standards become widely used, network security will continue to be handled on a system by system basis. The problem can be expected to increase if and when the Integrated Systems Digital Network (ISDN) is implemented without appropriate security capabilities.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>広範な接続性は、ハッカーによるシステムへのアクセスを増加させます。標準が広く使われるようになるまで、ネットワークセキュリティはシステムごとに取り扱われ続けます。Integrated Systems Digital Network（ISDN）が適切なセキュリティ機能なしに実装された場合には、問題が増大すると予想できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A promising note for the future does exist. Multiple sets of tools do not need to be developed in order to solve each of the potential threats to a system. Many of the controls that will stop one type of attack on a system will be beneficial against many other forms of attack. The challenge is to determine what is the minimum set of controls necessary to protect a system with an acceptable degree of assurance.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>将来に向けた有望な点はあります。システムに対する潜在的な脅威のそれぞれを解決するために、複数のツールの集合を開発する必要はありません。システムに対するある種の攻撃を阻止する統制の多くは、他の多くの形態の攻撃に対しても有益です。課題は、許容可能な程度の保証でシステムを保護するために必要な、最小限の統制の集合が何かを判断することです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0025-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[CON91] Computer security: Hackers penetrate DoD computer systems. Testimony before the Subcommittee on Government Information and Regulation, Committee on Government Affairs, United States Senate, Washington DC, November 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[CON91] Computer security: Hackers penetrate DoD computer systems. Testimony before the Subcommittee on Government Information and Regulation, Committee on Government Affairs, United States Senate, Washington DC, November 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Den90] Peter Denning. <em>Computers Under Attack: Intruders, Worms, and Viruses.</em> ACM Press, 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Den90] Peter Denning. <em>Computers Under Attack: Intruders, Worms, and Viruses.</em> ACM Press, 1990.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[GS91] Simon Garfinkel and Eugene Spafford. <em>Practical UNIX Security.</em> O’Reilly &amp; Associates, Inc., 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[GS91] Simon Garfinkel and Eugene Spafford. <em>Practical UNIX Security.</em> O’Reilly &amp; Associates, Inc., 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[HM91] Katie Hafner and John Markoff. <em>Cyberpunk: Outlaws and Hackers on the Computer Frontier.</em> Simon and Schuster, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[HM91] Katie Hafner and John Markoff. <em>Cyberpunk: Outlaws and Hackers on the Computer Frontier.</em> Simon and Schuster, 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Hof90] Lance Hoffman. <em>Rogue Programs: Viruses, Worms, and Trojan Horses.</em> Van Norstrand Reinhold, 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Hof90] Lance Hoffman. <em>Rogue Programs: Viruses, Worms, and Trojan Horses.</em> Van Norstrand Reinhold, 1990.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[HP91] Benjamin Hsaio and W. Timothy Polk. Computer-assisted audit techniques for unix. In <em>14th Department of Energy Computer Security Group Conference</em>, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[HP91] Benjamin Hsaio and W. Timothy Polk. Computer-assisted audit techniques for unix. In <em>14th Department of Energy Computer Security Group Conference</em>, 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Joh85] Mike St. Johns. Rfc 931: Authentication server, January 1985.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Joh85] Mike St. Johns. Rfc 931: Authentication server, January 1985.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[L<sup>+</sup>92] Theresa Lunt et al. A real-time Intrusion-Detection Expert System (IDES). In <em>Final Technical Report for SRI Project 6784</em>. SRI International, 1992.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[L<sup>+</sup>92] Theresa Lunt et al. A real-time Intrusion-Detection Expert System (IDES). In <em>Final Technical Report for SRI Project 6784</em>. SRI International, 1992.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Qua90] John Quarterman. <em>The Matrix - Computer Networks and Conferencing Systems Worldwide.</em> Digital Press, 1990.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Qua90] John Quarterman. <em>The Matrix - Computer Networks and Conferencing Systems Worldwide.</em> Digital Press, 1990.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[S<sup>+</sup>89] Eugene Spafford et al. <em>Computer Viruses: Dealing with Electronic Vandalism and Programmed Threats.</em> ADAPSO, 1989.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[S<sup>+</sup>89] Eugene Spafford et al. <em>Computer Viruses: Dealing with Electronic Vandalism and Programmed Threats.</em> ADAPSO, 1989.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[S<sup>+</sup>91] Steven R. Snapp et al. DIDS (Distributed Intrusion Detection System) - motivation, architecture, and an early prototype. In <em>Proceedings of the 14th National Computer Security Conference</em>, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[S<sup>+</sup>91] Steven R. Snapp et al. DIDS (Distributed Intrusion Detection System) - motivation, architecture, and an early prototype. In <em>Proceedings of the 14th National Computer Security Conference</em>, 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[SH82] John F. Shoch and Jon A. Hupp. The “worm” programs - early experience with a distributed computation. <em>Association for Computing Machinery</em>, 25(3), March 1982.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[SH82] John F. Shoch and Jon A. Hupp. The “worm” programs - early experience with a distributed computation. <em>Association for Computing Machinery</em>, 25(3), March 1982.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0027">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Spa89] Eugene Spafford. The internet worm program: An analysis. <em>Computer Communication Review</em>, 19(1), January 1989.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Spa89] Eugene Spafford. The internet worm program: An analysis. <em>Computer Communication Review</em>, 19(1), January 1989.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0025-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[Wac91] John Wack. Establishing a Computer Security Incident Response Capability (CSIRC). NIST Special Publication 800-3, National Institute of Standards and Technology, 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[Wac91] John Wack. Establishing a Computer Security Incident Response Capability (CSIRC). NIST Special Publication 800-3, National Institute of Standards and Technology, 1991.</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0027-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>NIST-114A<br>(REV. 3-90)</th><th>U.S. DEPARTMENT OF COMMERCE<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>BIBLIOGRAPHIC DATA SHEET</th></tr></thead><tbody><tr><td>1. PUBLICATION OR REPORT NUMBER</td><td>NISTIR 4939</td></tr><tr><td>2. PERFORMING ORGANIZATION REPORT NUMBER</td><td></td></tr><tr><td>3. PUBLICATION DATE</td><td>OCTOBER 1992</td></tr><tr><td>4. TITLE AND SUBTITLE</td><td>"Threat Assessment of Malicious Code and Human Threats"</td></tr><tr><td>5. AUTHOR(S)</td><td>Lawrence E. Bassham III and W. Timothy Polk</td></tr><tr><td>6. PERFORMING ORGANIZATION (IF JOINT OR OTHER THAN NIST, SEE INSTRUCTIONS)</td><td>U.S. DEPARTMENT OF COMMERCE<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>GAITHERSBURG, MD 20899</td></tr><tr><td>7. CONTRACT/GRANT NUMBER</td><td>W43P6Q-92-EW138</td></tr><tr><td>8. TYPE OF REPORT AND PERIOD COVERED</td><td></td></tr><tr><td>9. SPONSORING ORGANIZATION NAME AND COMPLETE ADDRESS (STREET, CITY, STATE, ZIP)</td><td>U.S. Army Vulnerability Assessment Lab<br>White Sands Missile Range, NM 88002-5513</td></tr><tr><td>10. SUPPLEMENTARY NOTES</td><td></td></tr><tr><td>11. ABSTRACT (A 200-WORD OR LESS FACTUAL SUMMARY OF MOST SIGNIFICANT INFORMATION. IF DOCUMENT INCLUDES A SIGNIFICANT BIBLIOGRAPHY OR LITERATURE SURVEY, MENTION IT HERE.)</td><td>Today, computer systems are under attack from a multitude of sources. These range from malicious code, such as viruses and worms, to human threats, such as hackers and phone phreaks. These attacks target different characteristics of a system. This leads to the possibility that a particular system is more susceptible to certain kinds of attacks.<br><br>Malicious code, such as viruses and worms, attack a system in one of two ways, either internally or externally. Traditionally, the virus has been an internal threat, while the worm, to a large extent, has been a threat from an external source.<br><br>Human threats are perpetrated by individuals or groups of individuals. These attacks generally target known security vulnerabilities of systems. Many of these vulnerabilities are simply due to configuration errors.<br><br>This report provides an assessment of the threats associated with malicious code and external attacks on systems using commercially available hardware and software. The history of the threat is provided along with what current protection is available. A projection of the future threats for both malicious code and human threats is also given.</td></tr><tr><td>12. KEY WORDS (6 TO 12 ENTRIES; ALPHABETICAL ORDER; CAPITALIZE ONLY PROPER NAMES; AND SEPARATE KEY WORDS BY SEMICOLONS)</td><td>computer security; hacker; phone phreak; virus; worm</td></tr><tr><td>13. AVAILABILITY</td><td>X UNLIMITED<br>FOR OFFICIAL DISTRIBUTION. DO NOT RELEASE TO NATIONAL TECHNICAL INFORMATION SERVICE (NTIS).<br>ORDER FROM SUPERINTENDENT OF DOCUMENTS, U.S. GOVERNMENT PRINTING OFFICE, WASHINGTON, DC 20402.<br>X ORDER FROM NATIONAL TECHNICAL INFORMATION SERVICE (NTIS), SPRINGFIELD, VA 22161.</td></tr><tr><td>14. NUMBER OF PRINTED PAGES</td><td>26</td></tr><tr><td>15. PRICE</td><td>A03</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>NIST-114A<br/>(REV. 3-90)</th><th>米国商務省<br/>国立標準技術研究所<br/>書誌データシート</th></tr></thead><tbody><tr><td>1. 刊行物または報告書の番号</td><td>NISTIR 4939</td></tr><tr><td>2. 実施機関の報告書番号</td><td></td></tr><tr><td>3. 刊行日</td><td>1992年10月</td></tr><tr><td>4. 題名および副題</td><td>"Threat Assessment of Malicious Code and Human Threats"（悪意のあるコードと人間による脅威の脅威評価）</td></tr><tr><td>5. 著者</td><td>Lawrence E. Bassham III and W. Timothy Polk</td></tr><tr><td>6. 実施機関（共同の場合または NIST 以外の場合は、記入要領を参照）</td><td>米国商務省<br/>国立標準技術研究所<br/>GAITHERSBURG, MD 20899</td></tr><tr><td>7. 契約/助成金の番号</td><td>W43P6Q-92-EW138</td></tr><tr><td>8. 報告書の種類と対象期間</td><td></td></tr><tr><td>9. 後援機関の名称と完全な住所（番地、市、州、郵便番号）</td><td>U.S. Army Vulnerability Assessment Lab<br/>White Sands Missile Range, NM 88002-5513</td></tr><tr><td>10. 補足事項</td><td></td></tr><tr><td>11. 概要（最も重要な情報についての 200 語以内の事実に基づく要約。文書に重要な参考文献または文献調査が含まれる場合は、ここに記載します。）</td><td>今日、コンピュータシステムは多数の発生源から攻撃を受けています。これらは、ウイルスやワームなどの悪意のあるコードから、ハッカーやフォンフリーク（phone phreaks）などの人間による脅威にまで及びます。これらの攻撃は、システムの異なる特性を標的にします。このため、特定のシステムが、ある種の攻撃に対してより影響を受けやすい可能性があります。<br/><br/>ウイルスやワームなどの悪意のあるコードは、内部から、または外部からという 2 つの方法のいずれかでシステムを攻撃します。伝統的に、ウイルスは内部の脅威であり、ワームは、大部分において外部の発生源からの脅威でした。<br/><br/>人間による脅威は、個人または個人の集団によって実行されます。これらの攻撃は、一般に、システムの既知のセキュリティ上の脆弱性を標的にします。これらの脆弱性の多くは、単に構成の誤りによるものです。<br/><br/>本報告書は、市販のハードウェアとソフトウェアを使用するシステムに対する、悪意のあるコードと外部からの攻撃に関連する脅威の評価を提供します。脅威の歴史を、現在利用できる防御と合わせて示します。悪意のあるコードと人間による脅威の両方について、将来の脅威の予測も示します。</td></tr><tr><td>12. キーワード（6〜12 項目。アルファベット順。固有名詞のみ大文字で表記。キーワードはセミコロンで区切る）</td><td>computer security; hacker; phone phreak; virus; worm</td></tr><tr><td>13. 入手方法</td><td>X 制限なし<br/>公式配布用。National Technical Information Service（NTIS）には公開しないこと。<br/>Superintendent of Documents, U.S. Government Printing Office, Washington, DC 20402 から注文のこと。<br/>X National Technical Information Service（NTIS）, Springfield, VA 22161 から注文のこと。</td></tr><tr><td>14. 印刷ページ数</td><td>26</td></tr><tr><td>15. 価格</td><td>A03</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0027-b0035">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ELECTRONIC FORM</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>電子形式</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir4939.pdf">National Institute of Standards and Technology, IR 4939</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 4939";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

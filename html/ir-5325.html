@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 5325 は、プロトコルの実装が、レイヤ 4 のセキュリティプロトコル（SP4）標準に適合しているかどうかを評価するための枠組みを示した論文です。SP4 は、Secure Data Network System（SDNS）アーキテクチャの要素の 1 つで、OSI 参照モデルのトランスポート層でセキュリティサービスを提供するために使われ、OSI トランスポート層セキュリティプロトコル（TLSP）の ISO 標準の基礎にもなっています。論文は、セキュリティプロトコルの適合性評価、相互運用性評価、セキュリティ評価の関係を検討し、OSI の適合性試験の方法論と枠組みを概観しています。そのうえで、この方法論を SP4 の実装に適用するための試験の戦略と、試験シナリオの構成と作成について提案しています。">
+  <title>トランスポート層セキュリティ実装の適合性評価 | NIST IR 5325 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0002-s1" title="Conformance Assessment of Transport Layer Security Implementations" data-search="トランスポート層セキュリティ実装の適合性評価 conformance assessment of transport layer security implementations">トランスポート層セキュリティ実装の適合性評価</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="ABSTRACT" data-search="要旨 abstract">要旨</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="TABLE OF CONTENTS" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0007-b0001" title="1. INTRODUCTION" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2. OVERVIEW OF ASSESSMENT" data-search="2. 評価の概要 2. overview of assessment">2. 評価の概要</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0003" title="2.1 Conformance Assessment" data-search="2.1 適合性評価 2.1 conformance assessment">2.1 適合性評価</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0009-b0016" title="2.2 Interoperability Assessment" data-search="2.2 相互運用性評価 2.2 interoperability assessment">2.2 相互運用性評価</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0010-b0010" title="2.3 Security Evaluation" data-search="2.3 セキュリティ評価 2.3 security evaluation">2.3 セキュリティ評価</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0011-b0008" title="2.4 SP4 Characteristics" data-search="2.4 sp4 の特性 2.4 sp4 characteristics">2.4 SP4 の特性</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0013-b0003" title="2.5 Relationships between Approaches" data-search="2.5 各アプローチの関係 2.5 relationships between approaches">2.5 各アプローチの関係</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="3. SP4 CONFORMANCE TESTING" data-search="3. sp4 の適合性試験 3. sp4 conformance testing">3. SP4 の適合性試験</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0015-b0003" title="3.1 Strategy for Testing" data-search="3.1 試験の戦略 3.1 strategy for testing">3.1 試験の戦略</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0016-b0002" title="3.2 Other Testing Considerations" data-search="3.2 その他の試験上の考慮事項 3.2 other testing considerations">3.2 その他の試験上の考慮事項</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0017-b0003" title="3.3 Characteristics of the Means of Testing" data-search="3.3 試験手段の特性 3.3 characteristics of the means of testing">3.3 試験手段の特性</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0019-b0001" title="4. ORGANIZATION AND PRODUCTION OF TEST SCENARIOS" data-search="4. 試験シナリオの構成と作成 4. organization and production of test scenarios">4. 試験シナリオの構成と作成</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0003" title="4.1 Existing Transport Test Scenarios" data-search="4.1 既存のトランスポート試験シナリオ 4.1 existing transport test scenarios">4.1 既存のトランスポート試験シナリオ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0008" title="4.2 Proposed SP4 Test Scenarios" data-search="4.2 提案する sp4 試験シナリオ 4.2 proposed sp4 test scenarios">4.2 提案する SP4 試験シナリオ</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0021-b0001" title="5. SUMMARY" data-search="5. まとめ 5. summary">5. まとめ</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0023-b0001" title="REFERENCES" data-search="参考文献 references">参考文献</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 5325 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">Conformance Assessment of Transport Layer Security Implementations</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>トランスポート層セキュリティ実装の適合性評価</strong></span><br><span class="doc-panel-item">公開日 : 1993-12-01</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/5325/final">https://csrc.nist.gov/pubs/ir/5325/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-10-31, 訳文 : 131 / 131 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 5325 は、プロトコルの実装が、レイヤ 4 のセキュリティプロトコル（SP4）標準に適合しているかどうかを評価するための枠組みを示した論文です。SP4 は、Secure Data Network System（SDNS）アーキテクチャの要素の 1 つで、OSI 参照モデルのトランスポート層でセキュリティサービスを提供するために使われ、OSI トランスポート層セキュリティプロトコル（TLSP）の ISO 標準の基礎にもなっています。論文は、セキュリティプロトコルの適合性評価、相互運用性評価、セキュリティ評価の関係を検討し、OSI の適合性試験の方法論と枠組みを概観しています。そのうえで、この方法論を SP4 の実装に適用するための試験の戦略と、試験シナリオの構成と作成について提案しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5325</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5325</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0002-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>Conformance Assessment of Transport Layer Security Implementations</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+トランスポート層セキュリティ実装の適合性評価</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Wayne A. Jansen<br>Editor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Wayne A. Jansen<br>編集者</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Computer Systems Laboratory<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術局<br>米国国立標準技術研究所<br>コンピュータシステム研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NISTIR 5325</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NISTIR 5325</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Conformance Assessment of Transport Layer Security Implementations</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>トランスポート層セキュリティ実装の適合性評価</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Wayne A. Jansen<br>Editor</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Wayne A. Jansen<br>編集者</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Technology Administration<br>National Institute of Standards and Technology<br>Computer Systems Laboratory<br>Gaithersburg, MD 20899</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>技術局<br>米国国立標準技術研究所<br>コンピュータシステム研究所<br>Gaithersburg, MD 20899</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>December 1993</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>1993 年 12 月</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. DEPARTMENT OF COMMERCE<br>Ronald H. Brown, Secretary<br>TECHNOLOGY ADMINISTRATION<br>Mary L. Good, Under Secretary for Technology<br>NATIONAL INSTITUTE OF STANDARDS AND TECHNOLOGY<br>Arati Prabhakar, Director</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国商務省<br>Ronald H. Brown 長官<br>技術局<br>Mary L. Good 技術担当次官<br>米国国立標準技術研究所<br>Arati Prabhakar 所長</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>ABSTRACT</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+要旨</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper presents a framework for evaluating conformance of a protocol implementation to the Security Protocol at layer 4 (SP4) standard. SP4 is one element of the Secure Data Network System (SDNS) architecture, used to provide security services at the Transport layer of the Open System Interconnection (OSI) reference model. SP4 also forms the basis of the ISO standard for the OSI Transport Layer Security Protocol (TLSP). Therefore, with few exceptions, the findings of the paper are applicable to TLSP. The paper explores the relationship between conformance assessment, interoperability assessment, and security evaluation of security protocols. The OSI conformance testing methodology and framework is reviewed, and a strategy is given for applying this methodology to SP4 implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文は、プロトコルの実装が、レイヤ 4 のセキュリティプロトコル（SP4）標準に適合しているかどうかを評価するための枠組みを示します。SP4 は、Secure Data Network System（SDNS）アーキテクチャの要素の 1 つで、開放型システム間相互接続（OSI）参照モデルのトランスポート層でセキュリティサービスを提供するために使われます。SP4 は、OSI トランスポート層セキュリティプロトコル（TLSP）の ISO 標準の基礎にもなっています。そのため、少数の例外を除き、この論文の知見は TLSP にも適用できます。この論文は、セキュリティプロトコルの適合性評価、相互運用性評価、セキュリティ評価の関係を検討します。OSI の適合性試験の方法論と枠組みを概観し、この方法論を SP4 の実装に適用するための戦略を示します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Keywords: OSI, Lower Layer Security Protocols, Conformance Testing, Security Evaluation, Interoperability Testing, SP4.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>キーワード: OSI、下位層セキュリティプロトコル、適合性試験、セキュリティ評価、相互運用性試験、SP4。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>TABLE OF CONTENTS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-multi" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0007-b0001">1. INTRODUCTION</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0009-b0001">2. OVERVIEW OF ASSESSMENT</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0009-b0003">2.1 Conformance Assessment</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0009-b0016">2.2 Interoperability Assessment</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0010-b0010">2.3 Security Evaluation</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0011-b0008">2.4 SP4 Characteristics</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0003">2.5 Relationships between Approaches</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0015-b0001">3. SP4 CONFORMANCE TESTING</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0015-b0003">3.1 Strategy for Testing</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0016-b0002">3.2 Other Testing Considerations</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0017-b0003">3.3 Characteristics of the Means of Testing</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0001">4. ORGANIZATION AND PRODUCTION OF TEST SCENARIOS</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0003">4.1 Existing Transport Test Scenarios</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0008">4.2 Proposed SP4 Test Scenarios</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0021-b0001">5. SUMMARY —</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0023-b0001">15 REFERENCES</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0007-b0001">1. はじめに</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0009-b0001">2. 評価の概要</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0009-b0003">2.1 適合性評価</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0009-b0016">2.2 相互運用性評価</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0010-b0010">2.3 セキュリティ評価</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0011-b0008">2.4 SP4 の特性</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0013-b0003">2.5 各アプローチの関係</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0015-b0001">3. SP4 の適合性試験</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0015-b0003">3.1 試験の戦略</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0016-b0002">3.2 その他の試験上の考慮事項</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0017-b0003">3.3 試験手段の特性</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0019-b0001">4. 試験シナリオの構成と作成</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0003">4.1 既存のトランスポート試験シナリオ</a><a class="ptoc-link ptoc-line ptoc-line-depth-2" href="#pdf-p0019-b0008">4.2 提案する SP4 試験シナリオ</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0021-b0001">5. まとめ —</a><a class="ptoc-link ptoc-line ptoc-line-depth-1" href="#pdf-p0023-b0001">15 参考文献</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. INTRODUCTION</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The Secure Data Network System (SDNS) [5] program began in August of 1986 through the sponsorship of the National Security Agency (NSA). The goal of the program is to establish a communications architecture and protocols for protecting both unclassified and classified computer networks, within an internationally recognized framework. Security Protocol 4 (SP4) [3,4] is one element of the SDNS, designed to provide security services at layer 4, the Transport layer, of the International Organization for Standardization (ISO) reference model for Open Systems Interconnection (OSI) [1].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Secure Data Network System（SDNS）[5] プログラムは、国家安全保障局（NSA）の後援により、1986 年 8 月に開始されました。このプログラムの目標は、国際的に認められた枠組みの中で、非機密と機密の両方のコンピュータネットワークを保護するための通信アーキテクチャとプロトコルを確立することです。Security Protocol 4（SP4）[3,4] は SDNS の要素の 1 つで、国際標準化機構（ISO）の開放型システム間相互接続（OSI）参照モデル [1] のレイヤ 4、すなわちトランスポート層で、セキュリティサービスを提供するよう設計されています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SP4 standard builds upon the services of either the connectionless or connection oriented Transport layer protocol. It should be viewed as an extension to those protocol standards, rather than as an independent layer protocol. In the OSI architecture, the Transport layer has the sole responsibility to provide reliable end-to-end communications between peer end-systems. SP4 services, therefore, nicely complement those provided by Transport protocols. SP4 functionality is situated near the bottom of the Transport layer and consists of a simple encapsulation/decapsulation mechanism that protects Transport protocol data units within a cryptographically secure envelope. SP4 extends the OSI Transport connectionless and connection oriented services to provide or support the following security services defined in the OSI Security Architecture addendum to the reference model [2]:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 標準は、コネクションレス型またはコネクション指向型のいずれかのトランスポート層プロトコルのサービスの上に成り立っています。SP4 は、独立した層のプロトコルとしてではなく、それらのプロトコル標準の拡張として捉えるべきです。OSI アーキテクチャでは、トランスポート層は、対等なエンドシステム間で信頼できるエンドツーエンドの通信を提供する責任だけを負っています。したがって、SP4 のサービスは、トランスポートプロトコルが提供するサービスをうまく補完します。SP4 の機能は、トランスポート層の下部付近に位置し、トランスポートプロトコルデータユニットを暗号によって保護された封筒の中に入れて守る、単純なカプセル化・脱カプセル化の仕組みで構成されています。SP4 は、OSI のトランスポートのコネクションレス型およびコネクション指向型のサービスを拡張し、参照モデルへの OSI セキュリティアーキテクチャの追補 [2] で定義された次のセキュリティサービスを提供または支援します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(1) Data Integrity,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(1) データの完全性、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(2) Data Confidentiality,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(2) データの機密性、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(3) Data Origination Authentication, and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(3) データ発信元の認証、および</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(4) Access Control.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(4) アクセス制御。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SP4 standard identifies other security functions on which it depends. These functions include key management, security management, and cryptography. Key management is needed to establish and maintain keying material used by SP4; security management is needed for event reporting and auditing; and cryptography (i.e., employment of specific cryptographic algorithms) is needed to support Data Integrity, Data Confidentiality, and Authentication services. These functions are normally collocated in an end-system, with an SP4 entity.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 標準は、SP4 が依存するほかのセキュリティ機能を明らかにしています。これらの機能には、鍵管理、セキュリティ管理、暗号が含まれます。鍵管理は、SP4 が使う鍵素材を確立し維持するために必要です。セキュリティ管理は、イベントの報告と監査のために必要です。暗号（すなわち特定の暗号アルゴリズムの使用）は、データの完全性、データの機密性、認証のサービスを支えるために必要です。これらの機能は通常、SP4 エンティティとともにエンドシステム内に配置されます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper investigates the conformance assessment of an SP4 implementation and the implications of such a procedure. Since SP4 is compliant with the OSI reference model and security architecture, emphasis is placed on the OSI conformance testing methodology [9]. Two other related assessment methods, interoperability assessment and security evaluation, are also reviewed. Like conformance assessment, both are concerned with the correctness of an implementation, albeit from different perspectives.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文は、SP4 の実装の適合性評価と、そのような手順の含意を調査します。SP4 は OSI 参照モデルとセキュリティアーキテクチャに準拠しているため、OSI の適合性試験の方法論 [9] に重点を置いています。関連する 2 つの評価方法、相互運用性評価とセキュリティ評価についても概観します。この 2 つは、適合性評価と同様に、実装の正しさに関わるものですが、視点が異なります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>An implicit assumption made throughout this paper is that for an SP4 implementation to be trustworthy, the SP4 layer protocol entity must be part of the Trusted Computing Base (TCB) [15] for a distributed system. Figure 1 illustrates this view of SP4. A TCB refers to the combination of protection mechanisms within a computer system responsible for enforcing a security policy. In a distributed network environment, this is referred to as a Network Trusted Computing Base (NTCB) [13].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文全体を通じた暗黙の前提は、SP4 の実装が信頼できるものであるためには、SP4 層のプロトコルエンティティが、分散システムの Trusted Computing Base（TCB）[15] の一部でなければならない、ということです。図 1 は、SP4 についてのこの見方を示しています。TCB とは、セキュリティポリシーの強制を担う、コンピュータシステム内の保護メカニズムの組み合わせを指します。分散ネットワーク環境では、これは Network Trusted Computing Base（NTCB）[13] と呼ばれます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0008-g0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-5325/p0008-drawing-01.png" alt="Diagram &quot;TCB View of SP4&quot; inside a frame. On the left, labels &quot;TRANSPORT LAYER&quot; (upper) and &quot;NETWORK LAYER&quot; (lower); two vertical dashed lines mark a layer column. In the column, a rectangle with an ellipse &quot;PROTOCOL ENTITY&quot; contains a smaller shaded ellipse &quot;SP4&quot;. On the right, a large rectangle labeled &quot;TRUSTED COMPUTING BASE&quot; contains a shaded box &quot;CRYPTOGRAPHIC FACILITY&quot;; above it, an ellipse &quot;SYSTEMS MANAGEMENT&quot; contains a shaded ellipse &quot;SECURITY MANAGEMENT&quot;, which contains an ellipse &quot;KMP&quot;. An arrow runs from KMP down to the CRYPTOGRAPHIC FACILITY, and an arrow runs from SP4 to the CRYPTOGRAPHIC FACILITY. A line joins the SP4 rectangle to the TRUSTED COMPUTING BASE outline, so that SP4 lies within the trusted computing base."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=8">原本 PDF p.8</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠で囲まれた「SP4 の TCB から見た構成」の図です。左に「TRANSPORT LAYER」（トランスポート層、上）と「NETWORK LAYER」（ネットワーク層、下）のラベルがあり、2 本の縦の破線が層の列を示します。列の中の長方形に楕円「PROTOCOL ENTITY」（プロトコルエンティティ）があり、その中に網掛けの小さな楕円「SP4」があります。右の大きな長方形は「TRUSTED COMPUTING BASE」（高信頼コンピューティング基盤）で、網掛けの箱「CRYPTOGRAPHIC FACILITY」（暗号機能）を含みます。その上の楕円「SYSTEMS MANAGEMENT」（システム管理）の中に網掛けの楕円「SECURITY MANAGEMENT」（セキュリティ管理）があり、さらにその中に楕円「KMP」があります。KMP から CRYPTOGRAPHIC FACILITY へ下向きの矢印、SP4 から CRYPTOGRAPHIC FACILITY へ矢印があります。SP4 を囲む長方形は線で TRUSTED COMPUTING BASE の輪郭につながり、SP4 が高信頼コンピューティング基盤の中にあることを示しています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 1: TCB View of SP4</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1: SP4 の TCB 構成</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0008-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The OSI Transport Layer Security Protocol (TLSP) [6] is a current ISO standard that provides security services similar to SP4. Since SP4 formed the foundation for TLSP, the two specifications are closely related. Therefore, most of the comments and conclusions in this paper apply equally to TLSP.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=8">原本 PDF p.8</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSI トランスポート層セキュリティプロトコル（TLSP）[6] は、SP4 に似たセキュリティサービスを提供する、現行の ISO 標準です。SP4 が TLSP の基礎となったため、この 2 つの仕様は密接に関連しています。したがって、この論文の意見と結論のほとんどは、TLSP にも同じように当てはまります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. OVERVIEW OF ASSESSMENT</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 評価の概要</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.1 Conformance Assessment</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.1 適合性評価</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Conformance assessment of OSI protocols is defined in a multi-part standard [9] that provides the basic framework and methodology for conformance testing. The scope of the standard ranges from abstract test suite specification and executable test derivation to the conformance assessment process, and includes test methods and a formal notation for describing test cases. The assessment procedure has two distinct parts: a static conformance review of the Protocol Implementation Conformance Statement (PICS) and dynamic conformance testing of the implementation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSI プロトコルの適合性評価は、適合性試験の基本的な枠組みと方法論を示す複数部からなる標準 [9] で定義されています。この標準の範囲は、抽象試験スイートの仕様と実行可能な試験の導出から、適合性評価プロセスまで及び、試験方法と、試験ケースを記述するための形式的な表記を含みます。評価手順には 2 つの別個の部分があります。Protocol Implementation Conformance Statement（PICS）の静的な適合性レビューと、実装の動的な適合性試験です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The PICS defines, in a tabular form, the range of functionality (i.e., capabilities and options) afforded by an implementation. Product manufacturers are expected to provide PICS for their implementations according to the PICS proforma established by standardization groups for an OSI protocol. By reviewing the PICS, a determination can be made of whether or not the functionality provided by a product meets the conformance requirements. The PICS also can be used as a guide for selecting appropriate test cases against which to assess the conformance claims of an implementation. The methodology also requires a Protocol Implementation Extra Information for Testing (PIXIT) to identify additional information about an implementation to facilitate testing, such as address values, timers, and parameter settings.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>PICS は、実装が提供する機能の範囲（すなわち能力とオプション）を、表形式で定義します。製品の製造者は、OSI プロトコルについて標準化グループが定めた PICS の様式に従って、自らの実装の PICS を提供することが求められます。PICS をレビューすることで、製品が提供する機能が適合性要件を満たしているかどうかを判断できます。PICS は、実装の適合性の主張を評価する際の、適切な試験ケースを選択するための指針としても使えます。この方法論は、試験を円滑にするために、アドレス値、タイマー、パラメータ設定など、実装に関する追加情報を特定する Protocol Implementation Extra Information for Testing（PIXIT）も必要とします。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Conformance testing for OSI is the process of verifying that the external behavior of an implemented data communications protocol agrees with the requirements specified in the defining standard. The OSI conformance testing methodology relies on a black box testing approach. That is, the internals of the box, or in this situation the protocol implementation under test, are unexaminable and unknown. How the protocol functionality is implemented is not part of the methodology. Instead, emphasis is placed on external behavior.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSI の適合性試験は、実装されたデータ通信プロトコルの外部から見た振る舞いが、それを定義する標準に定められた要件に合致していることを検証するプロセスです。OSI の適合性試験の方法論は、ブラックボックス試験のアプローチに依拠しています。つまり、箱の内部、この場合は試験対象のプロトコルの実装は、調べることができず、未知のままです。プロトコルの機能がどのように実装されているかは、この方法論の対象ではありません。代わりに、外部から見た振る舞いに重点が置かれます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The external behavior of an OSI protocol implementation is observable through the protocol data units (PDUs) exchanged with a test system, and is the foundation for the design of test scenarios. OSI conformance test scenarios contain negative as well as positive tests. That is, test scenarios include test cases involving the use of invalid PDUs and otherwise inappropriate PDU behavior. Conformance testing can determine whether PDUs are correctly exchanged, services are correctly provided, options are correctly treated, errors are correctly handled, and events are correctly reported.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSI プロトコルの実装の外部から見た振る舞いは、試験システムとやり取りするプロトコルデータユニット（PDU）を通じて観察でき、試験シナリオの設計の基礎となります。OSI の適合性試験シナリオには、肯定的な試験だけでなく否定的な試験も含まれます。つまり、試験シナリオには、無効な PDU の使用や、その他の不適切な PDU の振る舞いを伴う試験ケースが含まれます。適合性試験によって、PDU が正しく交換されているか、サービスが正しく提供されているか、オプションが正しく扱われているか、エラーが正しく処理されているか、イベントが正しく報告されているかを判断できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>While conformance testing increases the probability that different implementations of a set of selected protocols will interwork properly, it is no guarantee of full interoperability, given the typically large number of protocol options and unconstrained parameters. Supplementary interoperability assessment is also required.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>適合性試験は、選択された一連のプロトコルの異なる実装が正しく相互動作する確率を高めますが、一般にプロトコルのオプションが多数あり、パラメータが制約されていないことを考えると、完全な相互運用性を保証するものではありません。補足的な相互運用性評価も必要です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.2 Interoperability Assessment</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.2 相互運用性評価</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Similar to conformance assessment, the focus of interoperability assessment is testing. Interoperability testing is concerned with the end-to-end operation of one or more OSI implementations, exercising all services with various semantic values, and checking rendition and expected behavior. For example, in the case of messaging systems, the data content must be correctly relayed across several end-systems and correctly rendered to the recipients. Moreover, the distribution and handling within the end-system must behave as expected.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>適合性評価と同様に、相互運用性評価では試験に重点が置かれます。相互運用性試験では、1 つ以上の OSI 実装のエンドツーエンドの動作を対象に、さまざまな意味内容の値を用いてすべてのサービスを実行し、表示内容と期待される振る舞いを確認します。たとえば、メッセージングシステムの場合、データの内容は、複数のエンドシステムを経由して正しく中継され、受信者に正しく表示されなければなりません。さらに、エンドシステム内での配布と処理も、期待どおりに振る舞わなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although interoperability testing also uses a black box approach, it contrasts from conformance testing in several ways. Perhaps the most striking is the change from a test environment involving a validated test system and instrumented implementation, to an operational environment involving many different implementations as counterparts to the testing. Another significant difference is that the OSI conformance testing methodology is concerned primarily with evaluating a single layer or small group of layers, while interoperability testing involves the entire seven layer stack or, in the case of intermediate systems, the lower-level three-layer stack. Interoperability testing also emphasizes positive as opposed to negative testing, in contrast to conformance testing.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>相互運用性試験もブラックボックスのアプローチを使いますが、適合性試験とはいくつかの点で対照的です。おそらく最も顕著なのは、検証済みの試験システムと計装された実装を伴う試験環境から、試験の相手として多くの異なる実装が関わる運用環境へと変わることです。もう 1 つの大きな違いは、OSI の適合性試験の方法論が主に単一の層または少数の層の集まりを評価することに関わっているのに対し、相互運用性試験は 7 層のスタック全体、または中継システムの場合は下位 3 層のスタックを対象とすることです。相互運用性試験は、適合性試験とは対照的に、否定的な試験ではなく肯定的な試験を重視する点も特徴です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Interoperability testing alone is not a substitute for conformance testing. There always exists the danger of obtaining implementations that are interoperable with each other, but not necessarily conformant to the protocol standard. Because of the emphasis on positive testing, there is also the possibility that interoperability tests would not uncover some types of errors. Therefore, both types of testing are needed to preclude isolated islands of interoperable but non-conformant implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>相互運用性試験だけでは、適合性試験の代わりにはなりません。互いに相互運用できるものの、プロトコル標準に適合しているとは限らない実装が得られる危険が常にあります。肯定的な試験が重視されるため、相互運用性試験で、ある種の誤りが見つからない可能性もあります。したがって、相互運用はできるが適合していない実装の孤立した島ができることを防ぐために、両方の種類の試験が必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>At present, interoperability testing is not the subject of international standardization, due to a lack of broad consensus of a methodology and framework. Most interoperability testing is conducted on an ad hoc basis, to meet the demands of a particular situation. Implementations intended for a specific management domain may be subjected to interoperability tests as part of the requirement for membership. Many commercial implementations go through such a phase prior to and during vendor demonstrations at international trade shows and conferences. As demonstration software matures into products, reasonable product interoperability becomes the norm.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>現時点では、方法論と枠組みについて広範な合意がないため、相互運用性試験は国際標準化の対象になっていません。相互運用性試験の大半は、特定の状況の要求に応えるために、アドホックに実施されています。特定の管理ドメイン向けの実装は、加入の要件の一部として、相互運用性試験を受けることがあります。多くの商用の実装は、国際的な見本市や会議での供給者のデモンストレーションの前および最中に、このような段階を経ます。デモンストレーション用のソフトウェアが製品へと成熟するにつれて、妥当な製品の相互運用性が当たり前になります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0010-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.3 Security Evaluation</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.3 セキュリティ評価</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A security evaluation assesses products to determine the degree of trust that can be placed in them with regard to the secure processing of information. An evaluation is done without regard to the specific operational conditions and circumstances in which a product may be used (e.g., inside a shielded vault), but does take into consideration the computer system operating environment. The objective of the security evaluation is to perform a technical assessment of the trust properties. Three general security issues that must be addressed are: the confidentiality of the data, the integrity of the data and the system, and the availability of service. The goal or main requirement is to assure that the system behaves according to an organization’s security requirements that, in turn, reflect the defined security policy of the organization. To guarantee that this requirement is met, the security functionality of an implementation must work correctly and effectively.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティ評価は、情報の安全な処理に関して製品にどの程度の信頼を置けるかを判断するために、製品を評価するものです。評価は、製品が使われる可能性のある特定の運用条件や状況（たとえば遮へいされた保管室の中）にかかわらず行われますが、コンピュータシステムの運用環境は考慮に入れます。セキュリティ評価の目的は、信頼に関する特性の技術的な評価を行うことです。対処しなければならない一般的なセキュリティ上の課題は、データの機密性、データとシステムの完全性、サービスの可用性の 3 つです。目標、すなわち主要な要件は、システムが、組織のセキュリティ要件に従って動作することを保証することであり、そのセキュリティ要件は、組織が定めたセキュリティポリシーを反映するものです。この要件が満たされることを保証するためには、実装のセキュリティ機能が正しく効果的に動作しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Evaluations of commercial products in the U.S. are carried out through the Department of Defense (DoD) Trusted Product Evaluation Program (TPEP). The TPEP evaluates systems that meet the DoD’s program objectives based on the criteria defined in the DoD TCSEC [7]. The TCSEC defines a hierarchy of classes that represent increasing levels of confidence in the trustworthiness of a computer system to protect information. The TCSEC identifies features to be evaluated, such as login, access controls, and audit; and assurances to be obtained, such as least privilege, testing, and documentation. Features are mechanisms that provide security functionality, while assurances indicate the degree of trust, and give a measure of the degree to which features work correctly and are effective.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国における商用製品の評価は、国防総省（DoD）の Trusted Product Evaluation Program（TPEP）を通じて実施されます。TPEP は、DoD の TCSEC [7] で定義されたクライテリアに基づいて、DoD のプログラムの目的を満たすシステムを評価します。TCSEC は、情報を保護するコンピュータシステムの信頼性に対する確信のレベルが段階的に高まることを表す、クラスの階層を定義しています。TCSEC は、ログイン、アクセス制御、監査などの評価すべき機能と、最小権限、試験、文書化などの得るべき保証を特定しています。機能はセキュリティ機能を提供するメカニズムであり、保証は信頼の度合いを示し、機能がどの程度正しく動作し効果的であるかの尺度を与えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In contrast to conformance and interoperability evaluation techniques, security evaluations are limited to only the security relevant portions of the system. However, an evaluation at higher levels of assurance may be extensive, especially if one considers the attention given such areas as covert channels. Furthermore, testing is only one aspect of a security evaluation. Other aspects include ensuring that the product is produced and distributed according to appropriate controls and standards, and ensuring that well documented procedures exist for the operational use of the product. The goal of an evaluator is to gain a deep understanding of a product and how it meets stated security objectives, not merely to determine whether it passes a set of predefined tests.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>適合性評価や相互運用性評価の技法とは対照的に、セキュリティ評価は、システムのうちセキュリティに関連する部分だけに限定されます。ただし、より高い保証レベルでの評価は、特に隠れチャネルなどの領域に払われる注意を考えれば、広範囲に及ぶことがあります。さらに、試験はセキュリティ評価の 1 つの側面にすぎません。ほかの側面には、製品が適切な統制と標準に従って製造・配布されていることの確認や、製品の運用上の使用について十分に文書化された手順が存在することの確認が含まれます。評価者の目標は、あらかじめ定義された一連の試験に合格するかどうかを判断するだけではなく、製品と、それが定められたセキュリティの目的をどのように満たしているかを深く理解することです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0011-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>TCSEC evaluations are normally carried out in parallel with product development. Features (i.e., security mechanisms) not only must be operable and correct, but also must be implemented to resist tampering and leakage. From a testing perspective, assurance is gained through testing the implementation’s security functionality and susceptibility to penetration. An evaluator has access to internal documentation and is involved in the product development cycle. Security evaluations under the TCSEC can be considered a form of white box testing, since the internals of the box can be observed and controlled, and specifications of the internal design are available for analysis. White box testing is typically more stringent than black box testing since it allows test case design to establish some measure of minimum execution coverage with respect to the structural properties of software and hardware under evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>TCSEC の評価は通常、製品開発と並行して実施されます。機能（すなわちセキュリティメカニズム）は、動作可能で正しいだけでなく、改ざんと漏えいに耐えるように実装されていなければなりません。試験の観点では、保証は、実装のセキュリティ機能と、侵入への脆弱性を試験することで得られます。評価者は内部文書にアクセスでき、製品開発サイクルに関与します。TCSEC によるセキュリティ評価は、箱の内部を観察して制御でき、内部設計の仕様を分析に利用できるため、ホワイトボックス試験の一形態とみなせます。ホワイトボックス試験は、評価対象のソフトウェアとハードウェアの構造上の特性に関して、最小限の実行網羅率の何らかの尺度を確立するように試験ケースを設計できるため、通常、ブラックボックス試験よりも厳格です。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0011-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.4 SP4 Characteristics</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.4 SP4 の特性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Several characteristics of the SP4 standard are important to note, since they have an effect on the various forms of assessment. They are:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 標準には、さまざまな形態の評価に影響を及ぼすため、注意すべき特性がいくつかあります。次のとおりです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0012-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Absence of Assurance Requirements,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 保証要件がないこと、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0012-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Algorithm Independence,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) アルゴリズムからの独立性、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0012-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) Optional Security Services, and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) オプションのセキュリティサービス、および</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0012-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) Embedded Functionality.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) 組み込まれた機能。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although concerned with the provision of security services through specific types of security mechanisms, the SP4 standard does not contain any requirements on the level of confidence in the security provided by an implementation of the protocol. That is, the SP4 standard is a functionality specification devoid of assurance requirements for the implementation and the operating environment. Therefore, an implementation may fully conform to the SP4 standard, yet be inherently insecure. For example, there are no guarantees that a system correctly implementing SP4 either employs algorithms with an appropriate strength of mechanism, or controls access to transmitted information once it resides in the system. The level of assurance provided by an SP4 implementation depends on factors outside the scope of the standard. That assurance can be gained only by evaluating the implementation according to an established set of criteria, such as the DoD Trusted Computer System Evaluation Criteria (TCSEC) [7] or Trusted Network Interpretation [15] of that criteria.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>特定の種類のセキュリティメカニズムによるセキュリティサービスの提供を扱ってはいますが、SP4 標準には、プロトコルの実装によって提供されるセキュリティに対する確信のレベルについての要件は含まれていません。つまり、SP4 標準は、実装と運用環境に対する保証要件を欠いた、機能の仕様です。したがって、実装が SP4 標準に完全に適合していても、本質的に安全でない場合があります。たとえば、SP4 を正しく実装したシステムが、適切なメカニズムの強度を持つアルゴリズムを使っていること、あるいは、送信される情報がシステム内に存在する間のアクセスを制御していることは、保証されません。SP4 の実装が提供する保証のレベルは、標準の範囲外の要因に依存します。その保証は、DoD の Trusted Computer System Evaluation Criteria（TCSEC）[7] やそのクライテリアの Trusted Network Interpretation [15] のような、確立された一連のクライテリアに従って実装を評価することによってのみ得られます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SP4 standard is mechanism dependent, but algorithm independent. For example, the Data Confidentiality service is provided through an encipherment mechanism, but the underlying cryptographic algorithm is left open in the specification. Furthermore, an SP4 implementation may legitimately support only a subset of the optional elements indicated in the standard. To compensate for the openness and flexibility in the standard, implementors’ groups are expected to develop security sub-profiles for generic applications. That is, the characteristics of the required security functionality must be stipulated before an implementation can be constructed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 標準は、メカニズムに依存しますが、アルゴリズムには依存しません。たとえば、データの機密性サービスは暗号化のメカニズムによって提供されますが、基礎となる暗号アルゴリズムは仕様では特定されていません。さらに、SP4 の実装は、標準に示されたオプション要素の一部のみをサポートしても、正当と認められます。標準のこの開放性と柔軟性を補うため、実装者のグループが、汎用のアプリケーション向けにセキュリティのサブプロファイルを策定することが期待されています。つまり、実装を構築する前に、必要なセキュリティ機能の特性を規定しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>A security sub-profile specifies the general security objectives and operating environment assumptions, a target range of assurance, and suites of protection algorithms, in addition to the set of security features selected from those offered by the protocol. Therefore, a protection profile not only tightens the functionality specification, but also supplements it with assurance requirements. Few examples of security sub-profiles exist. Probably the best known example is that done for Message Handling Systems based on the X.400 standard [10].</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>セキュリティのサブプロファイルは、プロトコルが提供するもののうちから選択されたセキュリティ機能の集合に加えて、一般的なセキュリティの目的と運用環境の前提条件、保証の目標範囲、保護アルゴリズムの組を規定します。したがって、プロテクションプロファイルは、機能の仕様を厳密にするだけでなく、保証要件でそれを補います。セキュリティのサブプロファイルの例はほとんどありません。おそらく最もよく知られた例は、X.400 標準 [10] に基づくメッセージ処理システム向けに作成されたものです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>In practice, a fully capable SP4 implementation is an implementation of a Transport protocol with embedded SP4 functionality. Because of the dependency on the Transport protocol, conformance testing of SP4 implementations is expected to be tied closely to Transport layer conformance testing procedures. The next chapter discusses this in more detail. The implication of the dependency for a security evaluation is that both the SP4 and Transport layer protocol implementations would require evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>実際には、完全な機能を備えた SP4 の実装は、SP4 の機能が組み込まれたトランスポートプロトコルの実装です。トランスポートプロトコルに依存するため、SP4 の実装の適合性試験は、トランスポート層の適合性試験の手順と密接に結び付くことが見込まれます。これについては、次の章でさらに詳しく論じます。この依存関係がセキュリティ評価に及ぼす含意は、SP4 とトランスポート層プロトコルの両方の実装を評価する必要があるということです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>2.5 Relationships between Approaches</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+2.5 各アプローチの関係</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Clearly, the objective and scope of the three categories of assessment are quite different. Conformance assessment is the most functionally precise, since it provides testing at the level of detail of the functional standard, on a protocol-by-protocol basis. Interoperability assessment is a bit broader since it concerns a group of layer protocols and their operational aspects, and seeks functional compatibility among many implementations. Security evaluation is somewhat orthogonal to both. In the case of SP4, it is broader in scope than conformance testing of a protocol entity, yet narrower than interoperability testing of an entire end-system. The target of a security evaluation, the trusted computing base, lies somewhere in between. Similarly, while the objective of a security evaluation goes beyond functionality and seeks adherence to assurance requirements, only the correctness and effectiveness of the implementation from a security perspective are of concern. Therefore, it is possible to successfully evaluate an SP4 implementation that lacks conformance to the standard and does not interoperate with other implementations.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>評価の 3 つの区分の目的と範囲は、明らかにかなり異なります。適合性評価は、プロトコルごとに機能標準の詳細さの水準で試験を行うため、機能的には最も正確です。相互運用性評価は、一群の層プロトコルとその運用面に関わり、多くの実装間の機能的な互換性を求めるため、やや広くなります。セキュリティ評価は、その両方に対して、ある意味で直交しています。SP4 の場合、範囲はプロトコルエンティティの適合性試験より広く、エンドシステム全体の相互運用性試験よりは狭くなります。セキュリティ評価の対象である Trusted Computing Base は、その中間のどこかにあります。同様に、セキュリティ評価の目的は、機能を超えて、保証要件への準拠を求めるものですが、関心の対象は、セキュリティの観点からの実装の正しさと有効性だけです。したがって、標準に適合しておらず、ほかの実装と相互運用もできない SP4 の実装であっても、評価を成功裏に終えられる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Although OSI conformance testing does not directly address trust-related factors of an implementation, a successful conformance testing result suggests a level of assurance for the implementation. That result could be provided to a security evaluation to satisfy some portion of the functional testing requirements of the TCB. Since systems may be exploited through an external interface such as that provided by OSI, consideration could be given to incorporate extended functionality testing based on design information, and penetration testing with the conformance testing methodology. That is, contrary to the traditional view of separate conformance and security evaluations, conformance testing could be integrated into the security evaluation process and be made a part of the evaluation procedure for a distributed system that relies on a lower layer security protocol such as SP4.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>OSI の適合性試験は、実装の信頼に関連する要因を直接扱うものではありませんが、適合性試験の結果が良好であれば、その実装に対するある程度の保証がうかがえます。その結果をセキュリティ評価に提供して、TCB の機能試験要件の一部を満たすことができます。OSI が提供するような外部インタフェースを通じてシステムが悪用される可能性があるため、設計情報に基づく拡張された機能試験と、ペネトレーションテストを、適合性試験の方法論に組み込むことを検討できます。つまり、適合性評価とセキュリティ評価を別個のものとする従来の見方とは逆に、適合性試験をセキュリティ評価のプロセスに統合し、SP4 のような下位層のセキュリティプロトコルに依存する分散システムの評価手順の一部とできる可能性があります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>One interesting difference between conformance and security evaluations is in the structure of the processes and the roles that the organizations play in them. The security evaluation of a product is normally done through a sponsoring governmental agency, includes product development as part of the process, is conducted at a secure government facility using procedures not completely disclosed to the public, and continues until the criteria level is met or the developer gives up. A conformance evaluation on the other hand is normally initiated by the developer, is conducted after product development, is evaluated at a government accredited facility through publicly available test procedures, and renders a pass/fail verdict within a comparatively short period of time. Whereas the security evaluation process is centered around the concerns of the evaluation agency, the conformance evaluation process is oriented more toward the developer. In particular, the black box nature of conformance testing avoids disclosure of proprietary information by the developer.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>適合性評価とセキュリティ評価の興味深い違いの 1 つは、プロセスの構造と、その中で組織が果たす役割にあります。製品のセキュリティ評価は、通常、後援する政府機関のもとで行われ、製品開発をプロセスの一部として含み、完全には公開されていない手順を使って、安全な政府施設で実施され、クライテリアのレベルを満たすか、開発者が断念するまで続きます。一方、適合性評価は、通常、開発者が開始し、製品開発の後に実施され、公開されている試験手順を使って、政府が認定した施設で評価され、比較的短期間で合格・不合格の判定が下されます。セキュリティ評価のプロセスが評価機関の関心を中心にしているのに対し、適合性評価のプロセスは、より開発者に向けられています。特に、適合性試験がブラックボックスの性質を持つことで、開発者の専有情報の開示が避けられます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Interoperability testing appears to logically fall after successful conformance and security evaluations take place. Ideally, a rigorous conformance testing campaign would limit the effort needed for interoperability testing, making it merely an exercise in system configuration and parameter determination. In this respect, interoperability testing is complimentary to both conformance testing and security evaluation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>相互運用性試験は、適合性評価とセキュリティ評価が成功した後に論理的に位置づけられるように思われます。理想的には、厳格な適合性試験の取り組みによって、相互運用性試験に必要な作業が限られ、システムの構成とパラメータの決定という作業にすぎなくなります。この点で、相互運用性試験は、適合性試験とセキュリティ評価の両方を補完するものです。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. SP4 CONFORMANCE TESTING</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. SP4 の適合性試験</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.1 Strategy for Testing</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.1 試験の戦略</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This section applies the OSI Conformance Testing Methodology and Framework to SP4 and develops a consistent approach for conformance testing of an implementation, to meet the dynamic conformance conditions. The procedure is predicated on the following assumptions:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この節では、OSI の適合性試験の方法論と枠組みを SP4 に適用し、動的な適合性の条件を満たすための、実装の適合性試験の一貫したアプローチを策定します。この手順は、次の前提に基づいています。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0015-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Communication hardware/software products for OSI will provide an exposed interface (i.e., an external interface to the user) from the Transport layer protocol entity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) OSI 向けの通信ハードウェア・ソフトウェア製品は、トランスポート層プロトコルエンティティから、外部に露出したインタフェース（すなわち利用者への外部インタフェース）を提供します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0015-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Implementations of the SP4 protocol are not guaranteed to provide an exposed interface, and are most likely embedded within the Transport protocol entity.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) SP4 プロトコルの実装は、公開されたインタフェースを提供することが保証されておらず、トランスポートプロトコルエンティティの中に組み込まれている可能性が最も高いです。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0015-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) Based on its functionality, SP4 may be considered as the lowest sub-layer of the Transport layer protocol.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 機能に基づけば、SP4 は、トランスポート層プロトコルの最下位のサブレイヤとみなせます。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The implication of these assumptions is that an SP4 implementation must be tested indirectly, through the interface to the Transport protocol entity. The approach taken is to build upon extant testing requirements for the Government Open System Interconnection Profile (GOSIP) [12]. The abstract test method proposed for SP4 follows a coordinated single-layer embedded test method. This approach assumes that explicit test coordination procedures can be used with the Transport implementation containing and/or supporting SP4 functionality. Figure 2 illustrates this test method for SP4. The system under test must involve a Transport implementation whose normal non-security services have been successfully tested. Here the Transport protocol interface is used as the point of control and observation (PCO) for the upper tester, in lieu of an exposed SP4 interface. SP4 behavior is exercised and analyzed indirectly through the Transport interface. The PCO for the lower tester is the underlying Network service interface.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの前提が意味するのは、SP4 の実装は、トランスポートプロトコルエンティティへのインタフェースを通じて、間接的に試験しなければならないということです。採用するアプローチは、Government Open System Interconnection Profile（GOSIP）[12] の既存の試験要件の上に構築するものです。SP4 に提案する抽象試験方法は、連携型の単一層組み込み試験方法に従います。このアプローチは、SP4 の機能を含む、または支援する（あるいはその両方の）トランスポートの実装に対して、明示的な試験の連携手順を使えることを前提としています。図 2 に、SP4 のこの試験方法を示します。被試験システムには、通常のセキュリティ以外のサービスについて試験に合格したトランスポートの実装が含まれていなければなりません。ここでは、外部に露出した SP4 インタフェースの代わりに、トランスポートプロトコルのインタフェースが、上位試験器の制御・観測点（PCO）として使われます。SP4 の振る舞いは、トランスポートのインタフェースを通じて間接的に実行され、分析されます。下位試験器の PCO は、下位のネットワークサービスのインタフェースです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>For the coordinated test method, the upper tester for the SP4 implementation under test (IUT) contains a test responder capable of processing a test management protocol (TMP) and performing the indicated actions on the IUT. The composition of the lower tester is a bit more complex. It must be capable of realizing Transport services by processing executable test scenarios, while maintaining a correspondence with the peer test responder of the upper tester. In addition, the lower tester can normally manipulate Transport PDU (TPDU) encodings for exception generation, and record messages concerning the progress of the test scenario and the detailed TPDU exchanges. From the latter information, a verdict analysis can be performed.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連携型の試験方法では、被試験 SP4 実装（IUT）の上位試験器に、試験管理プロトコル（TMP）を処理し、IUT に対して指示された動作を実行できる試験応答器が含まれます。下位試験器の構成は、やや複雑です。下位試験器は、実行可能な試験シナリオを処理してトランスポートサービスを実現しつつ、上位試験器の対等な試験応答器との対応関係を維持できなければなりません。加えて、下位試験器は通常、例外を発生させるためにトランスポート PDU（TPDU）の符号化を操作でき、試験シナリオの進行と詳細な TPDU の交換に関するメッセージを記録できます。後者の情報から、判定の分析を行えます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0016-f0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-5325/p0016-figure-01.png" alt="Block diagram of the coordinated single-layer embedded test method, inside a frame. A &quot;LOWER TESTER&quot; box and an &quot;UPPER TESTER&quot; box are joined by a band &quot;TEST COORDINATION PROCEDURES&quot; containing a double-headed arrow labeled &quot;TMP&quot;. The UPPER TESTER connects by a double-headed arrow labeled &quot;PCO&quot; down to a &quot;TRANSPORT&quot; box that contains an inner box &quot;SP4 IUT&quot;. A double-headed arrow labeled &quot;PDUs&quot; runs between the LOWER TESTER and TRANSPORT. The LOWER TESTER connects by a double-headed arrow labeled &quot;PCO&quot; down to a &quot;NETWORK SERVICE PROVIDER&quot; box, on which the TRANSPORT box also rests."><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>枠で囲まれた、協調型単一層組込み試験法のブロック図です。「LOWER TESTER」（下位テスター）と「UPPER TESTER」（上位テスター）の箱が「TEST COORDINATION PROCEDURES」（試験調整手順）の帯で結ばれ、帯の中に「TMP」と添えた両矢印があります。UPPER TESTER からは「PCO」と添えた両矢印が、内側に箱「SP4 IUT」を持つ箱「TRANSPORT」へ下りています。LOWER TESTER と TRANSPORT の間には「PDUs」と添えた両矢印があります。LOWER TESTER からは「PCO」と添えた両矢印が箱「NETWORK SERVICE PROVIDER」（ネットワークサービス提供者）へ下り、TRANSPORT の箱もその上に載っています。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Figure 2: Coordinated Single-Layer Embedded Test Method</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2: 連携型単一層組み込み試験方法</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0016-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.2 Other Testing Considerations</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.2 その他の試験上の考慮事項</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Other concerns about SP4 conformance testing that are related to security, include the following issues:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 の適合性試験に関するセキュリティに関連するその他の懸念には、次の課題が含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Determination of the default cryptographic algorithms for testing,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 試験用の既定の暗号アルゴリズムの決定、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Key management support for establishing and maintaining traffic encryption keys,</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) トラフィック暗号化鍵を確立し維持するための鍵管理の支援、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) The control and selection of security services, and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) セキュリティサービスの制御と選択、および</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0016-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) The method for collecting security event reports.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) セキュリティイベント報告の収集方法。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These and other such items should be addressed in the PIXIT supplied with the SP4 implementation to be tested.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらやその他の項目は、試験対象の SP4 実装とともに提供される PIXIT で取り上げるべきです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The coordinated single-layer embedded (CSE) test method requires that the Transport protocol be tested as a prerequisite to testing the SP4 functionality. Similarly, the cryptographic facility that supports the protocol entity should complete successful independent testing to avoid confounding the conformance test results. Standard algorithm test suites would be useful in testing the cryptographic facility and for simplifying configuration of the test system.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>連携型単一層組み込み（CSE）試験方法では、SP4 の機能を試験する前提として、トランスポートプロトコルを試験しておく必要があります。同様に、適合性試験の結果が混同されないようにするため、プロトコルエンティティを支える暗号機能も、独立した試験を完了し、合格すべきです。標準的なアルゴリズム試験スイートは、暗号機能の試験と、試験システムの構成の簡素化に役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Unlike other protocols, lower layer security protocols have the unique property of silence in situations where a security violation occurs. That is, rather than responding to the source of the offending PDU, a security event is reported and the offending PDU is discarded. This type of behavior complicates verdict determination, since the verdict is dependent on the security event reporting function for the system under test. Realization of the CSE test method, therefore, may require shifting some of the responsibility for verdict determination onto the upper tester.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ほかのプロトコルとは異なり、下位層のセキュリティプロトコルには、セキュリティ違反が発生した状況で沈黙するという独特の性質があります。つまり、問題のある PDU の送信元に応答する代わりに、セキュリティイベントが報告され、問題のある PDU は破棄されます。この種の振る舞いは、判定が被試験システムのセキュリティイベント報告機能に依存するため、判定の決定を複雑にします。したがって、CSE 試験方法の実現にあたっては、判定に関する責任の一部を上位試験器に移すことが必要となる場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>3.3 Characteristics of the Means of Testing</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+3.3 試験手段の特性</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The realization of an abstract test method includes the test system, executable test suite, testing support tools, and documentation. The following items, drawn from the GOSIP conformance testing technical criteria [12], summarize the significant characteristics of the means of testing needed for the coordinated test method proposed:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>抽象試験方法の実現には、試験システム、実行可能な試験スイート、試験支援ツール、文書が含まれます。次の項目は、GOSIP の適合性試験の技術クライテリア [12] から引き出したもので、提案する連携型の試験方法に必要な試験手段の重要な特性を要約したものです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Capability to analyze PICS and PIXIT for the IUT and to select and parameterize tests to be run, and to configure the means of testing for communication with the System Under Test (SUT);</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) IUT の PICS と PIXIT を分析し、実行する試験を選択してパラメータ化し、被試験システム（SUT）との通信のために試験手段を構成する能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Procedures to reconcile PDU and test data with the test purposes and yield a verdict for each test purpose;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) PDU と試験データを試験目的と突き合わせ、試験目的ごとに判定を出す手順、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) Capability to produce Conformance Test Reports, listing test cases executed and their verdicts, and detailing the IUT behavior in cases of failure;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 実行した試験ケースとその判定を一覧にし、失敗した場合の IUT の振る舞いを詳述する適合性試験報告書を作成する能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) Capability to record the protocol data units exchanged with the IUT in a conformance log, and to review the structure and encoding of protocol data units after the test campaign is complete;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) IUT とやり取りしたプロトコルデータユニットを適合性ログに記録し、試験の一連の実施が完了した後にプロトコルデータユニットの構造と符号化をレビューする能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) Capability to assemble SE TPDUs according to the SP4 standard, and send them to an end-system under test over any supported medium;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) SP4 標準に従って SE TPDU を組み立て、サポートされている任意の媒体を通じて被試験エンドシステムに送信する能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) Capability to receive and disassemble SE TPDUs according to the SP4 standard, to validate the SE TPDUs received, and to record the results;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) SP4 標準に従って SE TPDU を受信して分解し、受信した SE TPDU を検証し、結果を記録する能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(g) Capability to construct invalid as well as valid SE TPDUs;</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(g) 有効な SE TPDU だけでなく、無効な SE TPDU も構成する能力、</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0017-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(h) Capability to monitor and to initiate SE TPDU exchanges with the SUT, and to record the results; and</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(h) SUT との SE TPDU のやり取りを監視し、開始し、結果を記録する能力、および</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(i) Capability to control and coordinate the SUT, in order to induce the SUT to generate specified types of SE TPDUs, including control and coordination with the Transport entity associated with the SP4 IUT.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(i) SUT が指定された種類の SE TPDU を生成するよう誘導するために、SP4 IUT に関連するトランスポートエンティティの制御と連携を含め、SUT を制御し連携させる能力。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. ORGANIZATION AND PRODUCTION OF TEST SCENARIOS</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 試験シナリオの構成と作成</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.1 Existing Transport Test Scenarios</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.1 既存のトランスポート試験シナリオ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Within the U.S. Federal Government, the Government OSI Profile (GOSIP) [11] is the procurement specification for agencies to use when acquiring open systems computer network products. GOSIP conformance testing procedures [12] have been established that follow the OSI conformance testing methodology. At the Transport layer, GOSIP mandates class 4 Transport for interoperability among compliant systems. The remaining classes have a less essential role in the specification, as does the connectionless Transport protocol. For this reason, and because class 4 functionality encompasses that of the other classes, only class 4 test cases are considered in the discussion that follows.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>米国連邦政府内では、Government OSI Profile（GOSIP）[11] が、各機関が開放型システムのコンピュータネットワーク製品を調達する際に使用する調達仕様です。OSI の適合性試験の方法論に従った、GOSIP の適合性試験手順 [12] が確立されています。トランスポート層では、GOSIP は、準拠するシステム間の相互運用性のために、クラス 4 のトランスポートを必須としています。残りのクラスは、コネクションレス型のトランスポートプロトコルと同様に、仕様の中での役割がそれほど重要ではありません。このため、またクラス 4 の機能がほかのクラスの機能を包含するため、以下の議論では、クラス 4 の試験ケースだけを考慮します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The abstract test cases for the class 4 Transport protocol fall into one of three categories of increasing complexity and functionality: basic interconnection tests, capability tests, and behavior tests. Basic interconnection tests establish a baseline capability and determine the ability of the implementation to open and close connections, and convey normal user data, and parameters. Capability tests continue to examine fully all mandatory capabilities and determine whether the implementation can convey expedited data, and more extensive amounts of normal user data. Behavior tests establish the extent to which the dynamic conformance requirements are met and examine the ability of the implementation to negotiate parameters, to be involved in more complicated exchanges, and to handle the full range of error conditions.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>クラス 4 のトランスポートプロトコルの抽象試験ケースは、複雑さと機能が段階的に高まる 3 つの区分のいずれかに分類されます。基本相互接続試験、能力試験、振る舞い試験です。基本相互接続試験は、基準となる能力を確立し、実装がコネクションを開閉し、通常の利用者データとパラメータを伝達する能力を判定します。能力試験では、すべての必須能力を引き続き詳しく調べ、実装が緊急データや、より大量の通常の利用者データを伝達できるかどうかを判定します。振る舞い試験は、動的な適合性要件がどの程度満たされているかを確認し、実装がパラメータを交渉し、より複雑なやり取りに関与し、あらゆる範囲のエラー状態を処理する能力を調べます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>4.2 Proposed SP4 Test Scenarios</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+4.2 提案する SP4 試験シナリオ</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>GOSIP test scenarios for class 4 Transport are not capable of providing insight into an SP4 IUT, other than to establish that fundamental communications capabilities are in good order. Furthermore, the behavior tests are no longer appropriate since they do not address the specific services offered by SP4. These security services are embodied in the security encapsulation (SE) TPDU, used exclusively by the SP4 protocol. None of the error conditions associated with the SE TPDU are part of the existing behavior tests.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>クラス 4 のトランスポート向けの GOSIP 試験シナリオは、基本的な通信能力が良好であることを確認する以外には、SP4 IUT についての洞察を与えられません。さらに、振る舞い試験は、SP4 が提供する個別のサービスを扱っていないため、もはや適切ではありません。これらのセキュリティサービスは、SP4 プロトコルだけが使うセキュリティカプセル化（SE）TPDU に具現化されています。SE TPDU に関連するエラー状態は、既存の振る舞い試験のどれにも含まれていません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The SP4 PICS proforma [8] suggests areas that should be included in the test suite coverage. Note that some areas may overlap with others since they may be merely different views of the same functionality. Tests should exist for the following areas:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>SP4 の PICS 様式 [8] は、試験スイートの網羅範囲に含めるべき領域を示しています。同じ機能の別の見方にすぎない場合があるため、一部の領域がほかの領域と重複することがあります。次の領域について、試験が存在すべきです。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0019-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Acceptable General Behavior<ul><li>ability to generate valid SE TPDUs</li><li>ability to accept valid SE TPDUs</li><li>ability to handle inopportune SE TPDUs</li><li>ability to handle SE TPDUs in error</li><li>ability to handle network failure</li></ul></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 許容される一般的な振る舞い<ul><li>有効な SE TPDU を生成する能力</li><li>有効な SE TPDU を受け入れる能力</li><li>時宜を得ない SE TPDU を処理する能力</li><li>誤りのある SE TPDU を処理する能力</li><li>ネットワーク障害を処理する能力</li></ul></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) SE TPDU Parameter Encoding/Decoding<ul><li>key identifier</li><li>protected header flag</li><li>label</li><li>pad</li><li>final sequence number</li><li>integrity check value</li></ul></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) SE TPDU パラメータの符号化・復号<ul><li>鍵識別子</li><li>保護ヘッダーフラグ</li><li>ラベル</li><li>パッド</li><li>最終シーケンス番号</li><li>完全性検査値</li></ul></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0020-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) Specific Functions<ul><li>peer address verification</li><li>reflection detection</li><li>separation after decapsulation</li><li>secure multiplexing</li><li>security encapsulation</li><li>security event reporting</li><li>data encipherment</li><li>integrity protection</li><li>integrity sequence numbering</li><li>pre-encapsulation concatenation</li><li>padding</li><li>explicit security labeling</li><li>final sequence number checking</li></ul></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) 個別の機能<ul><li>ピアアドレスの検証</li><li>反射の検出</li><li>脱カプセル化後の分離</li><li>セキュアな多重化</li><li>セキュリティのカプセル化</li><li>セキュリティイベントの報告</li><li>データの暗号化</li><li>完全性の保護</li><li>完全性のシーケンス番号付け</li><li>カプセル化前の連結</li><li>パディング</li><li>明示的なセキュリティラベル付け</li><li>最終シーケンス番号の検査</li></ul></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0020-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) Security Error Conditions<ul><li>improperly protected TPDU</li><li>invalid key identifier</li><li>invalid integrity check value</li><li>invalid direction indicator</li><li>improper label</li><li>improper pad</li><li>duplicate sequence number</li><li>invalid peer address</li><li>invalid final sequence number</li><li>invalid destination address</li></ul></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) セキュリティエラー状態<ul><li>不適切に保護された TPDU</li><li>無効な鍵識別子</li><li>無効な完全性検査値</li><li>無効な方向指示子</li><li>不適切なラベル</li><li>不適切なパッド</li><li>重複したシーケンス番号</li><li>無効なピアアドレス</li><li>無効な最終シーケンス番号</li><li>無効な宛先アドレス</li></ul></span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0020-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) Protocol Error Conditions<ul><li>undefined parameter</li><li>out-of-sequence parameter</li><li>unexpected final sequence number</li></ul></span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) プロトコルエラー状態<ul><li>未定義のパラメータ</li><li>順序の誤ったパラメータ</li><li>想定外の最終シーケンス番号</li></ul></span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The test coverage areas give guidelines for test case development that need to be further specified and organized into test categories. The details of test specifications are left to the designer of abstract test scenarios for SP4.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この試験の網羅領域は、試験ケースの作成の指針となるもので、さらに具体化して試験区分に整理する必要があります。試験仕様の詳細は、SP4 の抽象試験シナリオの設計者に委ねられています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. SUMMARY</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. まとめ</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This paper explores the relationship between conformance assessment, interoperablity assessment and security evaluation of a typical lower layer security protocol, SP4. These categories of evaluation overlap somewhat with regard to the correctness of security functionality, but differ in their scope and objectives. The following points are made toward determining the role and method of SP4 conformance testing:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文は、代表的な下位層のセキュリティプロトコルである SP4 について、適合性評価、相互運用性評価、セキュリティ評価の関係を検討しました。これらの評価の区分は、セキュリティ機能の正しさに関しては若干重なっていますが、範囲と目的が異なります。SP4 の適合性試験の役割と方法を決定するために、次の点を指摘します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Conformance testing, interoperability testing, and security evaluation are independent activities that may be applied at various times during the life cycle of a product.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) 適合性試験、相互運用性試験、セキュリティ評価は、製品のライフサイクルのさまざまな時点で適用される、独立した活動です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Conformance testing is a complementary and useful step toward the security evaluation of a product, since it may expose fundamental vulnerabilities.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 適合性試験は、根本的な脆弱性を明らかにする可能性があるため、製品のセキュリティ評価に向けた補完的で有用な段階です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) While the OSI conformance testing methodology is appropriate for evaluating the conformance of implementations to the SP4 standard, it is not a sufficient means to assess the trustworthiness of an implementation; a security evaluation is needed.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) OSI の適合性試験の方法論は、SP4 標準への実装の適合性を評価するには適切ですが、実装の信頼性を評価するには十分な手段ではありません。セキュリティ評価が必要です。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) Since the SP4 standard contains no assumptions about the trustworthiness of an implementation, implementors’ groups are expected to develop security sub-profiles for generic applications of SP4 that may include sufficient information for a security evaluation to be conducted.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) SP4 標準は実装の信頼性についての前提を含んでいないため、実装者のグループが、SP4 の汎用のアプリケーション向けに、セキュリティ評価を実施するための十分な情報を含みうるセキュリティのサブプロファイルを策定することが期待されます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) A coordinated method for a single embedded layer is the appropriate method of testing for SP4, and the required test scenarios can be drawn directly from the SP4 PICS proforma.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(e) 単一の組み込み層に対する連携型の方法が、SP4 の適切な試験方法であり、必要な試験シナリオは、SP4 の PICS 様式から直接導き出せます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) SP4 conformance testing can build upon existing Transport layer protocol test procedures, and be conducted in cooperation with established conformance testing bodies.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(f) SP4 の適合性試験は、既存のトランスポート層プロトコルの試験手順の上に構築でき、確立された適合性試験機関と協力して実施できます。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(g) Interoperability testing is a complementary follow-on step to the conformance testing and security evaluation of an SP4 implementation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(g) 相互運用性試験は、SP4 実装の適合性試験とセキュリティ評価に続く、補完的な後続の段階です。</span></p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0021-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Several areas for further work are also evident from the discussion in this paper. They include the following:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この論文の議論からは、さらなる作業が必要な領域もいくつか明らかになっています。次のものが含まれます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) Construction of abstract test scenarios for SP4.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(a) SP4 の抽象試験シナリオの構築。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) Development of a security sub-profile for a target level of assurance.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(b) 目標とする保証のレベルに向けたセキュリティのサブプロファイルの策定。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0021-b0022">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) Realization of the CSE test method for SP4.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(c) SP4 の CSE 試験方法の実現。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-" id="pdf-p0022-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) Investigation of incorporating the OSI conformance testing methodology into the security evaluation process.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">(d) OSI の適合性試験の方法論をセキュリティ評価のプロセスに取り込むことの調査。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>REFERENCES</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] ISO IS 7498, Information Processing Systems - Open systems Interconnection - Basic Reference Model, 1984.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] ISO IS 7498, Information Processing Systems - Open systems Interconnection - Basic Reference Model, 1984.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[2] ISO IS 7498/2, Information Processing Systems - Open Systems Interconnection - Basic Reference Model - Part 2: Security Architecture, 1988.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[2] ISO IS 7498/2, Information Processing Systems - Open Systems Interconnection - Basic Reference Model - Part 2: Security Architecture, 1988.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[3] Specification SDN.401, Secure Data Network Systems (SDNS) Security Protocol 4 (SP4), revision 1.3, National Security Agency, May 1989.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[3] Specification SDN.401, Secure Data Network Systems (SDNS) Security Protocol 4 (SP4), revision 1.3, National Security Agency, May 1989.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[4] D. Branstad and others, SP4: A Transport Encapsulation Security Protocol, Proceedings National Computer Security Conference, September 1987.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[4] D. Branstad ほか, SP4: A Transport Encapsulation Security Protocol, Proceedings National Computer Security Conference, September 1987.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[5] R. Nelson, SDNS Services and Architecture, Proceedings National Computer Security Conference, September 1987.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[5] R. Nelson, SDNS Services and Architecture, Proceedings National Computer Security Conference, September 1987.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[6] ISO/IEC IS 10736, International Standard - Open Systems Interconnection - Transport Layer Security Protocol, December, 1992.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[6] ISO/IEC IS 10736, International Standard - Open Systems Interconnection - Transport Layer Security Protocol, December, 1992.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[7] DoD 5200.28-STD, DoD Trusted Computer System Evaluation Criteria, August 1983.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[7] DoD 5200.28-STD, DoD Trusted Computer System Evaluation Criteria, August 1983.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[8] W. Jansen, Protocol Implementation Conformance Statement (PICS) Proforma for the SDNS Security Protocol at Layer 4 (SP4), NISTIR-4934, October 1992.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[8] W. Jansen, Protocol Implementation Conformance Statement (PICS) Proforma for the SDNS Security Protocol at Layer 4 (SP4), NISTIR-4934, October 1992.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0024">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[9] ISO 9646, Information Technology - Open Systems Interconnection - Conformance Testing Methodology and Framework, Parts 1-7, March 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[9] ISO 9646, Information Technology - Open Systems Interconnection - Conformance Testing Methodology and Framework, Parts 1-7, March 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0026">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[10] Stable Implementation Agreements for Open System Interconnection Protocols, version 5, edition 1, Part 8: Message Handling Systems, NIST Special Publication 500-202, December 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[10] Stable Implementation Agreements for Open System Interconnection Protocols, version 5, edition 1, Part 8: Message Handling Systems, NIST Special Publication 500-202, December 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0028">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[11] Government Open Systems Interconnection Profile (GOSIP), Federal Information Processing Standard (FIPS) 146-1, National Technical Information Service, April 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[11] Government Open Systems Interconnection Profile (GOSIP), Federal Information Processing Standard (FIPS) 146-1, National Technical Information Service, April 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0030">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[12] J. Stephen Nightingale, GOSIP Conformance and Interoperation Testing and Registration, NISTIR-4594, March 1991.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[12] J. Stephen Nightingale, GOSIP Conformance and Interoperation Testing and Registration, NISTIR-4594, March 1991.</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0023-b0032">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[13] NCSC-TG-005, Trusted Network Interpretation, National Computer Security Center, version 1, July 1987.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[13] NCSC-TG-005, Trusted Network Interpretation, National Computer Security Center, version 1, July 1987.</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/IR/nistir5325.pdf">National Institute of Standards and Technology, IR 5325</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 5325";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
