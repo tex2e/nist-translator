@@ -30,8 +30,14 @@
   - 訳語の統一: Appendix = 付録（全 IR、240 か所）、許可型・非許可型、応用サイバーセキュリティ部門、しきい値方式、デジタル署名など（`work-in-progress/ir-glossary.md`）。
   - 表でない段落などに残っていた、誤検出の表の画像へのリンク（「原本PDFの抜粋画像」）を全 IR から除いた。ir-8177 の数式中の「<」を &lt; にした。
 - 第 5 陣（2015〜2017 年の 30 件、1,738 ページ、2026-11-14 公開）: 同じ手順。第三者の節（ir-8041 の発表 5 件、ir-8054upd1 の 5.4 節のパイロットの寄稿、ir-8089 の表 9〔IEC 62443-3-3〕）、他社製品の画面・人物写真を非掲載。codex 3 巡（1 巡目 12,707 件中 1,273 件修正）、残り 455 件を Opus が判断（keep 381、fix 74）。要約は codex が 7 件指摘し、Opus が確認（指摘はすべて誤りだったが、訳語をそろえるため 6 件を直した）。
-- 第 6 陣（2011〜2015 年の 30 件、2,443 ページ）: 原本照合と非掲載の処理まで済み（ir-7916 の発表 11 件、ir-8018 付録 F〔APCO〕、ir-7622 付録 D〔UMD〕を非掲載）。ir-7806・ir-7275r4upd1・ir-7933 の大きな表は専任の担当が全ページを画像で見て HTML に組み直した。ir-7628r1（668 ページ）は 3 つのページ範囲に分けて照合（partA/B/C）。翻訳は進行中。**第 6 陣の英文データはあるが、ページは作っていない。`build_all.py` は第 6 陣のキーを除いて実行すること**（索引は HTML のある資料だけを載せる）。
-- 残り: 第 7 陣以降（120 件）は未着手。ir-8221 の "machine-to-people (M2P)" は Xen では machine-to-physical だが、英文どおりに訳している。
+- 第 6 陣（2011〜2015 年の 30 件、2,443 ページ）: 同じ手順で公開。ir-7916 の発表 11 件、ir-8018 付録 F〔APCO〕、ir-7622 付録 D〔UMD〕を非掲載。ir-7806・ir-7275r4upd1・ir-7933 の大きな表は全ページを画像で見て HTML に組み直した。ir-7628r1（668 ページ）は 3 つのページ範囲に分けて照合。
+- 第 7〜10 陣（2011 年以前〜1975 年の 120 件）: 同じ手順で公開（第 8 陣 d718722e、第 9 陣 14de5bb0、第 10 陣 959ca90a）。判断の記録は `work-in-progress/ir-batch{7..10}/decisions.md`。
+  - 古いスキャン原本が多い。ir-7085 は画像だけの PDF なので OCR してから抽出した（`ocr_text_layer` を記録）。読めない語は推測せず英文に [illegible]、訳に [判読不能]。
+  - 非掲載の基準: NIST の IR は契約事業者・客員の執筆でも本文として掲載。米国政府機関（NASA、DoD、DOE、DOJ、FAA、FDIC、商務省、NSA など）の著作も掲載。NIST 以外のワークショップ論文・発表、契約事業者の研究所（MITRE、Sandia、Argonne）、© や転載許諾つきの民間の再掲（ir-4453 SRI、ir-4781 Piper & Marbury、ir-4359 AIM）、外国政府の寄稿は第三者として非掲載。出席者名簿・連絡先一覧は個人情報として非掲載（ir-1291、ir-4362、ir-4614、ir-1189 など）。
+  - 第 10 陣: スキャンの図・ページ図が多いため、ほぼ灰色の PNG はグレースケールにして容量を減らした（122MB → 46MB）。ir-4267 の付録 A〜D（168 ページのコード）はページ図にした。codex が使用上限になったため、要約の確認は Opus が行った（review.reviewer = claude-opus-5-5）。
+  - 訳語の統一（`work-in-progress/ir-glossary.md` の末尾）: certification = 認証、accreditation = 認定、NBS = 米国標準局（NBS）、ICST = 計算機科学技術研究所（ICST）、NCSL = 国立コンピュータシステム研究所（NCSL）、Interagency Report = 省庁間報告書、examiner = 検査官、CC の assignment = 割付 など。
+- **IR は完了**: カタログ（`data/ir-final-catalog.json`）の Final 309 件のうち、PDF のある 300 件をすべて公開した（索引の IR リンク 300 件）。PDF の無い 9 件（ir-7275r2、ir-7122、ir-6068、ir-5820、ir-5788、ir-5590、ir-5570、ir-5540、ir-5468）は原本が無いので訳せない。
+- 気づいた点: ir-8221 の "machine-to-people (M2P)" は Xen では machine-to-physical だが、英文どおりに訳している。ir-4983 の "KCAs and KCAs"、ir-6192 の "role authentication time" なども原本の誤記らしいが、意味が一つに決まらないので英文どおり。
 - `scripts/apply_repair_ops.py` の op `merge` が kind・level などを無視していた不具合を直し、影響していた 39 ブロック（ir-8536・8539・8441・8409・sp800-209 など）を直した。
 - `scripts/apply_repair_ops.py` の op `table` が kind を table にしていなかった不具合を直した（kind math はそのまま）。IR の 6 ブロックを直し、表のブロックに残っていた level を除いた。
 
