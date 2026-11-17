@@ -302,7 +302,8 @@ def build_site(document, meta, template_path, output_path):
         included_pages=document.get("included_pages", []),
         extraction_partial=document.get("extraction_partial", False),
         extraction_pending=sum(block.get("extraction_status") == "needs_review" and
-                               not block.get("image_authoritative") and not block.get("official_mark")
+                               not block.get("image_authoritative") and not block.get("official_mark") and
+                               not block.get("third_party_excerpt")
                                for block in visible),
         extraction_warnings=document.get("extraction_warnings", []),
         has_math=bool(math_groups) or any(

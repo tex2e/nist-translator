@@ -39,6 +39,7 @@
 - 第 11 陣（2026-11-17）: カタログで PDF が無いとしていた 9 件のうち 8 件（ir-7122、ir-6068、ir-5820、ir-5788、ir-5570、ir-5540、ir-5590、ir-5468）は、DOI（10.6028/NIST.IR.<番号>）から nvlpubs の PDF を取得でき、同じ手順で公開した（codex 3 巡・Opus の最終判定・要約の codex 確認つき）。`scripts/update_ir_final_catalog.py` に DOI からの取得を加えた。判断の記録は `work-in-progress/ir-batch11/decisions.md`。
 - **IR は完了**: カタログ（`data/ir-final-catalog.json`）の Final 309 件のうち 308 件を公開した（索引の IR リンク 308 件）。ir-7275r2 だけは CSRC・DOI・nvlpubs・Web アーカイブのどこにも原本が無く、依頼者の判断で対象外にした（Rev. 3・Rev. 4 は公開済み）。
 - 気づいた点: ir-8221 の "machine-to-people (M2P)" は Xen では machine-to-physical だが、英文どおりに訳している。ir-4983 の "KCAs and KCAs"、ir-6192 の "role authentication time" なども原本の誤記らしいが、意味が一つに決まらないので英文どおり。
+- 2026-11-17: 非掲載の第三者部分（`third_party_excerpt`）を「PDF 原文の照合待ち」に数えていたため、IR 27 件の上部に照合待ちと作業メモ（二段組の警告など）が出ていた。`render.py` で数えないようにした。あわせて ir-5495 p.14 の非掲載の目次に残っていたページ番号「26」を非掲載にし、ir-4734 p.37 の印刷のページ番号「27」を柱にした（どちらも原本の画像で確認）。
 - `scripts/apply_repair_ops.py` の op `merge` が kind・level などを無視していた不具合を直し、影響していた 39 ブロック（ir-8536・8539・8441・8409・sp800-209 など）を直した。
 - `scripts/apply_repair_ops.py` の op `table` が kind を table にしていなかった不具合を直した（kind math はそのまま）。IR の 6 ブロックを直し、表のブロックに残っていた level を除いた。
 
