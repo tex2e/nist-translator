@@ -36,7 +36,8 @@
   - 非掲載の基準: NIST の IR は契約事業者・客員の執筆でも本文として掲載。米国政府機関（NASA、DoD、DOE、DOJ、FAA、FDIC、商務省、NSA など）の著作も掲載。NIST 以外のワークショップ論文・発表、契約事業者の研究所（MITRE、Sandia、Argonne）、© や転載許諾つきの民間の再掲（ir-4453 SRI、ir-4781 Piper & Marbury、ir-4359 AIM）、外国政府の寄稿は第三者として非掲載。出席者名簿・連絡先一覧は個人情報として非掲載（ir-1291、ir-4362、ir-4614、ir-1189 など）。
   - 第 10 陣: スキャンの図・ページ図が多いため、ほぼ灰色の PNG はグレースケールにして容量を減らした（122MB → 46MB）。ir-4267 の付録 A〜D（168 ページのコード）はページ図にした。codex が使用上限になったため、要約の確認は Opus が行った（review.reviewer = claude-opus-5-5）。
   - 訳語の統一（`work-in-progress/ir-glossary.md` の末尾）: certification = 認証、accreditation = 認定、NBS = 米国標準局（NBS）、ICST = 計算機科学技術研究所（ICST）、NCSL = 国立コンピュータシステム研究所（NCSL）、Interagency Report = 省庁間報告書、examiner = 検査官、CC の assignment = 割付 など。
-- **IR は完了**: カタログ（`data/ir-final-catalog.json`）の Final 309 件のうち、PDF のある 300 件をすべて公開した（索引の IR リンク 300 件）。PDF の無い 9 件（ir-7275r2、ir-7122、ir-6068、ir-5820、ir-5788、ir-5590、ir-5570、ir-5540、ir-5468）は原本が無いので訳せない。
+- 第 11 陣（2026-11-17）: カタログで PDF が無いとしていた 9 件のうち 8 件（ir-7122、ir-6068、ir-5820、ir-5788、ir-5570、ir-5540、ir-5590、ir-5468）は、DOI（10.6028/NIST.IR.<番号>）から nvlpubs の PDF を取得でき、同じ手順で公開した（codex 3 巡・Opus の最終判定・要約の codex 確認つき）。`scripts/update_ir_final_catalog.py` に DOI からの取得を加えた。判断の記録は `work-in-progress/ir-batch11/decisions.md`。
+- **IR は完了**: カタログ（`data/ir-final-catalog.json`）の Final 309 件のうち 308 件を公開した（索引の IR リンク 308 件）。ir-7275r2 だけは CSRC にも DOI にも原本が無く、訳せない（Rev. 3・Rev. 4 は公開済み）。
 - 気づいた点: ir-8221 の "machine-to-people (M2P)" は Xen では machine-to-physical だが、英文どおりに訳している。ir-4983 の "KCAs and KCAs"、ir-6192 の "role authentication time" なども原本の誤記らしいが、意味が一つに決まらないので英文どおり。
 - `scripts/apply_repair_ops.py` の op `merge` が kind・level などを無視していた不具合を直し、影響していた 39 ブロック（ir-8536・8539・8441・8409・sp800-209 など）を直した。
 - `scripts/apply_repair_ops.py` の op `table` が kind を table にしていなかった不具合を直した（kind math はそのまま）。IR の 6 ブロックを直し、表のブロックに残っていた level を除いた。

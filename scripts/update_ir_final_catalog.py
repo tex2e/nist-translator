@@ -60,6 +60,15 @@ def record_details(record):
         # nvlpubs for most reports; older ones are on CSRC (/files/...) or tsapps (get_pdf.cfm)
         if not pdf and (href.lower().endswith(".pdf") or "get_pdf.cfm" in href) and "markup" not in href:
             pdf = urljoin(record["record_url"], href)
+    if not pdf:
+        # Some older records link nowhere, but the report's DOI still resolves to a PDF on nvlpubs.
+        candidate = doi or "https://doi.org/10.6028/NIST.IR." + record["number"].split("IR ", 1)[-1].replace(" Rev. ", "r")
+        try:
+            with urllib.request.urlopen(urllib.request.Request(candidate, headers=AGENT), timeout=60) as reply:
+                if reply.headers.get_content_type() == "application/pdf":
+                    pdf, doi = reply.geturl(), candidate
+        except OSError:
+            pass
     withdrawn = soup.find(id=lambda x: x and "pub-withdrawn" in x)
     record.update({
         "pdf_url": pdf,
