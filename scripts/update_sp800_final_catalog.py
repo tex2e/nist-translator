@@ -84,6 +84,13 @@ def fetch_catalog():
     rows = table.select("tbody tr") or table.select("tr")[1:]
     records = []
     progress = _translation_progress()
+    # Added by check_nist_updates.py --register; the list page does not carry them.
+    registered = {}
+    if OUTPUT.is_file():
+        for item in json.loads(OUTPUT.read_text(encoding="utf-8"))["records"]:
+            if item.get("pdf_url"):
+                registered[item["record_url"]] = {key: item[key] for key in ("stem", "pdf_url", "doi", "withdrawn")
+                                                  if key in item}
     for row in rows:
         series = row.find(id=re.compile(r"^pub-series-\d+$"))
         number = row.find(id=re.compile(r"^pub-number-\d+$"))
@@ -113,6 +120,7 @@ def fetch_catalog():
             "translated_blocks": 0,
             "total_blocks": 0,
         })
+        record.update(registered.get(record["record_url"], {}))
         records.append(record)
 
     if not records:

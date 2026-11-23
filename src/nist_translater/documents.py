@@ -2448,3 +2448,8 @@ DOCUMENTS.update(FIPS_DOCUMENTS)
 from .ir_documents import IR_DOCUMENTS  # noqa: E402
 
 DOCUMENTS.update(IR_DOCUMENTS)
+
+from .sp800_catalog_documents import catalog_documents  # noqa: E402
+
+for _key, _spec in catalog_documents().items():
+    DOCUMENTS.setdefault(_key, _spec)
