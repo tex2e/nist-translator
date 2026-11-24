@@ -1,9 +1,9 @@
 """Have codex check the Japanese document summaries (data/*-summary.json) against the document.
 
-    python scripts/codex_summary_review.py OUT_DIR [--jobs N] [--model M]
+    python scripts/codex_summary_review.py OUT_DIR [STEM ...] [--jobs N] [--model M]
     python scripts/codex_summary_review.py OUT_DIR --apply
 
-The first form writes, for every summary not yet checked, OUT_DIR/<stem>.verdict.json:
+The first form writes, for every summary not yet checked (only the given stems, when any are named), OUT_DIR/<stem>.verdict.json:
 {"verdict": "ok" | "issue", "note", "summary": [...corrected sentences when "issue"]}.
 codex sees the document's opening text (abstract, purpose and scope, table of contents)
 and the summary. --apply writes accepted corrections back and records the check in the
@@ -97,6 +97,7 @@ def apply(out_dir):
 def main():
     cli = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     cli.add_argument("out_dir", type=Path)
+    cli.add_argument("stems", nargs="*", help="only these documents (default: all)")
     cli.add_argument("--jobs", type=int, default=4)
     cli.add_argument("--model")
     cli.add_argument("--apply", action="store_true")
@@ -106,7 +107,7 @@ def main():
         apply(args.out_dir)
         return
     todo = [p for p in sorted((ROOT / "data").glob("*-summary.json"))
-            if not (args.out_dir / (p.name[:-len("-summary.json")] + ".verdict.json")).exists()]
+            if (not args.stems or p.name[:-len("-summary.json")] in args.stems) and not (args.out_dir / (p.name[:-len("-summary.json")] + ".verdict.json")).exists()]
     print("summaries to check:", len(todo), flush=True)
     with ThreadPoolExecutor(args.jobs) as pool:
         for stem, result in pool.map(lambda p: review(p, args.out_dir, args.model), todo):
