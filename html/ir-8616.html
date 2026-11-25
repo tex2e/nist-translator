@@ -1,0 +1,3358 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // 描画前にテーマを当て、切り替え前の表示が一瞬見えるのを防ぐ（rfc-translater と同じ仕組み）。
+    // 保存した設定（isDarkMode）が無ければ、OS の設定（prefers-color-scheme）に従う。
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      var dark = saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+      var root = document.documentElement;
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    })();
+  </script>  <meta name="description" content="NIST IR 8616 は、バイオメトリクスデータおよび法科学データの交換に関する ANSI/NIST-ITL 1-2025 の要件を、ソフトウェアが直接処理できる機械可読仕様（MRS）として表現するために NIST が行った開発を説明する報告書です。600 ページを超えるテキストベースの規格では、要件が複数の節や表に分散し、開発者は手作業で抽出・解釈する必要があったため、MRS はこれらの要件を構造化された JSON データとして表現し、トランザクション、レコード、フィールド、サブフィールド、情報項目の階層に整理しています。NIST は、強く型付けされた JSON スキーマと、MRS データを集約、検証、変換する Python スクリプトを開発し、モジュール化された部分的な JSON ファイルを組み立てて検証するビルドプロセスを構築したほか、概念実証として JSON のソースだけから HTML 仕様を生成しています。NIST は MRS をオープンソースのリポジトリとして公開するとしており、NIST が保守する版に変更を取り込むにはスキーマ検証と専門家によるレビューを必要とするほか、付録 A と B には JSON スキーマとフィールド 8.006 の JSON データの例を示しています。">
+  <title>ANSI/NIST-ITL 1-2025 機械可読仕様: 技術フレームワークと実装 | NIST IR 8616 | 非公式 英日対訳</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css?v=d0835bd0ed">
+  <link rel="stylesheet" href="header.css?v=d0835bd0ed">
+</head>
+<body>
+<nav class="nt-nav" aria-label="サイト">
+  <div class="nt-nav-inner">
+    <a class="nt-brand" href="index.html">NIST Trans</a>
+    <a class="nt-link" href="index.html?series=sp800">SP 800</a>
+    <a class="nt-link" href="index.html?series=fips">FIPS</a>
+    <a class="nt-link" href="index.html?series=ir">IR</a>
+    <button type="button" class="nt-theme" id="nt-theme" aria-label="ダークテーマに切り替え" title="ダークテーマに切り替え">
+      <svg class="nt-icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg>
+      <svg class="nt-icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg>
+    </button>
+    <span class="nt-user"><small>@tex2e</small></span>
+  </div>
+</nav>
+<script>
+  // ヘッダー右上の太陽・月のボタンでテーマを切り替える。押した選択は保存し、選んでいない間は OS の設定に従う。
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById('nt-theme');
+    function set(dark) {
+      root.classList.toggle('dark-theme', dark);
+      root.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+      var label = dark ? 'ライトテーマに切り替え' : 'ダークテーマに切り替え';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    set(root.classList.contains('dark-theme'));
+    button.addEventListener('click', function () {
+      var dark = !root.classList.contains('dark-theme');
+      set(dark);
+      try { localStorage.setItem('isDarkMode', String(dark)); } catch (e) {}
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+      var saved = null;
+      try { saved = localStorage.getItem('isDarkMode'); } catch (e) {}
+      if (saved === null) set(event.matches);
+    });
+  })();
+</script>  <div class="toc-bar" id="toc-bar" hidden>
+    <button type="button" class="toc-bar-open" aria-haspopup="dialog" aria-controls="toc-dialog">&#9776; 目次</button>
+    <a class="toc-bar-current" href="#"></a>
+  </div>
+  <dialog class="toc-dialog" id="toc-dialog" aria-label="目次">
+    <div class="toc-head">
+      <strong>目次</strong>
+      <button type="button" class="toc-close" aria-label="閉じる" title="閉じる">&times;</button>
+    </div>
+    <input type="search" class="toc-filter" placeholder="見出しを絞り込む（日本語・英語）" aria-label="見出しを絞り込む">
+    <nav class="toc-list" aria-label="見出しの一覧">
+      <a class="toc-item toc-depth-1" href="#pdf-p0001-b0003" title="ANSI/NIST-ITL 1-2025 Machine-Readable Specification" data-search="ansi/nist-itl 1-2025 機械可読仕様 ansi/nist-itl 1-2025 machine-readable specification">ANSI/NIST-ITL 1-2025 機械可読仕様</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0004" title="NIST Technical Series Policies" data-search="nist テクニカルシリーズのポリシー nist technical series policies">NIST テクニカルシリーズのポリシー</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0005" title="Publication History" data-search="刊行履歴 publication history">刊行履歴</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0006" title="How to Cite this NIST Technical Series Publication" data-search="この nist テクニカルシリーズ刊行物の引用方法 how to cite this nist technical series publication">この NIST テクニカルシリーズ刊行物の引用方法</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0007" title="Author ORCID iDs" data-search="著者の orcid id author orcid ids">著者の ORCID iD</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0008" title="Contact Information" data-search="連絡先 contact information">連絡先</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0003-b0010" title="Additional Information" data-search="追加情報 additional information">追加情報</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0001" title="Abstract" data-search="要旨 abstract">要旨</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0004-b0003" title="Keywords" data-search="キーワード keywords">キーワード</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0001" title="Table of Contents" data-search="目次 table of contents">目次</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0011" title="List of Tables" data-search="表の一覧 list of tables">表の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0005-b0013" title="List of Figures" data-search="図の一覧 list of figures">図の一覧</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0006-b0001" title="1. Introduction" data-search="1. はじめに 1. introduction">1. はじめに</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0002" title="1.1. Background" data-search="1.1. 背景 1.1. background">1.1. 背景</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0006-b0005" title="1.2. Problem Statement" data-search="1.2. 問題の所在 1.2. problem statement">1.2. 問題の所在</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0001" title="1.3. Purpose and Scope" data-search="1.3. 目的と範囲 1.3. purpose and scope">1.3. 目的と範囲</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0007-b0009" title="1.4. Significance and Global Impact" data-search="1.4. 意義と世界的な影響 1.4. significance and global impact">1.4. 意義と世界的な影響</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0009-b0001" title="2. Representing Requirements as Structured Data" data-search="2. 要件の構造化データとしての表現 2. representing requirements as structured data">2. 要件の構造化データとしての表現</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0013-b0001" title="3. Structured Data Development and Software Build Process" data-search="3. 構造化データの開発とソフトウェアのビルドプロセス 3. structured data development and software build process">3. 構造化データの開発とソフトウェアのビルドプロセス</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0015-b0001" title="4. Generated HTML Specification and Data Verification" data-search="4. 生成された html 仕様とデータの確認 4. generated html specification and data verification">4. 生成された HTML 仕様とデータの確認</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0017-b0001" title="5. Maintenance and Collaboration" data-search="5. 保守と協働 5. maintenance and collaboration">5. 保守と協働</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0018-b0001" title="6. Conclusion" data-search="6. 結論 6. conclusion">6. 結論</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0019-b0001" title="References" data-search="参考文献 references">参考文献</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0020-b0001" title="Appendix A. JSON Schema Examples" data-search="付録 a. json スキーマの例 appendix a. json schema examples">付録 A. JSON スキーマの例</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0020-b0003" title="A.1. Example JSON Record, Field, and Related Definitions" data-search="a.1. json のレコード、フィールド、および関連する定義の例 a.1. example json record, field, and related definitions">A.1. JSON のレコード、フィールド、および関連する定義の例</a>
+      <a class="toc-item toc-depth-2" href="#pdf-p0027-b0008" title="A.2. JSON Abstract Syntax Tree Logic Block and Related Definitions" data-search="a.2. json 抽象構文木のロジックブロックおよび関連する定義 a.2. json abstract syntax tree logic block and related definitions">A.2. JSON 抽象構文木のロジックブロックおよび関連する定義</a>
+      <a class="toc-item toc-depth-1" href="#pdf-p0043-b0001" title="Appendix B. JSON Data Example" data-search="付録 b. json データの例 appendix b. json data example">付録 B. JSON データの例</a>
+    </nav>
+  </dialog>
+  <div class="container" id="top">
+    <main>
+      <div class="intro">
+        <div class="doc-panel" role="region" aria-label="資料の情報">
+          <h1 class="doc-panel-heading">NIST IR 8616 日本語訳</h1>
+          <span class="doc-panel-item">英語タイトル : <strong lang="en">ANSI/NIST-ITL 1-2025 Machine-Readable Specification: Technical Framework and Implementation</strong></span><br>
+<span class="doc-panel-item">日本語タイトル : <strong>ANSI/NIST-ITL 1-2025 機械可読仕様: 技術フレームワークと実装</strong></span><br><span class="doc-panel-item">公開日 : 2026-11-16</span><br>          <span class="doc-panel-item">原文URL : <a href="https://csrc.nist.gov/pubs/ir/8616/final">https://csrc.nist.gov/pubs/ir/8616/final</a></span><br>
+          <span class="doc-panel-item">翻訳編集 : 自動生成（有志による非公式の日本語訳）, 原文取得日 : 2026-11-24, 訳文 : 130 / 161 ブロック</span>
+        </div>
+        <div class="doc-summary"><p>[要約] NIST IR 8616 は、バイオメトリクスデータおよび法科学データの交換に関する ANSI/NIST-ITL 1-2025 の要件を、ソフトウェアが直接処理できる機械可読仕様（MRS）として表現するために NIST が行った開発を説明する報告書です。600 ページを超えるテキストベースの規格では、要件が複数の節や表に分散し、開発者は手作業で抽出・解釈する必要があったため、MRS はこれらの要件を構造化された JSON データとして表現し、トランザクション、レコード、フィールド、サブフィールド、情報項目の階層に整理しています。NIST は、強く型付けされた JSON スキーマと、MRS データを集約、検証、変換する Python スクリプトを開発し、モジュール化された部分的な JSON ファイルを組み立てて検証するビルドプロセスを構築したほか、概念実証として JSON のソースだけから HTML 仕様を生成しています。NIST は MRS をオープンソースのリポジトリとして公開するとしており、NIST が保守する版に変更を取り込むにはスキーマ検証と専門家によるレビューを必要とするほか、付録 A と B には JSON スキーマとフィールド 8.006 の JSON データの例を示しています。</p></div>
+      </div>
+
+      <section class="row pair paragraph" id="pdf-p0001-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8616</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8616</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0001-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h2>ANSI/NIST-ITL 1-2025 Machine-Readable Specification</h2>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h2>
+ANSI/NIST-ITL 1-2025 機械可読仕様</h2>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Technical Framework and Implementation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>技術フレームワークと実装</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dylan Yaga</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Dylan Yaga</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0001-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8616</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=1">原本 PDF p.1</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。<br>https://doi.org/10.6028/NIST.IR.8616</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST Internal Report</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST 内部報告書</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST IR 8616</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST IR 8616</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ANSI/NIST-ITL 1-2025 Machine-Readable Specification</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1-2025 機械可読仕様</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Technical Framework and Implementation</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>技術フレームワークと実装</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dylan Yaga</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Dylan Yaga</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Computer Security Division<br>Information Technology Laboratory</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Computer Security Division<br>Information Technology Laboratory</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This publication is available free of charge from:<br>https://doi.org/10.6028/NIST.IR.8616</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物は次の場所から無料で入手できます。<br>https://doi.org/10.6028/NIST.IR.8616</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>November 2026</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026年11月</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0002-b0010" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="withheld-mark">[U.S. Department of Commerce seal — not reproduced on this unofficial site]</span><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>［米国商務省の紋章。公的な標章のため、この非公式サイトには掲載していません。原本 PDF を参照してください。］</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>U.S. Department of Commerce<br>Howard Lutnick, Secretary</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>U.S. Department of Commerce<br>Howard Lutnick, Secretary</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0002-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Arvind Raman, NIST Director and Under Secretary of Commerce for Standards and Technology</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=2">原本 PDF p.2</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology<br>Arvind Raman, NIST Director and Under Secretary of Commerce for Standards and Technology</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Certain equipment, instruments, software, or materials, commercial or non-commercial, are identified in this paper in order to specify the experimental procedure adequately. Such identification does not imply recommendation or endorsement of any product or service by NIST, nor does it imply that the materials or equipment identified are necessarily the best available for the purpose.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本論文では、実験手順を適切に特定するために、市販または非市販の特定の機器、計器、ソフトウェア、または材料を挙げています。このような特定は、NIST がいかなる製品やサービスも推奨または保証することを意味せず、挙げた材料や機器がその目的にとって必ずしも最良であることを意味するものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>There may be references in this publication to other publications currently under development by NIST in accordance with its assigned statutory responsibilities. The information in this publication, including concepts and methodologies, may be used by federal agencies even before the completion of such companion publications. Thus, until each publication is completed, current requirements, guidelines, and procedures, where they exist, remain operative. For planning and transition purposes, federal agencies may wish to closely follow the development of these new publications by NIST.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物には、NIST が割り当てられた法定責務に従って現在策定中の他の刊行物への言及が含まれる場合があります。この刊行物の情報（概念および方法論を含む）は、関連刊行物が完成する前であっても、連邦機関が使用してもよいです。したがって、各刊行物が完成するまでは、現行の要件、ガイドライン、および手順が存在する場合、それらが引き続き有効です。計画および移行のため、連邦機関は、NIST によるこれらの新しい刊行物の策定状況を注意深く追うことを検討してもよいです。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations are encouraged to review all draft publications during public comment periods and provide feedback to NIST. Many NIST cybersecurity publications, other than the ones noted above, are available at https://csrc.nist.gov/publications.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>組織は、パブリックコメント期間中にすべてのドラフト刊行物を確認し、NIST にフィードバックを提供することが推奨されています。上記以外の NIST のサイバーセキュリティ刊行物の多くは、https://csrc.nist.gov/publications で入手できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>NIST Technical Series Policies</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+NIST テクニカルシリーズのポリシー</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0004-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Copyright, Use, and Licensing Statements<br>NIST Technical Series Publication Identifier Syntax</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Copyright, Use, and Licensing Statements<br>NIST Technical Series Publication Identifier Syntax</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Publication History</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+刊行履歴</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0005-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Approved by the NIST Editorial Review Board on 2026-10-23</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>2026-10-23 に NIST Editorial Review Board により承認</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>How to Cite this NIST Technical Series Publication</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+この NIST テクニカルシリーズ刊行物の引用方法</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0006-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Yaga D (2026) ANSI/NIST-ITL 1-2025 Machine-Readable Specification: Technical Framework and Implementation. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (NIST IR) NIST IR 8616. https://doi.org/10.6028/NIST.IR.8616</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Yaga D (2026) ANSI/NIST-ITL 1-2025 Machine-Readable Specification: Technical Framework and Implementation. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Internal Report (NIST IR) NIST IR 8616. https://doi.org/10.6028/NIST.IR.8616</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Author ORCID iDs</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+著者の ORCID iD</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0007-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Dylan Yaga: 0000-0003-4058-3645</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>Dylan Yaga: 0000-0003-4058-3645</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Contact Information</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+連絡先</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0008-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ir8616-comments@nist.gov</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ir8616-comments@nist.gov</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>National Institute of Standards and Technology<br>Attn: Computer Security Division, Information Technology Laboratory<br>100 Bureau Drive (Mail Stop 8930) Gaithersburg, MD 20899-8930</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0003-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>Additional Information</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+追加情報</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0010-s1">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Additional information about this publication is available at https://csrc.nist.gov/pubs/ir/8616/final, including related content, potential updates, and document history.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この刊行物に関する追加情報（関連コンテンツ、更新の可能性、文書の履歴を含む）は、https://csrc.nist.gov/pubs/ir/8616/final で入手できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0003-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>All comments are subject to release under the Freedom of Information Act (FOIA).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=3">原本 PDF p.3</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>すべてのコメントは、情報自由法（FOIA）に基づく公開の対象となります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Abstract</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+要旨</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report presents the ANSI/NIST-ITL 1-2025 requirements for exchanging biometric and forensic data using a machine-readable specification (MRS) that allows software tools to process the requirements directly. NIST developed a modular JSON architecture and an automated build process to manage, validate, and transform the MRS data using a proof-of-concept HTML specification directly from the JSON source. It demonstrates how the MRS can augment the base standard for developers, testers, and auditors to lower adoption barriers, reduce interpretation gaps, and provide a maintained digital companion to the ANSI/NIST-ITL 1-2025 specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この報告書は、ソフトウェアツールが要件を直接処理できる機械可読仕様（MRS）を用いて、バイオメトリクスデータおよび法科学データを交換するための ANSI/NIST-ITL 1-2025 の要件を示します。NIST は、モジュール式の JSON アーキテクチャと自動ビルドプロセスを開発し、MRS データを管理、検証、変換するとともに、JSON ソースから直接、概念実証用の HTML 仕様を生成しました。この報告書は、MRS が基本規格を開発者、試験者、監査者向けに補完し、導入障壁を下げ、解釈のずれを減らし、ANSI/NIST-ITL 1-2025 仕様を補う、継続的に保守されるデジタル資料を提供できることを示します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0004-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Keywords</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+キーワード</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0004-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ANSI/NIST-ITL 1-2025; automated build process; biometric data interchange; data interoperability framework; deterministic implementation; JSON schema engineering; machine-readable representation; machine-readable specification (MRS); modular data architecture.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=4">原本 PDF p.4</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1-2025、自動化されたビルドプロセス、バイオメトリクスデータ交換、データ相互運用性フレームワーク、決定論的な実装、JSON スキーマ設計、機械可読表現、機械可読仕様（MRS）、モジュール式データアーキテクチャ。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Table of Contents</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+目次</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. Introduction</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0006-b0001">1. はじめに</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. Representing Requirements as Structured Data</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0001">2. 要件の構造化データとしての表現</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">3. Structured Data Development and Software Build Process</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0001">3. 構造化データの開発とソフトウェアのビルドプロセス</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">4. Generated HTML Specification and Data Verification</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0015-b0001">4. 生成された HTML 仕様とデータの確認</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">5. Maintenance and Collaboration</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0017-b0001">5. 保守と協働</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">6. Conclusion</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0018-b0001">6. 結論</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">References</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0019-b0001">参考文献</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">Appendix A. JSON Schema Examples</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0020-b0001">付録 A. JSON スキーマの例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0043-b0001">Appendix B. JSON Data Example</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0043-b0001">付録 B. JSON データの例</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Tables</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+表の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">Table 1. Structure hierarchy</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0009-b0004">表 1. 構造の階層</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0005-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>List of Figures</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+図の一覧</h3>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0014">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">Fig. 1. Example field structure from ANSI/NIST-ITL 1-2025</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0010-b0003">図 1. ANSI/NIST-ITL 1-2025 のフィールド構造の例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0015">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0012-b0008">Fig. 2. JSON constraints for field 8.006</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0012-b0008">図 2. フィールド 8.006 の JSON による制約</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0016">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0013-b0006">Fig. 3. Automated batch script output</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0013-b0006">図 3. 自動化されたバッチスクリプトの出力</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0017">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">Fig. 4. Resulting generated HTML output</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0014-b0003">図 4. 生成された HTML 出力の結果</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0018">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">Fig. 5. HTML representation of the JSON field data</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0016-b0003">図 5. JSON フィールドデータの HTML 表現</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0019">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0027-b0007">Fig. 6. JSON schema example for MRS data elements</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0027-b0007">図 6. MRS データ要素の JSON スキーマの例</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0020">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0042-b0003">Fig. 7. JSON schema for abstract syntax tree logic</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0042-b0003">図 7. 抽象構文木ロジックの JSON スキーマ</a></p>        </div>
+      </section>
+      <section class="row pair paragraph ptoc ptoc-depth-1" id="pdf-p0005-b0021">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p><a class="ptoc-link" href="#pdf-p0045-b0010">Fig. 8. Example JSON data for field 8.006</a></p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=5">原本 PDF p.5</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p><a class="ptoc-link" href="#pdf-p0045-b0010">図 8. フィールド 8.006 の JSON データの例</a></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>1. Introduction</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+1. はじめに</h3>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.1. Background</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.1. 背景</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The first version of the ANSI/NBS-ICST 1-1986 standard was published by NIST (then the National Bureau of Standards) in 1986 as a 53-page document. That version focused exclusively on fingerprint identification and a data format for information exchange between organizations. Since then, the standard has evolved to meet the needs of national and international law enforcement and biometric organizations by incorporating new biometric modalities, encoding formats, and metadata fields.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NBS-ICST 1-1986 規格の最初の版は、1986年に NIST（当時の米国標準局）により、53 ページの文書として刊行されました。その版は、指紋の識別と、組織間で情報を交換するためのデータ形式だけに焦点を当てていました。それ以来、この規格は、新しいバイオメトリクスのモダリティ、エンコーディング形式、メタデータフィールドを取り込みながら、国内外の法執行機関およびバイオメトリクス関連組織のニーズに応えるべく進化してきました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>ANSI/NIST-ITL 1-2025, Data Format for the Interchange of Fingerprint, Facial and Other Biometric Information [1], is the latest revision of the global standard for biometric and forensic data. It has expanded to include guidance and data format specifications for various biometric modalities, including facial, iris, plantar, and DNA data. As the number of modalities and the complexity of the information have increased over time, the specification has grown to exceed 600 pages. Traditionally, software developers and system integrators have used this standard as a text-based reference, manually extracting and interpreting technical requirements to develop conformant software.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1-2025『Data Format for the Interchange of Fingerprint, Facial and Other Biometric Information』[1] は、バイオメトリクスデータおよび法科学データに関する国際規格の最新の改訂版です。この規格は、顔、虹彩、足底、DNA のデータなど、さまざまなバイオメトリクスのモダリティに関するガイダンスとデータ形式の仕様を含むよう拡張されてきました。モダリティの数と情報の複雑さが時間とともに増すにつれ、仕様は 600 ページを超えるまでに大きくなりました。従来、ソフトウェア開発者とシステムインテグレーターは、この規格をテキストベースの参考資料として用い、技術的要件を手作業で抽出・解釈して、適合したソフトウェアを開発してきました。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0006-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.2. Problem Statement</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.2. 問題の所在</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The ANSI/NIST-ITL 1 standards have historically required extensive cross-referencing within the document. Requirements for a single data element (e.g., data type, character constraints, occurrence limits) are often distributed and repeated across narrative sections and associated tables. This fragmentation has increased the risk of ambiguity when separate sections present inconsistent or conflicting guidance, particularly in a long and complex technical specification maintained over multiple revisions. Organizations have therefore had to reconcile related requirements before implementing them, and independent reconciliation efforts could lead to divergent interpretations and subtle interoperability challenges.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1 規格は、歴史的に、文書内での広範な相互参照を必要としてきました。単一のデータ要素に対する要件（例：データ型、文字の制約、出現回数の上限）は、本文の各節と関連する表に分散し、重複して記載されていることが多くあります。この断片化により、複数の節が一貫しない、あるいは矛盾するガイダンスを示す場合、とりわけ、複数回の改訂を経て維持されてきた長く複雑な技術仕様では、曖昧さが生じるリスクが高まりました。そのため、各組織は、関連する要件を実装する前に整合させなければならず、それぞれが独自に整合させる取り組みは、解釈の食い違いや、微妙な相互運用性の課題につながるおそれがありました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST developed the Biometric Conformance Test Software (BioCTS) to validate whether implementations conform to the standard. BioCTS is valuable, but it is primarily a reactive tool — it identifies nonconformance after implementation work has begun. It does not negate the need to interpret requirements before design and development, nor does it prevent misunderstandings from being built into an implementation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、実装が規格に適合しているかどうかを検証するために、Biometric Conformance Test Software（BioCTS）を開発しました。BioCTS は有用ですが、主として事後対応型のツールであり、実装作業が始まった後で不適合を識別します。設計や開発の前に要件を解釈する必要がなくなるわけではなく、誤解が実装に組み込まれることを防ぐものでもありません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0006-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Before this NIST-led effort, an external initiative created “Machine-Readable Tables” for the 2011 and 2013 revisions. Those spreadsheet-based tables used proprietary software to generate XML representations of the standard’s requirements. The resources were not maintained and had limited industry adoption, so most organizations have continued to extract requirements independently from the narrative text.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=6">原本 PDF p.6</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この NIST 主導の取り組みの前に、外部のイニシアチブが 2011 年版および 2013 年版向けに「機械可読テーブル（Machine-Readable Tables）」を作成していました。これらのスプレッドシートベースのテーブルは、独自のソフトウェアを使って規格の要件の XML 表現を生成するものでした。これらのリソースは保守されず、業界での採用も限られていたため、ほとんどの組織は引き続き、本文の記述から要件を独自に抽出しています。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.3. Purpose and Scope</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.3. 目的と範囲</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This report describes NIST’s development of a machine-readable specification (MRS) for ANSI/NIST-ITL 1-2025. The MRS represents requirements from the text standard as structured JSON data. JSON was selected because it can represent the standard’s hierarchy (e.g., transactions, records, fields, subfields, information items) in a form that software can validate, transform, and use directly. The MRS is intended to supplement the human-readable standard.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書は、ANSI/NIST-ITL 1-2025 の機械可読仕様（MRS）に関する NIST の開発について説明します。MRS は、テキスト形式の規格に含まれる要件を、構造化された JSON データとして表現します。JSON を選んだのは、規格の階層（例: トランザクション、レコード、フィールド、サブフィールド、情報項目）を、ソフトウェアが検証、変換し、直接利用できる形で表現できるためです。MRS は、人間が読める規格を補完することを意図しています。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The scope of this report covers the process used for extracting requirements for transactions, records, fields, subfields, and information items and codifying them into a structured JSON format. This document also provides a technical overview of the supporting infrastructure, including the strongly typed JSON schema and the suite of Python scripts developed to aggregate, validate, and transform the MRS data. Furthermore, the report describes the workflow batch script used to ensure consistent, repeatable validation and the generation of a proof-of-concept HTML output page. This generated output demonstrates that the machine-readable data can accurately recreate human-readable requirements while remaining accessible to automated tools. Finally, this report outlines the strategy for releasing the project as an open-source resource. It describes how making the entirety of the effort publicly available is intended to foster a collaborative environment in which the biometric community can provide feedback, submit fixes, and contribute to the maintenance of the MRS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の範囲は、トランザクション、レコード、フィールド、サブフィールド、情報項目の要件を抽出し、それらを構造化された JSON 形式に体系化するために用いたプロセスです。本文書はまた、強く型付けされた JSON スキーマや、MRS データを集約、検証、変換するために開発した一連の Python スクリプトなど、それを支える基盤の技術的な概要も示します。さらに、ワークフローのバッチスクリプトを用いて一貫性と再現性のある検証を行う方法、および概念実証として HTML 出力ページを生成する方法について説明します。この生成された出力は、機械可読データが自動化ツールで利用可能な状態を保ちながら、人間が読める要件を正確に再現できることを示します。最後に、本報告書は本プロジェクトをオープンソースのリソースとして公開する戦略を概説します。取り組み全体を公開することで、バイオメトリクスコミュニティがフィードバックを寄せ、修正を提出し、MRS の保守に貢献できる協調的な環境を促進することを意図している点を説明します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The remainder of this report proceeds from data modeling to implementation:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>本報告書の以降は、データモデリングから実装へと進みます。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 2 describes how requirements are represented in JSON.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 2 節では、要件を JSON でどのように表現するかを説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 3 describes the build and validation process.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 3 節では、ビルドプロセスと検証プロセスを説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 4 explains how generated HTML is used to review the JSON representation.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 4 節では、生成された HTML を JSON 表現のレビューにどのように使うかを説明します。</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0007-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Section 5 describes maintenance and collaboration.</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">第 5 節では、保守と協働を説明します。</span></p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0007-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>1.4. Significance and Global Impact</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+1.4. 意義と世界的な影響</h4>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Organizations worldwide rely on the ANSI/NIST-ITL 1 standard, including the International Criminal Police Organization (INTERPOL), the Federal Bureau of Investigation (FBI), and the Department of Homeland Security (DHS). The 2025 revision reduced the cross-reference burden for readers by placing related data specifications closer to the narrative requirements that describe them rather than distributing those details across many sections. It also resolved inconsistencies between the requirements represented in different sections of the text (e.g., within text clauses, tables, and figures).</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>国際刑事警察機構（INTERPOL）、連邦捜査局（FBI）、国土安全保障省（DHS）をはじめ、世界中の組織が ANSI/NIST-ITL 1 規格に依拠しています。2025 年版では、関連するデータ仕様を、それを説明する本文の要件のより近くに配置し、多くの節に分散させないようにしたことで、読者の相互参照の負担を減らしました。また、本文の異なる節（例: 本文の条項、表、図）に表現された要件の間にあった不整合も解消しました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0007-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST developed a JSON-encoded version of ANSI/NIST-ITL 1 to provide the global community with a single shared interpretation of the standard’s complex requirements. The MRS facilitates rapid, consistent, and accurate deployments of the standard across varied technical environments and supports the exchange and integrity of biometric and forensic transactions. It can be used directly by software and adapted into implementation profiles to help minimize interoperability issues between organizations, ensure that disparate systems remain consistent and reduce the resource-intensive nature of manual requirement extraction. This will also enable NIST and the biometric community to manage the complexity of biometric data format requirements with greater agility, including simplified auditing and the integration of community contributions (e.g., corrections, enhancements). By providing a consistent digital reference, this machine-readable representation can be reliably deployed across multiple organizations to support the implementation of the standard.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=7">原本 PDF p.7</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、この規格の複雑な要件について、世界のコミュニティに単一の共通の解釈を提供するため、ANSI/NIST-ITL 1 の JSON エンコード版を開発しました。MRS は、多様な技術環境にわたる規格の迅速で一貫した正確な展開を促進し、バイオメトリクストランザクションおよび法科学トランザクションの交換と完全性を支えます。MRS はソフトウェアが直接利用でき、実装プロファイルに適合させることで、組織間の相互運用性の問題を最小限に抑え、異なるシステム間の一貫性を確保し、手作業による要件抽出という多大なリソースを要する作業を減らすのに役立ちます。これにより、NIST とバイオメトリクスコミュニティは、監査の簡素化やコミュニティからの貢献（例: 修正、機能強化）の取り込みを含め、バイオメトリクスデータ形式の要件の複雑さをより俊敏に管理できるようにもなります。一貫したデジタルの参照を提供することで、この機械可読表現は、複数の組織にわたって確実に展開でき、規格の実装を支えることができます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0009-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>2. Representing Requirements as Structured Data</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+2. 要件の構造化データとしての表現</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST developed the MRS iteratively by extracting requirements from the ANSI/NIST-ITL 1-2025 text and subsequently expanding the schema to represent new requirement patterns. When a schema feature simplified an existing representation, previously encoded JSON data was revised to use the improved structure. This approach kept the final MRS consistent across the specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、ANSI/NIST-ITL 1-2025 の本文から要件を抽出し、その後、新たな要件パターンを表現できるようにスキーマを拡張するという反復的な方法で MRS を開発しました。スキーマの機能によって既存の表現が簡素化できる場合は、すでにエンコードした JSON データを改訂し、改善した構造を使うようにしました。この方法により、最終的な MRS は仕様全体で一貫したものになりました。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The JSON schema establishes a hierarchy that mirrors the organization of the standard, converting text-based requirements into reusable, tokenized data structures. The schema makes use of reusable components to define data (a subset can be found in Appendix A.1 in Fig. 6 and Fig. 7) and provides formal definitions for each data level to maintain structural consistency with the base standard, as seen in Table 1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>JSON スキーマは、規格の構成を反映した階層を定め、テキストベースの要件を、再利用可能でトークン化されたデータ構造に変換します。スキーマはデータの定義に再利用可能なコンポーネントを用い（一部は付録 A.1 の図 6 および図 7 にあります）、表 1 に示すように、基底となる規格との構造上の一貫性を保つため、各データ階層に正式な定義を与えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Table 1. Structure hierarchy</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>表 1. 構造の階層</p>        </div>
+      </section>
+      <section class="row pair table" id="pdf-p0009-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<table><thead><tr><th>MRS Level</th><th>Contains</th><th>Role</th></tr></thead><tbody><tr><td>Records</td><td>Record metadata and fields</td><td>Represent top-level record types in the standard</td></tr><tr><td>Fields</td><td>Field metadata and subfields</td><td>Represent numbered fields within a record</td></tr><tr><td>Subfields</td><td>Subfield metadata and information items</td><td>Represent structured components within a field</td></tr><tr><td>Information Items</td><td>The most granular data elements</td><td>Represent the lowest-level requirements encoded in the MRS</td></tr></tbody></table>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<table><thead><tr><th>MRS の階層</th><th>含むもの</th><th>役割</th></tr></thead><tbody><tr><td>レコード</td><td>レコードのメタデータとフィールド</td><td>規格の最上位のレコードタイプを表現する</td></tr><tr><td>フィールド</td><td>フィールドのメタデータとサブフィールド</td><td>レコード内の番号付きフィールドを表現する</td></tr><tr><td>サブフィールド</td><td>サブフィールドのメタデータと情報項目</td><td>フィールド内の構造化された構成要素を表現する</td></tr><tr><td>情報項目</td><td>最も細かい粒度のデータ要素</td><td>MRS にエンコードされる最下位の要件を表現する</td></tr></tbody></table>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>These levels share common data structures so that the same validation logic can be applied consistently across the MRS. This modularity extends to data validation through a shared pattern library that houses regular expressions in a single location. By referencing these patterns throughout the MRS, the schema ensures that validation logic is applied consistently without repeating complex patterns for every instance.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>これらの階層は共通のデータ構造を共有しているため、MRS 全体で同じ検証ロジックを一貫して適用できます。このモジュール性は、正規表現を 1 か所にまとめた共有のパターンライブラリを通じて、データの検証にも及んでいます。MRS 全体でこれらのパターンを参照することで、スキーマは、インスタンスごとに複雑なパターンを繰り返すことなく、検証ロジックを一貫して適用します。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0009-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The common structural elements mapped within the MRS are illustrated in Fig. 1:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MRS 内で対応づけられた共通の構造要素を、図 1 に示します。</p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Identifier — Typically a record type number, a combination of a record type number and field number, or another unique identifier</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">識別子 — 通常はレコードタイプ番号、レコードタイプ番号とフィールド番号の組合せ、またはその他の一意な識別子</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Mnemonic — A shorthand character string (typically 3-7 characters) used to identify fields and information items</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">ニーモニック — フィールドや情報項目を識別するために使う短縮形の文字列（通常は 3〜7 文字）</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Field name — The full, formal title of the data element, as defined in the standard</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">フィールド名 — 規格で定義されている、データ要素の完全な正式名称</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0011">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Description — The full textual description of the data, retained to serve as a human-readable reference within the machine-readable specification</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">記述 — データの完全な文章による記述。機械可読仕様の中で人間が読める参照として役立てるために保持される</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0012">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Condition — Specifies whether the data is mandatory, optional, or user-defined, often incorporating conditional logic and encoding specific rules</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">条件 — データが必須か、任意か、ユーザー定義かを指定します。多くの場合、条件付きのロジックとエンコーディング固有の規則を伴う</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0009-b0013">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Occurrence — Defines the number of times a data element may appear, ranging from fixed counts to dynamic values governed by conditional logic</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=9">原本 PDF p.9</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">出現回数 — データ要素が出現してよい回数を定めます。固定の回数から、条件付きのロジックによって決まる動的な値まである</span></p>        </div>
+      </section>
+      <section class="row pair list_item depth-0" id="pdf-p0010-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">Value Constraints — Specifies allowed values, ranges, or references to external tables, often using complex conditional logic to express requirements</span></p>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p class="list-line"><span class="list-marker">•</span><span class="list-body">値の制約 — 許容される値、範囲、または外部テーブルへの参照を指定します。要件を表現するために、複雑な条件付きのロジックを使うことが多い</span></p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0010-b0002" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8616/p0010-figure-01.png" alt="PDF原本のp.10にある図"><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=10">原本 PDF p.10</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1-2025 のフィールド 8.006 の記載例に、構成要素を示す色付きの枠とラベルを重ねた図。見出し行「6.8.6. 8.006 HLL / Horizontal line length」のうち、「8.006」に「レコードタイプおよびフィールド番号」、「HLL」に「ニーモニック」、「Horizontal line length」に「フィールド名」のラベルが付いている。その下の説明文（このフィールドは、送信する署名画像の水平 1 ラインに含まれるピクセル数を指定する。ベクター形式の署名データでは値は 0）に「記述」のラベルが付いている。続いて、条件（Condition: Mandatory）、出現回数（Occurrence: 1）、値の制約（Value Constraints: SRT = 0 または 1 の場合は 10 ≤ 整数 ≤ 65535、SRT = 2 の場合は 0。いずれも 2 バイトのバイナリ値）の行がそれぞれ枠で囲まれている。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 1. Example field structure from ANSI/NIST-ITL 1-2025</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 1. ANSI/NIST-ITL 1-2025 のフィールド構造の例</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0010-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Beyond structural mirroring, the JSON schema incorporates a logic-handling system to manage the standard’s complex requirements. It uses specialized definitions for condition and occurrence types that allow for encoding specific rules. For example, a field may be mandatory in a traditional encoding but optional in a National Information Exchange Model (NIEM) (i.e., XML-based) encoding. These logic structures (including predicates, outcomes, and Boolean operations; see Appendix A.2) are integrated directly into the data elements. This enables the representation of conditional dependencies, where the requirements for a specific field are contingent upon the value of a separate data element. For example, the Value Constraints for field 8.006 (seen at the bottom of Fig. 1) are governed by the value of the Scan Resolution Table (SRT) field. In this example, SRT values 0 and 1 require field 8.006 to contain an integer from 10 to 65535, while SRT value 2 requires the field value to be 0. The following JSON fragment, summarized in Fig. 2, provides an example of how these conditional value constraints are formalized. Appendix B Fig. 8 provides the complete JSON data for field 8.006.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>構造の反映にとどまらず、JSON スキーマは、規格の複雑な要件を扱うためのロジック処理の仕組みを備えています。条件型と出現回数型に専用の定義を用いて、特定の規則をエンコードできるようにしています。たとえば、あるフィールドは従来のエンコーディングでは必須でも、National Information Exchange Model（NIEM）（すなわち XML ベース）のエンコーディングでは任意である場合があります。これらのロジック構造（述語、結果、ブール演算を含みます。付録 A.2 を参照）は、データ要素に直接組み込まれています。これにより、特定のフィールドの要件が別のデータ要素の値に依存する、条件付きの依存関係を表現できます。たとえば、フィールド 8.006 の値の制約（図 1 の下部に示します）は、Scan Resolution Table（SRT）フィールドの値によって決まります。この例では、SRT の値が 0 と 1 の場合、フィールド 8.006 は 10 から 65535 までの整数を含む必要があり、SRT の値が 2 の場合、フィールドの値は 0 である必要があります。図 2 に要約した次の JSON 断片は、これらの条件付きの値の制約をどのように形式化するかの例を示します。フィールド 8.006 の完全な JSON データは、付録 B の図 8 にあります。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0010-b0005">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>"constraints": {
+  "conditionalValue": {
+    "kind": "conditional",
+    "resultType": "valueConstraint",
+    "evaluation": "firstMatch",
+    "onNoMatch": "error",
+    "cases": [
+      {
+        "when": {
+          "kind": "comparison",
+          "op": "eq",
+          "left": {
+            "kind": "ref",
+            "scope": "sameRecord",
+            "recordType": 8,</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=10">原本 PDF p.10</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0011-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>            "fieldId": "8.004",
+            "occurrence": "current",
+            "value": "logical",
+            "expectedType": "integer",
+            "cardinality": "one",
+            "mnemonic": "SRT",
+            "description": "Signature representation type from Field 8.004:SRT in the same
+Type-8 record."
+          },
+          "returnType": "boolean",
+          "missingBehavior": "false",
+          "collectionSemantics": "scalar",
+          "typeCoercion": "none",
+          "right": {
+            "kind": "literal",
+            "value": 2,
+            "valueType": "integer",
+            "cardinality": "one"
+          }
+        },
+        "result": {
+          "fixed": 0,
+          "description": "If SRT = 2 (vector data), HLL shall be 0."
+        }
+      },
+      {
+        "when": {
+          "kind": "logical",
+          "op": "or",
+          "args": [
+            {
+              "kind": "comparison",
+              "op": "eq",
+              "left": {
+                "kind": "ref",
+                "scope": "sameRecord",
+                "recordType": 8,
+                "fieldId": "8.004",
+                "occurrence": "current",
+                "value": "logical",
+                "expectedType": "integer",
+                "cardinality": "one",
+                "mnemonic": "SRT",
+                "description": "Signature representation type from Field 8.004:SRT in the same
+Type-8 record."
+              },
+              "returnType": "boolean",
+              "missingBehavior": "false",
+              "collectionSemantics": "scalar",
+              "typeCoercion": "none",
+              "right": {
+                "kind": "literal",
+                "value": 0,
+                "valueType": "integer",
+                "cardinality": "one"
+              }
+            },
+            {
+              "kind": "comparison",
+              "op": "eq",
+              "left": {
+                "kind": "ref",
+                "scope": "sameRecord",
+                "recordType": 8,
+                "fieldId": "8.004",
+                "occurrence": "current",
+                "value": "logical",
+                "expectedType": "integer",
+                "cardinality": "one",
+                "mnemonic": "SRT",</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=11">原本 PDF p.11</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0012-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>                "description": "Signature representation type from Field 8.004:SRT in the same
+Type-8 record."
+              },
+              "returnType": "boolean",
+              "missingBehavior": "false",
+              "collectionSemantics": "scalar",
+              "typeCoercion": "none",
+              "right": {
+                "kind": "literal",
+                "value": 1,
+                "valueType": "integer",
+                "cardinality": "one"
+              }
+            }
+          ],
+          "returnType": "boolean",
+          "shortCircuit": true
+        },
+        "result": {
+          "min": 10,
+          "max": 65535,
+          "description": "If SRT = 0 or 1 (scanned image data), HLL shall be an integer from 10
+through 65535.",
+          "unit": "pixels",
+          "scale": 0,
+          "multipleOf": 1,
+          "rounding": "exact"
+        }
+      }
+    ],
+    "description": "Logical horizontal line length constraint depends on the signature
+representation type in 8.004:SRT."
+  }
+}</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 2. JSON constraints for field 8.006</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 2. フィールド 8.006 の JSON 制約</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0012-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>By breaking down text-based requirements into these discrete, formal components, the JSON specification provides a machine-verifiable mechanism for enforcing complex data constraints that are found throughout the ANSI/NIST-ITL 1-2025 standard.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=12">原本 PDF p.12</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>JSON 仕様は、テキストベースの要件をこれらの個別の正式な構成要素に分解することで、ANSI/NIST-ITL 1-2025 規格の全体に見られる複雑なデータ制約を強制するための、機械が確認できる仕組みを提供します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0013-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>3. Structured Data Development and Software Build Process</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+3. 構造化データの開発とソフトウェアのビルドプロセス</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>NIST developed a strongly typed JSON schema and a suite of Python scripts to aggregate, validate, and transform the data in the MRS. Python was selected for this effort because of its widespread availability across numerous platforms as well as its extensive and mature libraries for JSON processing and data validation. This ensures that the tools remain accessible to the biometric community and can effectively manage the structural complexities of the MRS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>NIST は、強く型付けされた JSON スキーマと、MRS のデータを集約、検証、変換する一連の Python スクリプトを開発しました。この取り組みに Python を選んだのは、多数のプラットフォームで広く利用でき、JSON 処理とデータ検証のための豊富で成熟したライブラリがあるためです。これにより、ツールをバイオメトリクスコミュニティが利用しやすいままにでき、MRS の構造上の複雑さを効果的に扱えます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The MRS is maintained as modular partial JSON files rather than as one monolithic document. The complete MRS is nearly 120,000 lines, and a single file proved difficult to edit in common development environments. The partial files are development modules; the build process assembles them into a complete JSON document for validation and publication. This modular structure also supports implementation profiles that include only records, fields, or other data relevant to a specific deployment.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>MRS は、1 つの大きな文書ではなく、モジュール化された部分的な JSON ファイルとして保守されています。完全な MRS は 120,000 行近くに及び、単一のファイルでは一般的な開発環境での編集が困難であることが分かりました。部分ファイルは開発用のモジュールであり、ビルドプロセスがそれらを組み立てて、検証および公開のための完全な JSON 文書にします。このモジュール構造は、特定の導入に関連するレコード、フィールド、その他のデータのみを含む実装プロファイルにも役立ちます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>At a high level, the batch script performs four steps: it merges the partial JSON files, validates the combined file against the schema, transforms the validated data into HTML, and post-processes the generated HTML for review. Fig. 3 shows output from this automated workflow.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>大まかに言うと、バッチスクリプトは 4 つの手順を実行します。部分的な JSON ファイルを統合し、統合したファイルをスキーマに照らして検証し、検証済みのデータを HTML に変換し、生成された HTML をレビュー用に後処理します。図 3 は、この自動化されたワークフローの出力を示しています。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0013-b0005" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8616/p0013-figure-01.png" alt="PDF原本のp.13にある図"><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>バッチスクリプトを実行したターミナル画面。「STARTING WORKFLOW: an_2025」の表示に続いて、設定（入力の分割ディレクトリ、スキーマファイル、マスター JSON、最終 HTML のパス）が示されている。その下に手順 [1/4]「Combining Split Files...」として、JsonCombine.py のコマンド、入力ディレクトリの走査、メタデータと NCIC コードの読み込み、レコードタイプのファイル（type_01.json、type_02.json、type_04.json、type_07.json から type_12.json まで）の追加が順に出力されている。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0006">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 3. Automated batch script output</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 3. 自動化されたバッチスクリプトの出力</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0013-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The validation step checks that the combined JSON is syntactically valid and conforms to the schema. If an error occurs during validation, the Python script identifies the most relevant error match and generates a human-readable “friendly path” to the violation. This logic replaces the generic built-in data element and array indexes with descriptive labels pulled directly from the JSON data (e.g., a specific record type, field name) to help developers pinpoint and resolve mismatches more efficiently.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=13">原本 PDF p.13</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>検証の手順では、統合した JSON が構文的に正しく、スキーマに適合していることを確認します。検証中にエラーが発生した場合、Python スクリプトは最も関連性の高いエラーの一致箇所を特定し、違反箇所への人間が読める「分かりやすいパス」を生成します。このロジックは、組み込みの汎用的なデータ要素や配列のインデックスを、JSON データから直接取得した説明的なラベル（例: 特定のレコードタイプやフィールド名）に置き換えます。これにより、開発者が不一致をより効率的に特定して解決できるようになります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>After successful validation, a transformation script generates an HTML representation of the standard directly from the JSON source, as illustrated in Fig. 4.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>検証に成功すると、図 4 に示すように、変換スクリプトが JSON のソースから直接、標準の HTML 表現を生成します。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0014-b0002" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8616/p0014-figure-01.png" alt="PDF原本のp.14にある図"><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=14">原本 PDF p.14</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>生成された HTML 仕様の画面。左側に「RECORD TYPES」としてレコードタイプの一覧（Record Type-1: Transaction Information Record から Record Type-18: DNA Record まで）が並ぶ。右側には表題「ANSI/NIST-ITL 1-2025 Machine Readable Specification - Version 1.5」、標準のプロジェクトページへのリンク、表題・バージョン（1.5）・日付（March 2026）・ウェブサイト・エンコーディング（traditional、niem-xml-4）の一覧、入力ファイルの詳細（ファイル名 an_2025.json、ファイルサイズ、SHA-256、処理したレコード数 21、処理したフィールド数 1,934）が表示され、その下に「Record Type-1: Transaction Information Record」の節が始まっている。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 4. Resulting generated HTML output</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 4. 生成された HTML 出力</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0014-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The script identifies references to record types, field numbers, information items, and tables and automatically applies hyperlinks to the output. This tagging improves navigation and demonstrates how the structured data can support additional forms of document automation. A final post-processing utility cleans up the HTML markup to produce an auditable, human-readable technical document from the validated JSON data.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=14">原本 PDF p.14</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>このスクリプトは、レコードタイプ、フィールド番号、情報項目、表への参照を識別し、出力に自動的にハイパーリンクを適用します。このタグ付けにより、ナビゲーションが改善され、構造化データがさらなる形の文書自動化をどのように支援できるかを示せます。最後の後処理ユーティリティが HTML マークアップを整えて、検証済みの JSON データから、監査可能で人間が読める技術文書を作成します。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0015-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>4. Generated HTML Specification and Data Verification</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+4. 生成された HTML 仕様とデータの確認</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The automated generation of the HTML specification serves as the primary proof-of-concept for the MRS by testing whether the data model can support reconstruction of the standard’s requirements. To ensure a rigorous test, the transformation script is isolated from external narrative sources and relies exclusively on the JSON-encoded data to prevent the script from filling gaps with outside text. The resulting HTML document is a direct product of the information stored within the JSON. The successful reconstruction of complex biometric record types provides evidence that the JSON schema and data structures capture the specifications of the ANSI/NIST-ITL 1-2025 standard without omitting critical details.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>HTML 仕様の自動生成は、データモデルが標準の要件の再構築を支援できるかどうかを試すことで、MRS の主要な概念実証となります。厳密な試験とするため、変換スクリプトは外部の説明文の出典から切り離されており、スクリプトが外部の文章で欠落を補うことを防ぐよう、JSON でエンコードされたデータのみに依拠します。得られる HTML 文書は、JSON に格納された情報から直接作られた成果物です。複雑なバイオメトリクスのレコードタイプの再構築に成功したことは、JSON スキーマとデータ構造が、重要な詳細を欠くことなく ANSI/NIST-ITL 1-2025 標準の仕様を捉えていることの証拠となります。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 5 shows the HTML representation for field 8.006, which can be compared to the original ANSI/NIST-ITL 1-2025 text-based specification in Fig. 1.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5 は、フィールド 8.006 の HTML 表現を示しています。これは、図 1 の ANSI/NIST-ITL 1-2025 のテキストベースの原仕様と比較できます。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0015-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>This comparison demonstrates that the requirements for field 8.006 have been captured in the JSON and reproduced in the generated HTML. Similar comparisons across record types can be used to review coverage across the complete MRS.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=15">原本 PDF p.15</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>この比較は、フィールド 8.006 の要件が JSON に捉えられ、生成された HTML に再現されていることを示しています。レコードタイプ全体で同様の比較を行うことで、MRS 全体の網羅性をレビューできます。</p>        </div>
+      </section>
+      <section class="row source-only pair figure" id="pdf-p0016-b0001" aria-label="図表の英日対訳">
+<div class="block-label col-12">図表</div>        <div class="english col-sm-12 col-md-6 text" lang="en"><img src="assets/ir-8616/p0016-figure-01.png" alt="PDF原本のp.16にある図"><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=16">原本 PDF p.16</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>フィールド 8.006（HLL、Horizontal line length）の HTML 表示。フィールドの説明文に続いて、CONDITION（MANDATORY）、OCCURRENCE（1）、VALUE の欄がある。VALUE の欄には「IF $8.004:SRT = 2 THEN 0」「ELSE IF $8.004:SRT = 0 OR $8.004:SRT = 1 THEN 10 to 65535」という条件付きの値の制約と、それぞれの説明が示されている。その下の「ELEMENT REPRESENTATIONS」には、TRADITIONAL（ワイヤータイプ binary、コンテンツエンコーディング raw-binary、データ型 Binary (B)、フォーマット uint16、長さ 2 バイト）と NIEM XML 4（XML のパス 2 件、ワイヤータイプ string、データ型 Numeric (N)、フォーマット N から NNNNN、長さ 1 から 5 文字）の構文が示されている。</p>
+        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0016-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 5. HTML representation of the JSON field data</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=16">原本 PDF p.16</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 5. JSON のフィールドデータの HTML 表現</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0017-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>5. Maintenance and Collaboration</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+5. 保守と協働</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>To encourage adoption and keep the MRS current, NIST is releasing the project as an open-source repository. This public repository will allow users to propose corrections, report issues, and suggest enhancements. Users may also copy the repository for internal use. Changes to the NIST-maintained version, however, must pass schema validation and subject-matter review before incorporation.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>採用を促し、MRS を最新に保つため、NIST はこのプロジェクトをオープンソースのリポジトリとして公開します。この公開リポジトリにより、利用者は修正の提案、問題の報告、機能強化の提案を行えます。利用者は、内部利用のためにリポジトリをコピーしてもかまいません。ただし、NIST が保守するバージョンへの変更は、取り込む前にスキーマ検証と専門的な内容のレビューを通過しなければなりません。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0017-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The automated validation scripts serve as an initial technical filter to ensure that any proposed update is structured correctly, follows the schema, and can complete the entire build process. A successful build only confirms that the data is well-formed; it does not mean a change will be accepted. While expert review and technical consensus remain necessary, using the JSON data and the automated build process allows any tool or transformation that uses the MRS to reflect updates as soon as they are approved and incorporated.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=17">原本 PDF p.17</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>自動検証スクリプトは、提案された更新が正しく構造化され、スキーマに従い、ビルドプロセス全体を完了できることを確認する最初の技術的なフィルタとして機能します。ビルドの成功は、データが整形式であることを確認するだけであり、変更が受け入れられることを意味しません。専門家によるレビューと技術的な合意は引き続き必要ですが、JSON データと自動ビルドプロセスを使用することで、MRS を使用するあらゆるツールや変換が、更新の承認と取り込みの後すぐにそれを反映できるようになります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0018-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>6. Conclusion</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+6. 結論</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The MRS for ANSI/NIST-ITL 1-2025 translates text-based biometric data exchange requirements into structured JSON. By converting more than 600 pages of requirements into machine-processable data, NIST has reduced the need for manual extraction and lowered the risk of inconsistent interpretation. This project uses modular JSON files, a JSON schema, and automated build scripts to assemble and validate the MRS. NIST expert review remains necessary to ensure that the JSON accurately represents the base standard.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>ANSI/NIST-ITL 1-2025 の MRS は、テキストベースのバイオメトリクスデータ交換の要件を構造化された JSON に変換します。600 ページを超える要件を機械処理可能なデータに変換することで、NIST は手作業での抽出の必要性を減らし、解釈が一貫しなくなるリスクを低減しました。このプロジェクトは、モジュール化された JSON ファイル、JSON スキーマ、自動ビルドスクリプトを使用して MRS を組み立て、検証します。JSON が基となる標準を正確に表していることを確実にするためには、NIST の専門家によるレビューが引き続き必要です。</p>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0018-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Together, the schema, validation scripts, generated HTML output, and expert review process establish a repeatable workflow for maintaining the MRS as a technical resource and community-supported reference. The resulting JSON data can support implementation, testing, and auditing tools while preserving NIST review of the official specification.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=18">原本 PDF p.18</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>スキーマ、検証スクリプト、生成された HTML 出力、専門家によるレビュープロセスは、全体として、MRS を技術的資源およびコミュニティが支える参照資料として保守するための、繰り返し可能なワークフローを確立します。得られる JSON データは、公式の仕様に対する NIST のレビューを維持しながら、実装、試験、監査のツールを支援できます。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0019-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>References</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+参考文献</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0019-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>[1] Stathakis J, Fiumara G, Orandi S, Marshall K (2026), Information Technology: Data Format for the Interchange of Fingerprint, Facial and Other Biometric Information. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 500-290e4. https://doi.org/10.6028/NIST.SP.500-290e4</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=19">原本 PDF p.19</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>[1] Stathakis J, Fiumara G, Orandi S, Marshall K (2026), Information Technology: Data Format for the Interchange of Fingerprint, Facial and Other Biometric Information. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 500-290e4. https://doi.org/10.6028/NIST.SP.500-290e4</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix A. JSON Schema Examples</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 A. JSON スキーマの例</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0020-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The examples in the appendices are the development snapshot at the time of drafting this document and may have been modified as the project continued.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>付録の例は、本書の作成時点の開発スナップショットであり、プロジェクトの継続に伴って変更されている場合があります。</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0020-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.1. Example JSON Record, Field, and Related Definitions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.1. JSON のレコード、フィールド、および関連する定義の例</h4>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0020-b0004">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>{
+  "recordType": {
+    "type": "object",
+    "required": [
+      "id",
+      "name",
+      "description",
+      "fields"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "name": {
+        "type": "string",
+        "description": "The name of the record type."
+      },
+      "description": {
+        "type": "string",
+        "description": "A detailed description of the record type's purpose."
+      },
+      "fields": {
+        "type": "array",
+        "minItems": 1,
+        "description": "List of fields and feature sets contained within the record type.",
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/field"
+            },
+            {
+              "$ref": "#/$defs/limitedDataField"
+            },
+            {
+              "$ref": "#/$defs/featureSet"
+            }
+          ]
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Record-level representation bundles, typically root/container paths per
+encoding."
+      }
+    },
+    "additionalProperties": false
+  },
+  "dataElement": {
+    "$comment": "Mixin: The base properties shared by fields and information items",
+    "properties": {
+      "mnemonic": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "condition": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=20">原本 PDF p.20</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0021-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "$ref": "#/$defs/conditionType"
+      },
+      "occurrence": {
+        "$ref": "#/$defs/occurrenceType"
+      },
+      "constraints": {
+        "$ref": "#/$defs/constraints"
+      },
+      "figures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "figure"
+          ],
+          "properties": {
+            "figure": {
+              "$ref": "#/$defs/figure"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this logical data
+element."
+      }
+    }
+  },
+  "field": {
+    "type": "object",
+    "oneOf": [
+      {
+        "required": [
+          "id"
+        ]
+      },
+      {
+        "required": [
+          "startId",
+          "endId"
+        ]
+      }
+    ],
+    "required": [
+      "mnemonic",
+      "name",
+      "description"
+    ],
+    "properties": {
+      "id": {
+        "$ref": "#/$defs/idType"
+      },
+      "startId": {
+        "$ref": "#/$defs/idType"
+      },
+      "endId": {
+        "$ref": "#/$defs/idType"
+      },
+      "mnemonic": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "condition": {
+        "$ref": "#/$defs/conditionType"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=21">原本 PDF p.21</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0022-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>      },
+      "occurrence": {
+        "$ref": "#/$defs/occurrenceType"
+      },
+      "constraints": {
+        "$ref": "#/$defs/constraints"
+      },
+      "figures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "figure"
+          ],
+          "properties": {
+            "figure": {
+              "$ref": "#/$defs/figure"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this logical data
+element."
+      },
+      "subfields": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/subfieldSet"
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "limitedDataField": {
+    "type": "object",
+    "oneOf": [
+      {
+        "required": [
+          "id"
+        ]
+      },
+      {
+        "required": [
+          "startId",
+          "endId"
+        ]
+      }
+    ],
+    "required": [
+      "mnemonic",
+      "name",
+      "description"
+    ],
+    "properties": {
+      "id": {
+        "$ref": "#/$defs/idType"
+      },
+      "startId": {
+        "$ref": "#/$defs/idType"
+      },
+      "endId": {
+        "$ref": "#/$defs/idType"
+      },
+      "mnemonic": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=22">原本 PDF p.22</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0023-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>      },
+      "description": {
+        "type": "string"
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this limited data field."
+      }
+    },
+    "additionalProperties": false
+  },
+  "subfieldSet": {
+    "type": "object",
+    "required": [
+      "occurrence",
+      "structure",
+      "informationItems"
+    ],
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "condition": {
+        "$ref": "#/$defs/conditionType"
+      },
+      "occurrence": {
+        "$ref": "#/$defs/occurrenceType",
+        "description": "Number of times this subfield set/template occurs within the containing
+field when that field is present."
+      },
+      "structure": {
+        "$ref": "#/$defs/subfieldStructure",
+        "description": "Identifies whether this subfield set is fixed-position static content
+or a repeating subfield template."
+      },
+      "position": {
+        "$ref": "#/$defs/zeroBasedPosition",
+        "description": "Optional zero-based position metadata for this subfield set/template."
+      },
+      "informationItems": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/informationItemEntry"
+        },
+        "description": "Ordered traditional information-item layout. Entries may be single
+information items or nested information-item sets."
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this subfield group."
+      },
+      "presenceAssertions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/subfieldPresenceAssertion"
+        },
+        "description": "Machine-readable subfield-level information-item presence assertions
+that cannot be expressed by individual item occurrence rules."
+      }
+    },
+    "additionalProperties": false
+  },
+  "subfieldStructure": {
+    "type": "object",
+    "required": [
+      "kind"
+    ],</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=23">原本 PDF p.23</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0024-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>    "properties": {
+      "kind": {
+        "type": "string",
+        "enum": [
+          "static",
+          "repeating"
+        ],
+        "description": "Static subfields occupy a fixed position in the subfield array;
+repeating subfields describe a repeatable subfield template."
+      }
+    },
+    "additionalProperties": false,
+    "description": "Machine-readable subfield classification."
+  },
+  "subfieldPresenceAssertion": {
+    "type": "object",
+    "required": [
+      "kind",
+      "minPresent"
+    ],
+    "properties": {
+      "kind": {
+        "const": "informationItemPresence",
+        "description": "Counts populated information items selected from the current subfield."
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "encodings": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/encodingId"
+        },
+        "description": "Optional encoding IDs to which this assertion applies. Omit for all
+encodings."
+      },
+      "minPresent": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "maxPresent": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "mnemonics": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Explicit information-item mnemonics to count. If omitted, all items in
+the selected range are counted."
+      },
+      "excludeMnemonics": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Information-item mnemonics to exclude from the count."
+      },
+      "afterMnemonic": {
+        "type": "string",
+        "description": "Count only information items positioned after the first item with this
+mnemonic."
+      },
+      "errorCode": {
+        "type": "string"
+      },
+      "passCode": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=24">原本 PDF p.24</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0025-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "type": "string"
+      },
+      "failureMessage": {
+        "type": "string"
+      },
+      "passMessage": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Subfield-level presence rule for assertions such as “at least one
+information item other than SIL shall be present.”"
+  },
+  "informationItem": {
+    "type": "object",
+    "required": [
+      "name",
+      "description"
+    ],
+    "properties": {
+      "mnemonic": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "condition": {
+        "$ref": "#/$defs/conditionType"
+      },
+      "occurrence": {
+        "$ref": "#/$defs/occurrenceType"
+      },
+      "constraints": {
+        "$ref": "#/$defs/constraints"
+      },
+      "figures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "figure"
+          ],
+          "properties": {
+            "figure": {
+              "$ref": "#/$defs/figure"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this logical data
+element."
+      }
+    },
+    "additionalProperties": false
+  },
+  "informationItemEntry": {
+    "$comment": "An entry in subfieldSet.informationItems can be either one information item or
+a nested information-item set.",
+    "oneOf": [
+      {
+        "$ref": "#/$defs/informationItem"
+      },
+      {
+        "$ref": "#/$defs/informationItemSet"
+      }</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=25">原本 PDF p.25</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0026-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>    ]
+  },
+  "informationItemSet": {
+    "type": "object",
+    "required": [
+      "type",
+      "name",
+      "description",
+      "informationItems"
+    ],
+    "properties": {
+      "type": {
+        "const": "informationItemSet",
+        "description": "Discriminator identifying this entry as a nested set of information
+items rather than a single information item."
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$",
+        "description": "Stable identifier for this information-item set within the subfield."
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "condition": {
+        "$ref": "#/$defs/conditionType",
+        "description": "Condition for the set as a whole. If omitted, the set is applicable
+whenever the containing subfield is applicable."
+      },
+      "occurrence": {
+        "$ref": "#/$defs/occurrenceType",
+        "description": "Number of times this set occurs. For repeating traditional groups, use
+dynamicFixed with a structured reference expression or a min/max range."
+      },
+      "notes": {
+        "type": "string"
+      },
+      "informationItems": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/informationItem"
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Encoding-specific representation bundles for this information-item set,
+including layout/separator rules."
+      }
+    },
+    "additionalProperties": false
+  },
+  "featureSet": {
+    "type": "object",
+    "required": [
+      "name",
+      "fields"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Name of the feature set (e.g., 'INCITS_378', 'EFS')"
+      },
+      "description": {
+        "type": "string",
+        "description": "Description of the feature set and its conditional requirements"
+      },
+      "fields": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=26">原本 PDF p.26</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0027-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "type": "array",
+        "minItems": 1,
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/field"
+            },
+            {
+              "$ref": "#/$defs/limitedDataField"
+            }
+          ]
+        }
+      },
+      "representations": {
+        "$ref": "#/$defs/encodingRepresentations",
+        "description": "Optional feature-set-level representation bundles."
+      }
+    },
+    "additionalProperties": false
+  },
+  "identifiable": {
+    "$comment": "Mixin: Requires either an 'id' or a 'startId'/'endId' pair",
+    "properties": {
+      "id": {
+        "$ref": "#/$defs/idType"
+      },
+      "startId": {
+        "$ref": "#/$defs/idType"
+      },
+      "endId": {
+        "$ref": "#/$defs/idType"
+      }
+    },
+    "oneOf": [
+      {
+        "required": [
+          "id"
+        ]
+      },
+      {
+        "required": [
+          "startId",
+          "endId"
+        ]
+      }
+    ]
+  }
+}</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0027-b0007">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 6. JSON schema example for MRS data elements</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 6. MRS データ要素の JSON スキーマの例</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0027-b0008">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h4>A.2. JSON Abstract Syntax Tree Logic Block and Related Definitions</h4>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h4>
+A.2. JSON 抽象構文木のロジックブロックおよび関連する定義</h4>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0027-b0009">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>{
+  "expression": {
+    "$comment": "All executable expression nodes are kind-discriminated. Primitive literals are
+represented by literalExpression nodes and references by referenceExpression nodes.",
+    "oneOf": [
+      {
+        "$ref": "#/$defs/literalExpression"
+      },
+      {
+        "$ref": "#/$defs/referenceExpression"
+      },
+      {
+        "$ref": "#/$defs/callExpression"
+      },
+      {
+        "$ref": "#/$defs/comparisonExpression"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=27">原本 PDF p.27</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0028-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>      },
+      {
+        "$ref": "#/$defs/logicalExpression"
+      },
+      {
+        "$ref": "#/$defs/mathExpression"
+      }
+    ]
+  },
+  "predicate": {
+    "$ref": "#/$defs/booleanExpression"
+  },
+  "literalExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "value"
+    ],
+    "properties": {
+      "kind": {
+        "const": "literal"
+      },
+      "value": {
+        "$ref": "#/$defs/literal"
+      },
+      "valueType": {
+        "$ref": "#/$defs/dataType",
+        "description": "Optional explicit type. If omitted, the evaluator infers the type from
+value."
+      },
+      "cardinality": {
+        "$ref": "#/$defs/cardinality",
+        "default": "one"
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Literal expression node. Primitive literals are wrapped so every executable
+expression has a kind discriminator."
+  },
+  "referenceExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "scope"
+    ],
+    "properties": {
+      "kind": {
+        "const": "ref"
+      },
+      "scope": {
+        "type": "string",
+        "enum": [
+          "currentItem",
+          "currentOccurrence",
+          "sameSubfield",
+          "sameField",
+          "sameRecord",
+          "record",
+          "transaction",
+          "encoding",
+          "profile",
+          "global",
+          "context"
+        ],
+        "description": "Evaluation scope used to resolve the reference."
+      },
+      "recordType": {
+        "oneOf": [</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=28">原本 PDF p.28</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0029-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>          {
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "description": "Record type identifier when resolution is tied to a specific record
+type."
+      },
+      "fieldId": {
+        "$ref": "#/$defs/idType"
+      },
+      "mnemonic": {
+        "type": "string",
+        "description": "Field or information-item mnemonic."
+      },
+      "name": {
+        "type": "string",
+        "description": "Named context variable, such as RECORD_TYPES."
+      },
+      "path": {
+        "type": "string",
+        "description": "Encoding-neutral or evaluator-defined structured path."
+      },
+      "occurrence": {
+        "type": "string",
+        "enum": [
+          "current",
+          "any",
+          "all",
+          "first",
+          "last",
+          "indexed",
+          "matching"
+        ],
+        "default": "current",
+        "description": "Which occurrence(s) are selected when multiple values exist."
+      },
+      "index": {
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "$ref": "#/$defs/numericExpression"
+          }
+        ],
+        "description": "Zero-based occurrence index when occurrence is indexed."
+      },
+      "value": {
+        "type": "string",
+        "enum": [
+          "logical",
+          "encoded",
+          "wire",
+          "computed",
+          "presence",
+          "count"
+        ],
+        "default": "logical",
+        "description": "Which value view is requested."
+      },
+      "encodingId": {
+        "$ref": "#/$defs/encodingId",
+        "description": "Required when value is encoded or wire and the encoding is not
+otherwise implied."
+      },
+      "expectedType": {
+        "$ref": "#/$defs/dataType",</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=29">原本 PDF p.29</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0030-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "description": "Expected type after reference resolution."
+      },
+      "cardinality": {
+        "$ref": "#/$defs/cardinality",
+        "description": "Expected cardinality after reference resolution."
+      },
+      "defaultWhenMissing": {
+        "$ref": "#/$defs/literal"
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Structured evaluator reference with explicit scope, occurrence, and value-
+view semantics.",
+    "allOf": [
+      {
+        "anyOf": [
+          {
+            "required": [
+              "name"
+            ]
+          },
+          {
+            "required": [
+              "fieldId"
+            ]
+          },
+          {
+            "required": [
+              "mnemonic"
+            ]
+          },
+          {
+            "required": [
+              "path"
+            ]
+          }
+        ]
+      },
+      {
+        "if": {
+          "properties": {
+            "occurrence": {
+              "const": "indexed"
+            }
+          },
+          "required": [
+            "occurrence"
+          ]
+        },
+        "then": {
+          "required": [
+            "index"
+          ]
+        }
+      }
+    ]
+  },
+  "callExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "name",
+      "args",
+      "returnType"
+    ],
+    "properties": {
+      "kind": {
+        "const": "call"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=30">原本 PDF p.30</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0031-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>      },
+      "name": {
+        "$ref": "#/$defs/functionName"
+      },
+      "args": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/expression"
+        }
+      },
+      "returnType": {
+        "$ref": "#/$defs/dataType"
+      },
+      "returnCardinality": {
+        "$ref": "#/$defs/cardinality",
+        "default": "one"
+      },
+      "onMissing": {
+        "$ref": "#/$defs/missingBehavior",
+        "default": "error"
+      },
+      "deterministic": {
+        "type": "boolean",
+        "const": true,
+        "description": "Evaluator functions used by the standard must be deterministic and
+side-effect-free."
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Function call expression. Function name, argument count/type, return type,
+and missing-value behavior must agree with evaluatorCatalog.",
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "presence.present"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "presence.notPresent"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=31">原本 PDF p.31</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0032-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>              "minItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "date.isPartialDate"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "media.isImage"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "media.isVideo"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            },</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=32">原本 PDF p.32</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0033-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "media.isAudio"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "image.isStitchedImage"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "image.hasMatchingType13Image"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 0,
+              "maxItems": 0
+            },
+            "returnType": {
+              "const": "boolean"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=33">原本 PDF p.33</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0034-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "image.matchingType13ImageIsKnownLateralReversal"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 0,
+              "maxItems": 0
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "comparison.isComplex"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 0,
+              "maxItems": 0
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "name": {
+              "const": "conversion.isAnalogToDigital"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "returnType": {
+              "const": "boolean"
+            }
+          }</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=34">原本 PDF p.34</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0035-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        }
+      }
+    ]
+  },
+  "comparisonExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "op",
+      "left",
+      "returnType"
+    ],
+    "properties": {
+      "kind": {
+        "const": "comparison"
+      },
+      "op": {
+        "type": "string",
+        "enum": [
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "gte",
+          "lte",
+          "contains",
+          "in",
+          "intersects",
+          "containsAny",
+          "matches",
+          "matchesAny",
+          "isSubsetOf",
+          "exists",
+          "isEmpty"
+        ],
+        "description": "Typed comparison operator. Use eq/ne instead of ==/!= to avoid
+language-specific ambiguity."
+      },
+      "left": {
+        "$ref": "#/$defs/expression"
+      },
+      "right": {
+        "$ref": "#/$defs/expression"
+      },
+      "returnType": {
+        "const": "boolean"
+      },
+      "typeCoercion": {
+        "type": "string",
+        "enum": [
+          "none",
+          "numeric",
+          "string",
+          "boolean",
+          "standardNumericString"
+        ],
+        "default": "none",
+        "description": "Explicitly states whether operands may be coerced before comparison.
+Default is strict no coercion."
+      },
+      "missingBehavior": {
+        "$ref": "#/$defs/missingBehavior",
+        "default": "false"
+      },
+      "collectionSemantics": {
+        "type": "string",
+        "enum": [
+          "scalar",
+          "leftCollection",
+          "rightCollection",
+          "bothCollections"</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=35">原本 PDF p.35</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0036-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        ],
+        "description": "Documents operand cardinality expectations for collection operators."
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Boolean comparison node with fixed operand order and explicit
+coercion/missing-value semantics.",
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "enum": [
+                "exists",
+                "isEmpty"
+              ]
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "not": {
+            "required": [
+              "right"
+            ]
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "not": {
+                "enum": [
+                  "exists",
+                  "isEmpty"
+                ]
+              }
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "required": [
+            "right"
+          ]
+        }
+      }
+    ]
+  },
+  "logicalExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "op",
+      "args",
+      "returnType"
+    ],
+    "properties": {
+      "kind": {
+        "const": "logical"
+      },
+      "op": {
+        "type": "string",</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=36">原本 PDF p.36</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0037-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "enum": [
+          "and",
+          "or",
+          "not"
+        ]
+      },
+      "args": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/booleanExpression"
+        }
+      },
+      "returnType": {
+        "const": "boolean"
+      },
+      "shortCircuit": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether evaluators may short-circuit left-to-right."
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Boolean logical expression with an explicit operator, typed arguments, and
+evaluator return type.",
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "const": "not"
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "enum": [
+                "and",
+                "or"
+              ]
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 2
+            }
+          }
+        }
+      }
+    ]</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=37">原本 PDF p.37</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0038-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>  },
+  "mathExpression": {
+    "type": "object",
+    "required": [
+      "kind",
+      "op",
+      "args",
+      "returnType"
+    ],
+    "properties": {
+      "kind": {
+        "const": "math"
+      },
+      "op": {
+        "type": "string",
+        "enum": [
+          "add",
+          "subtract",
+          "multiply",
+          "divide",
+          "modulo",
+          "ceiling",
+          "floor",
+          "round",
+          "min",
+          "max",
+          "abs"
+        ]
+      },
+      "args": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/numericExpression"
+        }
+      },
+      "returnType": {
+        "type": "string",
+        "enum": [
+          "integer",
+          "decimal",
+          "number"
+        ]
+      },
+      "divisionBehavior": {
+        "type": "string",
+        "enum": [
+          "errorOnDivideByZero",
+          "returnNullOnDivideByZero"
+        ],
+        "default": "errorOnDivideByZero"
+      },
+      "roundingMode": {
+        "type": "string",
+        "enum": [
+          "ceiling",
+          "floor",
+          "halfUp",
+          "halfEven",
+          "truncate",
+          "exact"
+        ],
+        "description": "Required when op is round; optional documentation for other numeric
+operations."
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Numeric math expression with one operator name, typed arguments, and
+evaluator return type.",</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=38">原本 PDF p.38</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0039-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "enum": [
+                "ceiling",
+                "floor",
+                "abs"
+              ]
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "const": "round"
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 1,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "roundingMode"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "enum": [
+                "subtract",
+                "divide",
+                "modulo"
+              ]
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=39">原本 PDF p.39</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0040-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>      },
+      {
+        "if": {
+          "properties": {
+            "op": {
+              "enum": [
+                "add",
+                "multiply",
+                "min",
+                "max"
+              ]
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        "then": {
+          "properties": {
+            "args": {
+              "minItems": 2
+            }
+          }
+        }
+      }
+    ]
+  },
+  "numericExpression": {
+    "oneOf": [
+      {
+        "$ref": "#/$defs/mathExpression"
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/literalExpression"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "valueType": {
+                "enum": [
+                  "integer",
+                  "decimal",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        ]
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/referenceExpression"
+          },
+          {
+            "properties": {
+              "expectedType": {
+                "enum": [
+                  "integer",
+                  "decimal",
+                  "number"
+                ]
+              }
+            },</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=40">原本 PDF p.40</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0041-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>            "required": [
+              "expectedType"
+            ]
+          }
+        ]
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/callExpression"
+          },
+          {
+            "properties": {
+              "returnType": {
+                "enum": [
+                  "integer",
+                  "decimal",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "returnType"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "booleanExpression": {
+    "oneOf": [
+      {
+        "$ref": "#/$defs/comparisonExpression"
+      },
+      {
+        "$ref": "#/$defs/logicalExpression"
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/literalExpression"
+          },
+          {
+            "properties": {
+              "value": {
+                "type": "boolean"
+              },
+              "valueType": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        ]
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/referenceExpression"
+          },
+          {
+            "properties": {
+              "expectedType": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "expectedType"
+            ]</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=41">原本 PDF p.41</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0042-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>          }
+        ]
+      },
+      {
+        "allOf": [
+          {
+            "$ref": "#/$defs/callExpression"
+          },
+          {
+            "properties": {
+              "returnType": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "returnType"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=42">原本 PDF p.42</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0042-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 7. JSON schema for abstract syntax tree logic</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=42">原本 PDF p.42</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 7. 抽象構文木ロジックの JSON スキーマ</p>        </div>
+      </section>
+      <section class="row pair heading" id="pdf-p0043-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+          <h3>Appendix B. JSON Data Example</h3>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=43">原本 PDF p.43</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<h3>
+付録 B. JSON データの例</h3>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0043-b0002">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>The examples in the appendices are the development snapshot at the time of drafting this document and may have been modified as the project continued. The following JSON is the field 8.006 requirements in machine-readable format.</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=43">原本 PDF p.43</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>付録の例は、本書の作成時点の開発スナップショットであり、プロジェクトの継続に伴って変更されている場合があります。次の JSON は、機械可読形式のフィールド 8.006 の要件です。</p>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0043-b0003">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>{
+      "id": "8.006",
+      "mnemonic": "HLL",
+      "name": "Horizontal line length",
+      "description": "This field shall be used to specify the number of pixels contained on a
+single horizontal line of the transmitted signature image. For vectored signature data, the
+value shall be zero. Traditional Type-8 encodes this value as an unsigned two-byte binary
+integer; NIEM XML represents the same logical value as decimal numeric text.",
+      "condition": {
+        "type": "Mandatory"
+      },
+      "occurrence": {
+        "fixed": 1
+      },
+      "constraints": {
+        "conditionalValue": {
+          "kind": "conditional",
+          "resultType": "valueConstraint",
+          "evaluation": "firstMatch",
+          "onNoMatch": "error",
+          "cases": [
+            {
+              "when": {
+                "kind": "comparison",
+                "op": "eq",
+                "left": {
+                  "kind": "ref",
+                  "scope": "sameRecord",
+                  "recordType": 8,
+                  "fieldId": "8.004",
+                  "occurrence": "current",
+                  "value": "logical",
+                  "expectedType": "integer",
+                  "cardinality": "one",
+                  "mnemonic": "SRT",
+                  "description": "Signature representation type from Field 8.004:SRT in the
+same Type-8 record."
+                },
+                "returnType": "boolean",
+                "missingBehavior": "false",
+                "collectionSemantics": "scalar",
+                "typeCoercion": "none",
+                "right": {
+                  "kind": "literal",
+                  "value": 2,
+                  "valueType": "integer",
+                  "cardinality": "one"
+                }
+              },
+              "result": {
+                "fixed": 0,
+                "description": "If SRT = 2 (vector data), HLL shall be 0."
+              }
+            },
+            {
+              "when": {
+                "kind": "logical",
+                "op": "or",
+                "args": [
+                  {
+                    "kind": "comparison",
+                    "op": "eq",
+                    "left": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=43">原本 PDF p.43</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0044-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>                      "kind": "ref",
+                      "scope": "sameRecord",
+                      "recordType": 8,
+                      "fieldId": "8.004",
+                      "occurrence": "current",
+                      "value": "logical",
+                      "expectedType": "integer",
+                      "cardinality": "one",
+                      "mnemonic": "SRT",
+                      "description": "Signature representation type from Field 8.004:SRT in the
+same Type-8 record."
+                    },
+                    "returnType": "boolean",
+                    "missingBehavior": "false",
+                    "collectionSemantics": "scalar",
+                    "typeCoercion": "none",
+                    "right": {
+                      "kind": "literal",
+                      "value": 0,
+                      "valueType": "integer",
+                      "cardinality": "one"
+                    }
+                  },
+                  {
+                    "kind": "comparison",
+                    "op": "eq",
+                    "left": {
+                      "kind": "ref",
+                      "scope": "sameRecord",
+                      "recordType": 8,
+                      "fieldId": "8.004",
+                      "occurrence": "current",
+                      "value": "logical",
+                      "expectedType": "integer",
+                      "cardinality": "one",
+                      "mnemonic": "SRT",
+                      "description": "Signature representation type from Field 8.004:SRT in the
+same Type-8 record."
+                    },
+                    "returnType": "boolean",
+                    "missingBehavior": "false",
+                    "collectionSemantics": "scalar",
+                    "typeCoercion": "none",
+                    "right": {
+                      "kind": "literal",
+                      "value": 1,
+                      "valueType": "integer",
+                      "cardinality": "one"
+                    }
+                  }
+                ],
+                "returnType": "boolean",
+                "shortCircuit": true
+              },
+              "result": {
+                "min": 10,
+                "max": 65535,
+                "description": "If SRT = 0 or 1 (scanned image data), HLL shall be an integer
+from 10 through 65535.",
+                "unit": "pixels",
+                "scale": 0,
+                "multipleOf": 1,
+                "rounding": "exact"
+              }
+            }
+          ],
+          "description": "Logical horizontal line length constraint depends on the signature
+representation type in 8.004:SRT."
+        }
+      },
+      "representations": {</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=44">原本 PDF p.44</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair code" id="pdf-p0045-b0001">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<pre><code>        "traditional": {
+          "syntax": {
+            "wireType": "binary",
+            "contentEncoding": "raw-binary",
+            "characterType": "Binary (B)",
+            "format": "uint16",
+            "length": {
+              "fixed": 2,
+              "description": "Traditional HLL is a two-byte unsigned binary integer."
+            },
+            "lengthUnit": "bytes",
+            "notes": "Render the 2-byte binary value as hexadecimal. Display pattern: 0xHHHH.",
+            "description": "Traditional Type-8 HLL is serialized as one unsigned two-byte
+binary integer."
+          }
+        },
+        "niem-xml-4": {
+          "paths": [
+            {
+              "path": "itl:PackageSignatureImageRecord/itl:SignatureImage",
+              "minCount": 1,
+              "maxCount": 1
+            },
+            {
+              "path":
+"itl:PackageSignatureImageRecord/itl:SignatureImage/biom:ImageHorizontalLineLengthPixelQuantity
+",
+              "minCount": 1,
+              "maxCount": 1
+            }
+          ],
+          "syntax": {
+            "wireType": "string",
+            "contentEncoding": "none",
+            "characterType": "Numeric (N)",
+            "length": {
+              "min": 1,
+              "description": "Other HLL is represented as a one- to five-digit integer.",
+              "max": 5
+            },
+            "lengthUnit": "characters",
+            "format": [
+              "N",
+              "NN",
+              "NNN",
+              "NNNN",
+              "NNNNN"
+            ],
+            "description": "NIEM XML HLL is serialized as one to five decimal numeric
+characters. The value is 0 for vector data, otherwise 10 through 65535."
+          }
+        }
+      }
+    },</code></pre>
+<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=45">原本 PDF p.45</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="pending">原文のみ</span>        </div>
+      </section>
+      <section class="row pair paragraph" id="pdf-p0045-b0010">
+        <div class="english col-sm-12 col-md-6 text" lang="en">
+<p>Fig. 8. Example JSON data for field 8.006</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf#page=45">原本 PDF p.45</a></div>          
+        </div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<p>図 8. フィールド 8.006 の JSON データの例</p>        </div>
+      </section>
+      <footer>
+        <p>非公式の日本語訳です。NIST および米国商務省が作成・承認・推奨したものではありません。NIST のロゴと米国商務省の紋章は、公的な標章のため掲載していません。原文の出典: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8616.pdf">National Institute of Standards and Technology, IR 8616</a>。Republished courtesy of the National Institute of Standards and Technology.</p>
+      </footer>
+    </main>
+  </div>
+  <script>
+    // 段落にマウスを乗せたとき、左側に「リンク」「原文」「報告」を表示する（rfc-translater と同じ操作）
+    (function () {
+      var main = document.querySelector("main");
+      if (!main) return;
+      document.documentElement.classList.add("has-row-tools");
+      var tools = document.createElement("div");
+      tools.className = "row-tools";
+      tools.innerHTML = '<a href="#" class="row-tool-link" title="この段落へのリンクをコピー">リンク</a>' +
+        '<a href="#" class="row-tool-orig" target="_blank" rel="noopener">原文</a>' +
+        '<a href="#" class="row-tool-report" target="_blank" rel="noopener" title="この段落の誤訳を GitHub で報告">報告</a>';
+      // 誤訳の報告先と、報告に含める原文・訳文の最大文字数（URL が長くなりすぎないようにする）
+      var ISSUE_URL = "https://github.com/tex2e/nist-translator/issues/new";
+      var ISSUE_TEXT_MAX = 1200;
+      var DOC_NUMBER = "IR 8616";
+      var current = null;
+      main.addEventListener("mouseover", function (event) {
+        var row = event.target.closest("section.pair[id], section.preserved-source[id]");
+        if (!row || row === current) return;
+        current = row;
+        var source = row.querySelector(".source-ref a, figcaption a[href*='#page=']");
+        var orig = tools.querySelector(".row-tool-orig");
+        orig.hidden = !source;
+        if (source) { orig.href = source.href; orig.title = source.textContent.trim() + " を開く"; }
+        tools.querySelector(".row-tool-link").href = "#" + row.id;
+        tools.querySelector(".row-tool-report").href = issueUrl(row, source);
+        row.appendChild(tools);
+      });
+      tools.querySelector(".row-tool-link").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!current) return;
+        var url = location.origin + location.pathname + "#" + current.id;
+        history.replaceState(null, "", "#" + current.id);
+        document.querySelectorAll(".row-highlight").forEach(function (el) { el.classList.remove("row-highlight"); });
+        current.classList.add("row-highlight");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(url).then(function () { toast("リンクをコピーしました"); },
+                                                   function () { window.prompt("リンク", url); });
+        } else {
+          window.prompt("リンク", url);
+        }
+      });
+      // 段落の文字。数式は KaTeX の表示ではなく TeX の原文にする（表示用と読み上げ用の文字が二重に入らないように）
+      function plainText(element) {
+        if (!element) return "";
+        var copy = element.cloneNode(true);
+        copy.querySelectorAll(".katex").forEach(function (math) {
+          var tex = math.querySelector('annotation[encoding="application/x-tex"]');
+          math.replaceWith(tex ? "$" + tex.textContent + "$" : math.textContent);
+        });
+        copy.querySelectorAll(".row-tools, .draft-badge, .source-ref").forEach(function (el) { el.remove(); });
+        var holder = document.createElement("div");
+        holder.style.cssText = "position:absolute;left:-9999px;white-space:pre-wrap";
+        holder.appendChild(copy);
+        document.body.appendChild(holder);
+        var text = copy.innerText;
+        holder.remove();
+        text = text.trim().replace(/\n{3,}/g, "\n\n");
+        return text.length > ISSUE_TEXT_MAX ? text.slice(0, ISSUE_TEXT_MAX) + " …（省略）" : text;
+      }
+      // 段落の誤訳を報告する GitHub Issue の作成 URL
+      function issueUrl(row, source) {
+        var page = source && /#page=(\d+)/.exec(source.href);
+        var en = plainText(row.querySelector(".english"));
+        var ja = plainText(row.querySelector(".japanese"));
+        var lines = ["対象: " + location.origin + location.pathname + "#" + row.id];
+        if (source) lines.push("原本: " + source.href);
+        lines.push("", "## 原文", "```", en, "```", "");
+        if (ja) lines.push("## 現在の訳", "```", ja, "```", "");
+        lines.push("## 問題点・修正案", "");
+        var title = "NIST " + DOC_NUMBER + " の翻訳の誤り" + (page ? "（原本 p." + page[1] + "）" : "");
+        return ISSUE_URL + "?" + new URLSearchParams({ title: title, body: lines.join("\n") }).toString();
+      }
+      // 2 段組の列に収まらない表は、その段落だけ英文と訳文を上下に並べる（画面幅が変わったら判定し直す）
+      function fitTables() {
+        document.querySelectorAll("section.pair").forEach(function (row) {
+          if (!row.querySelector("table")) return;
+          row.classList.remove("pair-wide");
+          var sides = row.querySelectorAll(":scope > .english, :scope > .japanese");
+          var wide = Array.prototype.some.call(sides, function (side) { return side.scrollWidth > side.clientWidth + 1; });
+          row.classList.toggle("pair-wide", wide);
+        });
+      }
+      var fitTimer = null;
+      window.addEventListener("load", fitTables);
+      window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTables, 150); });
+      var toastBox = null, timer = null;
+      function toast(message) {
+        if (!toastBox) { toastBox = document.createElement("div"); toastBox.className = "row-toast";
+          toastBox.setAttribute("role", "status"); document.body.appendChild(toastBox); }
+        toastBox.textContent = message; toastBox.classList.add("show");
+        clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
+      }
+    })();
+  </script>
+  <script>
+    // 目次（rfc-translater と同じ操作）。読み進めると上部に「目次」と現在の節名を出し、押すと左から目次を開く。
+    (function () {
+      var bar = document.getElementById("toc-bar");
+      var dialog = document.getElementById("toc-dialog");
+      if (!bar || !dialog || typeof dialog.showModal !== "function") return;
+      var items = Array.prototype.slice.call(dialog.querySelectorAll(".toc-item"));
+      var entries = items.map(function (item) {
+        return { item: item, row: document.getElementById(item.getAttribute("href").slice(1)) };
+      }).filter(function (entry) { return entry.row; });
+      if (!entries.length) return;
+      var filter = dialog.querySelector(".toc-filter");
+      var showAll = document.getElementById("toc-show-all");
+      var current = null, barEntry = undefined, scheduled = false;
+      var currentLink = bar.querySelector(".toc-bar-current");
+      var THRESHOLD = 72;  // 画面上端からこの距離より上にある最後の見出しを「表示中の節」とする
+
+      function update() {
+        scheduled = false;
+        var lo = 0, hi = entries.length - 1, found = null;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (entries[mid].row.getBoundingClientRect().top <= THRESHOLD) { found = entries[mid]; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        current = found;
+        // ページ冒頭（資料の情報や要約が見えている間）は出さない
+        bar.hidden = !(window.scrollY > 0 && entries[0].row.getBoundingClientRect().top < window.innerHeight * 0.5);
+        if (current !== barEntry) {
+          barEntry = current;
+          currentLink.textContent = current ? current.item.textContent : "";
+          currentLink.title = current ? current.item.title : "";
+          currentLink.href = current ? current.item.getAttribute("href") : "#";
+        }
+      }
+      // スクロール中は 60ms ごとにまとめて判定する（描画のタイミングに依存しないので、裏のタブでも止まらない）
+      function schedule() { if (!scheduled) { scheduled = true; setTimeout(update, 60); } }
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+
+      function applyFilter() {
+        var words = filter.value.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+        var all = words.length > 0 || (showAll && showAll.checked);
+        dialog.classList.toggle("toc-all", all);
+        items.forEach(function (item) {
+          var text = item.dataset.search.normalize("NFKC");
+          item.hidden = !words.every(function (word) { return text.indexOf(word) >= 0; });
+        });
+      }
+      function open() {
+        filter.value = "";
+        // 現在の節が深い階層なら、深い階層も表示した状態で開く
+        if (showAll && current && /toc-depth-4/.test(current.item.className)) showAll.checked = true;
+        applyFilter();
+        items.forEach(function (item) {
+          var on = current && item === current.item;
+          item.classList.toggle("toc-current", !!on);
+          if (on) item.setAttribute("aria-current", "location"); else item.removeAttribute("aria-current");
+        });
+        dialog.showModal();
+        filter.focus();
+        if (current) current.item.scrollIntoView({ block: "center" });
+      }
+      bar.querySelector(".toc-bar-open").addEventListener("click", open);
+      dialog.querySelector(".toc-close").addEventListener("click", function () { dialog.close(); });
+      dialog.addEventListener("click", function (event) {
+        if (event.target === dialog || event.target.closest(".toc-item")) dialog.close();  // 外側か項目を押したら閉じる
+      });
+      filter.addEventListener("input", applyFilter);
+      if (showAll) showAll.addEventListener("change", applyFilter);
+      filter.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
+        else if (event.key === "Enter" && !event.isComposing) {
+          var first = items.filter(function (item) { return !item.hidden && item.offsetParent !== null; })[0];
+          if (first) { event.preventDefault(); dialog.close(); location.hash = first.getAttribute("href"); }
+        }
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>
