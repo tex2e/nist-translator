@@ -129,6 +129,7 @@ push の前に、ブランチに upstream が付いていないことを確か�
 PR の本文には次を書きます。
 
 - 資料番号、原題、邦題、公開日、CSRC の URL
+- 対訳 HTML のプレビューの URL（push したブランチの HTML を htmlpreview で開くもの。`https://htmlpreview.github.io/?https://raw.githubusercontent.com/tex2e/nist-translator/refs/heads/claude/translate-nist-<stem>/html/<stem>.html`）。PR を作る前に、raw の URL が 200 を返すことを `curl` で確かめます
 - ページ数、表示ブロック数、reviewed の数
 - 非掲載にした図・節と理由
 - codex の指摘数と Opus の判断（keep・fix）
