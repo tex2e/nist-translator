@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import html
+import re
 
 from bs4 import BeautifulSoup
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -72,8 +73,11 @@ SECTION_NUMBER = __import__("re").compile(
 
 def heading_text(markup):
     """Plain heading text for the table of contents (inline TeX shown without its delimiters)."""
-    import re
-    text = " ".join(BeautifulSoup(markup or "", "html.parser").stripped_strings)
+    soup = BeautifulSoup(markup or "", "html.parser")
+    for line_break in soup.find_all("br"):
+        line_break.replace_with(" ")
+    # 文字列をそのままつなぐ（強調などのタグの前後に空白を足さない。日本語の見出しに余分な空白が入っていた）
+    text = re.sub(r"\s+", " ", soup.get_text())
     return re.sub(r"\\[()\[\]]", "", text).strip()
 
 
@@ -321,4 +325,6 @@ def build_site(document, meta, template_path, output_path):
         fetched_at=fetched_at or "", headings=headings, toc=toc_entries(headings), asset_version=asset_version(),
         blocks=visible, translated=translated, total=len(visible), stale=stale,
     )
+    # 図は表示位置に近づいてから読み込む（図の多い資料で、開いた直後にすべての画像を取りに行かないように）
+    page = re.sub(r"<img(?![^>]*\bloading=)", '<img loading="lazy" decoding="async"', page)
     output_path.write_text(page, encoding="utf-8")
