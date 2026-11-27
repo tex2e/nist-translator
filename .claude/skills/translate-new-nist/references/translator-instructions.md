@@ -22,6 +22,7 @@
 
 ## 固定の訳語（全資料共通）
 
+- 用語表 `data/glossary.json` の訳語に従う（避ける訳語も載っている）。訳し終えたら `scripts/check_glossary.py <stem>` で照合する。
 - keying material は「鍵素材」（「鍵材料」としない）。secret keying material は「シークレット鍵素材」。shared secret key は「共有シークレット鍵」。shared secret は「共有シークレット」（「共有秘密」としない。shared secret value は「共有シークレット値」）。
 - private key は「秘密鍵」（「私有鍵」「プライベート鍵」としない）。鍵の名前は「署名用秘密鍵」「鍵合意用秘密鍵」「認可用秘密鍵」「認証用秘密鍵」「鍵輸送用秘密鍵」の形にする。
 - symmetric は「共通鍵」（共通鍵暗号、共通鍵アルゴリズム。「対称鍵」としない）。asymmetric の暗号方式は「公開鍵暗号」「公開鍵アルゴリズム」。鍵そのもの（asymmetric key、asymmetric key pair）は「非対称鍵」「非対称鍵ペア」。
