@@ -5,7 +5,8 @@ block of an HTML-sourced document, and PDF blocks with
 ``extraction_status=verified``.
 
     python scripts/translation_review.py export [--size N] [--fixed] [--reviewer R] OUT_DIR [KEY ...]
-    python scripts/translation_review.py apply VERDICT_DIR [--issues FILE] [--reviewer R]
+    python scripts/translation_review.py apply VERDICT_DIR [--issues FILE] [--reviewer R] [--recheck]
+    python scripts/translation_review.py export --recheck claude-review,claude-fix --reviewer codex OUT_DIR [KEY ...]
 
 ``--reviewer`` names who reviews (default ``claude``); the block records
 ``<reviewer>-review``, ``<reviewer>-fix`` or ``<reviewer>-issue``. Use the
@@ -20,6 +21,12 @@ reviewer's corrected translation but keeps the block a draft; ``export --fixed``
 then offers only those corrected blocks, so a correction is cleared by a later,
 independent review rather than by the reviewer who wrote it. A block that is
 still disputed after ``MAX_FIX_ROUNDS`` corrections stays a draft.
+
+``export --recheck TAGS`` offers already reviewed blocks whose ``translation_check``
+is one of TAGS, so another model can cross-review them; ``apply --recheck`` accepts
+those verdicts. An ``ok`` replaces the check with ``<reviewer>-review``; a correction
+turns the block back into a draft (``<reviewer>-fix``) for the usual ``--fixed`` rounds.
+The earlier check is kept in ``cross_review_of``.
 """
 
 import argparse
@@ -40,8 +47,8 @@ MAX_FIX_ROUNDS = 2
 MAX_BATCH_CHARS = 45000
 
 
-def _reviewable(document, block):
-    return (block.get("status") == "draft" and block.get("html_ja", "").strip() and
+def _reviewable(document, block, recheck=False):
+    return (block.get("status") in ({"draft", "reviewed"} if recheck else {"draft"}) and block.get("html_ja", "").strip() and
             not block.get("duplicate_artifact_of") and
             not block.get("math_duplicate_of") and
             not block.get("page_furniture") and
@@ -58,7 +65,7 @@ def _tags(reviewer):
     return reviewer + "-review", reviewer + "-fix", reviewer + "-issue"
 
 
-def export(out_dir, size, names, fixed, reviewer="claude"):
+def export(out_dir, size, names, fixed, reviewer="claude", recheck=None):
     out_dir.mkdir(parents=True, exist_ok=True)
     batches = blocks = 0
     for key in _keys(names):
@@ -68,7 +75,9 @@ def export(out_dir, size, names, fixed, reviewer="claude"):
                   "source_hash": block["source_hash"],
                   "en": block["html"], "ja": block["html_ja"]}
                  for block in document["contents"]
-                 if _reviewable(document, block) and block.get("translation_check") == wanted]
+                 if ((_reviewable(document, block, recheck=True) and block.get("status") == "reviewed" and
+                      block.get("translation_check") in recheck) if recheck else
+                     (_reviewable(document, block) and block.get("translation_check") == wanted))]
         groups, chars = [[]], 0
         for item in items:
             length = len(item["en"]) + len(item["ja"])
@@ -99,7 +108,7 @@ def _valid_fix(block, japanese):
     return Counter(NORMATIVE.findall(japanese)) == requirement_terms(source_requirement_text(block))
 
 
-def apply(verdict_dir, issues_path, reviewer="claude"):
+def apply(verdict_dir, issues_path, reviewer="claude", recheck=False):
     review_tag, fix_tag, issue_tag = _tags(reviewer)
     verdicts, rejected = {}, []
     for batch_path in sorted(verdict_dir.glob("*.batch.json")):
@@ -130,9 +139,11 @@ def apply(verdict_dir, issues_path, reviewer="claude"):
                 counts["gone"] += 1
                 continue
             # The source or the translation may have changed since the export.
-            if answer.get("source_hash") != block["source_hash"] or not _reviewable(document, block):
+            if answer.get("source_hash") != block["source_hash"] or not _reviewable(document, block, recheck):
                 counts["skipped"] += 1
                 continue
+            if block["status"] == "reviewed" and block.get("translation_check") not in _tags(reviewer):
+                block["cross_review_of"] = block.get("translation_check")
             if answer["verdict"] == "ok":
                 block["status"] = "reviewed"
                 block["translation_check"] = review_tag
@@ -142,10 +153,12 @@ def apply(verdict_dir, issues_path, reviewer="claude"):
             fix = answer.get("suggested_ja", "")
             if rounds < MAX_FIX_ROUNDS and _valid_fix(block, fix):
                 block["html_ja"] = fix
+                block["status"] = "draft"
                 block["translation_check"] = fix_tag
                 block["translation_fix_rounds"] = rounds + 1
                 action = "fixed"
             else:
+                block["status"] = "draft"
                 block["translation_check"] = issue_tag
                 action = "unresolved"
             counts[action] += 1
@@ -169,16 +182,19 @@ def main():
     exporter.add_argument("--fixed", action="store_true",
                           help="only corrected drafts awaiting re-review")
     exporter.add_argument("--reviewer", default="claude")
+    exporter.add_argument("--recheck", type=lambda text: set(text.split(",")),
+                          help="comma-separated checks of reviewed blocks to cross-review again")
     exporter.add_argument("keys", nargs="*")
     applier = commands.add_parser("apply")
     applier.add_argument("verdict_dir", type=Path)
     applier.add_argument("--issues", type=Path, help="write blocks with issues to this JSON file")
     applier.add_argument("--reviewer", default="claude")
+    applier.add_argument("--recheck", action="store_true", help="accept verdicts on already reviewed blocks")
     args = cli.parse_args()
     if args.command == "export":
-        export(args.out_dir, args.size, args.keys, args.fixed, args.reviewer)
+        export(args.out_dir, args.size, args.keys, args.fixed, args.reviewer, args.recheck)
     else:
-        apply(args.verdict_dir, args.issues, args.reviewer)
+        apply(args.verdict_dir, args.issues, args.reviewer, args.recheck)
 
 
 if __name__ == "__main__":
