@@ -62,7 +62,9 @@ def audit(path):
             if len(starts) > 1:
                 report["unsplit"].append((block_id, entry["en"][:80]))
             ja_key = entry_key(entry["ja"]) if entry["ja"] else None
-            if not entry["ja"] or (entry["key"][0] == "number" and ja_key != entry["key"]
+            # the key may come from "Appendix A ..." although the line reads "A ...": compare like with like
+            en_key = entry_key(entry["en"])
+            if not entry["ja"] or (en_key[0] == "number" and ja_key != en_key
                                    and not re.match(r"\s*(第|付録|付属書|附属書)", entry["ja"])):
                 report["ja"].append((block_id, entry["en"][:40], entry["ja"][:40]))
             if not entry["target"]:

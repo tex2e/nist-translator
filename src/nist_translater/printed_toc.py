@@ -13,12 +13,15 @@ from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
-TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples|appendices)(\s+and\s+(tables|figures|algorithms|examples))?)\s*$", re.I)
+TOC_HEADING = re.compile(r"^\s*(table of contents|contents|list of (tables|figures|algorithms|examples|appendices)(\s+and\s+(tables|figures|algorithms|examples))?)(\s*\(continued\))?\s*$", re.I)
 # a page number at the end of a line: "— 12", "......... iv", " A-3", chapter-page "....2-3" (also cut off as "1-")
-PAGE = re.compile(r"\s*(?:(?:\s*[.…]){2,}|\.|…+|[—–]|\s)\s*(?:[A-Z]{1,3}[-–]\d{1,3}|[A-Z]\.\d{1,2}-\d{1,3}|\d{1,4}(?:-\d{0,3})?|[ivxlcdm]{1,7}\b)\s*$", re.I)
-NUMBER = re.compile(r"^\s*(?:(?:Appendix|Annex|Chapter|Section)\s+)?([A-Z]|\d{1,2})((?:\.\s?\d{1,3})*)\.?(?=\s|$|[:.]|(?<=\d)[A-Z][a-z])", re.I)
+# or, after a dash, a page named by its part ("— Intro-iii", "— Appendix-87", "— Front")
+PAGE = re.compile(r"\s*(?:(?:\s*[.…]){2,}|\.|…+|[—–]|\s)\s*(?:[A-Z]{1,3}[-–]\d{1,3}|[A-Z]\.\d{1,2}-\d{1,3}|\d{1,4}(?:-\d{0,3})?|[ivxlcdm]{1,7}\b)\s*$"
+                  r"|\s*[—–]\s*(?:(?:Intro|Appendix|Annex)\s?[-–]\s?(?:\d{1,3}|[ivxlcdm]{1,7})|Front)\s*$", re.I)
+NUMBER = re.compile(r"^\s*(?:(?:Appendix|Annex|Chapter|Section)\s+)?([IVX]{2,4}(?=\.)|[A-Z]|\d{1,2})((?:\.\s?\d{1,3})*)\.?(?=\s|$|[:.]|(?<=\d)[A-Z][a-z])", re.I)
 WORD_NUMBERS = ("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN")
-LABEL = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*([A-Z]?-?\d+(?:[.-]\d+)*)", re.I)
+LABEL_ID = r"(?:[A-Z]{1,4}(?:\([A-Z]\))?-|[A-Z]?-?)\d+(?:[.-]\d+)*"
+LABEL = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*(%s)" % LABEL_ID, re.I)
 
 
 def label_name(name):
@@ -43,6 +46,10 @@ def strip_page(text):
 
 def entry_key(text):
     """("number", "1.2") or ("label", "table 3") or ("title", normalized words)."""
+    step = re.match(r"^\s*STEP\s+(\d{1,2})\b", text, re.I)
+    if step:
+        # "STEP 1 DEFINE YOUR SYSTEM" and the heading "STEP 1" (IR 4325); kept apart from section 1
+        return ("step", step.group(1))
     chapter = re.match(r"^\s*CHAPTER\s+(%s)\b" % "|".join(WORD_NUMBERS), text, re.I)
     if chapter:
         return ("number", str(WORD_NUMBERS.index(chapter.group(1).upper()) + 1))
@@ -69,7 +76,7 @@ def words(text):
 
 def title_words(text):
     """Content words of an entry or target, without its number or label."""
-    text = LABEL.sub("", NUMBER.sub("", re.sub(r"^\s*CHAPTER\s+\w+", "", text, flags=re.I)))
+    text = LABEL.sub("", NUMBER.sub("", re.sub(r"^\s*(?:CHAPTER|STEP)\s+\w+", "", text, flags=re.I)))
     # "identifcation": some PDFs lost the "fi" ligature, so compare words without it
     return {word.replace("fi", "") for word in re.findall(r"[a-z]{3,}", text.lower())}
 
@@ -101,15 +108,23 @@ def find_targets(blocks, start):
     return headings
 
 
-CAPTION = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*[A-Z]?-?\d+(?:[.-]\d+)*\s*(?:[.:–—-]|$)", re.I)
+CAPTION = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*%s\s*(?:[.:–—-]|$)" % LABEL_ID, re.I)
 
 
-def choose(candidates, entry):
+def choose(candidates, entry, position=None, after=-1, following=0):
     """The first candidate that is the same section: its words overlap the entry's title,
     or it is only the bare number or label ("APPENDIX D", "Chapter 9") with the title in the next block.
     For a table or figure, a caption ("Table 3.", "Table 3:", or the table/figure block itself)
     comes before prose that mentions it ("Table 3 provides ...")."""
     wanted = title_words(entry)
+    if position is not None:
+        # TOC entries come in document order: "A. Introduction" under chapter III is the
+        # second "A. Introduction", not the one under chapter I. Only blocks after the TOC
+        # (positions below `following`) are ordered; blocks before it stay last.
+        def rank(candidate):
+            place = position.get(candidate[0], following)
+            return 0 if after < place < following else 1 if place < following else 2
+        candidates = sorted(candidates, key=rank)
     if LABEL.match(entry):
         captions = [c for c in candidates if c[2] in ("table", "figure") or CAPTION.match(c[1])]
         candidates = captions + [c for c in candidates if c not in captions]
@@ -196,6 +211,20 @@ def untitled_run(blocks, index, length=4):
         sum(bool(DOTTED.search(plain(block.get("html")))) for block in window) >= 2
 
 
+# an entry in a list of appendices printed without page numbers ("A FIRMPOC Survey", "B - Vendor List")
+APPENDIX_LINE = re.compile(r"^\s*(?:Appendix\s+)?[A-Z](?:\s*[-–—:.]\s*|\s+)[A-Z0-9\"“]")
+# an entry that starts with its table/figure number but not the word ("III-1 Target Agency ...", "1. Flowchart")
+BARE_LABEL = re.compile(r"^\s*(?:[A-Z]{1,4}(?:\([A-Z]\))?-\d|\d{1,3}(?:[.-]\d{1,3})*\.?\s)")
+
+
+def list_label(text):
+    """"Table", "Figure" or "Appendix" for the title of a list of one kind, else None."""
+    match = re.match(r"^\s*(?:list of\s+)?(tables|figures|appendices|appendixes)\s*$", text, re.I)
+    if not match:
+        return None
+    return {"tables": "Table", "figures": "Figure"}.get(match.group(1).lower(), "Appendix")
+
+
 def printed_toc(blocks):
     """{block id: {"depth", "target", "en", "ja"}} for the lines of the printed TOC.
 
@@ -209,13 +238,27 @@ def printed_toc(blocks):
             index += 1
             continue
         block = blocks[index]
+        label = list_label(plain(block.get("html"))) if titled else None
+
+        def appendix_line(position):
+            # a list of appendices may print no page numbers at all
+            candidate = blocks[position]
+            text = plain(candidate.get("html"))
+            return label == "Appendix" and candidate["kind"] in ("paragraph", "list_item") \
+                and len(text) < 200 and bool(APPENDIX_LINE.match(text))
+
         # a TOC without a title block starts with its first line
         lines, cursor = [], index + 1 if titled else index
-        # a short line between the title and the first entry (the document title repeated) is skipped
-        if titled and cursor < len(blocks) and not solid_line(blocks, cursor):
+        # a short line between the title and the first entry (the document title repeated,
+        # or a column header "Table — Content") is skipped
+        if titled and cursor < len(blocks) and not (solid_line(blocks, cursor) or appendix_line(cursor)):
             ahead = blocks[cursor:cursor + 4]
-            first = next((offset for offset in range(len(ahead)) if solid_line(blocks, cursor + offset)), None)
-            if first and all(len(plain(b.get("html"))) <= 100 for b in ahead[:first]):
+            first = next((offset for offset in range(len(ahead))
+                          if solid_line(blocks, cursor + offset) or appendix_line(cursor + offset)), None)
+            # a longer subtitle ("VOLUME I: DOE RISK ASSESSMENT ...", IR 4325) is skipped too, but not a table
+            if first and all(len(plain(b.get("html"))) <= 100 or (
+                    len(plain(b.get("html"))) <= 200 and b["kind"] in ("paragraph", "heading"))
+                    for b in ahead[:first]):
                 cursor += first
         while cursor < len(blocks):
             candidate = blocks[cursor]
@@ -223,7 +266,8 @@ def printed_toc(blocks):
             if is_toc_title(blocks, cursor):
                 break  # the next list ("List of Figures") starts here
             if candidate["kind"] not in ("paragraph", "list_item", "heading", "math") or not (
-                    PAGE.search(text) or LEADER.search(text) or len(split_entries(text)) > 1):
+                    PAGE.search(text) or LEADER.search(text) or len(split_entries(text)) > 1
+                    or appendix_line(cursor)):
                 break
             # a heading after the TOC can end in a number ("Acknowledgments for Revision 3"):
             # a heading counts as a TOC line only with a dot leader or a dash before its page number
@@ -234,19 +278,48 @@ def printed_toc(blocks):
         toc_ids = {line["id"] for line in lines} | {block["id"]}
         rest = [b for b in blocks[cursor:] + blocks[:index] if b["id"] not in toc_ids]
         targets = find_targets(rest, 0)
+        position = {b["id"]: number for number, b in enumerate(rest)}
+        following = sum(1 for b in blocks[cursor:] if b["id"] not in toc_ids)
+        previous = [-1]
 
         def entry(text, japanese):
             text = strip_page(text)
-            key = entry_key(text)
-            target = choose(targets.get(key, []), text)
-            if target is None:
-                target = choose(targets.get(("title", words(NUMBER.sub("", LABEL.sub("", text)))), []), text)
+            # in a list of tables, figures or appendices the entry may leave out the word
+            probe = text
+            if label in ("Table", "Figure") and not LABEL.match(text) and BARE_LABEL.match(text):
+                probe = "%s %s" % (label, text)
+            elif label == "Appendix" and APPENDIX_LINE.match(text) and not re.match(r"\s*Appendix\b", text, re.I):
+                probe = "Appendix " + text
+            def find(probe):
+                key = entry_key(probe)
+                target = choose(targets.get(key, []), probe, position, previous[0], following)
+                if target is None:
+                    target = choose(targets.get(("title", words(NUMBER.sub("", LABEL.sub("", probe)))), []),
+                                    probe, position, previous[0], following)
+                return key, target
+
+            # the word is added only when the line does not link as printed: a list title can be
+            # extracted out of place (SP 800-226), and "4.1. Query Models" is then not "Table 4.1"
+            # A lettered line under "List of Appendices" is surely an appendix: that is tried first.
+            first, second = (probe, text) if label == "Appendix" else (text, probe)
+            key, target = find(first)
+            if target is None and probe != text:
+                other = find(second)
+                if other[1] is not None:
+                    key, target = other
+            if target is not None and position[target] < following:
+                previous[0] = position[target]
             return {"depth": min(depth_of(key), 4), "target": target, "en": text,
                     "ja": strip_page(japanese) if japanese else text, "key": key}
 
         for line in lines:
-            english = split_entries(plain(line["html"]))
-            japanese = split_entries(plain(line.get("html_ja"))) if line.get("html_ja") else []
+            def parts(markup):
+                # a list of appendices may keep its lines in one block, separated by <br>
+                if label == "Appendix" and re.search(r"<br\s*/?>", markup or ""):
+                    return [plain(part) for part in re.split(r"<br\s*/?>", markup) if plain(part)]
+                return split_entries(plain(markup))
+            english = parts(line["html"])
+            japanese = parts(line.get("html_ja")) if line.get("html_ja") else []
             if len(japanese) != len(english):
                 # pair by section number when the Japanese split differently; otherwise show the English
                 by_key = {entry_key(strip_page(part)): part for part in japanese}
