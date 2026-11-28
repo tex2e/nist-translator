@@ -86,6 +86,7 @@
           {% elif block.kind == 'figure' %}<span class="pending">図の説明は翻訳準備中</span>
           {% elif block.html_ja %}{{ block.japanese_html }}{% elif block.status == 'source_only' %}<span class="pending">原文のみ</span>{% else %}<span class="pending">翻訳準備中</span>{% endif %}
           {% if block.status == 'draft' and block.html_ja %}<span class="draft-badge">未レビュー訳</span>{% endif %}
+          {% if block.footnote_backrefs %}<div class="fn-backrefs">{% for number, ref in block.footnote_backrefs %}<a href="#{{ ref }}" aria-label="脚注 {{ number }} の参照元へ戻る">↩ 本文へ{% if block.footnote_backrefs|length > 1 %}（{{ number }}）{% endif %}</a>{% endfor %}</div>{% endif %}
         </div>
       </section>
       {% else %}
@@ -229,6 +230,43 @@
         toastBox.textContent = message; toastBox.classList.add("show");
         clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
       }
+    })();
+  </script>
+  <script>
+    // 脚注の参照番号にマウスを載せる（またはキーボードで選ぶ）と、同じ言語の脚注を番号の近くに表示する。
+    // 押せば脚注の行へ移動し、脚注の「本文へ」で戻れる。タッチ操作では表示せず、移動だけにする。
+    (function () {
+      var links = document.querySelectorAll(".fnref a[data-fn]");
+      if (!links.length || !window.matchMedia("(hover: hover)").matches) return;
+      var box = document.createElement("div");
+      box.className = "fn-popover";
+      box.setAttribute("role", "tooltip");
+      box.hidden = true;
+      document.body.appendChild(box);
+      function show(link) {
+        var row = document.getElementById(link.dataset.fn);
+        var side = link.closest("[lang]");
+        var column = row && row.querySelector('[lang="' + (side ? side.getAttribute("lang") : "ja") + '"]');
+        if (!column) return;
+        var copy = column.cloneNode(true);
+        copy.querySelectorAll(".source-ref, .fn-backrefs, .draft-badge").forEach(function (node) { node.remove(); });
+        box.innerHTML = copy.innerHTML;
+        box.hidden = false;
+        var rect = link.getBoundingClientRect();
+        var left = Math.min(rect.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - box.offsetWidth - 12);
+        box.style.left = Math.max(window.scrollX + 12, left) + "px";
+        var below = rect.bottom + window.scrollY + 6;
+        box.style.top = (rect.bottom + box.offsetHeight + 6 > window.innerHeight
+          ? rect.top + window.scrollY - box.offsetHeight - 6 : below) + "px";
+      }
+      function hide() { box.hidden = true; }
+      links.forEach(function (link) {
+        link.addEventListener("mouseenter", function () { show(link); });
+        link.addEventListener("focus", function () { show(link); });
+        link.addEventListener("mouseleave", hide);
+        link.addEventListener("blur", hide);
+      });
+      document.addEventListener("keydown", function (event) { if (event.key === "Escape") hide(); });
     })();
   </script>
   {% if toc %}
