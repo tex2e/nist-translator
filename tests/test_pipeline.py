@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 from src.nist_translater.documents import DOCUMENTS, document_paths
 from src.nist_translater.parser import parse_document
-from src.nist_translater.render import build_site
+from src.nist_translater.render import build_site, with_image_size
 from src.nist_translater.storage import read_json
 from src.nist_translater.translation import make_queue, merge_translations
 
@@ -125,6 +125,19 @@ class PipelineTests(unittest.TestCase):
             # 344 pt wide in the PDF = 459 CSS px at 100% zoom
             self.assertEqual(frame["style"], "max-width: 459px")
 
+
+    def test_image_tags_get_their_png_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            site = Path(directory)
+            # a 3x2 PNG header is enough: only the IHDR size is read
+            (site / "a.png").write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR"
+                                         + (3).to_bytes(4, "big") + (2).to_bytes(4, "big"))
+            self.assertEqual(with_image_size('<img src="a.png" alt="x">', site),
+                             '<img src="a.png" alt="x" width="3" height="2">')
+            kept = '<img src="a.png" width="9" height="9">'
+            self.assertEqual(with_image_size(kept, site), kept)
+            remote = '<img src="https://example.com/a.png">'
+            self.assertEqual(with_image_size(remote, site), remote)
 
 if __name__ == "__main__":
     unittest.main()
