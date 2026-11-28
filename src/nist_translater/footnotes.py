@@ -25,8 +25,14 @@ REFERENCE = re.compile(r"<sup>(\d{1,3})</sup>")
 GROUPED = re.compile(r"<sup>(\d{1,3}(?:\s*,\s*\d{1,3})+)</sup>")
 
 
+# a reference in an HTML original that links to the footnote on the NIST site
+EXTERNAL = re.compile(r'<sup><a href="[^"]*#fn:[^"]*">(\d{1,3})</a></sup>')
+
+
 def _ungroup(markup):
+    markup = EXTERNAL.sub(r"<sup>\1</sup>", markup)
     return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n.strip() for n in m.group(1).split(",")), markup)
+BACK_ARROW = re.compile(r"\s*↩\s*(?=(?:</p>)?\s*$)")
 MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*†‡§]")
 SUPERSCRIPT = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 # a footnote is printed on the page of its reference or, when the text runs on, a page or two later
@@ -93,11 +99,26 @@ def _numbered(markup, number):
 
 
 def split_footnotes(visible):
-    """One row per footnote, each opening with its number in one style."""
+    """One row per footnote, each opening with its number in one style.
+
+    Footnotes taken from an HTML original (no PDF page) carry no number in the data: the
+    original numbers each group of footnotes 1, 2, 3, … and ends each with "↩". Those are
+    numbered by their place in the run of consecutive footnotes."""
     result = []
+    run = 0
     for item in visible:
         english = str(item.get("english_html", "")) if item.get("kind") == "footnote" else ""
         starts = _starts(english)
+        if item.get("kind") != "footnote":
+            run = 0
+        if not starts and english and not item.get("source_page") and not MARK.match(english):
+            run += 1
+            piece = dict(item, footnote_numbers=[run])
+            piece["english_html"] = Markup(_numbered(BACK_ARROW.sub("", english), run))
+            if item.get("html_ja"):
+                piece["japanese_html"] = Markup(_numbered(BACK_ARROW.sub("", str(item.get("japanese_html", ""))), run))
+            result.append(piece)
+            continue
         if not starts:
             result.append(item)
             continue
@@ -131,11 +152,19 @@ def _page(item):
     return item.get("source_page") or 0
 
 
-def _target(notes, number, index, page):
-    """The footnote block for reference `number` in the row at `index`: the first one after the
-    row within a few pages, else the nearest one before it within a few pages (a table that
-    continues on the next page, or a second reference to the same footnote)."""
+def _target(notes, number, index, page, far=False):
+    """The footnote block for reference `number` in the row at `index`.
+
+    Near (the first pass): the first one after the row within a few pages, else the nearest
+    one before it within a few pages (a table that continues on the next page, or a second
+    reference to the same footnote).
+    Far (the second pass, for endnotes printed far away): the document's one footnote with
+    that number, after the reference, that no nearby reference has claimed."""
     candidates = notes.get(number, [])
+    if far:
+        if len(candidates) == 1 and candidates[0][0] > index and not candidates[0][1].get("footnote_backrefs"):
+            return candidates[0][1]
+        return None
     after = [(i, item) for i, item in candidates if i > index and 0 <= _page(item) - page <= PAGE_REACH]
     if after:
         return after[0][1]
@@ -157,15 +186,33 @@ def link_footnotes(visible):
                 notes.setdefault(number, []).append((index, item))
     if not notes:
         return
+    _link_rows(visible, notes, far=False)
+    _link_rows(visible, notes, far=True)
+    for numbered in notes.values():
+        for _, note in numbered:
+            note.setdefault("footnote_backrefs", []).sort()
+
+
+UNIT = re.compile(r"(?:\b(?:m|mm|cm|km|ft)|[µμ]m)$")
+
+
+def _word_before(text):
+    """Before a far reference: a word (not a unit such as "m²" or "µm²") or sentence punctuation."""
+    return bool(re.search(r"[a-z.,;:\"”’]$", text)) and not UNIT.search(text)
+
+
+def _link_rows(visible, notes, far):
     for index, item in enumerate(visible):
-        if item.get("kind") == "footnote" or "<sup>" not in str(item.get("english_html", "")):
+        if item.get("kind") == "footnote" or "<sup" not in str(item.get("english_html", "")):
             continue
         page = _page(item)
         linked = {}
 
         def english(match):
             number = int(match.group(1))
-            note = _target(notes, number, index, page)
+            if far and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()])):
+                return match.group(0)
+            note = _target(notes, number, index, page, far)
             if not note:
                 return match.group(0)
             linked[number] = note
@@ -189,9 +236,6 @@ def link_footnotes(visible):
             backrefs = note.setdefault("footnote_backrefs", [])
             if number not in [n for n, _ in backrefs]:
                 backrefs.append((number, item["id"]))
-    for numbered in notes.values():
-        for _, note in numbered:
-            note.setdefault("footnote_backrefs", []).sort()
 
 
 def gather_footnotes(visible):

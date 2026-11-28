@@ -67,8 +67,32 @@ class FootnoteTests(unittest.TestCase):
         self.assertEqual(rows[2]["footnote_backrefs"], [(4, "p1")])
 
     def test_reference_without_a_nearby_note_stays_plain(self):
-        rows = page([row("p1", "paragraph", "x<sup>9</sup>", page=1), row("f1", "footnote", "9 Far away.", page=8)])
+        # an exponent (after a digit) never links to a far note
+        rows = page([row("p1", "paragraph", "2<sup>9</sup>", page=1), row("f1", "footnote", "9 Far away.", page=8)])
+        self.assertEqual(str(rows[0]["english_html"]), "2<sup>9</sup>")
+        # a far note links only when it is the document's one note with that number
+        rows = page([row("p1", "paragraph", "x<sup>9</sup>", page=1), row("f1", "footnote", "9 Far.", page=8),
+                     row("f2", "footnote", "9 Another.", page=20)])
         self.assertEqual(str(rows[0]["english_html"]), "x<sup>9</sup>")
+
+    def test_endnote_far_away_links_when_unique(self):
+        rows = page([row("p1", "paragraph", "the Guidelines.<sup>9</sup>", page=1),
+                     row("f1", "footnote", "9 Endnote.", page=30)])
+        self.assertIn('href="#f1"', str(rows[0]["english_html"]))
+
+    def test_html_footnotes_are_numbered_by_their_run(self):
+        rows = split_footnotes([row("h1", "footnote", "First note. ↩", page=None),
+                                row("h2", "footnote", "Second note. ↩", page=None),
+                                row("p1", "paragraph", "text", page=None),
+                                row("h3", "footnote", "Again first. ↩", page=None)])
+        self.assertEqual([r.get("footnote_numbers") for r in rows], [[1], [2], None, [1]])
+        self.assertEqual(str(rows[1]["english_html"]), '<span class="fn-num">2</span>Second note.')
+
+    def test_html_reference_to_the_nist_site_links_here(self):
+        rows = page([row("p1", "paragraph", 'id<sup><a href="https://pages.nist.gov/x.html#fn:GovID">1</a></sup>', page=None),
+                     row("h1", "footnote", "A note. ↩", page=None)])
+        self.assertIn('href="#h1"', str(rows[0]["english_html"]))
+        self.assertNotIn("pages.nist.gov", str(rows[0]["english_html"]))
 
     def test_note_moves_to_end_of_referring_section_but_captions_stay(self):
         rows = page([row("h1", "heading", "1 Intro"), row("p1", "paragraph", "refers<sup>1</sup>"),
