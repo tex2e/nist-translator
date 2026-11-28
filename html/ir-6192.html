@@ -20,8 +20,8 @@
   </script>  <meta name="description" content="NIST IR 6192 は、ロールベースアクセス制御（RBAC）の一般モデルについて、元のモデルを見直し、表記上の問題を訂正し、指摘された相違点に対処する改訂モデルを定式化した報告書です。その目的は、元のモデルが持つ含意の理解を深め、モデルの利用や実装に関わるその後の活動に確かな基準を提供することです。改訂モデルの特性は、ロールのメンバーシップに対する制約を扱う静的な特性と、ロールの有効化に対する制約を扱う動的な特性という 2 つの主題に沿って整理されています。モデルの要素、写像と関係、ロール階層、コア RBAC の機能を取り上げ、システムや製品が改訂モデルの真の実体化と見なされるために必要な、推奨される最小限の特性の一覧も提案しています。">
   <title>ロールベースアクセス制御の改訂モデル | NIST IR 6192 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=89ba9d1023">
-  <link rel="stylesheet" href="header.css?v=89ba9d1023">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=54ac7a473b">
+  <link rel="stylesheet" href="header.css?v=54ac7a473b">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -1517,6 +1517,43 @@
         toastBox.textContent = message; toastBox.classList.add("show");
         clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
       }
+    })();
+  </script>
+  <script>
+    // 脚注の参照番号にマウスを載せる（またはキーボードで選ぶ）と、同じ言語の脚注を番号の近くに表示する。
+    // 押せば脚注の行へ移動し、脚注の「本文へ」で戻れる。タッチ操作では表示せず、移動だけにする。
+    (function () {
+      var links = document.querySelectorAll(".fnref a[data-fn]");
+      if (!links.length || !window.matchMedia("(hover: hover)").matches) return;
+      var box = document.createElement("div");
+      box.className = "fn-popover";
+      box.setAttribute("role", "tooltip");
+      box.hidden = true;
+      document.body.appendChild(box);
+      function show(link) {
+        var row = document.getElementById(link.dataset.fn);
+        var side = link.closest("[lang]");
+        var column = row && row.querySelector('[lang="' + (side ? side.getAttribute("lang") : "ja") + '"]');
+        if (!column) return;
+        var copy = column.cloneNode(true);
+        copy.querySelectorAll(".source-ref, .fn-backrefs, .draft-badge").forEach(function (node) { node.remove(); });
+        box.innerHTML = copy.innerHTML;
+        box.hidden = false;
+        var rect = link.getBoundingClientRect();
+        var left = Math.min(rect.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - box.offsetWidth - 12);
+        box.style.left = Math.max(window.scrollX + 12, left) + "px";
+        var below = rect.bottom + window.scrollY + 6;
+        box.style.top = (rect.bottom + box.offsetHeight + 6 > window.innerHeight
+          ? rect.top + window.scrollY - box.offsetHeight - 6 : below) + "px";
+      }
+      function hide() { box.hidden = true; }
+      links.forEach(function (link) {
+        link.addEventListener("mouseenter", function () { show(link); });
+        link.addEventListener("focus", function () { show(link); });
+        link.addEventListener("mouseleave", hide);
+        link.addEventListener("blur", hide);
+      });
+      document.addEventListener("keydown", function (event) { if (event.key === "Escape") hide(); });
     })();
   </script>
   <script>

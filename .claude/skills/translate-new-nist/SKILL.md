@@ -65,6 +65,7 @@ LaTeX で組まれた PDF で fi の合字が落ちていれば `scripts/fix_los
 - NIST ロゴ、商務省の紋章、人物写真、他組織のロゴ、第三者の画像は `scripts/withhold_marks.py` で非掲載にします。
 - 第三者の著作物の節（NIST 以外のワークショップ論文・発表、© や転載許諾つきの再掲）は `scripts/withhold_sections.py` で非掲載にします。出席者名簿・連絡先一覧は個人情報として非掲載にします。米国政府機関の著作は掲載します。判断は `decisions.md` に記録します。
 - 図の説明は `scripts/figure_descriptions.py` で作ります。
+- 脚注を整えます。先に `scripts/footnote_refs.py --apply <stem>` で、本文にくっついた参照番号（`policies.7`）を `<sup>7</sup>` にします。report に出た判断の難しいものは、原本で確かめて直します。次に `scripts/footnote_kinds.py --apply <stem>` で、本文や数式として抽出された脚注を `footnote` にします。参照番号が `<sup>N</sup>` で、脚注が番号で始まっていれば、ページ生成時に参照と脚注が相互にリンクされ、脚注は参照元の節の最後にまとめられます（`src/nist_translater/footnotes.py`）。
 - 読めない文字を推測で確定しません。
 
 ## 4. 翻訳（Sonnet）

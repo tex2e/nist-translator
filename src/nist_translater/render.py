@@ -10,6 +10,7 @@ from markupsafe import Markup
 
 from .translation import audit_translations
 from .source_quality import assert_publishable_source
+from .footnotes import gather_footnotes, link_footnotes, split_footnotes
 
 
 PDF_URL = "https://doi.org/10.6028/NIST.SP.800-63b-4"
@@ -255,6 +256,11 @@ def build_site(document, meta, template_path, output_path):
             headings.append({"id": block["id"], "text": heading_text(block["html"]),
                              "text_ja": heading_text(item["html_ja"] or block["html"]),
                              "level": block["level"]})
+
+    # Footnotes: one row per note, linked both ways, shown at the end of the referring section.
+    visible = split_footnotes(visible)
+    link_footnotes(visible)
+    visible = gather_footnotes(visible)
 
     # The original's printed table of contents: each line links to its heading, indented by
     # section depth, without the page number (display only; the data is unchanged).

@@ -20,8 +20,8 @@
   </script>  <meta name="description" content="FIPS 203 は、モジュール格子ベースの鍵カプセル化メカニズム（ML-KEM）を規定する連邦情報処理標準です。鍵カプセル化メカニズム（KEM）は、公開チャネル上で通信する二者が共有シークレット鍵を確立するために使うアルゴリズムの集合で、本標準は ML-KEM の概要、補助アルゴリズム、K-PKE 構成要素スキーム、内部アルゴリズム、パラメーターセットを扱います。安全に確立された共有シークレット鍵は共通鍵暗号アルゴリズムとともに使えるもので、耐量子や格子ベース暗号をキーワードとする鍵確立方式の一種です。">
   <title>モジュール格子ベースの鍵カプセル化メカニズム標準 | NIST FIPS 203 | 非公式 英日対訳</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=89ba9d1023">
-  <link rel="stylesheet" href="header.css?v=89ba9d1023">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">  <link rel="stylesheet" href="style.css?v=54ac7a473b">
+  <link rel="stylesheet" href="header.css?v=54ac7a473b">
 </head>
 <body>
 <nav class="nt-nav" aria-label="サイト">
@@ -3911,7 +3911,7 @@ Output: \(c_0, c_1 \in \mathbb{Z}_q\).  ▷ the coefficients of the product of t
 <div class="algorithm">Input: randomness \(d \in \mathbb{B}^{32}\).
 Output: encryption key \(\mathsf{ek}_{\mathsf{PKE}} \in \mathbb{B}^{384k+32}\).
 Output: decryption key \(\mathsf{dk}_{\mathsf{PKE}} \in \mathbb{B}^{384k}\).
-1: \((\rho, \sigma) \leftarrow \mathsf{G}(d \| k)\) ▷ expand 32+1 bytes to two pseudorandom 32-byte seeds\(^{1}\)
+1: \((\rho, \sigma) \leftarrow \mathsf{G}(d \| k)\) ▷ expand 32+1 bytes to two pseudorandom 32-byte seeds<sup class="fnref"><a href="#pdf-p0038-r0008" data-fn="pdf-p0038-r0008" aria-label="脚注 1">1</a></sup>
 2: \(N \leftarrow 0\)
 3: for (\(i \leftarrow 0\); \(i &lt; k\); \(i\)++) ▷ generate matrix \(\hat{\mathbf{A}} \in (\mathbb{Z}_q^{256})^{k \times k}\)
 4:   for (\(j \leftarrow 0\); \(j &lt; k\); \(j\)++)
@@ -3944,6 +3944,11 @@ Output: decryption key \(\mathsf{dk}_{\mathsf{PKE}} \in \mathbb{B}^{384k}\).
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>K-PKE.KeyGen では、パラメーターセットの選択が（パラメーター \(k\) を通じて）秘密 \(\mathbf{s}\) の長さに影響し、その結果としてノイズベクトル \(\mathbf{e}\) と擬似ランダム行列 \(\mathbf{A}\) のサイズにも影響します。パラメーターセットの選択は、\(\mathbf{s}\) と \(\mathbf{e}\) の成分のサンプリングに用いるノイズ分布にも（パラメーター \(\eta_1\) を通じて）影響します。</p>        </div>
       </section>
+      <section class="row source-only pair footnote" id="pdf-p0038-r0008" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="fn-num">1</span>Byte \(33\) of the input to G is the module dimension \(k \in \{2,3,4\} \subset \mathbb{B}\). This is included to establish domain separation between the three parameter sets. For implementations that use the seed in place of the private key, this ensures that the expansion will produce an unrelated key if the seed is mistakenly expanded using a parameter set other than the originally intended one.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=38">原本 PDF p.38</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="fn-num">1</span>G への入力の第 \(33\) バイトは、モジュール次元 \(k \in \{2,3,4\} \subset \mathbb{B}\) です。これは、三つのパラメーターセット間のドメイン分離を確立するために含めています。秘密鍵の代わりにシードを使用する実装では、本来意図したものとは異なるパラメーターセットを用いて誤ってシードを展開した場合に、無関係な鍵が生成されることがこれにより保証されます。<div class="fn-backrefs"><a href="#pdf-p0038-r0004" aria-label="脚注 1 の参照元へ戻る">↩ 本文へ</a></div>        </div>
+      </section>
       <section class="row pair heading" id="pdf-p0038-r0006">
         <div class="english col-sm-12 col-md-6 text" lang="en">
           <h3>5.2 K-PKE Encryption</h3>
@@ -3959,11 +3964,6 @@ Output: decryption key \(\mathsf{dk}_{\mathsf{PKE}} \in \mathbb{B}^{384k}\).
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>K-PKE の暗号化アルゴリズム K-PKE.Encrypt（アルゴリズム 14）は、暗号化鍵 \(\mathsf{ek}_{\mathsf{PKE}}\)、32 バイトの平文 \(m\)、および乱数（randomness）\(r\) を入力として受け取り、暗号文 \(c\) という単一の出力を生成します。</p>        </div>
-      </section>
-      <section class="row source-only pair footnote" id="pdf-p0038-r0008" aria-label="脚注の英日対訳">
-        <div class="english col-sm-12 col-md-6 text" lang="en">1 Byte \(33\) of the input to G is the module dimension \(k \in \{2,3,4\} \subset \mathbb{B}\). This is included to establish domain separation between the three parameter sets. For implementations that use the seed in place of the private key, this ensures that the expansion will produce an unrelated key if the seed is mistakenly expanded using a parameter set other than the originally intended one.<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=38">原本 PDF p.38</a></div></div>
-        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-1 G への入力の第 \(33\) バイトは、モジュール次元 \(k \in \{2,3,4\} \subset \mathbb{B}\) です。これは、三つのパラメーターセット間のドメイン分離を確立するために含めています。秘密鍵の代わりにシードを使用する実装では、本来意図したものとは異なるパラメーターセットを用いて誤ってシードを展開した場合に、無関係な鍵が生成されることがこれにより保証されます。        </div>
       </section>
       <section class="row pair paragraph" id="pdf-p0039-r0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -4428,10 +4428,10 @@ Output: decapsulation key \(\mathsf{dk} \in \mathbb{B}^{768k+96}\).
       </section>
       <section class="row pair paragraph" id="pdf-p0045-r0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
-<p>Key pair check. To check a candidate key pair<sup>1</sup> \((\overline{\mathsf{ek}},\overline{\mathsf{dk}})\), perform the following checks:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=45">原本 PDF p.45</a></div>          
+<p>Key pair check. To check a candidate key pair<sup class="fnref"><a href="#pdf-p0045-r0014" data-fn="pdf-p0045-r0014" aria-label="脚注 1">1</a></sup> \((\overline{\mathsf{ek}},\overline{\mathsf{dk}})\), perform the following checks:</p><div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=45">原本 PDF p.45</a></div>          
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-<p>鍵ペアの検査。鍵ペアの候補<sup>1</sup> \((\overline{\mathsf{ek}},\overline{\mathsf{dk}})\) を検査するには、次の検査を行います。</p>        </div>
+<p>鍵ペアの検査。鍵ペアの候補<sup class="fnref"><a href="#pdf-p0045-r0014" data-fn="pdf-p0045-r0014" aria-label="脚注 1">1</a></sup> \((\overline{\mathsf{ek}},\overline{\mathsf{dk}})\) を検査するには、次の検査を行います。</p>        </div>
       </section>
       <section class="row pair list_item depth-0" id="pdf-p0045-b0003">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -4504,6 +4504,11 @@ Output: decapsulation key \(\mathsf{dk} \in \mathbb{B}^{768k+96}\).
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>この検査プロセスは、鍵ペアが ML-KEM.KeyGen によって適切に生成された出力であることを保証しない点に注意することが重要です。</p>        </div>
       </section>
+      <section class="row source-only pair footnote" id="pdf-p0045-r0014" aria-label="脚注の英日対訳">
+        <div class="english col-sm-12 col-md-6 text" lang="en"><span class="fn-num">1</span>In discussions of input checking, the “low overline” in the notation indicates that the input has not yet been checked (e.g., \(\overline{\mathsf{ek}}\) has not yet been checked, while ek has passed the check).<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=45">原本 PDF p.45</a></div></div>
+        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
+<span class="fn-num">1</span>入力検査に関する議論では、表記中の「低いオーバーライン」は、その入力がまだ検査されていないことを示します（例えば、\(\overline{\mathsf{ek}}\) はまだ検査されていませんが、ek は検査に合格しています）。<div class="fn-backrefs"><a href="#pdf-p0045-r0001" aria-label="脚注 1 の参照元へ戻る">↩ 本文へ</a></div>        </div>
+      </section>
       <section class="row pair heading" id="pdf-p0045-b0010">
         <div class="english col-sm-12 col-md-6 text" lang="en">
           <h3>7.2 ML-KEM Encapsulation</h3>
@@ -4571,11 +4576,6 @@ Output: decapsulation key \(\mathsf{dk} \in \mathbb{B}^{768k+96}\).
         </div>
         <div class="japanese col-sm-12 col-md-6 text" lang="ja">
 <p>ML-KEM.Encaps は、上記のとおりに検査されていないカプセル化鍵を用いて実行してはなりません。ただし、カプセル化鍵の検査は、カプセル化を行う当事者が実施する必要はなく、ML-KEM.Encaps の実行のたびに実施する必要もありません。代わりに、これらの検査が実施されたことの保証を他の手段によって得ることができます（SP 800-227 [1] を参照してください）。</p>        </div>
-      </section>
-      <section class="row source-only pair footnote" id="pdf-p0045-r0014" aria-label="脚注の英日対訳">
-        <div class="english col-sm-12 col-md-6 text" lang="en">1In discussions of input checking, the “low overline” in the notation indicates that the input has not yet been checked (e.g., \(\overline{\mathsf{ek}}\) has not yet been checked, while ek has passed the check).<div class="source-ref"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf#page=45">原本 PDF p.45</a></div></div>
-        <div class="japanese col-sm-12 col-md-6 text" lang="ja">
-1入力検査に関する議論では、表記中の「低いオーバーライン」は、その入力がまだ検査されていないことを示します（例えば、\(\overline{\mathsf{ek}}\) はまだ検査されていませんが、ek は検査に合格しています）。        </div>
       </section>
       <section class="row pair heading" id="pdf-p0046-r0001">
         <div class="english col-sm-12 col-md-6 text" lang="en">
@@ -5512,6 +5512,43 @@ C.1 CRYSTALS-Kyber と FIPS 203 初期公開草案との相違点</h3>        </
         toastBox.textContent = message; toastBox.classList.add("show");
         clearTimeout(timer); timer = setTimeout(function () { toastBox.classList.remove("show"); }, 1600);
       }
+    })();
+  </script>
+  <script>
+    // 脚注の参照番号にマウスを載せる（またはキーボードで選ぶ）と、同じ言語の脚注を番号の近くに表示する。
+    // 押せば脚注の行へ移動し、脚注の「本文へ」で戻れる。タッチ操作では表示せず、移動だけにする。
+    (function () {
+      var links = document.querySelectorAll(".fnref a[data-fn]");
+      if (!links.length || !window.matchMedia("(hover: hover)").matches) return;
+      var box = document.createElement("div");
+      box.className = "fn-popover";
+      box.setAttribute("role", "tooltip");
+      box.hidden = true;
+      document.body.appendChild(box);
+      function show(link) {
+        var row = document.getElementById(link.dataset.fn);
+        var side = link.closest("[lang]");
+        var column = row && row.querySelector('[lang="' + (side ? side.getAttribute("lang") : "ja") + '"]');
+        if (!column) return;
+        var copy = column.cloneNode(true);
+        copy.querySelectorAll(".source-ref, .fn-backrefs, .draft-badge").forEach(function (node) { node.remove(); });
+        box.innerHTML = copy.innerHTML;
+        box.hidden = false;
+        var rect = link.getBoundingClientRect();
+        var left = Math.min(rect.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - box.offsetWidth - 12);
+        box.style.left = Math.max(window.scrollX + 12, left) + "px";
+        var below = rect.bottom + window.scrollY + 6;
+        box.style.top = (rect.bottom + box.offsetHeight + 6 > window.innerHeight
+          ? rect.top + window.scrollY - box.offsetHeight - 6 : below) + "px";
+      }
+      function hide() { box.hidden = true; }
+      links.forEach(function (link) {
+        link.addEventListener("mouseenter", function () { show(link); });
+        link.addEventListener("focus", function () { show(link); });
+        link.addEventListener("mouseleave", hide);
+        link.addEventListener("blur", hide);
+      });
+      document.addEventListener("keydown", function (event) { if (event.key === "Escape") hide(); });
     })();
   </script>
   <script>
