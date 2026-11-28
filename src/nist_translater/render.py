@@ -237,6 +237,12 @@ def build_site(document, meta, template_path, output_path):
         elif block["kind"] == "figure" and block["html_ja"]:
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""
+        if block["kind"] == "figure":
+            # Show a figure no larger than it is printed in the PDF at 100% zoom:
+            # the bbox is in points, and 72 pt = 96 CSS px.
+            boxes = [ref["bbox"] for ref in block.get("source_refs") or [] if ref.get("bbox")]
+            if boxes:
+                item["figure_max_width"] = round(max(b[2] - b[0] for b in boxes) * 96 / 72)
         if document.get("source_format") == "pdf" and block.get("source_page"):
             item["source_page_url"] = document["source_url"] + "#page=%d" % block["source_page"]
         if block["html_ja"] and block["status"] in {"draft", "reviewed"}:

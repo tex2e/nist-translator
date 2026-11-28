@@ -113,6 +113,18 @@ class PipelineTests(unittest.TestCase):
             # Footnotes stay bilingual.
             self.assertIn("無効化には複数の形態がある", output.read_text(encoding="utf-8"))
 
+    def test_figure_is_capped_at_its_printed_size(self):
+        document = deepcopy(self.document)
+        figure = next(block for block in document["contents"] if block["kind"] == "figure")
+        figure["source_refs"] = [{"page": 1, "bbox": [134, 190, 478, 592]}]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "page.html"
+            build_site(document, {}, ROOT / "templates/page.html", output)
+            soup = BeautifulSoup(output.read_text(encoding="utf-8"), "html.parser")
+            frame = soup.select_one("#%s .figure-frame" % figure["id"])
+            # 344 pt wide in the PDF = 459 CSS px at 100% zoom
+            self.assertEqual(frame["style"], "max-width: 459px")
+
 
 if __name__ == "__main__":
     unittest.main()
