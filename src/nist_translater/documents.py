@@ -1465,7 +1465,7 @@ DOCUMENTS = {
     "38g": {
         "number": "SP 800-38G",
         "title": "Recommendation for Block Cipher Modes of Operation: Methods for Format-Preserving Encryption",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：フォーマット保持暗号化の方式",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：フォーマット保持暗号化の方式",
         "subtitle_ja": "フォーマット保持暗号化の方式",
         "slug": "38g",
         "description": "データの記号集合と長さを保ったまま暗号化するFF1およびFF3方式を規定します。本訳は2016年8月4日の更新を含むSP 800-38G Final PDFを対象とします。",
@@ -2264,7 +2264,7 @@ DOCUMENTS = {
     "38b": {
         "number": "SP 800-38B",
         "title": "Recommendation for Block Cipher Modes of Operation: the CMAC Mode for Authentication",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：認証のためのCMACモード",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：認証のためのCMACモード",
         "subtitle_ja": "認証のためのCMACモード",
         "slug": "38b",
         "description": "ブロック暗号に基づくメッセージ認証コードCMACの定義、鍵導出、処理手順および試験例を示します。NISTは2025年に改訂を決定していますが、本訳は現行の2016年更新Final PDFに基づきます。",
@@ -2277,7 +2277,7 @@ DOCUMENTS = {
     "38c": {
         "number": "SP 800-38C",
         "title": "Recommendation for Block Cipher Modes of Operation: the CCM Mode for Authentication and Confidentiality",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：認証と機密性のためのCCMモード",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：認証と機密性のためのCCMモード",
         "subtitle_ja": "認証と機密性のためのCCMモード",
         "slug": "38c",
         "description": "CTRモードとCBC-MACを組み合わせ、データの機密性と真正性を提供するCCMモードについて、入力形式、生成・暗号化、復号・検証、MAC長および例を示します。NISTの2025年改訂決定と潜在的更新候補が公表されていますが、本訳は2007年の正誤表更新を含む現行Final PDFに基づきます。",
@@ -2290,7 +2290,7 @@ DOCUMENTS = {
     "38d": {
         "number": "SP 800-38D",
         "title": "Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：Galois/Counter Mode（GCM）とGMAC",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：Galois/Counter Mode（GCM）とGMAC",
         "subtitle_ja": "Galois/Counter Mode（GCM）とGMAC",
         "slug": "38d",
         "description": "認証付き暗号方式GCMとメッセージ認証コードGMACについて、入力形式、暗号化・認証、復号・検証の手順、必要なパラメーター、セキュリティ上の要件および試験例を示します。",
@@ -2303,7 +2303,7 @@ DOCUMENTS = {
     "38e": {
         "number": "SP 800-38E",
         "title": "Recommendation for Block Cipher Modes of Operation: the XTS-AES Mode for Confidentiality on Storage Devices",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：ストレージデバイスの機密性を保護するXTS-AESモード",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：ストレージデバイスの機密性を保護するXTS-AESモード",
         "subtitle_ja": "ストレージデバイスの機密性を保護するXTS-AESモード",
         "slug": "38e",
         "description": "固定長データ単位を用いるストレージデバイス上のデータを保護するXTS-AESモードを承認し、適合要件と暗号文盗用時の格納順序を説明します。このモードはデータやその送信元を認証しません。",
@@ -2355,8 +2355,8 @@ DOCUMENTS = {
     "38a": {
         "number": "SP 800-38A",
         "title": "Recommendation for Block Cipher Modes of Operation: Methods and Techniques",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：方式と技法",
-        "subtitle_ja": "ブロック暗号の運用モードに関する推奨事項：方式と技法",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：方式と技法",
+        "subtitle_ja": "ブロック暗号利用モードに関する推奨事項：方式と技法",
         "slug": "38a",
         "description": "ECB、CBC、CFB、OFB、CTRの5つのブロック暗号モードについて、その定義、利用上の前提、運用方法および例を示します。",
         "source_format": "pdf",
@@ -2368,8 +2368,8 @@ DOCUMENTS = {
     "38asup": {
         "number": "SP 800-38A Addendum",
         "title": "Recommendation for Block Cipher Modes of Operation: Three Variants of Ciphertext Stealing for CBC Mode",
-        "title_ja": "ブロック暗号の運用モードに関する推奨事項：CBCモードの暗号文盗用3方式",
-        "subtitle_ja": "ブロック暗号の運用モードに関する推奨事項：CBCモードの暗号文盗用3方式",
+        "title_ja": "ブロック暗号利用モードに関する推奨事項：CBCモードの暗号文盗用3方式",
+        "subtitle_ja": "ブロック暗号利用モードに関する推奨事項：CBCモードの暗号文盗用3方式",
         "slug": "38asup",
         "description": "CBCモードでパディングによる暗号文の長さの増加を避ける、暗号文盗用（CBC-CS1、CBC-CS2、CBC-CS3）の3方式を規定します。",
         "source_format": "pdf",
