@@ -34,7 +34,7 @@ def _ungroup(markup):
     markup = EXTERNAL.sub(r"<sup>\1</sup>", markup)
     return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n for n in re.findall(r"\d+", m.group(1))), markup)
 BACK_ARROW = re.compile(r"\s*↩\s*(?=(?:</p>)?\s*$)")
-MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*†‡§]")
+MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*∗†‡§]")
 # a reference whose footnote the original does not print ("footnote_ref_missing" in the data)
 MISSING = '<sup class="fnref-missing" title="%s">%d</sup>'
 SUPERSCRIPT = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
