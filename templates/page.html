@@ -76,6 +76,11 @@
           <figcaption><a href="{{ block.source_page_url }}">原本 PDF p.{{ block.source_page }}</a> · <a href="#{{ block.id }}" aria-label="この原本画像へのリンク">この箇所へのリンク</a></figcaption>
         </figure>
       </section>
+      {% elif block.kind == 'figure' and not block.official_mark %}
+      {# 図は左右の列をまたいで横幅いっぱいに表示し、図中の文字を読めるようにする（日本語の説明文は付けない） #}
+      <section class="row source-only pair figure figure-wide" id="{{ block.id }}" aria-label="図表">
+        <div class="col-12 figure-body text" lang="en">{{ block.english_html }}{% if block.source_page_url %}<div class="source-ref"><a href="{{ block.source_page_url }}">原本 PDF {% if block.source_page_end and block.source_page_end > block.source_page %}pp.{{ block.source_page }}–{{ block.source_page_end }}{% else %}p.{{ block.source_page }}{% endif %}</a></div>{% endif %}</div>
+      </section>
       {% elif block.kind in ['figure', 'footnote'] %}
       <section class="row source-only pair {{ block.kind }}" id="{{ block.id }}" aria-label="{{ '図表' if block.kind == 'figure' else '脚注' }}の英日対訳">
         {% if block.kind == 'figure' %}<div class="block-label col-12">図表</div>{% endif %}

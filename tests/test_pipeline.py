@@ -104,10 +104,13 @@ class PipelineTests(unittest.TestCase):
             output = Path(directory) / "page.html"
             build_site(document, {}, ROOT / "templates/page.html", output)
             soup = BeautifulSoup(output.read_text(encoding="utf-8"), "html.parser")
-            # The Japanese column describes the figure in words; the image is shown once, in English.
-            japanese = soup.select_one('section.figure .japanese[lang="ja"]')
-            self.assertIsNotNone(japanese)
-            self.assertIn("アウトオブバンドデバイス", japanese.get_text())
+            # A figure is shown once, across both columns, without a Japanese description.
+            row = soup.select_one("section.figure")
+            self.assertIn("figure-wide", row["class"])
+            self.assertIsNone(row.select_one('.japanese[lang="ja"]'))
+            self.assertEqual(len(row.find_all("img")), 1)
+            self.assertNotIn("アウトオブバンドデバイス", row.get_text())
+            # Footnotes stay bilingual.
             self.assertIn("無効化には複数の形態がある", output.read_text(encoding="utf-8"))
 
 
