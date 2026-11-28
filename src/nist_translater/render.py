@@ -34,6 +34,47 @@ OFFICIAL_MARKS = {
 LONG_TOKEN = __import__("re").compile(r"\S{25,}")
 
 
+def _png_size(path):
+    """(width, height) of a PNG file, or None."""
+    try:
+        with open(path, "rb") as file:
+            head = file.read(24)
+    except OSError:
+        return None
+    if head[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
+
+
+def printed_width(block, site_dir):
+    """CSS px width of a figure as printed in the PDF at 100% zoom (72 pt = 96 px), or None.
+
+    A figure rebuilt from text pieces has one bbox per piece, so the figure is their
+    union on each page. On a landscape page the bbox is in the unrotated page's
+    coordinates, so its width and height are swapped against the image.
+    """
+    pages = {}
+    for ref in block.get("source_refs") or []:
+        if ref.get("bbox"):
+            x0, y0, x1, y1 = ref["bbox"]
+            box = pages.setdefault(ref.get("page"), [x0, y0, x1, y1])
+            box[:] = [min(box[0], x0), min(box[1], y0), max(box[2], x1), max(box[3], y1)]
+    if not pages:
+        return None
+    box_width, box_height = max(((b[2] - b[0], b[3] - b[1]) for b in pages.values()),
+                                key=lambda size: size[0] * size[1])
+    if box_width <= 0 or box_height <= 0:
+        return None
+    sources = re.findall(r'<img[^>]*\bsrc="([^"]+)"', block["html"])
+    size = _png_size(site_dir / sources[0]) if len(sources) == 1 else None
+    if size:
+        image_aspect, box_aspect = size[0] / size[1], box_width / box_height
+        # the image matches the swapped bbox better than the bbox itself
+        if abs(image_aspect * box_aspect - 1) < abs(image_aspect / box_aspect - 1):
+            box_width = box_height
+    return round(box_width * 96 / 72)
+
+
 def table_break_points(markup):
     """Let long URL-like strings in table cells wrap after "/" and before ".", "_", "?", "&", "=".
 
@@ -238,11 +279,9 @@ def build_site(document, meta, template_path, output_path):
             translated_figure = BeautifulSoup(block["html_ja"], "html.parser").find("img")
             item["figure_description"] = translated_figure.get("alt", "") if translated_figure else ""
         if block["kind"] == "figure":
-            # Show a figure no larger than it is printed in the PDF at 100% zoom:
-            # the bbox is in points, and 72 pt = 96 CSS px.
-            boxes = [ref["bbox"] for ref in block.get("source_refs") or [] if ref.get("bbox")]
-            if boxes:
-                item["figure_max_width"] = round(max(b[2] - b[0] for b in boxes) * 96 / 72)
+            width = printed_width(block, output_path.parent)
+            if width:
+                item["figure_max_width"] = width
         if document.get("source_format") == "pdf" and block.get("source_page"):
             item["source_page_url"] = document["source_url"] + "#page=%d" % block["source_page"]
         if block["html_ja"] and block["status"] in {"draft", "reviewed"}:
