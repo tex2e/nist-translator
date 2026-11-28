@@ -19,7 +19,7 @@ from markupsafe import Markup
 
 # "15 A reasonable…", "<sup>3</sup>For example…", "<sup>4</sup> 45 CFR 160", "<p>12 https://…",
 # "2: During…", "1 * See…", "2 &lt;PrintedName&gt;…"
-HEAD = re.compile(r"\s*(?:<p>)?\s*(?:<sup>(\d{1,3})</sup>\s*(?=\S)|(\d{1,3}):?\s*(?=[A-Za-z(“\"\[‘§&*]|https?:|<(?!/)|(?<=\s)\d))")
+HEAD = re.compile(r"\s*(?:<p>)?\s*(?:<sup>(\d{1,3})</sup>\s*(?=\S)|(\d{1,3}):?\s*(?=[A-Za-z(“\"\[‘§&*]|https?:|<(?!/)|\\\(|(?<=\s)\d))")
 REFERENCE = re.compile(r"<sup>(\d{1,3})</sup>")
 # several references in one superscript: "<sup>36,37</sup>" -> "<sup>36</sup>,<sup>37</sup>"
 GROUPED = re.compile(r"<sup>(\d{1,3}(?:\s*,\s*\d{1,3})+)</sup>")

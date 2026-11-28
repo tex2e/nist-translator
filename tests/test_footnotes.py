@@ -31,6 +31,11 @@ class FootnoteTests(unittest.TestCase):
         self.assertEqual(footnote_numbers("<sup>4</sup> <i>See</i> Overview"), [4])
         self.assertEqual(footnote_numbers("Figure 4-6. Card Back"), [])
         self.assertEqual(footnote_numbers("7 | TRUSTWORTHY SYSTEMS"), [])
+        self.assertEqual(footnote_numbers("2: During FY 2016, Mr. Jon Boyens"), [2])
+        self.assertEqual(footnote_numbers("1 * See Glossary definition"), [1])
+        self.assertEqual(footnote_numbers("2 &lt;PrintedName&gt; in"), [2])
+        self.assertEqual(footnote_numbers("7 \\(b\\) will be the value"), [7])
+        self.assertEqual(footnote_numbers("1.1 Scope"), [])
 
     def test_block_of_several_notes_becomes_one_row_per_note(self):
         rows = split_footnotes([row("f1", "footnote", "3For example. 4For example, OMB.",
@@ -44,6 +49,12 @@ class FootnoteTests(unittest.TestCase):
         rows = split_footnotes([row("f1", "footnote", "3For example. 4For example.", "たとえば。たとえば。")])
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["footnote_numbers"], [3, 4])
+
+    def test_grouped_references_link_each_note(self):
+        rows = page([row("p1", "paragraph", "model:<sup>36,37</sup> data", "モデル:<sup>36,37</sup> データ"),
+                     row("f1", "footnote", "36 One."), row("f2", "footnote", "37 Two.")])
+        self.assertIn('href="#f1"', str(rows[0]["english_html"]))
+        self.assertIn('href="#f2"', str(rows[0]["japanese_html"]))
 
     def test_reference_links_to_its_note_and_note_links_back(self):
         rows = page([row("p1", "paragraph", "Director<sup>3</sup> and OMB.<sup>4</sup>", "長官³およびOMB<sup>4</sup>"),
