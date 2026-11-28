@@ -78,9 +78,10 @@ LaTeX で組まれた PDF で fi の合字が落ちていれば `scripts/fix_los
 ```sh
 "$PY" scripts/translate_batches.py apply <dir>/tr <stem>
 "$PY" scripts/desu_masu.py --apply <stem>
+"$PY" scripts/check_glossary.py <stem>
 ```
 
-機械で変換できなかった文末（report に出たもの）は、英文に合わせて書き直します。
+機械で変換できなかった文末（report に出たもの）は、英文に合わせて書き直します。`check_glossary.py` が用語表（`data/glossary.json`）と違う訳語を検出したら、英文と照らして直します。別の英語の訳で正しいものは `scripts/apply_glossary_judgments.py` で `data/glossary-exceptions.json` に理由つきで記録します。
 
 ## 5. レビュー（codex 3 巡 + Opus）
 
