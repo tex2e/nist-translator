@@ -99,8 +99,6 @@ def build_translation_index(root=ROOT):
         sp_total=_format_number(sp_total),
         fips_total=_format_number(fips_total),
         series_names=names,
-        series_intro=("Special Publication 800 シリーズ、FIPS、NIST IR（Interagency or Internal Report）" if ir_total
-                      else "Special Publication 800 シリーズと FIPS"),
         series_names_long=names.replace("SP 800", "NIST SP 800"),
         ir_button=('<input type="radio" name="series" id="series-ir" value="ir"><label for="series-ir">IR '
                    '<span class="n">%s</span></label>' % _format_number(ir_total)) if ir_total else "",
