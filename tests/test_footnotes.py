@@ -70,6 +70,15 @@ class FootnoteTests(unittest.TestCase):
                      row("f1", "footnote", "90 One."), row("f2", "footnote", "91 Two.")])
         self.assertIn('href="#f2"', str(rows[0]["english_html"]))
 
+    def test_data_can_name_the_target_or_record_a_missing_note(self):
+        first = row("p1", "paragraph", "available.<sup>1</sup> and see<sup>149</sup>", "利用できます。<sup>1</sup>")
+        first["footnote_ref_targets"] = {"1": "r1"}
+        first["footnote_ref_missing"] = {"149": "原本にこの番号の脚注がありません"}
+        rows = page([first, row("r1", "list_item", "“The National Biometrics Challenge”", page=3)])
+        self.assertIn('href="#r1"', str(rows[0]["english_html"]))
+        self.assertIn('href="#r1"', str(rows[0]["japanese_html"]))
+        self.assertIn('class="fnref-missing"', str(rows[0]["english_html"]))
+
     def test_reference_links_to_its_note_and_note_links_back(self):
         rows = page([row("p1", "paragraph", "Director<sup>3</sup> and OMB.<sup>4</sup>", "長官³およびOMB<sup>4</sup>"),
                      row("f1", "footnote", "3For example. 4For example.", "³たとえば。⁴たとえば。")])

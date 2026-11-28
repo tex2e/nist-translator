@@ -13,6 +13,7 @@ can sit between the two halves of a paragraph that runs onto the next page. On t
   has "15 ", "<sup>15</sup>" or "¹⁵".
 """
 
+import html
 import re
 
 from markupsafe import Markup
@@ -34,6 +35,8 @@ def _ungroup(markup):
     return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n for n in re.findall(r"\d+", m.group(1))), markup)
 BACK_ARROW = re.compile(r"\s*↩\s*(?=(?:</p>)?\s*$)")
 MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*†‡§]")
+# a reference whose footnote the original does not print ("footnote_ref_missing" in the data)
+MISSING = '<sup class="fnref-missing" title="%s">%d</sup>'
 SUPERSCRIPT = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 # a footnote is printed on the page of its reference or, when the text runs on, a page or two later
 PAGE_REACH = 2
@@ -120,6 +123,10 @@ def split_footnotes(visible):
                 piece["japanese_html"] = Markup(_numbered(BACK_ARROW.sub("", str(item.get("japanese_html", ""))), run))
             result.append(piece)
             continue
+        if not starts and english and item.get("footnote_ref_number"):
+            # a footnote printed without a number, tied to its reference by the data (IR 7007)
+            result.append(dict(item, footnote_numbers=[item["footnote_ref_number"]]))
+            continue
         if not starts:
             result.append(item)
             continue
@@ -200,7 +207,8 @@ def link_footnotes(visible):
         if item.get("kind") == "footnote":
             for number in item.get("footnote_numbers", []):
                 notes.setdefault(number, []).append((index, item))
-    if not notes:
+    if not notes and not any(item.get("footnote_ref_targets") or item.get("footnote_ref_missing")
+                             for item in visible):
         return
     _link_rows(visible, notes, far=False)
     _link_rows(visible, notes, far=True)
@@ -229,6 +237,7 @@ def _word_before(text, heading=False):
 
 
 def _link_rows(visible, notes, far):
+    by_id = {item["id"]: item for item in visible}
     for index, item in enumerate(visible):
         # a footnote can refer to another footnote ("… other related information⁵⁵" in note 54)
         if "<sup" not in str(item.get("english_html", "")):
@@ -236,8 +245,20 @@ def _link_rows(visible, notes, far):
         page = _page(item)
         linked = {}
 
+        targets = {int(k): v for k, v in (item.get("footnote_ref_targets") or {}).items()}
+        missing = {int(k): v for k, v in (item.get("footnote_ref_missing") or {}).items()}
+
         def english(match):
             number = int(match.group(1))
+            if number in targets:
+                # a reference the data ties to a given row (the original's numbering does not say)
+                note = by_id.get(targets[number])
+                if note is None:
+                    return match.group(0)
+                linked[number] = note
+                return _link(number, note)
+            if number in missing:
+                return MISSING % (html.escape(missing[number], quote=True), number)
             if ((far or item.get("kind") == "footnote")
                     and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()]),
                                          item.get("kind") == "heading")):
@@ -249,12 +270,14 @@ def _link_rows(visible, notes, far):
             return _link(number, note)
 
         item["english_html"] = Markup(REFERENCE.sub(english, _ungroup(str(item["english_html"]))))
-        if not linked:
+        if not linked and not missing:
             continue
         japanese = _ungroup(str(item.get("japanese_html", "")))
         if japanese:
             japanese = REFERENCE.sub(lambda m: _link(int(m.group(1)), linked[int(m.group(1))])
-                                     if int(m.group(1)) in linked else m.group(0), japanese)
+                                     if int(m.group(1)) in linked else
+                                     MISSING % (html.escape(missing[int(m.group(1))], quote=True), int(m.group(1)))
+                                     if int(m.group(1)) in missing else m.group(0), japanese)
             for number, note in linked.items():
                 # a Unicode superscript ("長官³") used in place of <sup>3</sup>, once in the row
                 raised = str(number).translate(SUPERSCRIPT)
