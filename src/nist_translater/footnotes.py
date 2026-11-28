@@ -52,7 +52,8 @@ def _starts(markup):
     starts = [(int(match.group(1) or match.group(2)), 0)]
     position = match.end()
     while True:
-        follow = re.compile(r"(?<=[.)\]”\"])\s*(?:</p>\s*<p>)?\s*(?:<sup>%d</sup>|%d\s*(?=[A-Z(“\"\[]|https?:|<a\b))"
+        # the next note starts after sentence punctuation, or at a new paragraph ("</p><p><sup>2</sup> …")
+        follow = re.compile(r"(?:(?<=[.)\]”\"])\s*(?:</p>\s*<p>)?|</p>\s*<p>)\s*(?:<sup>%d</sup>|%d\s*(?=[A-Z(“\"\[]|https?:|<a\b))"
                             % ((starts[-1][0] + 1,) * 2)).search(markup, position)
         if not follow:
             return starts
@@ -65,7 +66,7 @@ def _japanese_starts(markup, numbers):
     offsets, position = [0], 0
     for number in numbers[1:]:
         raised = str(number).translate(SUPERSCRIPT)
-        follow = re.compile(r"(?<=[。．.)）\]］」』”])\s*(?:</p>\s*<p>)?\s*(?:<sup>%d</sup>|%d(?![0-9０-９.．])|%s(?![⁰¹²³⁴⁵⁶⁷⁸⁹]))"
+        follow = re.compile(r"(?:(?<=[。．.)）\]］」』”])\s*(?:</p>\s*<p>)?|</p>\s*<p>)\s*(?:<sup>%d</sup>|%d(?![0-9０-９.．])|%s(?![⁰¹²³⁴⁵⁶⁷⁸⁹]))"
                             % (number, number, raised)).search(markup, position)
         if not follow:
             return None
@@ -123,6 +124,15 @@ def split_footnotes(visible):
             result.append(item)
             continue
         numbers = [number for number, _ in starts]
+        if item.get("footnote_ref_number") and len(numbers) == 1:
+            # the original prints a different number on the note than on its reference
+            # (SP 800-128: reference 24, note printed as 27); the printed number is shown
+            piece = dict(item, footnote_numbers=[item["footnote_ref_number"]])
+            piece["english_html"] = Markup(_numbered(english, numbers[0]))
+            if item.get("html_ja"):
+                piece["japanese_html"] = Markup(_numbered(str(item.get("japanese_html", "")), numbers[0]))
+            result.append(piece)
+            continue
         japanese = str(item.get("japanese_html", "")) if item.get("html_ja") else ""
         japanese_offsets = _japanese_starts(japanese, numbers) if japanese else [0] * len(numbers)
         if len(numbers) == 1 or japanese_offsets is None:
@@ -194,6 +204,15 @@ def link_footnotes(visible):
         return
     _link_rows(visible, notes, far=False)
     _link_rows(visible, notes, far=True)
+    # references printed inside a figure image ("footnote_refs" in the data): no link can be
+    # placed in the picture, so the footnote only links back to the figure row
+    for index, item in enumerate(visible):
+        for number in item.get("footnote_refs") or []:
+            note = _target(notes, number, index, _page(item), span=_last_page(item) - _page(item))
+            if note is not None:
+                backrefs = note.setdefault("footnote_backrefs", [])
+                if number not in [n for n, _ in backrefs]:
+                    backrefs.append((number, item["id"]))
     for numbered in notes.values():
         for _, note in numbered:
             note.setdefault("footnote_backrefs", []).sort()
@@ -202,9 +221,11 @@ def link_footnotes(visible):
 UNIT = re.compile(r"(?:\b(?:m|mm|cm|km|ft)|[µμ]m)$")
 
 
-def _word_before(text):
-    """Before a far reference: a word (not a unit such as "m²" or "µm²") or sentence punctuation."""
-    return bool(re.search(r"[a-z.,;:\"”’]$", text)) and not UNIT.search(text)
+def _word_before(text, heading=False):
+    """Before a far reference: a word (not a unit such as "m²" or "µm²") or sentence punctuation.
+    A heading may be set in capitals ("II. PRIVACY LAW AND GOVERNMENT⁴")."""
+    letters = r"A-Za-z" if heading else r"a-z"
+    return bool(re.search(r"[%s.,;:\"”’]$" % letters, text)) and not UNIT.search(text)
 
 
 def _link_rows(visible, notes, far):
@@ -218,11 +239,12 @@ def _link_rows(visible, notes, far):
         def english(match):
             number = int(match.group(1))
             if ((far or item.get("kind") == "footnote")
-                    and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()]))):
+                    and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()]),
+                                         item.get("kind") == "heading")):
                 return match.group(0)
             note = _target(notes, number, index, page, far, _last_page(item) - page)
-            if not note:
-                return match.group(0)
+            if not note or note is item or note.get("id") == item.get("id"):
+                return match.group(0)  # a footnote never refers to itself
             linked[number] = note
             return _link(number, note)
 

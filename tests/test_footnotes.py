@@ -36,6 +36,7 @@ class FootnoteTests(unittest.TestCase):
         self.assertEqual(footnote_numbers("2 &lt;PrintedName&gt; in"), [2])
         self.assertEqual(footnote_numbers("7 \\(b\\) will be the value"), [7])
         self.assertEqual(footnote_numbers("1.1 Scope"), [])
+        self.assertEqual(footnote_numbers("<p><sup>1</sup> Statistical Division</p><p><sup>2</sup> Security Division</p>"), [1, 2])
 
     def test_block_of_several_notes_becomes_one_row_per_note(self):
         rows = split_footnotes([row("f1", "footnote", "3For example. 4For example, OMB.",
