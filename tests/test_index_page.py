@@ -57,6 +57,11 @@ class IndexPageTests(unittest.TestCase):
         self.assertEqual([th.get_text(strip=True) for th in soup.select("thead th")], ["資料番号", "タイトル", "刊行日"])
         self.assertIn("非公式", soup.select_one(".site-panel").get_text())
         self.assertNotIn("$", soup.select_one("main").get_text())
+        # every row is in the page; the script shows the first ones and the "more" buttons reveal the rest
+        more = soup.select_one("#more")
+        self.assertTrue(more.has_attr("hidden"))
+        self.assertEqual([button["id"] for button in more.select("button")], ["more-next", "more-all"])
+        self.assertIn("const PAGE = 50;", page)
 
     def test_old_fips_index_forwards_to_the_filtered_list(self):
         with tempfile.TemporaryDirectory() as temp:

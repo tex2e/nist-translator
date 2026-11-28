@@ -65,7 +65,8 @@ $theme_init
     /* 一覧 */
     .table-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: .7rem 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    /* 518 件を並べるため、行の余白と行間を詰めている */
+    th, td { padding: .4rem .75rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     thead th { position: sticky; top: 0; z-index: 1; background: #eef3f7; color: #3a4757; font-size: .8rem; font-weight: 700; white-space: nowrap; }
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr { cursor: pointer; transition: background-color .12s; }
@@ -81,16 +82,22 @@ $theme_init
     td.number a { color: var(--ink); text-decoration: none; }
     td.title a { color: inherit; text-decoration: none; }
     tbody tr:hover td.title .en { color: var(--accent); text-decoration: underline; text-underline-offset: .18em; }
-    .en { display: block; font-weight: 600; }
-    .ja { display: block; color: var(--muted); font-size: .88rem; }
+    .en { display: block; font-weight: 600; line-height: 1.4; }
+    .ja { display: block; color: var(--muted); font-size: .84rem; line-height: 1.4; }
     .tag { display: inline-block; margin-left: .4rem; padding: 0 .45rem; border-radius: 4px; background: #f1e9df; color: #7a4b12;
       font-size: .72rem; font-weight: 700; vertical-align: .1em; white-space: nowrap; }
     td.date { color: var(--muted); font-size: .88rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    /* 段階表示：最初は新しい順に一部だけ出し、続きはボタンで出す */
+    .more { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem .75rem;
+      padding: .9rem 1rem; border-top: 1px solid var(--line); }
+    .more p { margin: 0; color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
+    .more button, .empty button { min-height: 44px; padding: 0 1.1rem; border: 1px solid var(--accent); border-radius: 999px;
+      background: var(--card); color: var(--accent); font: inherit; font-weight: 650; cursor: pointer; }
+    .more button:hover, .empty button:hover { background: var(--accent-soft); }
+    .more button.primary { background: var(--accent); color: var(--accent-ink); }
+    .more button.primary:hover { filter: brightness(1.08); }
     .empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
     .empty p { margin: 0 0 1rem; }
-    .empty button { min-height: 44px; padding: 0 1.1rem; border: 1px solid var(--accent); border-radius: 999px; background: var(--card);
-      color: var(--accent); font: inherit; font-weight: 650; cursor: pointer; }
-    .empty button:hover { background: var(--accent-soft); }
     footer { padding: 1.5rem 0 2.5rem; color: var(--muted); font-size: .8rem; }
 
     @media (hover: none) { .kbd { display: none; } }
@@ -110,10 +117,12 @@ $theme_init
       .count { margin-left: 0; width: 100%; }
       thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
       table, tbody { display: block; }
-      tbody tr { display: grid; grid-template-columns: 1fr auto; gap: .15rem .75rem; padding: .8rem 1rem; border-bottom: 1px solid var(--line); }
+      tbody tr { display: grid; grid-template-columns: 1fr auto; gap: .1rem .75rem; padding: .55rem .8rem; border-bottom: 1px solid var(--line); }
       tbody tr:last-child { border-bottom: 0; }
       td { display: block; padding: 0; border: 0; }
       td.title { grid-column: 1 / -1; grid-row: 2; }
+      .en { font-size: .92rem; }
+      .ja { font-size: .8rem; }
       td.date { text-align: right; }
     }
     /* ダークテーマ（ヘッダー右上のボタン、または OS の設定） */
@@ -180,6 +189,11 @@ $site_header
 $rows
       </tbody>
     </table>
+    <div class="more" id="more" hidden>
+      <p id="more-status"></p>
+      <button type="button" class="primary" id="more-next"></button>
+      <button type="button" id="more-all"></button>
+    </div>
     <div class="empty" id="empty" hidden>
       <p>条件に合う資料はありません。検索語を短くするか、種類を「すべて」にしてください。<span id="empty-withdrawn" hidden>廃止された資料を探す場合は「廃止された資料を隠す」を外してください。</span></p>
       <button type="button" id="reset">条件をリセット</button>
@@ -204,10 +218,18 @@ $rows
     row._title = norm(row.cells[1].textContent);
   });
   let sortKey = 'date', sortDir = -1;  // the page is served newest first
+  // 段階表示：条件に合う資料のうち先頭の PAGE 件だけを出す（検索は常に全件が対象）
+  const PAGE = 50;
+  const more = document.getElementById('more');
+  const moreNext = document.getElementById('more-next');
+  const moreAll = document.getElementById('more-all');
+  let limit = (history.state && history.state.limit) || PAGE;  // 戻るで一覧に帰ったときに、出していた件数を戻す
 
   const series = () => document.querySelector('input[name="series"]:checked').value;
 
-  function apply() {
+  // reset: 検索語や絞り込みが変わったときは、先頭の PAGE 件に戻す
+  function apply(reset) {
+    if (reset === true) limit = PAGE;
     const terms = q.value.normalize('NFKC').toLowerCase().split(/\s+/).map(norm).filter(Boolean);
     const want = series();
     let shown = 0, hiddenWithdrawn = 0;
@@ -218,15 +240,24 @@ $rows
       const withdrawn = row.dataset.withdrawn === '1';
       const kept = matchText && !(hide.checked && withdrawn);
       if (kept) { per.all++; per[row.dataset.series]++; }
-      const visible = matchSeries && kept;
+      row._match = matchSeries && kept;
       if (matchSeries && matchText && hide.checked && withdrawn) hiddenWithdrawn++;
-      row.hidden = !visible;
-      if (visible) shown++;
+      if (row._match) shown++;
       // 並べ順の優先度: 資料番号に一致 → タイトルに一致 → 要約だけに一致
       row._rank = !terms.length ? 0 : terms.every((t) => row._num.includes(t)) ? 0
         : terms.every((t) => (row._num + row._title).includes(t)) ? 1 : 2;
     }
-    rows.slice().sort((a, b) => a._rank - b._rank).forEach((row) => tbody.appendChild(row));
+    let listed = 0;
+    rows.slice().sort((a, b) => a._rank - b._rank).forEach((row) => {
+      tbody.appendChild(row);
+      row.hidden = !(row._match && listed++ < limit);
+    });
+    const rest = shown - Math.min(limit, shown);
+    more.hidden = rest === 0;
+    document.getElementById('more-status').textContent = shown + ' 件中 ' + (shown - rest) + ' 件を表示';
+    moreNext.textContent = 'さらに ' + Math.min(PAGE, rest) + ' 件を表示';
+    moreAll.textContent = 'すべて表示（残り ' + rest + ' 件）';
+    moreAll.hidden = rest <= PAGE;
     for (const key in per) { const n = document.querySelector('#series-' + key + ' + label .n'); if (n) n.textContent = per[key]; }
     count.textContent = shown + ' 件' + (shown === rows.length ? '' : '（全 ' + rows.length + ' 件中）');
     table.hidden = shown === 0;
@@ -237,7 +268,7 @@ $rows
     if (want !== 'all') params.set('series', want);
     if (!hide.checked) params.set('withdrawn', 'show');
     const query = params.toString();
-    history.replaceState(null, '', query ? '?' + query : location.pathname);
+    history.replaceState(limit > PAGE ? { limit } : null, '', query ? '?' + query : location.pathname);
   }
 
   function sort(key) {
@@ -265,9 +296,20 @@ $rows
   if (initial) initial.checked = true;
   if (params.get('withdrawn') === 'show') hide.checked = false;
 
-  q.addEventListener('input', apply);
-  hide.addEventListener('change', apply);
-  document.querySelectorAll('input[name="series"]').forEach((r) => r.addEventListener('change', apply));
+  const refilter = () => apply(true);
+  q.addEventListener('input', refilter);
+  hide.addEventListener('change', refilter);
+  document.querySelectorAll('input[name="series"]').forEach((r) => r.addEventListener('change', refilter));
+  // 続きを出したら、新しく出た先頭の資料へフォーカスを移す（押したボタンが消えてもキーボード操作を続けられるように）
+  const showMore = (next) => {
+    const before = rows.filter((row) => !row.hidden).length;
+    limit = next;
+    apply();
+    const first = Array.from(tbody.rows).filter((row) => !row.hidden)[before];
+    if (first) first.querySelector('a').focus({ preventScroll: true });
+  };
+  moreNext.addEventListener('click', () => showMore(limit + PAGE));
+  moreAll.addEventListener('click', () => showMore(Infinity));
   table.tHead.addEventListener('click', (e) => { const b = e.target.closest('.sort'); if (b) sort(b.dataset.key); });
   q.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing) {
@@ -287,7 +329,7 @@ $rows
     if (row) row.querySelector('a').click();
   });
   document.getElementById('reset').addEventListener('click', () => {
-    q.value = ''; hide.checked = true; document.getElementById('series-all').checked = true; apply(); q.focus();
+    q.value = ''; hide.checked = true; document.getElementById('series-all').checked = true; apply(true); q.focus();
   });
   apply();
 })();
