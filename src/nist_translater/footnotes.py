@@ -17,9 +17,16 @@ import re
 
 from markupsafe import Markup
 
-# "15 A reasonable…", "<sup>3</sup>For example…", "<sup>4</sup> 45 CFR 160", "<p>12 https://…"
-HEAD = re.compile(r"\s*(?:<p>)?\s*(?:<sup>(\d{1,3})</sup>\s*(?=\S)|(\d{1,3})\s*(?=[A-Za-z(“\"\[‘§]|https?:|<(?!/)|(?<=\s)\d))")
+# "15 A reasonable…", "<sup>3</sup>For example…", "<sup>4</sup> 45 CFR 160", "<p>12 https://…",
+# "2: During…", "1 * See…", "2 &lt;PrintedName&gt;…"
+HEAD = re.compile(r"\s*(?:<p>)?\s*(?:<sup>(\d{1,3})</sup>\s*(?=\S)|(\d{1,3}):?\s*(?=[A-Za-z(“\"\[‘§&*]|https?:|<(?!/)|(?<=\s)\d))")
 REFERENCE = re.compile(r"<sup>(\d{1,3})</sup>")
+# several references in one superscript: "<sup>36,37</sup>" -> "<sup>36</sup>,<sup>37</sup>"
+GROUPED = re.compile(r"<sup>(\d{1,3}(?:\s*,\s*\d{1,3})+)</sup>")
+
+
+def _ungroup(markup):
+    return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n.strip() for n in m.group(1).split(",")), markup)
 MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*†‡§]")
 SUPERSCRIPT = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 # a footnote is printed on the page of its reference or, when the text runs on, a page or two later
@@ -79,7 +86,7 @@ def _pieces(markup, offsets):
 def _numbered(markup, number):
     """The footnote with its leading number (in any of the data's styles) replaced by one style."""
     raised = str(number).translate(SUPERSCRIPT)
-    lead = re.compile(r"^(\s*(?:<p>)?)\s*(?:<sup>%d</sup>|%d(?![0-9０-９])|%s(?![⁰¹²³⁴⁵⁶⁷⁸⁹]))\s*" % (number, number, raised))
+    lead = re.compile(r"^(\s*(?:<p>)?)\s*(?:<sup>%d</sup>|%d(?![0-9０-９])[:：]?|%s(?![⁰¹²³⁴⁵⁶⁷⁸⁹]))\s*" % (number, number, raised))
     body = lead.sub(r"\1", markup, count=1)
     opening = re.match(r"\s*(?:<p>)?", body).end()
     return body[:opening] + '<span class="fn-num">%d</span>' % number + body[opening:]
@@ -164,10 +171,10 @@ def link_footnotes(visible):
             linked[number] = note
             return _link(number, note)
 
-        item["english_html"] = Markup(REFERENCE.sub(english, str(item["english_html"])))
+        item["english_html"] = Markup(REFERENCE.sub(english, _ungroup(str(item["english_html"]))))
         if not linked:
             continue
-        japanese = str(item.get("japanese_html", ""))
+        japanese = _ungroup(str(item.get("japanese_html", "")))
         if japanese:
             japanese = REFERENCE.sub(lambda m: _link(int(m.group(1)), linked[int(m.group(1))])
                                      if int(m.group(1)) in linked else m.group(0), japanese)
