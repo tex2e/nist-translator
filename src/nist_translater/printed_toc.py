@@ -8,6 +8,7 @@ section depth, without the page number.
 
 import re
 import warnings
+from difflib import SequenceMatcher
 
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 
@@ -108,6 +109,140 @@ def find_targets(blocks, start):
     return headings
 
 
+STOP = {"and", "the", "for", "with", "from", "into", "its", "our", "are", "was", "this", "that", "of"}
+
+
+def loose_words(text, split_too=True):
+    """Words of a title for a loose comparison: "&" is "and", "on-going" is "ongoing",
+    LaTeX commands are dropped, small words do not count, and "KAS1" stays apart from "KAS2"."""
+    text = re.sub(r"(?<=\d)\\[A-Za-z]+\{([A-Za-z])\}", r"\1", text)  # "2\mathrm{e}" is "2e"
+    text = re.sub(r"\\[A-Za-z]+|\\[()\[\]]|[{}]", " ", text).replace("&", " and ").lower()
+    # "on-going" counts as "ongoing" and as "going"; "HMAC-hash" as "hmachash", "hmac" and "hash"
+    joined = re.sub(r"(?<=[a-z])\s*-\s*(?=[a-z])", "", text)
+    split = re.sub(r"(?<=[a-z])-(?=[a-z])", " ", text)
+    pattern = r"(?<![a-z0-9])[a-z]{3,}(?![a-z0-9])"
+    found = {word.replace("fi", "") for word in re.findall(pattern, joined)
+             + (re.findall(pattern, split) if split_too else [])} - STOP
+    # "KAS1" and "KAS2", "C(2e, 2s)" and "C(0e, 2s)", "from party U to party V" and "V to U" stay apart
+    found |= set(re.findall(r"\b[a-z]+\d[a-z0-9]*\b|\b\d+[a-z]+\b", text))
+    return found | {"%s>%s" % pair for pair in
+                    re.findall(r"\bfrom (?:party[ _])?([a-z]) to (?:party[ _])?([a-z])\b", text)}
+
+
+def loose_numbers(text):
+    """Section numbers and years in a title, without its table/figure number: a list of
+    figures may be numbered differently from the captions (SP 800-56A Rev. 3), but
+    "B.3.1" is never "B.3.2" and "Publications – 2004" never "– 2005"."""
+    text = re.sub(r"^\s*[A-Z]{1,4}(?:\([A-Z]\))?-\d+(?:[.-]\d+)*", "", LABEL.sub("", text))  # "III-42 ..."
+    # a section number with dots, or a year ("Imperative 3 –" may be left out in the body)
+    return set(re.findall(r"(?<![\d.])\d+(?:\.\d+)+|(?<!\d)(?:19|20)\d\d(?!\d)", text.lower()))
+
+
+def numbers_agree(entry_numbers, target_numbers):
+    """The entry's section numbers are in the target; a year counts only if the target has one."""
+    years = {number for number in target_numbers if "." not in number}
+    return all(number in target_numbers or ("." not in number and not years) for number in entry_numbers)
+
+
+def plain_lower(text):
+    return re.sub(r"\s+", " ", re.sub(r"\\[A-Za-z]+|[{}()]", " ", text)).strip().lower()
+
+
+def loose_text(block):
+    """The part of a block that can hold a title: a heading, a short paragraph, a table's
+    caption or first cells, a figure's caption or the start of its description."""
+    text = plain(block.get("html"))
+    if block["kind"] == "figure":
+        image = BeautifulSoup(block.get("html") or "", "html.parser").find("img")
+        text = text or ((image.get("alt") or "") if image else "")
+    if block["kind"] == "table":
+        caption = BeautifulSoup(block.get("html") or "", "html.parser").find("caption")
+        text = plain(str(caption)) if caption else text
+    return text
+
+
+def page_ended(block):
+    """A line of an unformatted TOC: dot leaders, or a dash before a page number ("Overview — 20").
+    A plain trailing "V" is not enough ("... from party U to party V")."""
+    text = plain(block.get("html"))
+    return bool(DOTTED.search(text) or re.search(r"[—–]\s*(?:[A-Za-z]{1,10}-)?(?:\d{1,4}|[ivxlcdm]{1,7})\s*$", text, re.I))
+
+
+def loose_choice(entry, rest, position, after, following, toc_lines):
+    """A block after the TOC whose title has nearly the same words as the entry (most of the
+    entry's words, and most of its own), with the same section numbers, when no exact match
+    was found. Headings come first, then the closest match, then the first block after the
+    previous entry's target. Another TOC's lines and paragraphs of prose never count."""
+    wanted, numbers = loose_words(entry, split_too=False), loose_numbers(entry)
+    if not wanted:
+        return None
+    single = len(wanted) == 1  # "Acronyms": only a heading "Appendix A—Acronyms" will do
+    key = entry_key(entry)
+    # "Appendix Y" or "B.3.1": the target carries the same letter or number
+    same_id = re.compile(r"(?<![A-Za-z0-9.])%s(?![A-Za-z0-9])" % re.escape(key[1]), re.I) \
+        if key[0] == "number" else None
+    labelled = bool(LABEL.match(entry))
+    best, best_rank = None, None
+    for block in rest:
+        place = position[block["id"]]
+        if place >= following or block["id"] in toc_lines or page_ended(block):
+            continue
+        text = loose_text(block)
+        # a bulleted item ("Outreach to small and medium businesses;") is not a section title
+        if not text or block["kind"] == "list_item" or (
+                block["kind"] not in ("heading", "table", "figure") and len(text) > len(entry) + 80):
+            continue
+        sample = text[:300] if block["kind"] == "heading" else text[:len(entry) + 80]
+        found, own = loose_words(sample), loose_words(sample, split_too=False)
+        own -= {"appendix", "annex", "section", "chapter"}
+        if single and (block["kind"] != "heading" or own != wanted):
+            continue
+        common = sum(1 for word in wanted if word in found or (
+            len(word) >= 5 and any(len(other) >= 5 and SequenceMatcher(None, word, other).ratio() >= 0.85
+                                   for other in found)))  # "Attach Graphs", "Workers", "Identitiy"
+        if not own or common < len(wanted) * 0.8 or common < len(own) * 0.6:
+            continue
+        # a table or figure may be numbered differently in the list, so its title must agree
+        # nearly in full ("KEM alternates" is not "KEM finalists")
+        if labelled and common < len(wanted) * 0.9:
+            continue
+        # a paragraph (a glossary term, a contact line) must hold every word of the entry
+        if not labelled and block["kind"] != "heading" and common < len(wanted):
+            continue
+        if not numbers_agree(numbers, loose_numbers(sample)) or (same_id and not same_id.search(sample)):
+            continue
+        # a table or figure entry goes to a caption only, a section preferably to its heading;
+        # among equal word sets the closer wording wins ("from party U to party V", not "V to U")
+        if labelled and not (block["kind"] in ("table", "figure") or LABEL.match(text)):
+            continue
+        close = SequenceMatcher(None, plain_lower(entry), plain_lower(sample)[:len(entry) + 20]).ratio()
+        # a target with a number the entry lacks comes later ("CHANGE NOTICE" is not "Change Notice 3")
+        rank = (bool(set(re.findall(r"\d+", sample)) - set(re.findall(r"\d+", entry))),
+                not labelled and block["kind"] != "heading",
+                -(common / len(wanted) + common / len(own)),
+                -close, place <= after, place)
+        if best_rank is None or rank < best_rank:
+            best, best_rank = block["id"], rank
+    return best
+
+
+def run_in_choice(entry, rest, position, after, following, toc_lines):
+    """A paragraph after the TOC that opens with the entry's title as a run-in heading
+    ("b. National Documents. National policy and guidance ...")."""
+    wanted = words(entry).split()
+    if len(wanted) < 2:
+        return None
+    # the title is followed by a stop, a colon or dash, or a new sentence: "The narrowest internal
+    # width of a conditioning component ..." is prose, not the heading "The Narrowest Internal Width"
+    title = re.compile(r"^[\W_]*" + r"[\W_]+".join(re.escape(word) for word in wanted)
+                       + r"[)\]\"”’]*(?=\s*[.:—–-]|(?-i:\s+[A-Z(])|\s*$)", re.I)
+    matches = [block for block in rest if block["kind"] in ("paragraph", "list_item")
+               and position[block["id"]] < following and block["id"] not in toc_lines and not page_ended(block)
+               and title.match(plain(block.get("html")))]
+    matches.sort(key=lambda block: (position[block["id"]] <= after, position[block["id"]]))
+    return matches[0]["id"] if matches else None
+
+
 CAPTION = re.compile(r"^\s*(Table|Figure|Fig\.|Algorithm|Example)\s*%s\s*(?:[.:–—-]|$)" % LABEL_ID, re.I)
 
 
@@ -128,7 +263,12 @@ def choose(candidates, entry, position=None, after=-1, following=0):
     if LABEL.match(entry):
         captions = [c for c in candidates if c[2] in ("table", "figure") or CAPTION.match(c[1])]
         candidates = captions + [c for c in candidates if c not in captions]
+    # "from party U to party V", "C(2e, 2s)": a list may be numbered differently from the
+    # captions (SP 800-56A Rev. 3), so "Figure 10" must also say what the entry says
+    marks = {word for word in loose_words(entry) if ">" in word or re.fullmatch(r"\d+[a-z]+", word)}
     for block_id, text, kind in candidates:
+        if marks and not marks <= loose_words(text[:len(entry) + 80]):
+            continue
         # a block that is not a heading must look like a title, not prose that mentions it
         if kind != "heading" and kind not in ("table", "figure") and len(text) > len(entry) + 30:
             continue
@@ -229,7 +369,14 @@ def printed_toc(blocks):
     """{block id: {"depth", "target", "en", "ja"}} for the lines of the printed TOC.
 
     `blocks` are the visible blocks in page order (with "html" and "html_ja").
+    The lines of every TOC are found first, so that a loose match never lands on a line of
+    another list (an entry of the list of appendices is not its own list-of-tables line).
     """
+    return _printed_toc(blocks, set(_printed_toc(blocks, None)))
+
+
+def _printed_toc(blocks, toc_lines):
+    """The TOC lines and their targets; with toc_lines None, exact matches only."""
     result = {}
     index = 0
     while index < len(blocks):
@@ -307,6 +454,16 @@ def printed_toc(blocks):
                 other = find(second)
                 if other[1] is not None:
                     key, target = other
+            if target is None and TOC_HEADING.match(text):
+                # "Table of Contents" listed in the TOC itself: its title
+                target = next((b["id"] for b in blocks if is_toc_title(blocks, blocks.index(b))
+                               and words(plain(b.get("html"))) == words(text)), None)
+                if target is not None:
+                    return {"depth": 1, "target": target, "en": text,
+                            "ja": strip_page(japanese) if japanese else text, "key": key}
+            if target is None and toc_lines is not None:
+                target = run_in_choice(text, rest, position, previous[0], following, toc_lines) or \
+                    loose_choice(probe, rest, position, previous[0], following, toc_lines)
             if target is not None and position[target] < following:
                 previous[0] = position[target]
             return {"depth": min(depth_of(key), 4), "target": target, "en": text,
