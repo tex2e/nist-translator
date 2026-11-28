@@ -46,6 +46,17 @@ def _png_size(path):
     return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
 
 
+def with_image_size(tag, site_dir):
+    """An <img> tag with width and height of its PNG, unless it has them already."""
+    if re.search(r"\b(?:width|height)=", tag):
+        return tag
+    source = re.search(r'\bsrc="([^"]+)"', tag)
+    size = source and not re.match(r"[a-z]+:", source.group(1)) and _png_size(site_dir / source.group(1))
+    if not size:
+        return tag
+    return tag[:-1].rstrip("/ ") + ' width="%d" height="%d">' % size
+
+
 def printed_width(block, site_dir):
     """CSS px width of a figure as printed in the PDF at 100% zoom (72 pt = 96 px), or None.
 
@@ -378,4 +389,6 @@ def build_site(document, meta, template_path, output_path):
     )
     # 図は表示位置に近づいてから読み込む（図の多い資料で、開いた直後にすべての画像を取りに行かないように）
     page = re.sub(r"<img(?![^>]*\bloading=)", '<img loading="lazy" decoding="async"', page)
+    # 画像の縦横を書いておき、読み込み前から場所を確保する（ページ内リンクの着地点がずれないように）
+    page = re.sub(r"<img\b[^>]*>", lambda match: with_image_size(match.group(0), output_path.parent), page)
     output_path.write_text(page, encoding="utf-8")
