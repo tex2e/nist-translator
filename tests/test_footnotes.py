@@ -56,6 +56,19 @@ class FootnoteTests(unittest.TestCase):
         self.assertIn('href="#f1"', str(rows[0]["english_html"]))
         self.assertIn('href="#f2"', str(rows[0]["japanese_html"]))
 
+    def test_footnote_can_refer_to_another_footnote(self):
+        rows = page([row("p1", "paragraph", "text<sup>54</sup>"),
+                     row("f1", "footnote", "54 Derived from related information<sup>55</sup> and 2<sup>32</sup>."),
+                     row("f2", "footnote", "55 Another note."), row("f3", "footnote", "32 Unrelated.")])
+        note = next(r for r in rows if r["id"] == "f1")
+        self.assertIn('href="#f2"', str(note["english_html"]))
+        self.assertIn("2<sup>32</sup>", str(note["english_html"]))
+
+    def test_space_separated_group_links_each(self):
+        rows = page([row("p1", "paragraph", "Measures<sup>90 91</sup>"),
+                     row("f1", "footnote", "90 One."), row("f2", "footnote", "91 Two.")])
+        self.assertIn('href="#f2"', str(rows[0]["english_html"]))
+
     def test_reference_links_to_its_note_and_note_links_back(self):
         rows = page([row("p1", "paragraph", "Director<sup>3</sup> and OMB.<sup>4</sup>", "長官³およびOMB<sup>4</sup>"),
                      row("f1", "footnote", "3For example. 4For example.", "³たとえば。⁴たとえば。")])

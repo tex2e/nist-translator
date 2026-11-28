@@ -21,8 +21,8 @@ from markupsafe import Markup
 # "2: During…", "1 * See…", "2 &lt;PrintedName&gt;…"
 HEAD = re.compile(r"\s*(?:<p>)?\s*(?:<sup>(\d{1,3})</sup>\s*(?=\S)|(\d{1,3}):?\s*(?=[A-Za-z(“\"\[‘§&*]|https?:|<(?!/)|\\\(|(?<=\s)\d))")
 REFERENCE = re.compile(r"<sup>(\d{1,3})</sup>")
-# several references in one superscript: "<sup>36,37</sup>" -> "<sup>36</sup>,<sup>37</sup>"
-GROUPED = re.compile(r"<sup>(\d{1,3}(?:\s*,\s*\d{1,3})+)</sup>")
+# several references in one superscript: "<sup>36,37</sup>" or "<sup>31 32</sup>" -> "<sup>36</sup>,<sup>37</sup>"
+GROUPED = re.compile(r"<sup>(\d{1,3}(?:\s*,\s*\d{1,3}|\s+\d{1,3})+)</sup>")
 
 
 # a reference in an HTML original that links to the footnote on the NIST site
@@ -31,7 +31,7 @@ EXTERNAL = re.compile(r'<sup><a href="[^"]*#fn:[^"]*">(\d{1,3})</a></sup>')
 
 def _ungroup(markup):
     markup = EXTERNAL.sub(r"<sup>\1</sup>", markup)
-    return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n.strip() for n in m.group(1).split(",")), markup)
+    return GROUPED.sub(lambda m: ",".join("<sup>%s</sup>" % n for n in re.findall(r"\d+", m.group(1))), markup)
 BACK_ARROW = re.compile(r"\s*↩\s*(?=(?:</p>)?\s*$)")
 MARK = re.compile(r"\s*(?:<p>)?\s*(?:<sup>)?[*†‡§]")
 SUPERSCRIPT = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
@@ -152,7 +152,13 @@ def _page(item):
     return item.get("source_page") or 0
 
 
-def _target(notes, number, index, page, far=False):
+def _last_page(item):
+    """The last page a row is printed on (a table can run over several pages)."""
+    pages = [ref.get("page") or 0 for ref in item.get("source_refs") or []]
+    return max(pages + [item.get("source_page_end") or 0, _page(item)])
+
+
+def _target(notes, number, index, page, far=False, span=0):
     """The footnote block for reference `number` in the row at `index`.
 
     Near (the first pass): the first one after the row within a few pages, else the nearest
@@ -165,7 +171,7 @@ def _target(notes, number, index, page, far=False):
         if len(candidates) == 1 and candidates[0][0] > index and not candidates[0][1].get("footnote_backrefs"):
             return candidates[0][1]
         return None
-    after = [(i, item) for i, item in candidates if i > index and 0 <= _page(item) - page <= PAGE_REACH]
+    after = [(i, item) for i, item in candidates if i > index and 0 <= _page(item) - page <= PAGE_REACH + span]
     if after:
         return after[0][1]
     before = [(i, item) for i, item in candidates if i < index and 0 <= page - _page(item) <= PAGE_REACH]
@@ -203,16 +209,18 @@ def _word_before(text):
 
 def _link_rows(visible, notes, far):
     for index, item in enumerate(visible):
-        if item.get("kind") == "footnote" or "<sup" not in str(item.get("english_html", "")):
+        # a footnote can refer to another footnote ("… other related information⁵⁵" in note 54)
+        if "<sup" not in str(item.get("english_html", "")):
             continue
         page = _page(item)
         linked = {}
 
         def english(match):
             number = int(match.group(1))
-            if far and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()])):
+            if ((far or item.get("kind") == "footnote")
+                    and not _word_before(re.sub(r"<[^>]*>", "", match.string[max(0, match.start() - 80):match.start()]))):
                 return match.group(0)
-            note = _target(notes, number, index, page, far)
+            note = _target(notes, number, index, page, far, _last_page(item) - page)
             if not note:
                 return match.group(0)
             linked[number] = note
